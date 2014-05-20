@@ -47,42 +47,43 @@
 #ifndef STATE_FILTERING_KALMAN_FILTER_KALMAN_FILTER_CONTEXT_HPP
 #define STATE_FILTERING_KALMAN_FILTER_KALMAN_FILTER_CONTEXT_HPP
 
-#include <state_filtering/EstimateDescriptor.hpp>
-#include <state_filtering/FilterContext.hpp>
-
-#include <state_filtering/kalman_filter/KalmanFilter.hpp>
+#include <state_filtering/distribution/EstimateDescriptor.hpp>
+#include <state_filtering/filter/FilterContext.hpp>
+#include <state_filtering/filter/kalman/KalmanFilter.hpp>
 
 namespace filter
 {
+
+/**
+ * @brief KalmanFilterContext is specialization of @ref filter::FilterContext for Kalman filters
+ */
+class KalmanFilterContext:
+        public FilterContext<KalmanFilter::Ptr>
+{
+public:
+    virtual ~KalmanFilterContext() { }
+
     /**
-     * @brief KalmanFilterContext is specialization of @ref filter::FilterContext for Kalman filters
+     * Propagates the current state and updates it using the measurement
+     *
+     * @param [in] measurement  Most recent measurement used to update the state
      */
-    class KalmanFilterContext:
-            public FilterContext<KalmanFilter::Ptr>
-    {
-    public:
-        virtual ~KalmanFilterContext() { }
+    virtual void propagateAndUpdate(const Measurement& measurement);
 
-        /**
-         * Propagates the current state and updates it using the measurement
-         *
-         * @param [in] measurement  Most recent measurement used to update the state
-         */
-        virtual void propagateAndUpdate(const Measurement& measurement);
+    /**
+     * @return Copy of the current state.
+     */
+    virtual const EstimateDescriptor::Ptr state();
 
-        /**
-         * @return Copy of the current state.
-         */
-        virtual const EstimateDescriptor::Ptr state();
+    /**
+     * @return Accesses the filter algorithm
+     */
+    virtual KalmanFilter::Ptr filter();
 
-        /**
-         * @return Accesses the filter algorithm
-         */
-        virtual KalmanFilter::Ptr filter();
+protected:
+    KalmanFilter::Ptr kalman_filter_;
+};
 
-    protected:
-        KalmanFilter::Ptr kalman_filter_;
-    };
 }
 
 #endif
