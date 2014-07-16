@@ -46,6 +46,8 @@
 #include <list>
 #include <urdf/model.h>
 #include <kdl_parser/kdl_parser.hpp>
+#include <kdl/treefksolverpos_recursive.hpp>
+#include <kdl/chainfksolverpos_recursive.hpp>
 
 // tools
 #include <state_filtering/tools/part_mesh_model.hpp>
@@ -61,7 +63,6 @@ public:
 
   void Get_part_meshes(std::vector<boost::shared_ptr<PartMeshModel> > &part_meshes);
 
-  int Get_number_links();
   int Get_number_joints();
 
 private:
@@ -74,8 +75,13 @@ private:
   KDL::Tree kin_tree_;
   KDL::Chain cam_2_base_;
 
-  int n_links_;
-  int n_joints_;
+  std::vector<std::string> joint_map_;
+  std::vector<float> lower_limit_;
+  std::vector<float> upper_limit_;
+
+  KDL::SegmentMap segment_map_;
+  KDL::TreeFkSolverPos_recursive *tree_solver_;
+  KDL::ChainFkSolverPos_recursive *chain_solver_;
   
 };
 
