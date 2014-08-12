@@ -1,6 +1,6 @@
 
-#ifndef DEPTH_MEASUREMENT_MODEL_HPP_
-#define DEPTH_MEASUREMENT_MODEL_HPP_
+#ifndef DEPTH_observer_HPP_
+#define DEPTH_observer_HPP_
 
 #include <Eigen/Eigen>
 
@@ -10,36 +10,36 @@
 
 #include <boost/shared_ptr.hpp>
 
-#include <state_filtering/models/measurement/spkf/measurement_model.hpp>
+#include <state_filtering/models/observers/spkf/measurement_model.hpp>
 #include <state_filtering/distributions/gaussian/gaussian_distribution.hpp>
 #include <state_filtering/utils/rigid_body_renderer.hpp>
 #include <state_filtering/utils/macros.hpp>
 
 namespace distr
 {
-    template<int measurement_dim = -1, int state_dim = -1, int noise_dim = -1>
-        class DepthMeasurementModel:
-            public MeasurementModelBase<measurement_dim, state_dim, noise_dim>
+    template<int observation_dim = -1, int state_dim = -1, int noise_dim = -1>
+        class DepthObserver:
+            public ObserverBase<measurement_dim, state_dim, noise_dim>
     {
         private:
-            typedef MeasurementModelBase<measurement_dim, state_dim, noise_dim>    BaseType;
-            typedef DepthMeasurementModel<measurement_dim, state_dim, noise_dim>   ThisType;
+            typedef ObserverBase<measurement_dim, state_dim, noise_dim>    BaseType;
+            typedef DepthObserver<measurement_dim, state_dim, noise_dim>   ThisType;
 
         public:
             typedef boost::shared_ptr<ThisType > Ptr;
 
-            typedef typename BaseType::MeasurementVector MeasurementVector;
+            typedef typename BaseType::ObservationVector ObservationVector;
             typedef typename BaseType::NoiseVector NoiseVector;
             typedef typename BaseType::StateVector StateVector;
             typedef typename BaseType::NoiseCovariance NoiseCovariance;
 
-        public: /* MeasurementModel */
+        public: /* Observer */
             /**
-             * @brief DepthMeasurementModel Construct
+             * @brief DepthObserver Construct
              *
              * @param object_model Object model instance
              */
-            explicit DepthMeasurementModel(obj_mod::TriangleObjectModel::Ptr object_model):
+            explicit DepthObserver(obj_mod::TriangleObjectModel::Ptr object_model):
                 BaseType(NonLinearWithAdditiveNoise),
                 mean_depth(0.0),
                 uncertain_variance(0.0),
@@ -53,41 +53,41 @@ namespace distr
             }
 
             /**
-             * @brief ~DepthMeasurementModel Destructor
+             * @brief ~DepthObserver Destructor
              */
-            virtual ~DepthMeasurementModel()
+            virtual ~DepthObserver()
             {
 
             }
 
             /**
-             * @see MeasurementModel::predict()
+             * @see Observer::predict()
              */
-            virtual MeasurementVector predict()
+            virtual ObservationVector predict()
             {
-                MeasurementVector predictedMeasurement;
-                _predict(predictedMeasurement);
+                ObservationVector predictedObservation;
+                _predict(predictedObservation);
 
-                return predictedMeasurement;
+                return predictedObservation;
             }
 
             /**
-             * @see MeasurementModel::sample(const NoiseVector&)
+             * @see Observer::sample(const NoiseVector&)
              *
              * NOTE: dimension might not be correct
              */
-            virtual MeasurementVector predict(const NoiseVector& randoms)
+            virtual ObservationVector predict(const NoiseVector& randoms)
             {
-                MeasurementVector predictedMeasurement(ThisType::measurement_dim_);
-                _predict(predictedMeasurement);
+                ObservationVector predictedObservation(ThisType::measurement_dim_);
+                _predict(predictedObservation);
 
-                return predictedMeasurement + randoms;
+                return predictedObservation + randoms;
             }
 
             /**
-             * @see MeasurementModel::sample()
+             * @see Observer::sample()
              */
-            virtual MeasurementVector sample()
+            virtual ObservationVector sample()
             {
                 NoiseVector iso_sample(ThisType::noise_dim_);
                 for (int i = 0; i < ThisType::noise_dim_; i++)
@@ -99,7 +99,7 @@ namespace distr
             }
 
             /**
-             * @see MeasurementModel::conditionals(const StateVector&)
+             * @see Observer::conditionals(const StateVector&)
              */
             virtual void conditionals(const StateVector& state)
             {
@@ -107,7 +107,7 @@ namespace distr
             }
 
             /**
-             * @see MeasurementModel::conditionals()
+             * @see Observer::conditionals()
              */
             virtual StateVector conditionals() const
             {
@@ -115,9 +115,9 @@ namespace distr
             }
 
             /**
-             * @see MeasurementModel::noiseCovariance()
+             * @see Observer::noiseCovariance()
              */
-            virtual const NoiseCovariance& noiseCovariance(const MeasurementVector& mean_measurement)
+            virtual const NoiseCovariance& noiseCovariance(const ObservationVector& mean_measurement)
             {
                 if (dirtyCov)
                 {
@@ -170,7 +170,7 @@ namespace distr
                             }
                             else
                             {
-                                noise_covariance(ind, 0) = measurement_NA_variance;
+                                noise_covariance(ind, 0) = observation_NA_variance;
                             }
                         }
                     }
@@ -210,7 +210,7 @@ namespace distr
                         }
                         else
                         {
-                            noise_covariance(i, 0) = measurement_NA_variance;
+                            noise_covariance(i, 0) = observation_NA_variance;
                         }
                     }
 
@@ -220,14 +220,14 @@ namespace distr
                 return noise_covariance;
             }
 
-            virtual int measurement_dimension() const { return this->n_rows * this->n_cols; }
-            virtual int noise_dimension() const { return measurement_dimension(); }
+            virtual int observation_dimension() const { return this->n_rows * this->n_cols; }
+            virtual int noise_dimension() const { return observation_dimension(); }
             virtual int conditional_dimension() const { return state.rows(); }
 
         public: /* Model specifics */
 
             /**
-             * @brief parameters sets depth measurement model parameters.
+             * @brief parameters sets depth observation model parameters.
              *
              * @param [in] camera_matrix     Camera projection matrix
              * @param [in] n_rows            Image y dimension
@@ -240,8 +240,8 @@ namespace distr
                                     double depth_noise_sigma,
                                     double mean_depth,
                                     double uncertain_sigma,
-                                    double measurement_NA_sigma,
-                                    const MeasurementVector& sensor_measurement,
+                                    double observation_NA_sigma,
+                                    const ObservationVector& sensor_measurement,
                                     double c,
                                     double s)
             {
@@ -253,7 +253,7 @@ namespace distr
                 this->depth_noise_variance = depth_noise_sigma * depth_noise_sigma;
                 this->mean_depth = mean_depth;
                 this->uncertain_variance = uncertain_sigma * uncertain_sigma;
-                this->measurement_NA_variance = measurement_NA_sigma * measurement_NA_sigma;
+                this->measurement_NA_variance = observation_NA_sigma * observation_NA_sigma;
 
                 noise_covariance.resize(noise_dimension(), 1);
                 noise_covariance.setOnes();
@@ -275,7 +275,7 @@ namespace distr
             }
 
             /**
-             * @brief object_model Returns the object model used for measurement prediction
+             * @brief object_model Returns the object model used for observation prediction
              * @return
              */
             virtual obj_mod::TriangleObjectModel::Ptr objectModel()
@@ -285,28 +285,28 @@ namespace distr
 
         private:
             /**
-             * @brief predict Implementation of the measurement prediction.
+             * @brief predict Implementation of the observation prediction.
              *
-             * @param [out] measurement
+             * @param [out] observation
              */
-            virtual void _predict(MeasurementVector& measurement)
+            virtual void _predict(ObservationVector& observation)
             {
                 dirtyCov = true;
 
-                std::vector<float> measurementVector;
+                std::vector<float> observationVector;
 
                 object_model->state(state);
                 object_model->Predict(camera_matrix,
                         n_rows,
                         n_cols,
-                        measurementVector);
+                        observationVector);
 
-                measurement.resize(measurement_dimension(), 1);
-                measurement.setOnes();
-                measurement *= mean_depth;
+                observation.resize(measurement_dimension(), 1);
+                observation.setOnes();
+                observation *= mean_depth;
 
-                //availableAll_ += MeasurementVector::Ones(measurement_dimension(), 1);
-                //availableAndIntersectAll_ += MeasurementVector::Ones(measurement_dimension(), 1);
+                //availableAll_ += ObservationVector::Ones(measurement_dimension(), 1);
+                //availableAndIntersectAll_ += ObservationVector::Ones(measurement_dimension(), 1);
 
                 int curInd;
                 for (unsigned int i = 0; i < availableIndices_.size(); i++)
@@ -317,7 +317,7 @@ namespace distr
 
                     if (measurementVector[curInd] < std::numeric_limits<float>::max())
                     {
-                        measurement(curInd, 0) = measurementVector[curInd];
+                        observation(curInd, 0) = observationVector[curInd];
                         availableAndIntersectAll_(curInd, 0) += 1;
                     }
                 }
@@ -331,18 +331,18 @@ namespace distr
             int n_cols;
             Eigen::Matrix3d camera_matrix;
             StateVector state;
-            MeasurementVector measurement;
+            ObservationVector observation;
             filter::GaussianDistribution<double, 1> unit_gaussian;
             double depth_noise_variance;
             double mean_depth;
             double uncertain_variance;
-            double measurement_NA_variance;
+            double observation_NA_variance;
             NoiseCovariance noise_covariance;
             std::vector<int> availableIndices_;
 
-            MeasurementVector availableAll_;
-            MeasurementVector availableAndIntersectAll_;
-            MeasurementVector sensor_measurement_;
+            ObservationVector availableAll_;
+            ObservationVector availableAndIntersectAll_;
+            ObservationVector sensor_measurement_;
             bool dirtyCov;
 
             double c_;

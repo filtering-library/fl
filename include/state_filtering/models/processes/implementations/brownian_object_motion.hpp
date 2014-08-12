@@ -50,9 +50,9 @@
 
 #include <state_filtering/utils/helper_functions.hpp>
 #include <state_filtering/states/floating_body_system.hpp>
-#include <state_filtering/models/process/features/stationary_process.hpp>
-#include <state_filtering/models/process/implementations/damped_wiener_process.hpp>
-#include <state_filtering/models/process/implementations/integrated_damped_wiener_process.hpp>
+#include <state_filtering/models/processes/features/stationary_process.hpp>
+#include <state_filtering/models/processes/implementations/damped_wiener_process.hpp>
+#include <state_filtering/models/processes/implementations/integrated_damped_wiener_process.hpp>
 
 namespace distributions
 {

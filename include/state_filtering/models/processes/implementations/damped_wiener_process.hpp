@@ -49,7 +49,7 @@
 
 #include <boost/assert.hpp>
 
-#include <state_filtering/models/process/features/stationary_process.hpp>
+#include <state_filtering/models/processes/features/stationary_process.hpp>
 #include <state_filtering/distributions/implementations/gaussian.hpp>
 
 namespace distributions

@@ -136,11 +136,11 @@ private:
     int n_max_poses_x_;
     int n_max_poses_y_;
 
-    // needed for openGL time measurement
+    // needed for openGL time observation
     GLuint time_query_[TIME_MEASUREMENTS_COUNT];
     unsigned int time_elapsed_ns_;
 
-    // needed for cpu time measurement
+    // needed for cpu time observation
     double start_time_;
     double stop_time_;
     double cpu_times_[TIME_MEASUREMENTS_COUNT];
@@ -198,7 +198,7 @@ private:
     Eigen::Matrix4f GetModelMatrix(const std::vector<float> state);
     Eigen::Matrix4f GetProjectionMatrix(float n, float f, float l, float r, float t, float b);
 
-    void DisplayTimeMeasurements(std::map<int, int> factors, render_type calling_function);
+    void DisplayTimeObservations(std::map<int, int> factors, render_type calling_function);
     void ReallocateBuffers();
     void SetupViewMatrix();
     void SetupProjectionMatrix(const Eigen::Matrix3f camera_matrix);

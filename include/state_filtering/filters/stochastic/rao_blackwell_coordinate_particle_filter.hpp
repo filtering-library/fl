@@ -1,5 +1,5 @@
 /*************************************************************************
-This software allows for filtering in high-dimensional measurement and
+This software allows for filtering in high-dimensional observation and
 state spaces, as described in
 
 M. Wuthrich, P. Pastor, M. Kalakrishnan, J. Bohg, and S. Schaal.
@@ -25,28 +25,31 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 *************************************************************************/
 
-#ifndef COORDINATE_FILTER_
-#define COORDINATE_FILTER_
+#ifndef FILTERS_STOCHASTIC_RAO_BLACKWELL_COORDINATE_PARTICLE_FILTER_HPP
+#define FILTERS_STOCHASTIC_RAO_BLACKWELL_COORDINATE_PARTICLE_FILTER_HPP
+
+
+// TODO: NOT ALL THESE INCLUDES ARE NECESSARY
 
 #include <vector>
 #include <limits>
 #include <boost/shared_ptr.hpp>
 #include <Eigen/Core>
 
-#include <state_filtering/models/measurement/features/rao_blackwell_measurement_model.hpp>
-//#include <state_filtering/models/measurement/cpu_image_observation_modegaussian_pixel_observation_modelel.hpp>
-//#include <state_filtering/models/process/implementations/occlusion_process.hpp>
+#include <state_filtering/models/observers/features/rao_blackwell_observer.hpp>
+//#include <state_filtering/models/observers/cpu_image_observation_modegaussian_pixel_observation_modelel.hpp>
+//#include <state_filtering/models/processes/implementations/occlusion_process.hpp>
 
 #include <state_filtering/utils/rigid_body_renderer.hpp>
-#include <state_filtering/models/process/features/stationary_process.hpp>
+#include <state_filtering/models/processes/features/stationary_process.hpp>
 #include <state_filtering/distributions/implementations/gaussian.hpp>
 #include <state_filtering/distributions/implementations/sum_of_deltas.hpp>
 
 #include <state_filtering/states/floating_body_system.hpp>
 
-#include <state_filtering/models/process/implementations/brownian_object_motion.hpp>
+#include <state_filtering/models/processes/implementations/brownian_object_motion.hpp>
 
-#include <state_filtering/filters/stochastic/coordinate_filter.hpp>
+#include <state_filtering/filters/stochastic/rao_blackwell_coordinate_particle_filter.hpp>
 
 #include <state_filtering/utils/macros.hpp>
 #include <state_filtering/utils/helper_functions.hpp>
@@ -77,29 +80,29 @@ public:
     typedef GaussianMappable< typename ProcessType_::ScalarType,
                               typename ProcessType_::StateType, ProcessType_::NoiseType::SizeAtCompileTime>     MappableType;
 
-    // measurement model features
-    typedef distributions::RaoBlackwellMeasurementModel
+    // observation model features
+    typedef distributions::RaoBlackwellObserver
                                  <typename ObserverType_::ScalarType,      typename ObserverType_::StateType,
-                                  typename ObserverType_::MeasurementType, typename ObserverType_::IndexType>   ObserverType;
+                                  typename ObserverType_::ObservationType, typename ObserverType_::IndexType>   ObserverType;
 
     // basic types
     typedef ScalarType_                              ScalarType;
     typedef StateType_                               StateType;
     typedef typename StationaryType::InputType       InputType;
     typedef typename MappableType::NoiseType         NoiseType;
-    typedef typename ObserverType::MeasurementType   MeasurementType;
+    typedef typename ObserverType::ObservationType   ObservationType;
     typedef typename ObserverType::IndexType         IndexType;
 
     // state distribution
     typedef SumOfDeltas<ScalarType, StateType>       StateDistributionType;
 
 public:
-    template<typename ProcessPointer, typename MeasurementModelPointer>
+    template<typename ProcessPointer, typename ObserverPointer>
     RaoBlackwellCoordinateParticleFilter(const ProcessPointer           process_model,
-                                         const MeasurementModelPointer  observation_model,
+                                         const ObserverPointer  observation_model,
                                          const std::vector<std::vector<IndexType> >& sampling_blocks,
                                          const ScalarType& max_kl_divergence = 0):
-        measurement_model_(observation_model),
+        observation_model_(observation_model),
         stationary_process_(process_model),
         mappable_process_(process_model),
         max_kl_divergence_(max_kl_divergence)
@@ -109,12 +112,12 @@ public:
     virtual ~RaoBlackwellCoordinateParticleFilter() {}
 
 public:
-    void Filter(const MeasurementType& measurement,
+    void Filter(const ObservationType& observation,
                 const ScalarType&  delta_time,
                 const InputType&   input)
     {
         INIT_PROFILING;
-        measurement_model_->Measurement(measurement, delta_time);
+        observation_model_->Observation(observation, delta_time);
 
         loglikes_ = std::vector<ScalarType>(samples_.size(), 0);
         noises_ = std::vector<NoiseType>(samples_.size(), NoiseType::Zero(mappable_process_->NoiseDimension()));
@@ -136,7 +139,7 @@ public:
             bool update_occlusions = (block_index == sampling_blocks_.size()-1);
             std::cout << "evaluating with " << next_samples_.size() << " samples " << std::endl;
             RESET;
-            std::vector<ScalarType> new_loglikes = measurement_model_->Loglikes(next_samples_,
+            std::vector<ScalarType> new_loglikes = observation_model_->Loglikes(next_samples_,
                                                                            indices_,
                                                                            update_occlusions);
             MEASURE("evaluation");
@@ -217,7 +220,7 @@ public:
     void Samples(const std::vector<StateType >& samples)
     {
         samples_ = samples;
-        indices_ = std::vector<size_t>(samples_.size(), 0); measurement_model_->Reset();
+        indices_ = std::vector<size_t>(samples_.size(), 0); observation_model_->Reset();
         log_weights_ = std::vector<ScalarType>(samples_.size(), 0);
     }
     void SamplingBlocks(const std::vector<std::vector<IndexType> >& sampling_blocks)
@@ -261,8 +264,8 @@ private:
     std::vector<ScalarType> loglikes_;
 
 
-    // measurement model
-    boost::shared_ptr<ObserverType> measurement_model_;
+    // observation model
+    boost::shared_ptr<ObserverType> observation_model_;
 
     // process model
     boost::shared_ptr<StationaryType>   stationary_process_;

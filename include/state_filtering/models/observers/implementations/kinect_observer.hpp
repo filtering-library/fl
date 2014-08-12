@@ -1,5 +1,5 @@
 /*************************************************************************
-This software allows for filtering in high-dimensional measurement and
+This software allows for filtering in high-dimensional observation and
 state spaces, as described in
 
 M. Wuthrich, P. Pastor, M. Kalakrishnan, J. Bohg, and S. Schaal.
@@ -25,8 +25,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 *************************************************************************/
 
-#ifndef MODELS_MEASUREMENT_IMPLEMENTATIONS_KINECT_MEASUREMENT_MODEL_HPP_
-#define MODELS_MEASUREMENT_IMPLEMENTATIONS_KINECT_MEASUREMENT_MODEL_HPP_
+#ifndef MODELS_OBSERVERS_IMPLEMENTATIONS_KINECT_observer_HPP_
+#define MODELS_OBSERVERS_IMPLEMENTATIONS_KINECT_observer_HPP_
 
 #include <state_filtering/distributions/features/evaluable.hpp>
 #include <cmath>
@@ -36,7 +36,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace distributions
 {
 
-class KinectMeasurementModel: public distributions::Evaluable<double, double>
+class KinectObserver: public distributions::Evaluable<double, double>
 {
 public:
     typedef distributions::Evaluable<double, double >   BaseType;
@@ -44,7 +44,7 @@ public:
     typedef typename BaseType::VectorType               VectorType;
 
 
-    KinectMeasurementModel(ScalarType tail_weight = 0.01,
+    KinectObserver(ScalarType tail_weight = 0.01,
                            ScalarType model_sigma = 0.003,
                            ScalarType sigma_factor = 0.00142478,
                            ScalarType half_life_depth = 1.0,
@@ -55,21 +55,21 @@ public:
           sigma_factor_(sigma_factor),
           max_depth_(max_depth) { }
 
-    virtual ~KinectMeasurementModel() {}
+    virtual ~KinectObserver() {}
 
-    virtual ScalarType Probability(const VectorType& measurement) const
+    virtual ScalarType Probability(const VectorType& observation) const
     {
         // todo: if the prediction is infinite, the prob should not depend on visibility. it does not matter
         // for the algorithm right now, but it should be changed
         ScalarType probability;
-        ScalarType sigma = model_sigma_ + sigma_factor_*measurement*measurement;
+        ScalarType sigma = model_sigma_ + sigma_factor_*observation*observation;
         if(!occlusion_)
         {
             if(isinf(prediction_)) // if the prediction_ is infinite we return the limit
                 probability = tail_weight_/max_depth_;
             else
                 probability = tail_weight_/max_depth_
-                        + (1 - tail_weight_)*std::exp(-(pow(prediction_-measurement,2)/(2*sigma*sigma)))
+                        + (1 - tail_weight_)*std::exp(-(pow(prediction_-observation,2)/(2*sigma*sigma)))
                         / (sqrt(2*M_PI) *sigma);
         }
         else
@@ -77,22 +77,22 @@ public:
             if(isinf(prediction_)) // if the prediction_ is infinite we return the limit
                 probability = tail_weight_/max_depth_ +
                         (1-tail_weight_)*exponential_rate_*
-                        std::exp(0.5*exponential_rate_*(-2*measurement + exponential_rate_*sigma*sigma));
+                        std::exp(0.5*exponential_rate_*(-2*observation + exponential_rate_*sigma*sigma));
 
             else
                 probability = tail_weight_/max_depth_ +
                         (1-tail_weight_)*exponential_rate_*
-                        std::exp(0.5*exponential_rate_*(2*prediction_-2*measurement + exponential_rate_*sigma*sigma))
-            *(1+erf((prediction_-measurement+exponential_rate_*sigma*sigma)/(sqrt(2)*sigma)))
+                        std::exp(0.5*exponential_rate_*(2*prediction_-2*observation + exponential_rate_*sigma*sigma))
+            *(1+erf((prediction_-observation+exponential_rate_*sigma*sigma)/(sqrt(2)*sigma)))
             /(2*(std::exp(prediction_*exponential_rate_)-1));
         }
 
         return probability;
     }
 
-    virtual ScalarType LogProbability(const VectorType& measurement) const
+    virtual ScalarType LogProbability(const VectorType& observation) const
     {
-        return std::log(Probability(measurement));
+        return std::log(Probability(observation));
     }
 
     virtual void Condition(const ScalarType& prediction, const bool& occlusion)

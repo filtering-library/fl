@@ -1,82 +1,82 @@
-#ifndef MEASUREMENT_MODEL_HPP_
-#define MEASUREMENT_MODEL_HPP_
+#ifndef observer_HPP_
+#define observer_HPP_
 
 #include <Eigen/Dense>
 
 #include <boost/shared_ptr.hpp>
 
-#include <state_filtering/models/measurement/spkf/model_types.hpp>
+#include <state_filtering/models/observers/spkf/model_types.hpp>
 #include <state_filtering/utils/macros.hpp>
 
 namespace distr
 {
-    template<int measurement_dim, int state_dim, int noise_dim>
-    class MeasurementModelBase /* :
+    template<int observation_dim, int state_dim, int noise_dim>
+    class ObserverBase /* :
             public Distribution<measurement_dim,
                                 state_dim,
-                                measurement_dim, // not really needed !?
+                                observation_dim, // not really needed !?
                                 noise_dim> */
     {
     private:
-        typedef MeasurementModelBase<measurement_dim, state_dim, noise_dim> this_type;
+        typedef ObserverBase<observation_dim, state_dim, noise_dim> this_type;
 
     public:
         typedef boost::shared_ptr<this_type > Ptr;
 
     public:
-        static const int measurement_dim_ = measurement_dim;
+        static const int observation_dim_ = observation_dim;
         static const int state_dim_ = state_dim;
         static const int noise_dim_ = noise_dim;
 
-        typedef Eigen::Matrix<double, this_type::measurement_dim_, 1> MeasurementVector;
+        typedef Eigen::Matrix<double, this_type::observation_dim_, 1> ObservationVector;
         typedef Eigen::Matrix<double, this_type::noise_dim_, 1> NoiseVector;
         typedef Eigen::Matrix<double, this_type::state_dim_, 1> StateVector;
         typedef Eigen::MatrixXd NoiseCovariance;
 
     public:
         /**
-         * @brief MeasurementModel default constructor
+         * @brief Observer default constructor
          *
          * @param [in] model_type Model type (linearity and noise behaviour)
          */
-        explicit MeasurementModelBase(ModelType model_type = Linear): model_type(model_type) { }
+        explicit ObserverBase(ModelType model_type = Linear): model_type(model_type) { }
 
         /**
-         * @brief ~MeasurementModel Default destructor
+         * @brief ~Observer Default destructor
          */
-        virtual ~MeasurementModelBase() { }
+        virtual ~ObserverBase() { }
 
         /**
-         * @brief predict Predicts the measurement based on the current state.
+         * @brief predict Predicts the observation based on the current state.
          *
-         * Based on the current state this predicts the measurement without incorporating any noise.
+         * Based on the current state this predicts the observation without incorporating any noise.
          * This is a deterministic process. That is, given the same state at different points in
-         * time, the predicted measurement will remain the same.
+         * time, the predicted observation will remain the same.
          *
-         * @return Predicted measurement vector
+         * @return Predicted observation vector
          */
-        virtual MeasurementVector predict() = 0;
+        virtual ObservationVector predict() = 0;
 
         /**
-         * @brief predict Incorporates the given noise vector into the measurement prediciton.
+         * @brief predict Incorporates the given noise vector into the observation prediciton.
          *
-         * Maps the given noise vector int the measurement. The mapping may be linear or non-linear.
+         * Maps the given noise vector int the observation. The mapping may be linear or non-linear.
          *
-         * @note The measurement model has to specify the characteristics of the noise. Eg. wheather
+         * @note The observation model has to specify the characteristics of the noise. Eg. wheather
          * it's additive or not and what distribution it underlies.
          *
          * @param [in] randoms Noise vector
          *
-         * @return Measurement vector including noise
+         * @return Observation vector including noise
          */
-        virtual MeasurementVector predict(const NoiseVector& noise) = 0;
+        virtual ObservationVector predict(const NoiseVector& noise) = 0;
 
         /**
-         * @brief sample Samples from the measurement model distribution including noise
+         * @brief sample Samples from the observation model distribution including noise
          *
-         * @return Measurement vector
+         * @return Observation vector
          */
-        virtual MeasurementVector sample() = 0;
+        virtual ObservationVector sample() = 0;
 
         /**
          * @brief conditionals Sets the conditional events
@@ -104,12 +104,12 @@ namespace distr
          *
          * @return Noise covariance matrix
          */
-        virtual const NoiseCovariance& noiseCovariance(const MeasurementVector& sensor_measurement) = 0;
+        virtual const NoiseCovariance& noiseCovariance(const ObservationVector& sensor_measurement) = 0;
 
 
-        virtual int measurement_dimension() const { return this_type::measurement_dim_; }
+        virtual int observation_dimension() const { return this_type::observation_dim_; }
         virtual int noise_dimension() const { return this_type::noise_dim_; }
-        virtual int conditional_dimension() const { return this_type::measurement_dim_; }
+        virtual int conditional_dimension() const { return this_type::observation_dim_; }
 
         /*
         virtual Eigen::Matrix<double, this_type::size_variables_, 1>

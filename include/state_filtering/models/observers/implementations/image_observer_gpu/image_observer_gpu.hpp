@@ -1,14 +1,14 @@
-#ifndef MODELS_MEASUREMENT_IMPLEMENTATIONS_IMAGE_MEASUREMENT_MODEL_GPU_HPP
-#define MODELS_MEASUREMENT_IMPLEMENTATIONS_IMAGE_MEASUREMENT_MODEL_GPU_HPP
+#ifndef MODELS_OBSERVERS_IMPLEMENTATIONS_IMAGE_observer_GPU_HPP
+#define MODELS_OBSERVERS_IMPLEMENTATIONS_IMAGE_observer_GPU_HPP
 
 #include <vector>
 #include "boost/shared_ptr.hpp"
 #include "Eigen/Core"
 
 
-#include <state_filtering/models/measurement/features/rao_blackwell_measurement_model.hpp>
-#include <state_filtering/models/measurement/implementations/image_measurement_model_gpu/object_rasterizer.hpp>
-#include <state_filtering/models/measurement/implementations/image_measurement_model_gpu/cuda_filter.hpp>
+#include <state_filtering/models/observers/features/rao_blackwell_observer.hpp>
+#include <state_filtering/models/observers/implementations/image_observer_gpu/object_rasterizer.hpp>
+#include <state_filtering/models/observers/implementations/image_observer_gpu/cuda_filter.hpp>
 
 #include <state_filtering/states/floating_body_system.hpp>
 
@@ -18,36 +18,36 @@ namespace distributions
 {
 
 
-struct ImageMeasurementModelGPUTypes
+struct ImageObserverGPUTypes
 {
     typedef double                              ScalarType;
     typedef RigidBodySystem<-1>                 StateType;
-    typedef Eigen::Matrix<ScalarType, -1, -1>   MeasurementType;
+    typedef Eigen::Matrix<ScalarType, -1, -1>   ObservationType;
     typedef size_t                              IndexType;
 
 
-    typedef RaoBlackwellMeasurementModel<ScalarType, StateType, MeasurementType, IndexType>
-                                            RaoBlackwellMeasurementModelType;
+    typedef RaoBlackwellObserver<ScalarType, StateType, ObservationType, IndexType>
+                                            RaoBlackwellObserverType;
 };
 
 
-class ImageMeasurementModelGPU: public ImageMeasurementModelGPUTypes::RaoBlackwellMeasurementModelType
+class ImageObserverGPU: public ImageObserverGPUTypes::RaoBlackwellObserverType
 {
 public:
-    typedef typename ImageMeasurementModelGPUTypes::ScalarType      ScalarType;
-    typedef typename ImageMeasurementModelGPUTypes::StateType       StateType;
-    typedef typename ImageMeasurementModelGPUTypes::MeasurementType MeasurementType;
-    typedef typename ImageMeasurementModelGPUTypes::IndexType       IndexType;
+    typedef typename ImageObserverGPUTypes::ScalarType      ScalarType;
+    typedef typename ImageObserverGPUTypes::StateType       StateType;
+    typedef typename ImageObserverGPUTypes::ObservationType ObservationType;
+    typedef typename ImageObserverGPUTypes::IndexType       IndexType;
 
     typedef typename Eigen::Matrix<ScalarType, 3, 3> CameraMatrixType;
 
-    ImageMeasurementModelGPU(const CameraMatrixType& camera_matrix,
+    ImageObserverGPU(const CameraMatrixType& camera_matrix,
                              const IndexType& n_rows,
                              const IndexType& n_cols,
                              const IndexType& max_sample_count,
                              const ScalarType& initial_visibility_prob);
 
-    ~ImageMeasurementModelGPU();
+    ~ImageObserverGPU();
 
     // TODO: DO WE NEED TWO DIFFERENT FUNCTIONS FOR THIS??
     void Initialize();
@@ -65,7 +65,7 @@ public:
                                      std::vector<IndexType>& occlusion_indices,
                                      const bool& update_occlusions = false);
 
-    void Measurement(const MeasurementType& image, const double& delta_time);
+    void Observation(const ObservationType& image, const double& delta_time);
 
     virtual void Reset();
 
@@ -75,7 +75,7 @@ public:
                     std::vector<std::vector<float> > &depth);
 private:
     // TODO: this function should disappear, BOTH OF THEM
-    void Measurement(const std::vector<float>& observations, const ScalarType& delta_time);
+    void Observation(const std::vector<float>& observations, const ScalarType& delta_time);
     void Occlusions(const float& visibility_prob = -1);
 
     const Eigen::Matrix3d camera_matrix_;
@@ -128,7 +128,7 @@ private:
 
     double observation_time_;
 
-    // used for time measurements
+    // used for time observations
     static const int TIME_MEASUREMENTS_COUNT = 8;
     static const int COUNT = 500;
     enum time_measurement {SEND_OBSERVATIONS, RENDER, MAP_RESOURCE, GET_MAPPED_ARRAY, SET_TEXTURE_ARRAY,

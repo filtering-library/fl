@@ -1,5 +1,5 @@
 /*************************************************************************
-This software allows for filtering in high-dimensional measurement and
+This software allows for filtering in high-dimensional observation and
 state spaces, as described in
 
 M. Wuthrich, P. Pastor, M. Kalakrishnan, J. Bohg, and S. Schaal.
@@ -31,7 +31,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 
-#include <state_filtering/models/process/features/stationary_process.hpp>
+#include <state_filtering/models/processes/features/stationary_process.hpp>
 
 
 // TODO: THIS NEEDS TO BE CLEANED!!

@@ -1,5 +1,5 @@
 /*************************************************************************
-This software allows for filtering in high-dimensional measurement and
+This software allows for filtering in high-dimensional observation and
 state spaces, as described in
 
 M. Wuthrich, P. Pastor, M. Kalakrishnan, J. Bohg, and S. Schaal.
@@ -26,24 +26,24 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 *************************************************************************/
 
 
-#ifndef MODELS_MEASUREMENT_FEATURES_RAO_BLACKWELL_MEASUREMENT_MODEL_HPP
-#define MODELS_MEASUREMENT_FEATURES_RAO_BLACKWELL_MEASUREMENT_MODEL_HPP
+#ifndef MODELS_OBSERVERS_FEATURES_RAO_BLACKWELL_observer_HPP
+#define MODELS_OBSERVERS_FEATURES_RAO_BLACKWELL_observer_HPP
 
 #include <vector>
 #include <state_filtering/distributions/distribution.hpp>
 
 namespace distributions
 {
-template<typename ScalarType_, typename StateType_, typename MeasurementType_, typename IndexType_ = size_t>
-class RaoBlackwellMeasurementModel: public Distribution<ScalarType_, StateType_>
+template<typename ScalarType_, typename StateType_, typename ObservationType_, typename IndexType_ = size_t>
+class RaoBlackwellObserver: public Distribution<ScalarType_, StateType_>
 {
 public:
     typedef typename Distribution<ScalarType_, StateType_>::ScalarType     ScalarType;
     typedef typename Distribution<ScalarType_, StateType_>::VectorType     StateType;
-    typedef MeasurementType_                                                MeasurementType;
+    typedef ObservationType_                                                ObservationType;
     typedef IndexType_                                                      IndexType;
  public:
-    virtual ~RaoBlackwellMeasurementModel() {}
+    virtual ~RaoBlackwellObserver() {}
 
     // since we can not implicitly cast a vector globally we do it here locally
     template<typename Type>
@@ -64,7 +64,7 @@ public:
                                              const bool&               update = false) = 0;
 
 
-    virtual void Measurement(const MeasurementType& image, const ScalarType& delta_time) = 0;
+    virtual void Observation(const ObservationType& image, const ScalarType& delta_time) = 0;
 
     // reset the latent variables
     virtual void Reset() = 0;

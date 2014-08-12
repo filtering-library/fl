@@ -53,7 +53,7 @@ private:
     static const int WINDOW_WIDTH = 80;
     static const int WINDOW_HEIGHT = 60;
 
-    // time measurement
+    // time observation
     static const int COUNT = 500;
     int count_;
     double compare_kernel_time_;

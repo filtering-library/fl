@@ -52,7 +52,7 @@
 #include <state_filtering/distributions/distribution.hpp>
 #include <state_filtering/distributions/features/gaussian_mappable.hpp>
 #include <state_filtering/distributions/implementations/gaussian.hpp>
-#include <state_filtering/models/process/implementations/damped_wiener_process.hpp>
+#include <state_filtering/models/processes/implementations/damped_wiener_process.hpp>
 
 namespace distributions
 {
