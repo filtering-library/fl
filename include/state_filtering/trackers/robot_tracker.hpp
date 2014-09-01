@@ -30,7 +30,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 //#define PROFILING_ON
-#include <state_filtering/utils/image_visualizer.hpp>
+
+#include <state_filtering/state_filtering.hpp>
 
 #include <boost/thread/mutex.hpp>
 
@@ -39,8 +40,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <ros/package.h>
 #include <sensor_msgs/CameraInfo.h>
 #include <image_transport/image_transport.h>
-#include <opencv2/core/eigen.hpp>
-#include <opencv2/highgui/highgui.hpp>
 
 #include <sensor_msgs/PointCloud2.h>
 #include <visualization_msgs/Marker.h>
@@ -52,16 +51,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <robot_state_pub/robot_state_publisher.h>
 #include <tf/transform_broadcaster.h>
 
-
-// filter
-#include <state_filtering/filters/stochastic/rao_blackwell_coordinate_particle_filter.hpp>
-//#include <state_filtering/filters/stochastic/particle_filter_context.hpp>
+#include <state_filtering/utils/image_visualizer.hpp>
 
 // observation model
 #include <state_filtering/models/observers/kinect_observer.hpp>
-#include <state_filtering/models/observers/interfaces/rao_blackwell_observer.hpp>
-#include <state_filtering/models/observers/image_observer_cpu.hpp>
-//#include <state_filtering/models/observers/image_observer_gpu/image_observer_gpu.hpp>
 
 // tools
 #include <state_filtering/utils/object_file_reader.hpp>
@@ -72,17 +65,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <state_filtering/utils/ros_interface.hpp>
 #include <state_filtering/utils/macros.hpp>
 //#include "cloud_visualizer.hpp"
-
-// distributions
-
-#include <state_filtering/distributions/gaussian.hpp>
-#include <state_filtering/models/processes/interfaces/stationary_process_interface.hpp>
-//#include <state_filtering/models/processes/composed_stationary_process_model.hpp>
-#include <state_filtering/models/processes/brownian_object_motion.hpp>
-
-#include <state_filtering/states/rigid_body_system.hpp>
-#include <state_filtering/states/floating_body_system.hpp>
-#include <state_filtering/states/robot_state.hpp>
 
 
 using namespace boost;
