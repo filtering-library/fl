@@ -44,8 +44,8 @@
  * Max-Planck-Institute for Intelligent Systems, University of Southern California
  */
 
-#ifndef STATE_FILTERING_DISTRIBUTION_STANDARD_NORMAL_DISTRIBUTION_HPP
-#define STATE_FILTERING_DISTRIBUTION_STANDARD_NORMAL_DISTRIBUTION_HPP
+#ifndef STATE_FILTERING_DISTRIBUTION_STANDARD_GAUSSIAN_HPP
+#define STATE_FILTERING_DISTRIBUTION_STANDARD_GAUSSIAN_HPP
 
 #include <Eigen/Dense>
 
@@ -61,23 +61,21 @@ namespace sf
 {
 
 template <typename Vector>
-class StandardNormalDistribution:
-        public SamplingInterface<Vector>
+class StandardGaussian: public SamplingInterface<Vector>
 {
 public:
-    typedef typename internal::VectorTraits<Vector>::Scalar Scalar;
-
-public:
-    StandardNormalDistribution(
-            const int& dimension = internal::VectorTraits<Vector>::Dimension):
+    StandardGaussian(const int& dimension = Vector::SizeAtCompileTime):
         dimension_ (dimension == Eigen::Dynamic ? 0 : dimension),
         generator_(RANDOM_SEED),
         gaussian_distribution_(0.0, 1.0),
         gaussian_generator_(generator_, gaussian_distribution_)
     {
+        // make sure that vector is derived from eigen
+        SF_REQUIRE_INTERFACE(Vector, Eigen::Matrix<typename Vector::Scalar,
+                                                   Vector::SizeAtCompileTime, 1>);
     }
 
-    virtual ~StandardNormalDistribution() { }
+    virtual ~StandardGaussian() { }
 
     virtual Vector Sample()
     {
