@@ -42,9 +42,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <sensor_msgs/Image.h>
 
 #include <state_filtering/filters/stochastic/rao_blackwell_coordinate_particle_filter.hpp>
-#include <state_filtering/models/observers/image_observer_cpu.hpp>
+
+#include <tracking/models/observers/image_observer_cpu.hpp>
 #ifdef BUILD_GPU
-#include <state_filtering/models/observers/image_observer_gpu/image_observer_gpu.hpp>
+#include <tracking/models/observers/image_observer_gpu/image_observer_gpu.hpp>
 #endif
 
 class MultiObjectTracker

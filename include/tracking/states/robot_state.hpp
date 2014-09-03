@@ -32,7 +32,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <state_filtering/states/rigid_body_system.hpp>
 #include <state_filtering/utils/macros.hpp>
-#include <state_filtering/utils/kinematics_from_urdf.hpp>
+
+#include <tracking/utils/kinematics_from_urdf.hpp>
 
 #include <Eigen/Dense>
 #include <boost/static_assert.hpp>
