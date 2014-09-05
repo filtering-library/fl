@@ -42,9 +42,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <fast_filtering/utils/helper_functions.hpp>
 #include <fast_filtering/distributions/gaussian.hpp>
 #include <fast_filtering/distributions/sum_of_deltas.hpp>
-#include <fast_filtering/distributions/interfaces/gaussian_mappable_interface.hpp>
-#include <fast_filtering/models/observation_models/interfaces/rao_blackwell_observation_model_interface.hpp>
-#include <fast_filtering/models/processes/interfaces/stationary_process_interface.hpp>
+#include <fast_filtering/distributions/interfaces/gaussian_map.hpp>
+#include <fast_filtering/models/observation_models/interfaces/rao_blackwell_observation_model.hpp>
+#include <fast_filtering/models/process_models/interfaces/stationary_process_model.hpp>
 
 namespace ff
 {

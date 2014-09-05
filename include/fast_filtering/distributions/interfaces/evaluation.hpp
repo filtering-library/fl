@@ -6,7 +6,7 @@
  *    Manuel Wuthrich (manuel.wuthrich@gmail.com)
  *    Jan Issac (jan.issac@gmail.com)
  *
- *
+ *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -41,53 +41,39 @@
  * @date 05/25/2014
  * @author Manuel Wuthrich (manuel.wuthrich@gmail.com)
  * @author Jan Issac (jan.issac@gmail.com)
- * Max-Planck-Institute for Intelligent Systems, University of Southern California
+ * Max-Planck-Institute for Intelligent Systems,
+ *  University of Southern California
  */
 
-#ifndef FAST_FILTERING_DISTRIBUTION_INTERFACE_GAUSSIAN_MAPPABLE_INTERFACE_HPP
-#define FAST_FILTERING_DISTRIBUTION_INTERFACE_GAUSSIAN_MAPPABLE_INTERFACE_HPP
 
-#include <Eigen/Dense>
+#ifndef FAST_FILTERING_DISTRIBUTIONS_INTERFACE_EVAUATION_INTERFACE_HPP
+#define FAST_FILTERING_DISTRIBUTIONS_INTERFACE_EVAUATION_INTERFACE_HPP
 
-#include <boost/random/normal_distribution.hpp>
-#include <boost/random/mersenne_twister.hpp>
-#include <boost/random/variate_generator.hpp>
-
-#include <fast_filtering/utils/assertions.hpp>
-#include <fast_filtering/distributions/interfaces/sampling_interface.hpp>
-#include <fast_filtering/distributions/standard_gaussian.hpp>
+#include <cmath>
+#include <fast_filtering/utils/traits.hpp>
+#include <fast_filtering/distributions/interfaces/unnormalized_evaluation.hpp>
 
 namespace ff
 {
 
-template <typename Vector, typename Noise>
-class GaussianMappableInterface:
-        public SamplingInterface<Vector>
+template <typename Vector, typename Scalar>
+class EvaluationInterface:
+        public UnnormalizedEvaulationInterface<Vector, Scalar>
 {
 public:
-    explicit GaussianMappableInterface(const unsigned& noise_dimension = Noise::SizeAtCompileTime):
-        standard_gaussian_(noise_dimension)
+    virtual ~EvaluationInterface() {}
+
+    virtual Scalar Probability(const Vector& vector) const
     {
-        // make sure that noise is derived from eigen
-        REQUIRE_INTERFACE(Noise, Eigen::Matrix<typename Noise::Scalar, Noise::SizeAtCompileTime, 1>);
+        return std::exp(LogProbability(vector));
     }
 
-    virtual ~GaussianMappableInterface() { }   
-
-    virtual Vector MapGaussian(const Noise& sample) const = 0;
-
-    virtual Vector Sample()
+    virtual Scalar LogUnnormalizedProbability(const Vector& vector) const
     {
-        return MapGaussian(standard_gaussian_.Sample());
+        return LogProbability(vector);
     }
 
-    virtual int NoiseDimension() const
-    {
-        return standard_gaussian_.Dimension();
-    }
-
-private:
-    StandardGaussian<Noise> standard_gaussian_;
+    virtual Scalar LogProbability(const Vector& vector) const = 0;
 };
 
 }

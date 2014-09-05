@@ -48,7 +48,7 @@
 #include <Eigen/Dense>
 
 #include <fast_filtering/utils/assertions.hpp>
-#include <fast_filtering/models/processes/interfaces/stationary_process_interface.hpp>
+#include <fast_filtering/models/process_models/interfaces/stationary_process_model.hpp>
 #include <fast_filtering/distributions/gaussian.hpp>
 
 namespace ff

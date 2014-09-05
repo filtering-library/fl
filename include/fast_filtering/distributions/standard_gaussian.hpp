@@ -55,7 +55,7 @@
 
 #include <fast_filtering/utils/random_seed.hpp>
 #include <fast_filtering/utils/assertions.hpp>
-#include <fast_filtering/distributions/interfaces/sampling_interface.hpp>
+#include <fast_filtering/distributions/interfaces/sampling.hpp>
 
 namespace ff
 {

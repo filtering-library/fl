@@ -41,39 +41,35 @@
  * @date 05/25/2014
  * @author Manuel Wuthrich (manuel.wuthrich@gmail.com)
  * @author Jan Issac (jan.issac@gmail.com)
- * Max-Planck-Institute for Intelligent Systems,
- *  University of Southern California
+ * Max-Planck-Institute for Intelligent Systems, University of Southern California
  */
 
+#ifndef FAST_FILTERING_FILTER_INTERFACE_MOMENTS_INTERFACE_HPP
+#define FAST_FILTERING_FILTER_INTERFACE_MOMENTS_INTERFACE_HPP
 
-#ifndef FAST_FILTERING_DISTRIBUTIONS_INTERFACE_EVAUATION_INTERFACE_HPP
-#define FAST_FILTERING_DISTRIBUTIONS_INTERFACE_EVAUATION_INTERFACE_HPP
-
-#include <cmath>
-#include <fast_filtering/utils/traits.hpp>
-#include <fast_filtering/distributions/interfaces/unnormalized_evaluation_interface.hpp>
+#include <fast_filtering/distributions/interfaces/approximate_moments.hpp>
 
 namespace ff
 {
 
-template <typename Vector, typename Scalar>
-class EvaluationInterface:
-        public UnnormalizedEvaulationInterface<Vector, Scalar>
+template <typename Vector, typename Operator>
+class MomentsInterface:
+        public ApproximateMomentsInterface<Vector, Operator>
 {
 public:
-    virtual ~EvaluationInterface() {}
+    virtual ~MomentsInterface() {}
 
-    virtual Scalar Probability(const Vector& vector) const
+    virtual Vector Mean() const = 0;
+    virtual Operator Covariance() const = 0;
+
+    virtual Vector   ApproximateMean()
     {
-        return std::exp(LogProbability(vector));
+        return Mean();
     }
-
-    virtual Scalar LogUnnormalizedProbability(const Vector& vector) const
+    virtual Operator ApproximateCovariance()
     {
-        return LogProbability(vector);
+        return Covariance();
     }
-
-    virtual Scalar LogProbability(const Vector& vector) const = 0;
 };
 
 }

@@ -51,9 +51,9 @@
 
 // state_filtering
 #include <fast_filtering/utils/assertions.hpp>
-#include <fast_filtering/distributions/interfaces/gaussian_mappable_interface.hpp>
+#include <fast_filtering/distributions/interfaces/gaussian_map.hpp>
 #include <fast_filtering/distributions/gaussian.hpp>
-#include <fast_filtering/models/processes/damped_wiener_process.hpp>
+#include <fast_filtering/models/process_models/damped_wiener_process_model.hpp>
 
 namespace ff
 {
