@@ -36,14 +36,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <Eigen/Core>
 
-#include <fast_filtering/utils/macros.hpp>
+#include <fast_filtering/utils/assertions.hpp>
+#include <fast_filtering/utils/profiling.hpp>
 #include <fast_filtering/utils/traits.hpp>
 #include <fast_filtering/utils/helper_functions.hpp>
 #include <fast_filtering/distributions/gaussian.hpp>
 #include <fast_filtering/distributions/sum_of_deltas.hpp>
-#include <fast_filtering/distributions/interfaces/gaussian_mappable_interface.hpp>
-#include <fast_filtering/models/observations/interfaces/rao_blackwell_observation_model_interface.hpp>
-#include <fast_filtering/models/processes/interfaces/stationary_process_interface.hpp>
+#include <fast_filtering/distributions/interfaces/gaussian_map.hpp>
+#include <fast_filtering/models/observation_models/interfaces/rao_blackwell_observation_model.hpp>
+#include <fast_filtering/models/process_models/interfaces/stationary_process_model.hpp>
 
 namespace ff
 {
@@ -72,17 +73,17 @@ public:
         process_model_(process_model),
         max_kl_divergence_(max_kl_divergence)
     {
-        SF_REQUIRE_INTERFACE(
+        REQUIRE_INTERFACE(
             ProcessModel,
-            StationaryProcessModelInterface<State, Input>);
+            StationaryProcessModel<State, Input>);
 
-        SF_REQUIRE_INTERFACE(
+        REQUIRE_INTERFACE(
             ProcessModel,
-            GaussianMappableInterface<State, Noise>);
+            GaussianMap<State, Noise>);
 
-        SF_REQUIRE_INTERFACE(
+        REQUIRE_INTERFACE(
             ObservationModel,
-            RaoBlackwellObservationModelInterface<State, Observation>);
+            RaoBlackwellObservationModel<State, Observation>);
 
         SamplingBlocks(sampling_blocks);
     }
@@ -111,7 +112,7 @@ public:
                 process_model_->Condition(delta_time,
                                           samples_[particle_index],
                                           input);
-                next_samples_[particle_index] = process_model_->MapGaussian(noises_[particle_index]);
+                next_samples_[particle_index] = process_model_->MapStandardGaussian(noises_[particle_index]);
             }
 
             bool update_occlusions = (block_index == sampling_blocks_.size()-1);

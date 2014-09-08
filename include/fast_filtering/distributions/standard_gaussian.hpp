@@ -44,8 +44,8 @@
  * Max-Planck-Institute for Intelligent Systems, University of Southern California
  */
 
-#ifndef FAST_FILTERING_DISTRIBUTION_STANDARD_GAUSSIAN_HPP
-#define FAST_FILTERING_DISTRIBUTION_STANDARD_GAUSSIAN_HPP
+#ifndef FAST_FILTERING_DISTRIBUTIONS_STANDARD_GAUSSIAN_HPP
+#define FAST_FILTERING_DISTRIBUTIONS_STANDARD_GAUSSIAN_HPP
 
 #include <Eigen/Dense>
 
@@ -53,15 +53,15 @@
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/variate_generator.hpp>
 
-#include <fast_filtering/utils/macros.hpp>
-#include <fast_filtering/utils/traits.hpp>
-#include <fast_filtering/distributions/interfaces/sampling_interface.hpp>
+#include <fast_filtering/utils/random_seed.hpp>
+#include <fast_filtering/utils/assertions.hpp>
+#include <fast_filtering/distributions/interfaces/sampling.hpp>
 
 namespace ff
 {
 
 template <typename Vector>
-class StandardGaussian: public SamplingInterface<Vector>
+class StandardGaussian: public Sampling<Vector>
 {
 public:
     StandardGaussian(const int& dimension = Vector::SizeAtCompileTime):
@@ -71,7 +71,7 @@ public:
         gaussian_generator_(generator_, gaussian_distribution_)
     {
         // make sure that vector is derived from eigen
-        SF_REQUIRE_INTERFACE(Vector, Eigen::Matrix<typename Vector::Scalar,
+        REQUIRE_INTERFACE(Vector, Eigen::Matrix<typename Vector::Scalar,
                                                    Vector::SizeAtCompileTime, 1>);
     }
 

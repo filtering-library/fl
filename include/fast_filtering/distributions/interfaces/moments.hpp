@@ -3,6 +3,7 @@
  *
  *  Copyright (c) 2014 Max-Planck-Institute for Intelligent Systems,
  *                     University of Southern California
+ *    Manuel Wuthrich (manuel.wuthrich@gmail.com)
  *    Jan Issac (jan.issac@gmail.com)
  *
  *  All rights reserved.
@@ -38,26 +39,37 @@
 
 /**
  * @date 05/25/2014
- * @author Jan Issac (jan.issac@gmail.com)
  * @author Manuel Wuthrich (manuel.wuthrich@gmail.com)
- * Max-Planck-Institute for Intelligent Systems,
- *  University of Southern California (USC)
+ * @author Jan Issac (jan.issac@gmail.com)
+ * Max-Planck-Institute for Intelligent Systems, University of Southern California
  */
 
-#ifndef FAST_FILTERING_DISTRIBUTION_INTERFACE_SAMPLEBALE_HPP
-#define FAST_FILTERING_DISTRIBUTION_INTERFACE_SAMPLEBALE_HPP
+#ifndef FAST_FILTERING_DISTRIBUTIONS_INTERFACES_MOMENTS_HPP
+#define FAST_FILTERING_DISTRIBUTIONS_INTERFACES_MOMENTS_HPP
 
+#include <fast_filtering/distributions/interfaces/approximate_moments.hpp>
 
 namespace ff
 {
 
-template <typename Vector>
-class SamplingInterface
+template <typename Vector, typename Operator>
+class Moments:
+        public ApproximateMoments<Vector, Operator>
 {
 public:
-    virtual ~SamplingInterface() {}
+    virtual ~Moments() {}
 
-    virtual Vector Sample() = 0;
+    virtual Vector Mean() const = 0;
+    virtual Operator Covariance() const = 0;
+
+    virtual Vector   ApproximateMean()
+    {
+        return Mean();
+    }
+    virtual Operator ApproximateCovariance()
+    {
+        return Covariance();
+    }
 };
 
 }

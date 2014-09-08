@@ -6,7 +6,7 @@
  *    Manuel Wuthrich (manuel.wuthrich@gmail.com)
  *    Jan Issac (jan.issac@gmail.com)
  *
- *
+ *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -44,51 +44,20 @@
  * Max-Planck-Institute for Intelligent Systems, University of Southern California
  */
 
-#ifndef FAST_FILTERING_DISTRIBUTION_INTERFACE_GAUSSIAN_MAPPABLE_INTERFACE_HPP
-#define FAST_FILTERING_DISTRIBUTION_INTERFACE_GAUSSIAN_MAPPABLE_INTERFACE_HPP
-
-#include <Eigen/Dense>
-
-#include <boost/random/normal_distribution.hpp>
-#include <boost/random/mersenne_twister.hpp>
-#include <boost/random/variate_generator.hpp>
-
-#include <fast_filtering/utils/macros.hpp>
-#include <fast_filtering/utils/traits.hpp>
-#include <fast_filtering/distributions/interfaces/sampling_interface.hpp>
-#include <fast_filtering/distributions/standard_gaussian.hpp>
+#ifndef FAST_FILTERING_DISTRIBUTIONS_INTERFACES_APPROXIMATE_MOMENTS_HPP
+#define FAST_FILTERING_DISTRIBUTIONS_INTERFACES_APPROXIMATE_MOMENTS_HPP
 
 namespace ff
 {
 
-template <typename Vector, typename Noise>
-class GaussianMappableInterface:
-        public SamplingInterface<Vector>
+template <typename Vector, typename Operator>
+class ApproximateMoments
 {
 public:
-    explicit GaussianMappableInterface(const unsigned& noise_dimension = Noise::SizeAtCompileTime):
-        standard_gaussian_(noise_dimension)
-    {
-        // make sure that noise is derived from eigen
-        SF_REQUIRE_INTERFACE(Noise, Eigen::Matrix<typename Noise::Scalar, Noise::SizeAtCompileTime, 1>);
-    }
+    virtual ~ApproximateMoments() {}
 
-    virtual ~GaussianMappableInterface() { }   
-
-    virtual Vector MapGaussian(const Noise& sample) const = 0;
-
-    virtual Vector Sample()
-    {
-        return MapGaussian(standard_gaussian_.Sample());
-    }
-
-    virtual int NoiseDimension() const
-    {
-        return standard_gaussian_.Dimension();
-    }
-
-private:
-    StandardGaussian<Noise> standard_gaussian_;
+    virtual Vector   ApproximateMean() = 0;
+    virtual Operator ApproximateCovariance() = 0;
 };
 
 }

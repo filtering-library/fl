@@ -46,34 +46,28 @@
  */
 
 
-#ifndef FAST_FILTERING_DISTRIBUTIONS_INTERFACE_EVAUATION_INTERFACE_HPP
-#define FAST_FILTERING_DISTRIBUTIONS_INTERFACE_EVAUATION_INTERFACE_HPP
+#ifndef DISTRIBUTIONS_INTERFACES_UNNORMALIZED_EVAUATION_HPP
+#define DISTRIBUTIONS_INTERFACES_UNNORMALIZED_EVAUATION_HPP
 
 #include <cmath>
 #include <fast_filtering/utils/traits.hpp>
-#include <fast_filtering/distributions/interfaces/unnormalized_evaluation_interface.hpp>
+
 
 namespace ff
 {
 
 template <typename Vector, typename Scalar>
-class EvaluationInterface:
-        public UnnormalizedEvaulationInterface<Vector, Scalar>
+class UnnormalizedEvaulation
 {
 public:
-    virtual ~EvaluationInterface() {}
+    virtual ~UnnormalizedEvaulation() {}
 
-    virtual Scalar Probability(const Vector& vector) const
+    virtual Scalar UnnormalizedProbability(const Vector& vector) const
     {
-        return std::exp(LogProbability(vector));
+        std::exp(LogUnnormalizedProbability(vector));
     }
 
-    virtual Scalar LogUnnormalizedProbability(const Vector& vector) const
-    {
-        return LogProbability(vector);
-    }
-
-    virtual Scalar LogProbability(const Vector& vector) const = 0;
+    virtual Scalar LogUnnormalizedProbability(const Vector& vector) const = 0;
 };
 
 }
