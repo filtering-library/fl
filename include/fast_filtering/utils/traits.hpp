@@ -61,6 +61,13 @@ template <typename T> struct Traits { };
 
 //struct Empty { };
 typedef Eigen::Matrix<double, 0, 0> Empty;
+
+enum SpaceType
+{
+    Scalar,
+    Vectorial
+};
+
 }
 
 using internal::Traits;
