@@ -90,7 +90,6 @@ public:
 
     typedef ComposedStateDistribution<State_a, State_b_i> StateDistribution;
     typedef typename StateDistribution::JointPartitions JointPartitions;
-
     typedef typename StateDistribution::Cov_aa Cov_aa;
     typedef typename StateDistribution::Cov_bb Cov_bb;
     typedef typename StateDistribution::Cov_yy Cov_yy;
@@ -149,7 +148,7 @@ public:
      *
      * @note TESTED
      */
-    void predict(const StateDistribution& prior_state,
+    void Predict(const StateDistribution& prior_state,
                  double delta_time,
                  StateDistribution& predicted_state)
     {
@@ -229,12 +228,12 @@ public:
      *
      * @attention NEEDS TO BE TESTED
      */
-    void update(const StateDistribution& predicted_state,
+    void Update(const StateDistribution& predicted_state,
                 const Eigen::MatrixXd& y,
                 StateDistribution& posterior_state)
     {
-        update_a(predicted_state, y, posterior_state);
-        update_b(predicted_state, y, posterior_state);
+        Update_a(predicted_state, y, posterior_state);
+        Update_b(predicted_state, y, posterior_state);
     }
 
 
@@ -247,7 +246,7 @@ public:
      *
      * @attention NEEDS TO BE TESTED
      */
-    void update_a(const StateDistribution& predicted_state,
+    void Update_a(const StateDistribution& predicted_state,
                   const Eigen::MatrixXd& y,
                   StateDistribution& posterior_state)
     {
@@ -322,7 +321,7 @@ public:
      *
      * @attention NEEDS TO BE TESTED
      */
-    void update_b(const StateDistribution& predicted_state,
+    void Update_b(const StateDistribution& predicted_state,
                   const Eigen::MatrixXd& y,
                   StateDistribution& posterior_state)
     {
@@ -431,8 +430,10 @@ public:
 
         for (size_t i = 0; i < prior_X_a.cols(); ++i)
         {
-            h_->Condition(prior_X_a.col(i), prior_X_b_i(0, i), i, index);
-            predicted_X_y_i(0, i) = h_->MapStandardGaussian(noise_X_y_i.col(i));
+//            h_->Condition(prior_X_a.col(i), prior_X_b_i(0, i), i, index);
+//            predicted_X_y_i(0, i) = h_->MapStandardGaussian(noise_X_y_i(0, i));
+            h_->Condition(prior_X_a.col(i), prior_X_b_i.col(i), i, index);
+            predicted_X_y_i.col(i) = h_->MapStandardGaussian(noise_X_y_i.col(i));
         }
     }
 
