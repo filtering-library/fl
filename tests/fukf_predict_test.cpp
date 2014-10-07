@@ -106,7 +106,7 @@ TEST_F(FukfTest, predict)
         partition.cov_bb = Filter::StateDistribution::Cov_bb::Identity();
     }
 
-    filter.predict(state_prior, 0.033, state_predicted);
+    filter.Predict(state_prior, 0.033, state_predicted);
 
     EXPECT_TRUE(state_prior.mean_a.isApprox(state_predicted.mean_a));
     EXPECT_TRUE(state_prior.cov_aa.isApprox(state_predicted.cov_aa));

@@ -122,3 +122,60 @@ TEST(Diags, isDiagonalSpeedTest) // too slow
         }
     }
 }
+
+double a_g = Eigen::Matrix<double, 1, 1>::Random()(0);
+double b_g = Eigen::Matrix<double, 1, 1>::Random()(0);
+double c_g = Eigen::Matrix<double, 1, 1>::Random()(0);
+double d_g = Eigen::Matrix<double, 1, 1>::Random()(0);
+
+double scalar_function(double a, double b, double c, double d)
+{
+    return (a * a * std::sqrt(b) - c) / std::pow(d, 3.42);
+}
+
+Eigen::Matrix<double, 1, 1>
+vectorial_function(const Eigen::Matrix<double, 1, 1>& a,
+                   const Eigen::Matrix<double, 1, 1>& b,
+                   const Eigen::Matrix<double, 1, 1>& c,
+                   const Eigen::Matrix<double, 1, 1>& d)
+{
+    return (a.transpose() * a * std::sqrt(b(0)) - c) / std::pow(d(0), 3.42);
+}
+
+TEST(OneDimensionalTests, scalar)
+{
+    double a, b, c, d;
+    double r = 0;
+
+    a = a_g;
+    b = b_g;
+    c = c_g;
+    d = d_g;
+
+    b *= b;
+
+    for (size_t i = 0; i < 1e6; ++i)
+    {
+        r = scalar_function(a, b, c, d) + r;
+    }
+}
+
+TEST(OneDimensionalTests, vectorial)
+{
+    Eigen::Matrix<double, 1, 1> a, b, c, d;
+    Eigen::Matrix<double, 1, 1> r;
+
+    a(0) = a_g;
+    b(0) = b_g;
+    c(0) = c_g;
+    d(0) = d_g;
+    r(0) = 0;
+
+    b = b.transpose() * b;
+
+    for (size_t i = 0; i < 1e6; ++i)
+    {
+        r = vectorial_function(a, b, c, d) + r;
+    }
+}
+
