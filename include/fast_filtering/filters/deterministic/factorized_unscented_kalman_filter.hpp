@@ -265,8 +265,8 @@ public:
         {
             const JointPartitions& partition = predicted_state.joint_partitions[i];
 
-            if (!std::isnan(y(i, 0))
-                    && std::fabs(y(i, 0) - partition.mean_y(0,0)) < 0.08)
+            if (!std::isnan(y(i, 0)))
+                    //&& std::fabs(y(i, 0) - partition.mean_y(0,0)) < 0.08)
             {
                 const Cov_ay& cov_ay = partition.cov_ay;
                 const Cov_yy& cov_yy = partition.cov_yy;
@@ -350,8 +350,8 @@ public:
             const typename StateDistribution::JointPartitions& partition =
                     predicted_state.joint_partitions[i];
 
-            if (std::isnan(y(i, 0)) ||
-                std::fabs(y(i, 0) - predicted_state.joint_partitions[i].mean_y(0,0)) > 0.20)
+            if (std::isnan(y(i, 0)))// ||
+                //std::fabs(y(i, 0) - predicted_state.joint_partitions[i].mean_y(0,0)) > 0.20)
             {
                 continue;
             }
@@ -399,11 +399,11 @@ public:
              const double delta_time,
              SigmaPoints& predicted_X_a)
     {
-        Eigen::MatrixXd zero_noise = Input_a::Zero(f_a_->NoiseDimension(), 1);
+        Input_a zero_input = Input_a::Zero(f_a_->NoiseDimension(), 1);
 
         for (size_t i = 0; i < prior_X_a.cols(); ++i)
         {
-            f_a_->Condition(delta_time, prior_X_a.col(i), zero_noise);
+            f_a_->Condition(delta_time, prior_X_a.col(i), zero_input);
             predicted_X_a.col(i) = f_a_->MapStandardGaussian(noise_X_a.col(i));
         }
     }
@@ -413,9 +413,11 @@ public:
              const double delta_time,
              SigmaPoints& predicted_X_b_i)
     {
+        Input_b_i zero_input = Input_b_i::Zero(f_b_->NoiseDimension(), 1);
+
         for (size_t i = 0; i < prior_X_b_i.cols(); ++i)
         {
-            f_b_->Condition(delta_time, prior_X_b_i.col(i));
+            f_b_->Condition(delta_time, prior_X_b_i.col(i), zero_input);
             predicted_X_b_i.col(i)= f_b_->MapStandardGaussian(noise_X_b_i.col(i));
         }
     }
@@ -428,28 +430,13 @@ public:
     {
         predicted_X_y_i.resize(Dim(y_i), prior_X_a.cols());
 
+
         for (size_t i = 0; i < prior_X_a.cols(); ++i)
         {
-//            h_->Condition(prior_X_a.col(i), prior_X_b_i(0, i), i, index);
-//            predicted_X_y_i(0, i) = h_->MapStandardGaussian(noise_X_y_i(0, i));
             h_->Condition(prior_X_a.col(i), prior_X_b_i.col(i), i, index);
             predicted_X_y_i.col(i) = h_->MapStandardGaussian(noise_X_y_i.col(i));
         }
     }
-
-//    void h(const SigmaPoints& prior_X_a,
-//           const SigmaPoints& noise_X_y_i,
-//           const size_t index,
-//           SigmaPoints& predicted_X_y_i)
-//    {
-//        predicted_X_y_i.resize(Dim(y_i), prior_X_a.cols());
-
-//        for (size_t i = 0; i < prior_X_a.cols(); ++i)
-//        {
-//            h_->Condition(prior_X_a.col(i), -1.e20, i, index);
-//            predicted_X_y_i(0, i) = h_->MapStandardGaussian(noise_X_y_i.col(i));
-//        }
-//    }
 
     /**
      * @brief Dim Returns the dimension of the specified random variable ID
@@ -463,8 +450,8 @@ public:
         case a:     return f_a_->Dimension();
         case Q_a:   return f_a_->NoiseDimension();
         case b_i:   return f_b_->Dimension();
-        case Q_b_i:  return f_b_->NoiseDimension();
-        case R_y_i:  return h_->NoiseDimension();
+        case Q_b_i: return f_b_->NoiseDimension();
+        case R_y_i: return h_->NoiseDimension();
         case y_i:   return 1;
         }
     }
