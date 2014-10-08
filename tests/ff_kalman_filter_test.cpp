@@ -65,7 +65,7 @@ TEST(KalmanFilterTests, init_fixedsize_predict)
     typedef Eigen::Matrix<Scalar, 20, 1> Observation;
 
     typedef ff::LinearGaussianProcessModel<State> ProcessModel;
-    typedef ff::LinearGaussianOservationModel<Observation,
+    typedef ff::LinearGaussianObservationModel<Observation,
                                               State> ObservationModel;
 
     typedef ff::KalmanFilter<ProcessModel, ObservationModel> Filter;
@@ -100,7 +100,7 @@ TEST(KalmanFilterTests, init_dynamicsize_predict)
     const size_t dim_observation = 20;
 
     typedef ff::LinearGaussianProcessModel<State> ProcessModel;
-    typedef ff::LinearGaussianOservationModel<Observation,
+    typedef ff::LinearGaussianObservationModel<Observation,
                                               State> ObservationModel;
 
     typedef ff::KalmanFilter<ProcessModel, ObservationModel> Filter;
@@ -136,7 +136,7 @@ TEST(KalmanFilterTests, fixedsize_predict_update)
     typedef Eigen::Matrix<Scalar, 10, 1> Observation;
 
     typedef ff::LinearGaussianProcessModel<State> ProcessModel;
-    typedef ff::LinearGaussianOservationModel<Observation,
+    typedef ff::LinearGaussianObservationModel<Observation,
                                               State> ObservationModel;
 
     typedef ff::KalmanFilter<ProcessModel, ObservationModel> Filter;
@@ -183,7 +183,7 @@ TEST(KalmanFilterTests, dynamicsize_predict_update)
     const size_t dim_observation = 10;
 
     typedef ff::LinearGaussianProcessModel<State> ProcessModel;
-    typedef ff::LinearGaussianOservationModel<Observation,
+    typedef ff::LinearGaussianObservationModel<Observation,
                                               State> ObservationModel;
 
     typedef ff::KalmanFilter<ProcessModel, ObservationModel> Filter;
