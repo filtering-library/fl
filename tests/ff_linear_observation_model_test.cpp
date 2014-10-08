@@ -77,7 +77,7 @@ TEST_F(LinearObservationModelTests, init_fixedsize_dimension)
     typedef Eigen::Matrix<double, 20, 1> Observation;
     const size_t dim = Observation::SizeAtCompileTime;
     const size_t dim_state = State::SizeAtCompileTime;
-    typedef ff::LinearGaussianOservationModel<Observation, State> LGModel;
+    typedef ff::LinearGaussianObservationModel<Observation, State> LGModel;
 
     LGModel::Operator cov = LGModel::Operator::Identity() * 5.5465;
     LGModel model(cov);
@@ -91,7 +91,7 @@ TEST_F(LinearObservationModelTests, init_dynamicsize_dimension)
     const size_t dim_state = 10;
     typedef Eigen::VectorXd State;
     typedef Eigen::VectorXd Observation;
-    typedef ff::LinearGaussianOservationModel<Observation, State> LGModel;
+    typedef ff::LinearGaussianObservationModel<Observation, State> LGModel;
 
     LGModel::Operator cov = LGModel::Operator::Identity(dim, dim) * 5.5465;
     LGModel model(cov, dim, dim_state);
@@ -105,7 +105,7 @@ TEST_F(LinearObservationModelTests, predict_fixedsize_with_zero_noise)
     typedef Eigen::Matrix<double, 20, 1> Observation;
     const size_t dim = Observation::SizeAtCompileTime;
     const size_t dim_state = State::SizeAtCompileTime;
-    typedef ff::LinearGaussianOservationModel<Observation, State> LGModel;
+    typedef ff::LinearGaussianObservationModel<Observation, State> LGModel;
 
     State state = State::Random(dim_state, 1);
     Observation observation = Observation::Random(dim, 1);
@@ -116,7 +116,7 @@ TEST_F(LinearObservationModelTests, predict_fixedsize_with_zero_noise)
     EXPECT_TRUE(model.MapStandardGaussian(noise).isZero());
 
     EXPECT_FALSE(model.MapStandardGaussian(noise).isApprox(observation));
-    model.Condition(1.0, state);
+    model.Condition(state);
     EXPECT_FALSE(model.MapStandardGaussian(noise).isApprox(observation));
 }
 
@@ -126,7 +126,7 @@ TEST_F(LinearObservationModelTests, predict_dynamic_with_zero_noise)
     const size_t dim_state = 10;
     typedef Eigen::VectorXd State;
     typedef Eigen::VectorXd Observation;
-    typedef ff::LinearGaussianOservationModel<Observation, State> LGModel;
+    typedef ff::LinearGaussianObservationModel<Observation, State> LGModel;
 
     State state = State::Random(dim_state, 1);
     Observation observation = Observation::Random(dim, 1);
@@ -137,7 +137,7 @@ TEST_F(LinearObservationModelTests, predict_dynamic_with_zero_noise)
     EXPECT_TRUE(model.MapStandardGaussian(noise).isZero());
 
     EXPECT_FALSE(model.MapStandardGaussian(noise).isApprox(observation));
-    model.Condition(1.0, state);
+    model.Condition(state);
     EXPECT_FALSE(model.MapStandardGaussian(noise).isApprox(observation));
 }
 
@@ -147,7 +147,7 @@ TEST_F(LinearObservationModelTests, sensor_matrix)
     const size_t dim_state = 10;
     typedef Eigen::VectorXd State;
     typedef Eigen::VectorXd Observation;
-    typedef ff::LinearGaussianOservationModel<Observation, State> LGModel;
+    typedef ff::LinearGaussianObservationModel<Observation, State> LGModel;
 
     State state = State::Random(dim_state, 1);
     Observation observation = Observation::Zero(dim, 1);
@@ -164,15 +164,14 @@ TEST_F(LinearObservationModelTests, sensor_matrix)
     EXPECT_TRUE(model.MapStandardGaussian(noise).isApprox(noise));
     EXPECT_FALSE(model.MapStandardGaussian(noise).isApprox(observation));
 
-    model.Condition(1.0, state);
+    model.Condition(state);
 
     EXPECT_TRUE(model.MapStandardGaussian(noise).isApprox(noise));
     EXPECT_FALSE(model.MapStandardGaussian(noise).isApprox(observation));
 
     model.H(H);
-    model.Condition(1.0, state);
+    model.Condition(state);
 
     EXPECT_TRUE(model.MapStandardGaussian(noise).isApprox(observation + noise));
 }
-
 
