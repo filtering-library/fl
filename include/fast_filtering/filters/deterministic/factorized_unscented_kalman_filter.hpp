@@ -129,11 +129,11 @@ public:
         static_assert_base(CohesiveStateProcessModel,
                            GaussianMap<State_a, Noise_a>);
         static_assert_base(FactorizedStateProcessModel,
-                           StationaryProcessModel<State_b_i>);
+                           StationaryProcessModel<State_b_i, Input_b_i>);
         static_assert_base(FactorizedStateProcessModel,
                            GaussianMap<State_b_i, Noise_b_i>);
 
-        alpha_ = 0.6;
+        alpha_ = 1.6;
         beta_ = 2.;
         kappa_ = 0.;
     }
