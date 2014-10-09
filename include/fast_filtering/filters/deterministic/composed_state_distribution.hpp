@@ -173,8 +173,8 @@ public:
     void initialize(const CohesiveState& initial_a,
                     const size_t factorized_states_count,
                     const FactorizedState& initial_b_i,
-                    const Scalar sigma_a,
-                    const Scalar sigma_b_i)
+                    const Scalar sigma_a = 1.0,
+                    const Scalar sigma_b_i = 1.0)
     {
         mean_a = initial_a;
         cov_aa = Cov_aa::Identity(a_dimension(), a_dimension()) * sigma_a;
