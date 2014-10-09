@@ -176,7 +176,7 @@ TEST(FUKFAndLinearModels, fixedsize_predict_update)
     typedef double Scalar;
     typedef Eigen::Matrix<Scalar, 10, 1> State_a;
     typedef Eigen::Matrix<Scalar, 1, 1> State_b;
-    typedef Eigen::Matrix<Scalar, 20, 1> Observation;
+    typedef Eigen::Matrix<Scalar, 100, 1> Observation;
 
     typedef ff::LinearGaussianProcessModel<State_a> ProcessModel_a;
     typedef ff::LinearGaussianProcessModel<State_b> ProcessModel_b;
@@ -190,27 +190,28 @@ TEST(FUKFAndLinearModels, fixedsize_predict_update)
                                                 ObservationModel> Filter;
 
     ProcessModel_a::Operator Q_a =
-            ProcessModel_a::Operator::Random()*1.5;
+            ProcessModel_a::Operator::Identity();
     ProcessModel_b::Operator Q_b =
-            ProcessModel_b::Operator::Random()*1.5;
+            ProcessModel_b::Operator::Identity();
 
     ProcessModel_a::DynamicsMatrix A_a =
-            ProcessModel_a::DynamicsMatrix::Random();
+            ProcessModel_a::DynamicsMatrix::Identity();
     ProcessModel_b::DynamicsMatrix A_b =
-            ProcessModel_b::DynamicsMatrix::Random();
+            ProcessModel_b::DynamicsMatrix::Identity();
 
     ObservationModel::Operator R =
-            ObservationModel::Operator::Random();
+            ObservationModel::Operator::Identity();
 
     ObservationModel::SensorMatrix_a H_a =
             ObservationModel::SensorMatrix_a::Random();
     ObservationModel::SensorMatrix_b H_b =
             ObservationModel::SensorMatrix_b::Random();
 
-
-    Q_a *= Q_a.transpose();
-    Q_b *= Q_b.transpose();
-    R *= R.transpose();
+    Q_a *= Q_a.transpose() * 0.05;
+    Q_b *= Q_b.transpose() * 0.055;
+    R *= 0.0005;
+//    A_a *= 0.05;
+//    A_b *= 0.05;
 
     Filter::CohesiveStateProcessModelPtr process_model_a =
             boost::make_shared<ProcessModel_a>(Q_a);
@@ -240,14 +241,26 @@ TEST(FUKFAndLinearModels, fixedsize_predict_update)
     {
         filter.Predict(state_dist, 1.0, state_dist);
 
+        std::cout << "predict \n" <<  state_dist.cov_aa << std::endl;
+        std::cout << "predict \n" <<  state_dist.joint_partitions[0].cov_bb << std::endl;
+
         EXPECT_TRUE(state_dist.cov_aa.ldlt().isPositive());
         EXPECT_TRUE(state_dist.joint_partitions[0].cov_bb.ldlt().isPositive());
 
         Observation y = Observation::Random();
         filter.Update(state_dist, y, state_dist);
 
+        std::cout << "update \n" << state_dist.cov_aa << std::endl;
+        std::cout << "update \n" << state_dist.joint_partitions[0].cov_bb << std::endl;
+
         EXPECT_TRUE(state_dist.cov_aa.ldlt().isPositive());
         EXPECT_TRUE(state_dist.joint_partitions[0].cov_bb.ldlt().isPositive());
+
+        if (!state_dist.cov_aa.ldlt().isPositive())
+        {
+            ADD_FAILURE();
+            break;
+        }
     }
 }
 
@@ -256,8 +269,7 @@ TEST(FUKFAndLinearModels, dynamicsize_predict_update)
 {
     const size_t dim_state_a = 10;
     const size_t dim_state_b = 1;
-    const size_t dim_observation = 20;
-
+    const size_t dim_observation = 1;
 
     typedef double Scalar;
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> State_a;
@@ -276,9 +288,9 @@ TEST(FUKFAndLinearModels, dynamicsize_predict_update)
                                                 ObservationModel> Filter;
 
     ProcessModel_a::Operator Q_a =
-            ProcessModel_a::Operator::Random(dim_state_a, dim_state_a) * 1.5;
+            ProcessModel_a::Operator::Random(dim_state_a, dim_state_a);
     ProcessModel_b::Operator Q_b =
-            ProcessModel_b::Operator::Random(dim_state_b, dim_state_b) * 1.5;
+            ProcessModel_b::Operator::Random(dim_state_b, dim_state_b);
 
     ProcessModel_a::DynamicsMatrix A_a =
             ProcessModel_a::DynamicsMatrix::Random(dim_state_a,
@@ -288,8 +300,8 @@ TEST(FUKFAndLinearModels, dynamicsize_predict_update)
                                                    dim_state_b);
 
     ObservationModel::Operator R =
-            ObservationModel::Operator::Random(dim_observation,
-                                               dim_observation);
+            ObservationModel::Operator::Identity(dim_observation,
+                                                 dim_observation);
 
     ObservationModel::SensorMatrix_a H_a =
             ObservationModel::SensorMatrix_a::Random(dim_observation,
@@ -297,6 +309,12 @@ TEST(FUKFAndLinearModels, dynamicsize_predict_update)
     ObservationModel::SensorMatrix_b H_b =
             ObservationModel::SensorMatrix_b::Random(dim_observation,
                                                      dim_state_b);
+
+    Q_a *= Q_a.transpose() * 0.05;
+    Q_b *= Q_b.transpose() * 0.055;
+    R *= 0.0005;
+    A_a *= 0.05;
+    A_b *= 0.05;
 
     Filter::CohesiveStateProcessModelPtr process_model_a =
             boost::make_shared<ProcessModel_a>(Q_a, dim_state_a);
@@ -307,9 +325,6 @@ TEST(FUKFAndLinearModels, dynamicsize_predict_update)
                                                  dim_observation,
                                                  dim_state_a,
                                                  dim_state_b);
-    Q_a *= Q_a.transpose();
-    Q_b *= Q_b.transpose();
-    R *= R.transpose();
 
     process_model_a->A(A_a);
     process_model_b->A(A_b);
@@ -320,7 +335,7 @@ TEST(FUKFAndLinearModels, dynamicsize_predict_update)
 
     Filter::StateDistribution state_dist;
     state_dist.initialize(State_a::Zero(dim_state_a, 1),
-                          1,
+                          10,
                           State_b::Zero(dim_state_b, 1),
                           1.0,
                           1.0);
@@ -328,7 +343,7 @@ TEST(FUKFAndLinearModels, dynamicsize_predict_update)
     EXPECT_TRUE(state_dist.cov_aa.ldlt().isPositive());
     EXPECT_TRUE(state_dist.joint_partitions[0].cov_bb.ldlt().isPositive());
 
-    for (size_t i = 0; i < 20000; ++i)
+    for (size_t i = 0; i < 1000; ++i)
     {
         filter.Predict(state_dist, 1.0, state_dist);
 
