@@ -132,8 +132,8 @@ TEST(KalmanFilterTests, init_dynamicsize_predict)
 TEST(KalmanFilterTests, fixedsize_predict_update)
 {
     typedef double Scalar;
-    typedef Eigen::Matrix<Scalar, 10, 1> State;
-    typedef Eigen::Matrix<Scalar, 10, 1> Observation;
+    typedef Eigen::Matrix<Scalar, 6, 1> State;
+    typedef Eigen::Matrix<Scalar, 6, 1> Observation;
 
     typedef ff::LinearGaussianProcessModel<State> ProcessModel;
     typedef ff::LinearGaussianObservationModel<Observation,
@@ -141,12 +141,13 @@ TEST(KalmanFilterTests, fixedsize_predict_update)
 
     typedef ff::KalmanFilter<ProcessModel, ObservationModel> Filter;
 
-    ProcessModel::Operator Q = ProcessModel::Operator::Random()*1.5;
-    Q *= Q.transpose();
-    ProcessModel::DynamicsMatrix A = ProcessModel::DynamicsMatrix::Random();
-
+    ProcessModel::Operator Q = ProcessModel::Operator::Random() * 1.5;
     ObservationModel::Operator R = ObservationModel::Operator::Random();
+
+    Q *= Q.transpose();
     R *= R.transpose();
+
+    ProcessModel::DynamicsMatrix A = ProcessModel::DynamicsMatrix::Random();
     ObservationModel::SensorMatrix H = ObservationModel::SensorMatrix::Random();
 
     Filter::ProcessModelPtr process_model =
@@ -218,13 +219,3 @@ TEST(KalmanFilterTests, dynamicsize_predict_update)
         EXPECT_TRUE(state_dist.Covariance().ldlt().isPositive());
     }
 }
-
-
-
-
-
-
-
-
-
-
