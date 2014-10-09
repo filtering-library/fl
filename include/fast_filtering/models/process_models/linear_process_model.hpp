@@ -55,17 +55,18 @@ namespace ff
 {
 
 // Forward declarations
-template <typename State> class LinearGaussianProcessModel;
+template <typename State, typename Input_> class LinearGaussianProcessModel;
 
 namespace internal
 {
-template <typename State>
-struct Traits<LinearGaussianProcessModel<State> >
+template <typename State_, typename Input_>
+struct Traits<LinearGaussianProcessModel<State_, Input_> >
 {
-    typedef Gaussian<State> GaussianBase;
-    typedef StationaryProcessModel<State> ProcessModelBase;
+    typedef Gaussian<State_> GaussianBase;
+    typedef StationaryProcessModel<State_, Input_> ProcessModelBase;
 
-    typedef typename ProcessModelBase::Input Input;
+    typedef State_ State;
+    typedef Input_ Input;
     typedef typename internal::Traits<GaussianBase>::Scalar Scalar;
     typedef typename internal::Traits<GaussianBase>::Operator Operator;
     typedef typename internal::Traits<GaussianBase>::Noise Noise;
@@ -77,15 +78,15 @@ struct Traits<LinearGaussianProcessModel<State> >
 }
 
 
-template <typename State_>
+template <typename State_, typename Input_ = internal::Empty>
 class LinearGaussianProcessModel:
-    public internal::Traits<LinearGaussianProcessModel<State_> >::ProcessModelBase,
-    public internal::Traits<LinearGaussianProcessModel<State_> >::GaussianBase
+    public internal::Traits<LinearGaussianProcessModel<State_, Input_> >::ProcessModelBase,
+    public internal::Traits<LinearGaussianProcessModel<State_, Input_> >::GaussianBase
 {
 public:
-    typedef internal::Traits<LinearGaussianProcessModel<State_> > Traits;
+    typedef internal::Traits<LinearGaussianProcessModel<State_, Input_> > Traits;
 
-    typedef State_ State;
+    typedef typename Traits::State State;
     typedef typename Traits::Input Input;
     typedef typename Traits::Noise Noise;
     typedef typename Traits::Scalar Scalar;
@@ -118,7 +119,7 @@ public:
                            const State& x,
                            const Input& u = Input())
     {
-        delta_time_ = delta_time;
+        delta_time_ = delta_time;                
 
         Mean(A_ * x);
     }
