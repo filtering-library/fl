@@ -100,14 +100,22 @@ public:
     void Update(const StateDistribution& predicted,
                 const Observation& y,
                 StateDistribution& posterior)
-    {
-        typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> Matrix;
-
+    {       
         const SensorMatrix& H = observation_model_->H();
-        const SensorMatrix R = observation_model_->Covariance();
+        const SensorCovariance R = observation_model_->Covariance();
 
-        const Matrix S = H * predicted.Covariance() * H.transpose() + R;
-        const Matrix K = predicted.Covariance() * H.transpose() * S.inverse();
+        typedef Eigen::Matrix<
+                Scalar,
+                SensorMatrix::RowsAtCompileTime,
+                SensorCovariance::ColsAtCompileTime> SMatrix;
+
+        typedef Eigen::Matrix<
+                Scalar,
+                DynamicsCovariance::RowsAtCompileTime,
+                SMatrix::ColsAtCompileTime> KMatrix;
+
+        const SMatrix S = H * predicted.Covariance() * H.transpose() + R;
+        const KMatrix K = predicted.Covariance() * H.transpose() * S.inverse();
 
         posterior.Mean(
                     predicted.Mean() + K * (y - H * predicted.Mean()));
