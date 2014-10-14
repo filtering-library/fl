@@ -104,10 +104,13 @@ public:
     }
 };
 
-template <typename State>
+template <typename State, typename Observation_>
 class ObservationModelDummy
 {
 public:
+    //typedef Eigen::Matrix<double, 1, 1> Observation;
+    typedef Observation_ Observation;
+
     virtual void predict(const State& state)
     {
         // foo
