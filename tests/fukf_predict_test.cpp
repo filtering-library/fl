@@ -71,7 +71,7 @@ public:
     typedef ProcessModelStub<State_b_i> ProcessModel_b_i;
     typedef ObservationModelStub<State_a, State_b_i> ObservationModel_y_i;
 
-    typedef typename ObservationModel_y_i::Measurement Measurement_y_i;
+    typedef typename ObservationModel_y_i::Observation Measurement_y_i;
 
     typedef ff::FactorizedUnscentedKalmanFilter<
                     ProcessModel_a,

@@ -97,16 +97,16 @@ class ObservationModelStub:
         public ff::GaussianMap<Eigen::Matrix<double, 1, 1>, Eigen::Matrix<double, 1, 1> >
 {
 public:
-    typedef Eigen::Matrix<double, 1, 1> Measurement;
+    typedef Eigen::Matrix<double, 1, 1> Observation;
     typedef Eigen::Matrix<double, 1, 1> Noise;
 
-    virtual Measurement MapStandardGaussian(const Noise& sample) const
+    virtual Observation MapStandardGaussian(const Noise& sample) const
     {
         return occlusion_ + sample;
     }
 
     virtual void Condition(const State_a& state,
-                           const Measurement& occlusion,
+                           const Observation& occlusion,
                            size_t state_index,
                            size_t pixel_index)
     {
@@ -118,7 +118,7 @@ public:
 
 protected:
     State_a a_;
-    Measurement occlusion_;
+    Observation occlusion_;
 };
 
 #endif
