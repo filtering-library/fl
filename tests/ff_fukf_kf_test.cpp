@@ -66,20 +66,107 @@
 #include <fast_filtering/filters/deterministic/composed_state_distribution.hpp>
 #include <fast_filtering/filters/deterministic/factorized_unscented_kalman_filter.hpp>
 
-#define DIM_STATE_A 7
-#define DIM_STATE_B 3
-#define COUNT_STATE_B 5
-#define DIM_OBSERVATION       1
-#define DIM_JOINT_STATE       (DIM_STATE_A + DIM_STATE_B * COUNT_STATE_B)
-#define DIM_JOINT_OBSERVATION (DIM_OBSERVATION * COUNT_STATE_B)
+#define DIM_STATE_A             11
+#define DIM_STATE_B             5
+#define COUNT_STATE_B           31
+#define DIM_OBSERVATION         3
+#define DIM_JOINT_STATE         (DIM_STATE_A + DIM_STATE_B * COUNT_STATE_B)
+#define DIM_JOINT_OBSERVATION   (DIM_OBSERVATION * COUNT_STATE_B)
 
 #define COEFF_A 0.5465454
 #define COEFF_Q 0.06
 #define COEFF_R 0.05
 
+#define VERBOSE false
+
 //#define COEFF_A 1.0
 //#define COEFF_Q 1.0
 //#define COEFF_R 1.0
+
+#define EPSILON 1.e-6
+
+template <typename V1, typename V2> bool areSimilar(V1 v1, V2 v2)
+{
+    return (v1-v2).dot(v1-v2) < EPSILON;
+}
+
+template <typename D1, typename D2> void step_prints(D1& kf_state_dist,
+                                                    D2& fukf_state_dist,
+                                                    std::string step,
+                                                     size_t i)
+{
+    if (!VERBOSE) return;
+
+    std::cout << "== " << step << " " << i << " =================" << std::endl;
+
+    std::cout << "  kf " << step << " expected "
+              << kf_state_dist.Mean().transpose() << std::endl;
+
+    std::cout << "fukf " << step << " expected "
+              << fukf_state_dist.mean_a.transpose() ;
+    for (auto& partition: fukf_state_dist.joint_partitions)
+    {
+        std::cout << " " << partition.mean_b.transpose();
+    }
+    std::cout << std::endl;
+
+    std::cout << "  kf " << step << " cov_aa\n"
+                         <<  kf_state_dist
+                             .Covariance()
+                             .block(0, 0, DIM_STATE_A, DIM_STATE_A)
+                         << std::endl;
+    std::cout << "fukf " << step << " cov_aa\n"
+                         << fukf_state_dist.cov_aa
+                         << std::endl;
+    std::cout << "  kf " << step << " cov_bb[0] "
+                         <<  kf_state_dist.Covariance().block(DIM_STATE_A,
+                                                              DIM_STATE_A,
+                                                              DIM_STATE_B,
+                                                              DIM_STATE_B)
+                         << std::endl;
+    std::cout << "fukf " << step << " cov_bb[0] "
+                         << fukf_state_dist.joint_partitions[0].cov_bb
+                         << std::endl;
+}
+
+template <typename D1, typename D2> void step_assert(D1& kf_state_dist,
+                                                     D2& fukf_state_dist,
+                                                     std::string step,
+                                                     bool& success)
+{
+    success = false;
+
+    ASSERT_TRUE(kf_state_dist.Covariance().ldlt().isPositive());
+    ASSERT_TRUE(fukf_state_dist.cov_aa.ldlt().isPositive());
+    ASSERT_TRUE(fukf_state_dist
+                .joint_partitions[0].cov_bb.ldlt().isPositive());
+
+//    ASSERT_TRUE(kf_state_dist
+//                .Mean()
+//                .topRows(DIM_STATE_A)
+//                .isApprox(fukf_state_dist.mean_a));
+//    ASSERT_TRUE(kf_state_dist
+//                .Mean()
+//                .middleRows(DIM_STATE_A, DIM_STATE_B)
+//                .isApprox(fukf_state_dist.joint_partitions[0].mean_b));
+
+    ASSERT_TRUE(areSimilar(kf_state_dist.Mean().topRows(DIM_STATE_A),
+                           fukf_state_dist.mean_a));
+    ASSERT_TRUE(areSimilar(kf_state_dist.Mean().middleRows(DIM_STATE_A,
+                                                           DIM_STATE_B),
+                           fukf_state_dist.joint_partitions[0].mean_b));
+
+    ASSERT_TRUE(kf_state_dist
+                .Covariance()
+                .block(0, 0, DIM_STATE_A, DIM_STATE_A)
+                .isApprox(fukf_state_dist.cov_aa, EPSILON));
+    ASSERT_TRUE(kf_state_dist
+                .Covariance()
+                .block(DIM_STATE_A, DIM_STATE_A, DIM_STATE_B, DIM_STATE_B)
+                .isApprox(fukf_state_dist.joint_partitions[0].cov_bb, EPSILON));
+
+    success = true;
+}
 
 TEST(FukfKFTest, init)
 {    
@@ -145,7 +232,7 @@ TEST(FukfKFTest, init)
                            observation_model_ab);
 
     FukfFilter::StateDistribution fukf_state_dist;
-    fukf_state_dist.initialize(State_a::Zero(), COUNT_STATE_B, State_b::Zero());
+    fukf_state_dist.initialize(State_a::Ones(), COUNT_STATE_B, State_b::Ones());
 
     // == KalmanFilter STUFF == //
     typedef Eigen::Matrix< Scalar, DIM_JOINT_STATE, 1> State;
@@ -170,7 +257,8 @@ TEST(FukfKFTest, init)
     {
         H.block(i*H_a.rows(), 0, H_a.rows(), H_a.cols()) = H_a;
 
-        H.block(i*H_a.rows(), H_a.cols() + i*H_b.cols(), H_b.rows(), H_b.cols()) = H_b;
+        H.block(i*H_a.rows(), H_a.cols() + i*H_b.cols(),
+                H_b.rows(), H_b.cols()) = H_b;
     }
 
     A.setIdentity();
@@ -192,76 +280,52 @@ TEST(FukfKFTest, init)
 
     KalmanFilter kf_filter(process_model, observation_model);
     KalmanFilter::StateDistribution kf_state_dist;
+    kf_state_dist.Mean(State::Ones());
 
-    EXPECT_TRUE(kf_state_dist.Covariance().ldlt().isPositive());
+    // assert pre-conditions
+    ASSERT_EQ(R.rows(), R.cols());
+    ASSERT_EQ(R.rows(), R_ab.rows() * COUNT_STATE_B);
+    ASSERT_TRUE(kf_state_dist.Covariance().ldlt().isPositive());
 
-    for (size_t i = 0; i < 20000; ++i)
+    bool success = false;
+
+
+    for (size_t i = 0; i < 33; ++i)
     {
         Observation y = Observation::Random();
-        H_a.setRandom();
-        H_b.setRandom();
-        observation_model_ab->H_a(H_a);
-        observation_model_ab->H_b(H_b);
-        for (size_t i = 0; i < COUNT_STATE_B; ++i)
-        {
-            H.block(i*H_a.rows(), 0, H_a.rows(), H_a.cols()) = H_a;
-
-            H.block(i*H_a.rows(), H_a.cols() + i*H_b.cols(), H_b.rows(), H_b.cols()) = H_b;
-        }
-        observation_model->H(H);
-
 
         // == predict ======================================================= //
-
         kf_filter.Predict(1.0, kf_state_dist, kf_state_dist);
         fukf_filter.Predict(fukf_state_dist, 1.0, fukf_state_dist);
-        EXPECT_TRUE(kf_state_dist.Covariance().ldlt().isPositive());
-        EXPECT_TRUE(fukf_state_dist.cov_aa.ldlt().isPositive());
-        EXPECT_TRUE(fukf_state_dist.joint_partitions[0].cov_bb.ldlt().isPositive());
 
-        std::cout << "kf predict a\n" <<  kf_state_dist.Covariance().block(0, 0, DIM_STATE_A, DIM_STATE_A) << std::endl;
-        std::cout << "fukf predict a\n" << fukf_state_dist.cov_aa << std::endl;
-        std::cout << "kf predict b\n" <<  kf_state_dist.Covariance().block(DIM_STATE_A, DIM_STATE_A, DIM_STATE_B, DIM_STATE_B) << std::endl;
-        std::cout << "fukf predict b\n" << fukf_state_dist.joint_partitions[0].cov_bb << std::endl;
-
-        ASSERT_TRUE(kf_state_dist.Covariance().block(0, 0, DIM_STATE_A, DIM_STATE_A).isApprox(fukf_state_dist.cov_aa) && "a predictions differ");
-        ASSERT_TRUE(kf_state_dist.Covariance().block(DIM_STATE_A, DIM_STATE_A, DIM_STATE_B, DIM_STATE_B).isApprox(fukf_state_dist.joint_partitions[0].cov_bb) && "b predictions differ");
+        step_prints(kf_state_dist, fukf_state_dist, "predict", i);
+        step_assert(kf_state_dist, fukf_state_dist, "predict", success);
+        if (!success) return;
 
         // == update ======================================================== //
-
         kf_filter.Update(kf_state_dist, y, kf_state_dist);
         fukf_filter.Update(fukf_state_dist, y, fukf_state_dist);
 
-        EXPECT_TRUE(kf_state_dist.Covariance().ldlt().isPositive());
-        EXPECT_TRUE(fukf_state_dist.cov_aa.ldlt().isPositive());
-        EXPECT_TRUE(fukf_state_dist.joint_partitions[0].cov_bb.ldlt().isPositive());
-
-        std::cout << "\nkf update \n" <<  kf_state_dist.Covariance().block(0, 0, DIM_STATE_A, DIM_STATE_A) << std::endl;
-        std::cout << "fukf update \n" << fukf_state_dist.cov_aa << std::endl;
-        std::cout << "kf update b\n" <<  kf_state_dist.Covariance().block(DIM_STATE_A, DIM_STATE_A, DIM_STATE_B, DIM_STATE_B) << std::endl;
-        std::cout << "fukf update b\n" << fukf_state_dist.joint_partitions[0].cov_bb << std::endl;
-
-
-        ASSERT_TRUE(kf_state_dist.Covariance().block(0, 0, DIM_STATE_A, DIM_STATE_A).isApprox(fukf_state_dist.cov_aa) && "a updates differ");
-        ASSERT_TRUE(kf_state_dist.Covariance().block(DIM_STATE_A, DIM_STATE_A, DIM_STATE_B, DIM_STATE_B).isApprox(fukf_state_dist.joint_partitions[0].cov_bb) && "b update differ");
+        step_prints(kf_state_dist, fukf_state_dist, "update", i);
+        step_assert(kf_state_dist, fukf_state_dist, "update", success);
+        if (!success) return;
 
         // == approximate =================================================== //
         ProcessModel::Operator kf_cov = kf_state_dist.Covariance();
         for (size_t i = 0; i < COUNT_STATE_B; ++i)
         {
-            kf_cov.block(0,                          DIM_STATE_A + i*DIM_STATE_B,
+            kf_cov.block(0, DIM_STATE_A + i*DIM_STATE_B,
                          DIM_STATE_A+ i*DIM_STATE_B, DIM_STATE_B).setZero();
 
             kf_cov.transpose()
-                  .block(0,                          DIM_STATE_A + i*DIM_STATE_B,
+                  .block(0, DIM_STATE_A + i*DIM_STATE_B,
                          DIM_STATE_A+ i*DIM_STATE_B, DIM_STATE_B).setZero();
         }
         kf_state_dist.Covariance(kf_cov);
 
-        std::cout << kf_state_dist.Covariance() << std::endl;
-        ASSERT_TRUE(kf_state_dist.Covariance().ldlt().isPositive() && fukf_state_dist.cov_aa.ldlt().isPositive() && " not p.s.d anymore");
-
-        //std::cin.get();
+        ASSERT_TRUE(kf_state_dist.Covariance().ldlt().isPositive()
+                    && fukf_state_dist.cov_aa.ldlt().isPositive()
+                    && " not p.s.d anymore");
     }
 }
 
