@@ -57,7 +57,7 @@ namespace ff
 {
 
 // Forward declarations
-template <typename CohesiveState, typename FactorizedState>
+template <typename CohesiveState, typename FactorizedState, typename Observation>
 class ComposedStateDistribution;
 
 namespace internal
@@ -66,8 +66,11 @@ namespace internal
  * SumOfDeltas distribution traits specialization
  * \internal
  */
-template <typename CohesiveState, typename FactorizedState>
-struct Traits<ComposedStateDistribution<CohesiveState, FactorizedState> >
+template <typename CohesiveState,
+          typename FactorizedState,
+          typename Observation>
+struct Traits<ComposedStateDistribution<
+        CohesiveState, FactorizedState, Observation> >
 {
     typedef typename CohesiveState::Scalar Scalar;
 
@@ -81,7 +84,7 @@ struct Traits<ComposedStateDistribution<CohesiveState, FactorizedState> >
 
     typedef Eigen::Matrix<Scalar,
                           CohesiveState::SizeAtCompileTime,
-                          1> Cov_ay;
+                          Observation::SizeAtCompileTime> Cov_ay;
 
     typedef Eigen::Matrix<Scalar,
                           FactorizedState::SizeAtCompileTime,
@@ -89,53 +92,29 @@ struct Traits<ComposedStateDistribution<CohesiveState, FactorizedState> >
 
     typedef Eigen::Matrix<Scalar,
                           FactorizedState::SizeAtCompileTime,
-                          1> Cov_by;
+                          Observation::SizeAtCompileTime> Cov_by;
 
-    typedef Eigen::Matrix<Scalar, 1, 1> Y;
-    typedef Eigen::Matrix<Scalar, 1, 1> Cov_yy;
+    typedef Eigen::Matrix<Scalar, Observation::SizeAtCompileTime, 1> Y;
+    typedef Eigen::Matrix<Scalar,
+                          Observation::SizeAtCompileTime,
+                          Observation::SizeAtCompileTime> Cov_yy;
 };
 }
-
-
-//template <typename CohesiveStateDistribution,
-//          typename FactorizedStateDistribution>
-//class FactorizedStateDistribution
-//{
-//public:
-//    enum
-//    {
-//        a,
-//        b_i
-//    };
-
-//    CohesiveStateDistribution distribution_a;
-//    std::vector<FactorizedStateDistribution> distribution_b;
-//};
-
-//class FactorizedJointStateDistribution:
-//        public FactorizedStateDistribution
-//{
-//public:
-//    enum
-//    {
-
-//    };
-//};
-
-
 
 /**
  * \class ComposedStateDistribution
  * \ingroup states
  */
-template <typename CohesiveState, typename FactorizedState>
+template <typename CohesiveState,
+          typename FactorizedState,
+          typename Observation>
 class ComposedStateDistribution
 {
 public:
     typedef internal::Traits<
                 ComposedStateDistribution<
-                CohesiveState,
-                                          FactorizedState> > Traits;
+                    CohesiveState, FactorizedState, Observation> > Traits;
+
     typedef typename Traits::Scalar Scalar;
     typedef typename Traits::Cov_aa Cov_aa;
     typedef typename Traits::Cov_ab Cov_ab;
@@ -177,6 +156,7 @@ public:
                     const Scalar sigma_b_i = 1.0)
     {
         mean_a = initial_a;
+        mean_a_predicted = initial_a;
         cov_aa = Cov_aa::Identity(a_dimension(), a_dimension()) * sigma_a;
 
         joint_partitions.resize(factorized_states_count);
@@ -203,13 +183,14 @@ public:
         return 0;
     }
 
-    size_t b_dimension() const
+    size_t count_partitions() const
     {
         return joint_partitions.size();
     }
 
 public:
     CohesiveState mean_a;
+    CohesiveState mean_a_predicted;
     Cov_aa cov_aa;
     Cov_aa cov_aa_inverse;
     std::vector<JointPartitions> joint_partitions;
