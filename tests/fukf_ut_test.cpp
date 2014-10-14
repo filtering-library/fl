@@ -64,16 +64,18 @@ class UnscentedTransformTest:
 {
 public:
     typedef Eigen::Matrix<double, 3, 1> State;
+    typedef Eigen::Matrix<double, 5, 1> Observation;
 
     typedef ff::FactorizedUnscentedKalmanFilter<
                     ProcessModelDummy<State>,
                     ProcessModelDummy<State>,
-                    ObservationModelDummy<State> > Filter;
+                    ObservationModelDummy<State, Observation> > Filter;
 
     UnscentedTransformTest():
         filter(Filter(boost::make_shared<ProcessModelDummy<State> >(),
                       boost::make_shared<ProcessModelDummy<State> >(),
-                      boost::make_shared<ObservationModelDummy<State> >()))
+                      boost::make_shared<ObservationModelDummy<
+                        State, Observation> >()))
     {
 
     }

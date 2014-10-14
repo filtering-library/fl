@@ -68,9 +68,10 @@ class PartitionedUnscentedTransformTest:
 {
 public:
     typedef Eigen::Matrix<double, 3, 1> State;
+    typedef Eigen::Matrix<double, 5, 1> Observation;
 
-    typedef ProcessModelDummy<State>     ProcessModel;
-    typedef ObservationModelDummy<State> ObservationModel;
+    typedef ProcessModelDummy<State> ProcessModel;
+    typedef ObservationModelDummy<State, Observation> ObservationModel;
 
     typedef ff::FactorizedUnscentedKalmanFilter<
                     ProcessModel,

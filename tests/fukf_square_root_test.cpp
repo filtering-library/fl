@@ -62,11 +62,12 @@
 const double EPSILON = 1.0e-12;
 
 typedef Eigen::Matrix<double, 3, 1> State;
+typedef Eigen::Matrix<double, 1, 1> Observation;
 
 typedef ff::FactorizedUnscentedKalmanFilter<
                 ProcessModelDummy<State>,
                 ProcessModelDummy<State>,
-                ObservationModelDummy<State> > Filter;
+                ObservationModelDummy<State, Observation> > Filter;
 
 const size_t DIMENSION = 10;
 
@@ -78,7 +79,7 @@ TEST(SquareRootTests, dense)
 
     Filter filter(boost::make_shared<ProcessModelDummy<State> >(),
                   boost::make_shared<ProcessModelDummy<State> >(),
-                  boost::make_shared<ObservationModelDummy<State> >());
+                  boost::make_shared<ObservationModelDummy<State, Observation> >());
     filter.SquareRoot(cov, cov_sqrt);
 
     EXPECT_EQ(cov.rows(), cov_sqrt.rows());
@@ -93,7 +94,7 @@ TEST(SquareRootTests, diagonal)
 
     Filter filter(boost::make_shared<ProcessModelDummy<State> >(),
                   boost::make_shared<ProcessModelDummy<State> >(),
-                  boost::make_shared<ObservationModelDummy<State> >());
+                  boost::make_shared<ObservationModelDummy<State, Observation> >());
     filter.SquareRootDiagonal(cov, cov_sqrt);
 
     EXPECT_EQ(cov.rows(), cov_sqrt.rows());
@@ -108,7 +109,7 @@ TEST(SquareRootTests, diagonalAsVector)
 
     Filter filter(boost::make_shared<ProcessModelDummy<State> >(),
                   boost::make_shared<ProcessModelDummy<State> >(),
-                  boost::make_shared<ObservationModelDummy<State> >());
+                  boost::make_shared<ObservationModelDummy<State, Observation> >());
     filter.SquareRootDiagonalAsVector(cov, cov_sqrt);
 
     EXPECT_EQ(cov.rows(), cov_sqrt.rows());
