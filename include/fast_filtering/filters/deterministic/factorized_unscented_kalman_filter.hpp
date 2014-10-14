@@ -87,8 +87,10 @@ public:
     typedef typename FactorizedStateProcessModel::State State_b_i;
     typedef typename FactorizedStateProcessModel::Noise Noise_b_i;
     typedef typename FactorizedStateProcessModel::Input Input_b_i;
+        
+    typedef typename ObservationModel::Observation Observation;
 
-    typedef ComposedStateDistribution<State_a, State_b_i> StateDistribution;
+    typedef ComposedStateDistribution<State_a, State_b_i, Observation> StateDistribution;
     typedef typename StateDistribution::JointPartitions JointPartitions;
     typedef typename StateDistribution::Cov_aa Cov_aa;
     typedef typename StateDistribution::Cov_bb Cov_bb;
@@ -167,7 +169,7 @@ public:
         ({
             { prior_state.mean_a,                   prior_state.cov_aa },
             { Noise_a::Zero(Dim(Q_a),  1),          noise_Q_a },
-            { State_b_i::Zero(Dim(b_i),  1),        Cov_bb() },
+            { State_b_i::Zero(Dim(b_i),  1),        Cov_bb(Dim(b_i),Dim(b_i)) },
             { Noise_b_i::Zero(Dim(Q_b_i), 1),       noise_Q_bi },
             { Eigen::MatrixXd::Zero(Dim(R_y_i), 1), noise_R_yi }
          },
@@ -177,6 +179,7 @@ public:
         f_a(X_[a], X_[Q_a], delta_time, X_[a]);
 
         Mean(X_[a], predicted_state.mean_a);
+        predicted_state.mean_a_predicted = predicted_state.mean_a;
         X_a_norm_ = X_[a];
         Normalize(predicted_state.mean_a, X_a_norm_);
         predicted_state.cov_aa = X_a_norm_ * X_a_norm_.transpose();
@@ -211,9 +214,6 @@ public:
 
             predicted_partition.cov_by = X_[b_i] * Y_.transpose();
             predicted_partition.cov_yy = Y_ * Y_.transpose();
-
-            assert(predicted_partition.cov_bb(0,0) > 0);
-            assert(!std::isnan(predicted_partition.mean_b(0,0)));
         }
     }
 
@@ -238,7 +238,8 @@ public:
 
 
     /**
-     * Update the cohesive predicted_state part a
+     * Update the cohesive predicted_state part a assuming a multi-dimensoinal
+     * measurements for each factor
      *
      * @param [in]  predicted_state     Propagated state
      * @param [in]  y                   Measurement
@@ -246,11 +247,84 @@ public:
      *
      * @attention NEEDS TO BE TESTED
      */
-    void Update_a(const StateDistribution& predicted_state,
-                  const Eigen::MatrixXd& y,
-                  StateDistribution& posterior_state)
+    template <typename RT = void>
+    typename std::enable_if<Observation::SizeAtCompileTime != 1, RT>::type
+    Update_a(const StateDistribution& predicted_state,
+             const Eigen::MatrixXd& y,
+             StateDistribution& posterior_state)
     {
-        size_t dim_b = predicted_state.b_dimension();
+        const size_t count_b = predicted_state.count_partitions();
+        const size_t dim_y_i = Dim(y_i);
+
+        posterior_state.cov_aa_inverse = predicted_state.cov_aa.inverse();
+        const Cov_aa& cov_aa_inv = posterior_state.cov_aa_inverse;
+
+        Cov_yy cov_yy_given_a_inv_i;
+        Eigen::MatrixXd A_i(dim_y_i, Dim(a));
+        Eigen::MatrixXd T_i(Dim(a), dim_y_i);
+        Cov_aa C(Dim(a), Dim(a));
+        Eigen::MatrixXd D(Dim(a), 1);
+
+        C.setZero();
+        D.setZero();
+
+        for (size_t i = 0; i < count_b; ++i)
+        {
+            if (std::isnan(y(i, 0)))
+                    //|| std::fabs(y(i, 0) - partition.mean_y(0,0)) > 0.08)
+            {
+                continue;
+            }
+
+            const JointPartitions& partition
+                    = predicted_state.joint_partitions[i];
+
+            const Cov_ay& cov_ay = partition.cov_ay;
+            const Cov_yy& cov_yy = partition.cov_yy;
+
+            A_i = cov_ay.transpose() * cov_aa_inv;
+            cov_yy_given_a_inv_i
+                    = (cov_yy - cov_ay.transpose() * cov_aa_inv * cov_ay)
+                      .inverse();
+
+            T_i = A_i.transpose() * cov_yy_given_a_inv_i;
+
+            C += T_i * A_i;
+            D += T_i * (y.middleRows(i * dim_y_i, dim_y_i) - partition.mean_y);
+        }
+
+        if (!D.isZero())
+        {
+            posterior_state.cov_aa
+                    = (cov_aa_inv + C).inverse();
+            posterior_state.mean_a
+                    = predicted_state.mean_a + posterior_state.cov_aa * D;
+        }
+        else
+        {
+            std::cout << "No valid measurements. Cohesive state partition has"
+                         " no been updated." << std::endl;
+            return;
+        }
+    }
+
+    /**
+     * Update the cohesive predicted_state part a assuming a one-dimensoinal
+     * measurements for each factor
+     *
+     * @param [in]  predicted_state     Propagated state
+     * @param [in]  y                   Measurement
+     * @param [out] posterior_state     Updated posterior state
+     *
+     * @attention NEEDS TO BE TESTED
+     */
+    template <typename RT = void>
+    typename std::enable_if<Observation::SizeAtCompileTime == 1, RT>::type
+    Update_a(const StateDistribution& predicted_state,
+             const Eigen::MatrixXd& y,
+             StateDistribution& posterior_state)
+    {
+        size_t dim_b = predicted_state.count_partitions();
 
         Eigen::MatrixXd A(dim_b, Dim(a));
         Eigen::MatrixXd mu_y(dim_b, 1);
@@ -263,26 +337,27 @@ public:
         Eigen::MatrixXd valid_y(dim_b, 1);
         for (size_t i = 0; i < dim_b; ++i)
         {
-            const JointPartitions& partition = predicted_state.joint_partitions[i];
+            const JointPartitions& partition
+                    = predicted_state.joint_partitions[i];
 
-            if (!std::isnan(y(i, 0)))
-                    //&& std::fabs(y(i, 0) - partition.mean_y(0,0)) < 0.08)
+            if (std::isnan(y(i, 0)))
+                    //|| std::fabs(y(i, 0) - partition.mean_y(0,0)) > 0.08)
             {
-                const Cov_ay& cov_ay = partition.cov_ay;
-                const Cov_yy& cov_yy = partition.cov_yy;
-
-                A.row(k)    = cov_ay.transpose();
-                mu_y.row(k) = partition.mean_y;
-
-                cov_yy_given_a_inv.row(k) =
-                        cov_yy - cov_ay.transpose() * cov_aa_inv * cov_ay;
-
-                valid_y.row(k) = y.row(i);
-
-                assert(cov_yy_given_a_inv(k, 0) > 0.);
-
-                k++;                                                
+                continue;
             }
+
+            const Cov_ay& cov_ay = partition.cov_ay;
+            const Cov_yy& cov_yy = partition.cov_yy;
+
+            A.row(k) = cov_ay.transpose();
+            mu_y.row(k) = partition.mean_y;
+
+            cov_yy_given_a_inv.row(k) =
+                    cov_yy - cov_ay.transpose() * cov_aa_inv * cov_ay;
+
+            valid_y.row(k) = y.row(i);
+
+            k++;
         }
 
         if (!k)
@@ -305,7 +380,6 @@ public:
 
         // update cohesive state segment
         posterior_state.cov_aa = (cov_aa_inv + AT_Cov_yy_given_a * A).inverse();
-
         posterior_state.mean_a =
                 predicted_state.mean_a +
                 posterior_state.cov_aa * (AT_Cov_yy_given_a * (valid_y - mu_y));
@@ -331,36 +405,38 @@ public:
         Eigen::MatrixXd L_ya;
         Eigen::MatrixXd L_yy;
 
-        size_t dim_b = predicted_state.b_dimension();
+        const size_t count_b = predicted_state.count_partitions();
 
         Eigen::MatrixXd B;
         Eigen::MatrixXd c;
-        Eigen::MatrixXd ba_by;
+        Eigen::MatrixXd cov_ba_by;
         Eigen::MatrixXd K;
         Eigen::MatrixXd innov;
         Eigen::MatrixXd cov_b_given_a_y;
-        ba_by.resize(Dim(b_i), Dim(a) + Dim(y_i));
+
+        cov_ba_by.resize(Dim(b_i), Dim(a) + Dim(y_i));
         innov.resize(Dim(a) + Dim(y_i), 1);
-        innov.block(0, 0, Dim(a), 1) = -predicted_state.mean_a;
+        innov.topRows(Dim(a)) = -predicted_state.mean_a_predicted;
 
-        Cov_aa& cov_aa_inv = posterior_state.cov_aa_inverse;
+        const Cov_aa& cov_aa_inv = posterior_state.cov_aa_inverse;
 
-        for (size_t i = 0; i < dim_b; ++i)
+        for (size_t i = 0; i < count_b; ++i)
         {
-            const typename StateDistribution::JointPartitions& partition =
-                    predicted_state.joint_partitions[i];
+            const JointPartitions& partition
+                    = predicted_state.joint_partitions[i];
 
-            if (std::isnan(y(i, 0)))// ||
-                //std::fabs(y(i, 0) - predicted_state.joint_partitions[i].mean_y(0,0)) > 0.20)
-            {
-                continue;
-            }
+//            if (std::isnan(y(i, 0)) ||
+//                std::fabs(y(i, 0) - partition.mean_y(0,0)) > 0.20)
+//            {
+//                continue;
+//            }
 
-            const Cov_ay& cov_ay = predicted_state.joint_partitions[i].cov_ay;
-            const Cov_ab& cov_ab = predicted_state.joint_partitions[i].cov_ab;
-            const Cov_by& cov_by = predicted_state.joint_partitions[i].cov_by;
-            const Cov_bb& cov_bb = predicted_state.joint_partitions[i].cov_bb;
-            const Cov_yy& cov_yy = predicted_state.joint_partitions[i].cov_yy;
+            const Cov_ay& cov_ay = partition.cov_ay;
+            const Cov_ab& cov_ab = partition.cov_ab;
+            const Cov_by& cov_by = partition.cov_by;
+            const Cov_bb& cov_bb = partition.cov_bb;
+            const Cov_yy& cov_yy = partition.cov_yy;
+
 
             SMWInversion(cov_aa_inv, cov_ay, cov_ay.transpose(), cov_yy,
                          L_aa, L_ay, L_ya, L_yy,
@@ -368,32 +444,30 @@ public:
 
             B = cov_ab.transpose() * L_aa  +  cov_by * L_ya;
 
-            ba_by.block(0, 0,      Dim(b_i), Dim(a)) = cov_ab.transpose();
-            ba_by.block(0, Dim(a), Dim(b_i), Dim(y_i)) = cov_by;
+            cov_ba_by.leftCols(Dim(a)) = cov_ab.transpose();
+            cov_ba_by.rightCols(Dim(y_i)) = cov_by;
 
-            K = ba_by * L;
+            K = cov_ba_by * L;
 
-            innov.block(Dim(a), 0, Dim(y_i), 1) =
-                    y.row(i) - predicted_state.joint_partitions[i].mean_y;
+            innov.bottomRows(Dim(y_i))
+                    = y.middleRows(i * Dim(y_i), Dim(y_i))
+                      - partition.mean_y;
 
-            c = predicted_state.joint_partitions[i].mean_b + K * innov;
+            c = partition.mean_b + K * innov;
 
-            cov_b_given_a_y = cov_bb - K * ba_by.transpose();
+            cov_b_given_a_y = cov_bb - K * cov_ba_by.transpose();
 
             // update b_[i]
-            posterior_state.joint_partitions[i].mean_b =
-                    B * posterior_state.mean_a + c;
-            posterior_state.joint_partitions[i].cov_bb =
-                    cov_b_given_a_y
-                    + B * posterior_state.cov_aa * B.transpose();
+            posterior_state.joint_partitions[i].mean_b
+                     = B * posterior_state.mean_a + c;
+            posterior_state.joint_partitions[i].cov_bb
+                     = cov_b_given_a_y
+                       + B * posterior_state.cov_aa * B.transpose();
         }
     }
 
 
 public:
-    size_t true_evaluations;
-    size_t theoretical_evaluations;
-
     void f_a(const SigmaPoints& prior_X_a,
              const SigmaPoints& noise_X_a,
              const double delta_time,
@@ -404,7 +478,8 @@ public:
         for (size_t i = 0; i < prior_X_a.cols(); ++i)
         {
             f_a_->Condition(delta_time, prior_X_a.col(i), zero_input);
-            predicted_X_a.col(i) = f_a_->MapStandardGaussian(noise_X_a.col(i));
+            predicted_X_a.col(i)
+                    = f_a_->MapStandardGaussian(noise_X_a.col(i));
         }
     }
 
@@ -418,7 +493,8 @@ public:
         for (size_t i = 0; i < prior_X_b_i.cols(); ++i)
         {
             f_b_->Condition(delta_time, prior_X_b_i.col(i), zero_input);
-            predicted_X_b_i.col(i)= f_b_->MapStandardGaussian(noise_X_b_i.col(i));
+            predicted_X_b_i.col(i)
+                    = f_b_->MapStandardGaussian(noise_X_b_i.col(i));
         }
     }
 
@@ -434,7 +510,8 @@ public:
         for (size_t i = 0; i < prior_X_a.cols(); ++i)
         {
             h_->Condition(prior_X_a.col(i), prior_X_b_i.col(i), i, index);
-            predicted_X_y_i.col(i) = h_->MapStandardGaussian(noise_X_y_i.col(i));
+            predicted_X_y_i.col(i)
+                    = h_->MapStandardGaussian(noise_X_y_i.col(i));
         }
     }
 
@@ -452,7 +529,7 @@ public:
         case b_i:   return f_b_->Dimension();
         case Q_b_i: return f_b_->NoiseDimension();
         case R_y_i: return h_->NoiseDimension();
-        case y_i:   return 1;
+        case y_i:   return h_->Dimension();
         }
     }
 
