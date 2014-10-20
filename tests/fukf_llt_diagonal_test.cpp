@@ -57,6 +57,37 @@ size_t dia_dimension = 40;
 size_t dia_iterations = 10000;
 size_t dia_iterations_1x1 = 1e7;
 
+TEST(Diags, diagAsDiagInv)
+{
+    Eigen::MatrixXd C = Eigen::MatrixXd::Identity(dia_dimension, dia_dimension) * 3;
+    Eigen::MatrixXd R(dia_dimension, dia_dimension);
+
+    for (size_t i = 0; i < 1000000; ++i)
+    {
+        R = C.diagonal().asDiagonal().inverse();
+    }
+
+    std::cout << R(0,0) << std::endl;
+}
+
+
+TEST(Diags, diagLoopInv)
+{
+    Eigen::MatrixXd C = Eigen::MatrixXd::Identity(dia_dimension, dia_dimension) * 3;
+    Eigen::MatrixXd R(dia_dimension, dia_dimension);
+
+    for (size_t i = 0; i < 1000000; ++i)
+    {
+        for (int j = 0; j < dia_dimension; ++j)
+        {
+            R(j , j) = 1./C(j, j);
+        }
+    }
+
+    std::cout << R(0,0) << std::endl;
+}
+
+
 TEST(Diags, diaDiaLLT) /* remains in O(n^3) even though the matrix is diagonal */
 {
     Eigen::MatrixXd C = (Eigen::MatrixXd::Ones(dia_dimension, 1)*25.).asDiagonal();

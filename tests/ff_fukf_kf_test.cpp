@@ -68,7 +68,7 @@
 
 #define DIM_STATE_A             11
 #define DIM_STATE_B             5
-#define COUNT_STATE_B           31
+#define COUNT_STATE_B           7
 #define DIM_OBSERVATION         3
 #define DIM_JOINT_STATE         (DIM_STATE_A + DIM_STATE_B * COUNT_STATE_B)
 #define DIM_JOINT_OBSERVATION   (DIM_OBSERVATION * COUNT_STATE_B)
