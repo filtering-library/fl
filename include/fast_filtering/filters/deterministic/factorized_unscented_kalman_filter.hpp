@@ -340,8 +340,8 @@ public:
             const JointPartitions& partition
                     = predicted_state.joint_partitions[i];
 
-            if (std::isnan(y(i, 0)))
-                    //|| std::fabs(y(i, 0) - partition.mean_y(0,0)) > 0.08)
+            if (std::isnan(y(i, 0))
+                    || std::fabs(y(i, 0) - partition.mean_y(0,0)) > 0.08)
             {
                 continue;
             }
@@ -425,18 +425,17 @@ public:
             const JointPartitions& partition
                     = predicted_state.joint_partitions[i];
 
-//            if (std::isnan(y(i, 0)) ||
-//                std::fabs(y(i, 0) - partition.mean_y(0,0)) > 0.20)
-//            {
-//                continue;
-//            }
+            if (std::isnan(y(i, 0)) ||
+                std::fabs(y(i, 0) - partition.mean_y(0,0)) > 0.20)
+            {
+                continue;
+            }
 
             const Cov_ay& cov_ay = partition.cov_ay;
             const Cov_ab& cov_ab = partition.cov_ab;
             const Cov_by& cov_by = partition.cov_by;
             const Cov_bb& cov_bb = partition.cov_bb;
             const Cov_yy& cov_yy = partition.cov_yy;
-
 
             SMWInversion(cov_aa_inv, cov_ay, cov_ay.transpose(), cov_yy,
                          L_aa, L_ay, L_ya, L_yy,
@@ -473,7 +472,7 @@ public:
              const double delta_time,
              SigmaPoints& predicted_X_a)
     {
-        Input_a zero_input = Input_a::Zero(f_a_->NoiseDimension(), 1);
+        Input_a zero_input = Input_a::Zero(f_a_->InputDimension(), 1);
 
         for (size_t i = 0; i < prior_X_a.cols(); ++i)
         {
@@ -491,7 +490,7 @@ public:
         Input_b_i zero_input = Input_b_i::Zero(f_b_->NoiseDimension(), 1);
 
         for (size_t i = 0; i < prior_X_b_i.cols(); ++i)
-        {
+        {            
             f_b_->Condition(delta_time, prior_X_b_i.col(i), zero_input);
             predicted_X_b_i.col(i)
                     = f_b_->MapStandardGaussian(noise_X_b_i.col(i));
@@ -505,7 +504,6 @@ public:
            SigmaPoints& predicted_X_y_i)
     {
         predicted_X_y_i.resize(Dim(y_i), prior_X_a.cols());
-
 
         for (size_t i = 0; i < prior_X_a.cols(); ++i)
         {

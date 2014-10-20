@@ -50,6 +50,8 @@
 // eigen
 #include <Eigen/Dense>
 
+#include <vector>
+
 // state_filtering
 #include <fast_filtering/utils/assertions.hpp>
 #include <fast_filtering/distributions/interfaces/moments.hpp>
@@ -108,9 +110,6 @@ public:
     explicit Gaussian(const unsigned& dimension = Vector::SizeAtCompileTime):
         Traits::GaussianMapBase(dimension)
     {
-        //static_assert_dynamic_sized(Vector);
-
-//        static_assert_base(Vector, Eigen::Matrix<Scalar, Eigen::Dynamic, 1>);
         static_assert_base(Vector,
                            Eigen::Matrix<Scalar, Vector::SizeAtCompileTime, 1>);
 
@@ -121,23 +120,6 @@ public:
 
         SetStandard();
     }
-
-//    Gaussian()
-//    {
-//        //static_assert_const_sized(Vector);
-
-//        // make sure that vector is derived from eigen
-//        static_assert_base(Vector,
-//                           Eigen::Matrix<Scalar, Vector::SizeAtCompileTime, 1>);
-
-//        mean_.resize(Dimension(), 1);
-//        covariance_.resize(Dimension(), Dimension());
-//        precision_.resize(Dimension(), Dimension());
-//        cholesky_factor_.resize(Dimension(), Dimension());
-
-//        SetStandard();
-//    }
-
 
     virtual ~Gaussian() { }
 
@@ -237,6 +219,323 @@ protected:
     Operator cholesky_factor_;
     Scalar log_normalizer_;
 };
+
+
+// == LazyGaussian ========================================================== //
+
+//template <typename Vector_>
+//class LazyGaussian //:
+////        public internal::Traits<Gaussian<Vector_> >::MomentsBase,
+////        public internal::Traits<Gaussian<Vector_> >::EvaluationBase,
+////        public internal::Traits<Gaussian<Vector_> >::GaussianMapBase
+//{
+//public:
+//    typedef internal::Traits<Gaussian<Vector_> > Traits;
+
+//    typedef typename Traits::Vector     Vector;
+//    typedef typename Traits::Scalar     Scalar;
+//    typedef typename Traits::Operator   Operator;
+//    typedef typename Traits::Noise      Noise;
+
+//    enum Representation
+//    {
+//        CovarianceMatrix = 0,
+//        PrecisionMatrix,
+//        SquareRootMatrix,
+//        DiagonalCovarianceMatrix,
+//        DiagonalPrecisionMatrix,
+//        DiagonalSquareRootMatrix,
+//        Rank,
+//        Normalizer,
+
+//        Representations
+//    };
+
+//public:
+//    explicit LazyGaussian(const unsigned& dimension = Vector::SizeAtCompileTime):
+////        Traits::GaussianMapBase(dimension),
+//        dirty_(Representations, true)
+//    {
+//        SetStandard();
+//    }
+
+//    virtual ~LazyGaussian() { }
+
+//    virtual const Vector& Mean()
+//    {
+//        return mean_;
+//    }
+
+//    virtual const Operator& Covariance()
+//    {
+//        if (IsDirty(CovarianceMatrix) && IsDirty(DiagonalCovarianceMatrix))
+//        {
+//            switch (SelectRepresentation({DiagonalSquareRootMatrix,
+//                                          DiagonalPrecisionMatrix,
+//                                          SquareRootMatrix,
+//                                          PrecisionMatrix}))
+//            {
+//            case SquareRootMatrix:
+//                covariance_ = square_root_ * square_root_.transpose();
+//                break;
+
+//            case PrecisionMatrix:
+//                covariance_ = precision_.inverse();
+//                break;
+
+//            case DiagonalSquareRootMatrix:
+//                covariance_.setZero(Dimension(), Dimension());
+//                for (size_t i = 0; i < square_root_.diagonalSize(); ++i)
+//                {
+//                    covariance_(i, i) = square_root_(i, i) * square_root_(i, i);
+//                }
+//                break;
+
+//            case DiagonalPrecisionMatrix:
+//                covariance_.setZero(Dimension(), Dimension());
+//                for (size_t i = 0; i < precision_.diagonalSize(); ++i)
+//                {
+//                    covariance_(i, i) = 1./precision_(i, i);
+//                }
+//                break;
+
+//            default:
+//                // THROW
+//                break;
+//            }
+
+//            UpdatedInternally(CovarianceMatrix);
+//        }
+
+//        return covariance_;
+//    }
+
+//    virtual const Operator& Precision()
+//    {
+//        if (IsDirty(PrecisionMatrix) && IsDirty(DiagonalPrecisionMatrix))
+//        {
+//            const Operator& cov = Covariance();
+
+//            switch (SelectRepresentation({DiagonalCovarianceMatrix,
+//                                          DiagonalSquareRootMatrix,
+//                                          CovarianceMatrix,
+//                                          SquareRootMatrix}))
+//            {
+//            case CovarianceMatrix:
+//            case SquareRootMatrix:
+//                precision_ = cov.inverse();
+//                break;
+
+//            case DiagonalCovarianceMatrix:
+//            case DiagonalSquareRootMatrix:
+//                precision_.setZero(Dimension(), Dimension());
+//                for (size_t i = 0; i < cov.rows(); ++i)
+//                {
+//                    precision_(i, i) = 1./cov(i, i);
+//                }
+//                break;
+
+//            default:
+//                // THROW
+//                break;
+//            }
+
+//            UpdatedInternally(PrecisionMatrix);
+//        }
+
+//        return precision_;
+//    }
+
+//    virtual const Operator& SquareRoot()
+//    {
+//        if (IsDirty(SquareRootMatrix) && IsDirty(DiagonalSquareRootMatrix))
+//        {
+//            const Operator& cov = Covariance();
+
+//            switch (SelectRepresentation({DiagonalCovarianceMatrix,
+//                                          DiagonalPrecisionMatrix,
+//                                          CovarianceMatrix,
+//                                          PrecisionMatrix}))
+//            {
+//            case CovarianceMatrix:
+//            case PrecisionMatrix:
+//                Eigen::LDLT<Operator> ldlt;
+//                ldlt.compute(covariance_);
+//                Vector D_sqrt = ldlt.vectorD();
+//                for(size_t i = 0; i < D_sqrt.rows(); ++i)
+//                {
+//                    D_sqrt(i) = std::sqrt(std::fabs(D_sqrt(i)));
+//                }
+//                square_root_ = ldlt.transpositionsP().transpose()
+//                                * ldlt.matrixL()
+//                                * D_sqrt.asDiagonal();
+//                break;
+
+//            case DiagonalCovarianceMatrix:
+//            case DiagonalPrecisionMatrix:
+//                square_root_.setZero(Dimension(), Dimension());
+//                for (size_t i = 0; i < square_root_.rows(); ++i)
+//                {
+//                    square_root_(i, i) = std::sqrt(cov(i, i));
+//                }
+//                break;
+
+//            default:
+//                // THROW
+//                break;
+//            }
+
+//            UpdatedInternally(SquareRootMatrix);
+//        }
+
+//        return square_root_;
+//    }
+
+//    virtual bool FullRank()
+//    {
+//        if (IsDirty(Rank))
+//        {
+//            full_rank_ =
+//               Covariance().colPivHouseholderQr().rank() == Covariance().rows();
+
+//            UpdatedInternally(Rank);
+//        }
+
+//        return full_rank_;
+//    }
+
+//    virtual Scalar LogNormalizer()
+//    {
+//        if (IsDirty(Normalizer))
+//        {
+//            if (FullRank())
+//            {
+//                log_normalizer_ = -0.5
+//                        * ( log(Covariance().determinant())
+//                            + double(Covariance().rows()) * log(2.0 * M_PI) );
+//            }
+//            else
+//            {
+//                log_normalizer_ = 0.0; // FIXME
+//            }
+
+//            UpdatedInternally(Normalizer);
+//        }
+
+//        return log_normalizer_;
+//    }
+
+//    virtual Scalar LogProbability(const Vector& vector)
+//    {
+//        if(FullRank())
+//        {
+//            return LogNormalizer() - 0.5
+//                    * (vector - Mean()).transpose()
+//                    * Precision()
+//                    * (vector - Mean());
+//        }
+
+//        return -std::numeric_limits<Scalar>::infinity();
+//    }
+
+//    virtual Vector MapStandardGaussian(const Noise& sample)
+//    {
+//        return Mean() + SquareRoot() * sample;
+//    }
+
+//    virtual int Dimension() const
+//    {
+//        return this->NoiseDimension();
+//    }
+
+//    virtual void SetStandard()
+//    {
+//        Mean(Vector::Zero(Dimension()));
+//        Covariance(Operator::Identity(Dimension(), Dimension()));
+
+//        full_rank_ = true;
+//        UpdatedInternally(Rank, false);
+//    }
+
+//    virtual void Mean(const Vector& mean)
+//    {
+//        mean_ = mean;
+//    }
+
+//    virtual void Covariance(const Operator& covariance)
+//    {
+//        covariance_ = covariance;
+//        UpdatedExternally(CovarianceMatrix);
+//    }
+
+//    virtual void SquareRoot(const Operator& square_root)
+//    {
+//        square_root_ = square_root;
+//        UpdatedExternally(SquareRootMatrix);
+//    }
+
+//    virtual void Precision(const Operator& precision)
+//    {
+//        precision_ = precision;
+//        UpdatedExternally(PrecisionMatrix);
+//    }
+
+//    virtual void Covariance(
+//            const typename Operator::DiagonalVectorType& covariance)
+//    {
+//        covariance_ = covariance;
+//        UpdatedExternally(DiagonalCovarianceMatrix);
+//    }
+
+//    virtual void SquareRoot(
+//            const typename Operator::DiagonalVectorType& square_root)
+//    {
+//        square_root_ = square_root;
+//        UpdatedExternally(DiagonalSquareRootMatrix);
+//    }
+
+//    virtual void Precision(
+//            const typename Operator::DiagonalVectorType& precision)
+//    {
+//        precision_ = precision;
+//        UpdatedExternally(DiagonalPrecisionMatrix);
+//    }
+
+//protected:
+//    virtual void UpdatedExternally(Representation representation)
+//    {
+//        std::fill(dirty_.begin(), dirty_.end(), true);
+//        UpdatedInternally(representation);
+//    }
+
+//    virtual void UpdatedInternally(Representation representation)
+//    {
+//        dirty_[representation] = false;
+//    }
+
+//    virtual bool IsDirty(Representation representation) const
+//    {
+//        return dirty_[representation];
+//    }
+
+//    virtual Representation SelectRepresentation(
+//            const std::vector<Representation> representations)
+//    {
+//        for (auto& rep: representations)  if (dirty_[rep]) return rep;
+//        return Representations;
+//    }
+
+//protected:
+//    std::vector<bool> dirty_;
+
+
+//    Vector mean_;
+//    Operator covariance_;
+//    bool full_rank_;
+//    Operator precision_;
+//    Operator square_root_;
+//    Scalar log_normalizer_;
+//};
 
 }
 

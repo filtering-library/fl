@@ -101,9 +101,6 @@ public:
                 const Observation& y,
                 StateDistribution& posterior)
     {       
-        const SensorMatrix& H = observation_model_->H();
-        const SensorCovariance R = observation_model_->Covariance();
-
         typedef Eigen::Matrix<
                 Scalar,
                 SensorMatrix::RowsAtCompileTime,
@@ -113,6 +110,9 @@ public:
                 Scalar,
                 DynamicsCovariance::RowsAtCompileTime,
                 SMatrix::ColsAtCompileTime> KMatrix;
+
+        const SensorMatrix& H = observation_model_->H();
+        const SensorCovariance R = observation_model_->Covariance();
 
         const SMatrix S = H * predicted.Covariance() * H.transpose() + R;
         const KMatrix K = predicted.Covariance() * H.transpose() * S.inverse();
