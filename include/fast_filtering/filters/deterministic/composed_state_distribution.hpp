@@ -52,9 +52,53 @@
 #include <boost/static_assert.hpp>
 
 #include <fast_filtering/utils/traits.hpp>
+#include <fast_filtering/distributions/gaussian.hpp>
 
 namespace ff
 {
+
+
+//template <typename VectorPartition>
+//class FactorizedGaussian
+//{
+//public:
+//    typedef ff::Gaussian<VectorPartition> PartitionGaussian;
+
+//    virtual const PartitionGaussian& Gaussian(size_t i)
+//    {
+//        return gaussians_[i];
+//    }
+
+//    virtual const PartitionGaussian& operator[](size_t i)
+//    {
+//        return gaussians_[i];
+//    }
+
+//protected:
+//    std::vector<PartitionGaussian> gaussians_;
+//};
+
+
+//template <typename VectorPartition0, typename VectorPartition>
+//class FactorizedGaussian<VectorPartition>:
+//        public FactorizedGaussian<VectorPartition>
+//{
+//public:
+//    typedef ff::Gaussian<VectorPartition0> HeadGaussianPartition;
+//    using PartitionGaussian;
+//    using Gaussian;
+//    using operator[];
+
+//    virtual const HeadGaussianPartition& HeadGaussian()
+//    {
+//        return head_gaussian_;
+//    }
+
+
+//protected:
+//    HeadGaussianPartition head_gaussian_;
+//};
+
 
 // Forward declarations
 template <typename CohesiveState, typename FactorizedState, typename Observation>
@@ -63,7 +107,7 @@ class ComposedStateDistribution;
 namespace internal
 {
 /**
- * SumOfDeltas distribution traits specialization
+ * ComposedStateDistribution distribution traits specialization
  * \internal
  */
 template <typename CohesiveState,
