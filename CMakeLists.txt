@@ -3,9 +3,10 @@ project(state_filtering)
 
 set(CMAKE_BUILD_TYPE Release)
 #set(CMAKE_BUILD_TYPE Debug)
-add_definitions(-std=c++0x )
-#add_definitions(-DPROFILING_ON=1) #print profiling output
-set(USE_CUDA True)
+add_definitions(-DPROFILING_ON=1) #print profiling output
+add_definitions(-std=c++0x)
+
+set(USE_CUDA False)
 
 find_package(catkin REQUIRED
     roscpp
@@ -34,11 +35,10 @@ endif(DOXYGEN_FOUND)
 set(PROJECT_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 set(CMAKE_MODULE_PATH ${PROJECT_MODULE_PATH})
 
-find_package(Boost REQUIRED)
 find_package(Eigen REQUIRED)
+find_package(Boost REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(PCL 1.3 REQUIRED)
-
 
 
 find_package(OpenMP)
@@ -351,6 +351,12 @@ endif(USE_CUDA AND CUDA_FOUND AND OPENGL_FOUND AND GLEW_FOUND)
 ###########
 ## Tests ##
 ###########
+
+catkin_add_gtest(fl_exception_test
+                 tests/gtest_main.cpp
+                 tests/fl_exception_test.cpp)
+target_link_libraries(fl_exception_test
+                      ${catkin_LIBRARIES})
 
 catkin_add_gtest(ff_fukf_kf_test
                  tests/gtest_main.cpp
