@@ -6,7 +6,7 @@
  *    Jan Issac (jan.issac@gmail.com)
  *    Manuel Wuthrich (manuel.wuthrich@gmail.com)
  *
- *  All rights reserved.
+ *
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -59,30 +59,22 @@
 namespace fl
 {
 
+// Forward declaration
+template <typename Point, int POINT_COUNT> class PointSetGaussian;
+
 /**
- * PointSetGaussian is Gaussian distribution represented by a set of points
- * (a statistic)
- *
+ * Trait struct of a PointSetGaussian
  */
-template <typename Point, int POINT_COUNT>
-class PointSetGaussian:
-        public ff::LazyGaussian<Point>
+template <typename Point_, int POINT_COUNT>
+struct Traits<PointSetGaussian<Point_, POINT_COUNT>>
 {
-public:
     /**
-     * \brief PointMatrix Point container type
-     *
-     * The point container type has a fixed size of the dimension of a point
-     * and the number of the points is statically known.
+     * @brief Gaussian sample type
      */
-    typedef Eigen::Matrix<
-                typename Point::Scalar,
-                Point::SizeAtCompileTime,
-                POINT_COUNT
-            > PointMatrix;
+    typedef Point_ Point;
 
     /**
-     * Weight harbors the weights of a point. For each of the first two
+     * \brief Weight harbors the weights of a point. For each of the first two
      * moments there is a separate weight.
      *
      * Generally a single weight suffices. However, some transforms utilize
@@ -92,33 +84,84 @@ public:
     struct Weight
     {
         /**
-         * \brief First moment (mean) weight
+         * First moment (mean) point weight
          */
         double w_mean;
 
         /**
-         * \brief Second centered moment (covariance) point weight
+         * Second centered moment (covariance) point weight
          */
         double w_cov;
     };
 
     /**
-     * \brief Weight list of all points
+     * \typedef PointMatrix
+     *
+     * \brief Point container type
+     *
+     * \details
+     * The point container type has a fixed-size dimension of a point
+     * and the number of the points is statically known.
      */
-    typedef std::vector<Weight> Weights;
+    typedef Eigen::Matrix<
+                typename Point::Scalar,
+                Point::SizeAtCompileTime,
+                POINT_COUNT
+            > PointMatrix;
 
-    typedef ff::LazyGaussian<Point> Base;
+    /**
+     * \typedef Weight
+     *
+     * Weight list of all points
+     */
+    typedef std::vector<Weight> WeightVector;
+
+    /**
+     * \typedef Base
+     *
+     * Base class type
+     */
+    typedef ff::Gaussian<Point> Base;
+};
+
+/**
+ * \class PointSetGaussian
+ *
+ * PointSetGaussian is Gaussian distribution represented by a set of points
+ * (a statistic)
+ *
+ * \tparam Point        Gaussian variable type
+ * \tparam POINT_COUNT  Number of points representing the gaussian
+ */
+template <typename Point_, int POINT_COUNT = Eigen::Dynamic>
+class PointSetGaussian:
+        public ff::Gaussian<Point_>
+{
+public:
+    typedef PointSetGaussian<Point_, POINT_COUNT> This;
+
+    typedef typename Traits<This>::Base         Base;
+    typedef typename Traits<This>::Point        Point;
+    typedef typename Traits<This>::PointMatrix  PointMatrix;
+    typedef typename Traits<This>::Weight       Weight;
+    typedef typename Traits<This>::WeightVector WeightVector;
 
     using Base::Mean;
     using Base::Covariance;
+    using Base::Precision;
+    using Base::SquareRoot;
+    using Base::DiagonalCovariance;
+    using Base::DiagonalSquareRoot;
+    using Base::DiagonalPrecision;
+    using Base::SetStandard;
+    using Base::Probability;
     using Base::LogProbability;
     using Base::Dimension;
-    //using Base::NoiseDimension;
-    using Base::SetStandard;
+    using Base::NoiseDimension;
 
 public:
     /**
-     * \brief Creates a PointSetGaussian
+     * Creates a PointSetGaussian
      *
      * \param dimension     Sample space dimension
      * \param point_count   Number of points representing the Gaussian
@@ -136,6 +179,11 @@ public:
     }
 
     /**
+     * \brief Overridable default constructor
+     */
+    virtual ~PointSetGaussian() { }
+
+    /**
      * \return i-th point
      *
      * \param i Index of requested point
@@ -144,12 +192,29 @@ public:
      */
     Point point(size_t i) const
     {
-        if (is_out_bounds(i))
+        if (is_out_of_bounds(i))
         {
             BOOST_THROW_EXCEPTION(OutOfBoundsException(i, points_.cols()));
         }
 
         return points_.col(i);
+    }
+
+    /**
+     * \return weight of i-th point assuming both weights are the same
+     *
+     * \param i Index of requested point
+     *
+     * \throw OutOfBoundsException
+     */
+    double weight(size_t i)
+    {
+        if (is_out_of_bounds(i))
+        {
+            BOOST_THROW_EXCEPTION(OutOfBoundsException(i, weights_.size()));
+        }
+
+        return weights_[i].m_mean;
     }
 
     /**
@@ -161,7 +226,7 @@ public:
      */
     const Weight& weight(size_t i) const
     {
-        if (is_out_bounds(i))
+        if (is_out_of_bounds(i))
         {
             BOOST_THROW_EXCEPTION(OutOfBoundsException(i, points_.cols()));
         }
@@ -170,27 +235,56 @@ public:
     }
 
     /**
-     * \brief Sets a given point at given position i along with its weights
+     * \return Point matrix
+     */
+    const PointMatrix& points() const noexcept
+    {
+        return points_;
+    }
+
+    /**
+     * \return point weights vector
+     */
+    const WeightVector& weights() const noexcept
+    {
+        return weights_;
+    }
+
+    /**
+     * Sets a given point at position i
      *
      * \param i         Index of point
      * \param p         The new point
-     * \param weights   point weights
      *
      * \throw OutOfBoundsException
      */
-    void point(size_t i, Point p, Weight weights)
+    void point(size_t i, Point p)
     {
-        if (is_out_bounds(i))
+        if (is_out_of_bounds(i))
         {
             BOOST_THROW_EXCEPTION(OutOfBoundsException(i, points_.cols()));
         }
 
         points_.col(i) = p;
-        weights_[i] = weights;
     }
 
     /**
-     * \brief Sets a a given point at position i along with its weights
+     * Sets a given point at position i along with its weights
+     *
+     * \param i         Index of point
+     * \param p         The new point
+     * \param w         Point weights. The weights determinaing the first two
+     *                  moments are the same
+     *
+     * \throw OutOfBoundsException
+     */
+    void point(size_t i, Point p, double w)
+    {
+        point(i, p, Weight{w, w});
+    }
+
+    /**
+     * Sets a given point at position i along with its weights
      *
      * \param i         Index of point
      * \param p         The new point
@@ -205,18 +299,97 @@ public:
     }
 
     /**
-     * \brief Sets a a given point at position i along with its weights
+     * Sets a given point at given position i along with its weights
      *
      * \param i         Index of point
      * \param p         The new point
-     * \param w         Point weight. The weights to determine the first two
-     *                  moments is the same
+     * \param weights   point weights
      *
      * \throw OutOfBoundsException
      */
-    void point(size_t i, Point p, double w)
+    void point(size_t i, Point p, Weight weights)
     {
-        point(i, p, Weight{w, w});
+        if (is_out_of_bounds(i))
+        {
+            BOOST_THROW_EXCEPTION(OutOfBoundsException(i, points_.cols()));
+        }
+
+        points_.col(i) = p;
+        weights_[i] = weights;
+    }
+
+    /**
+     * Sets a given weight of a point at position i
+     *
+     * \param i         Index of point
+     * \param w         Point weights. The weights determinaing the first two
+     *                  moments are the same
+     *
+     * \throw OutOfBoundsException
+     */
+    void weight(size_t i, double w)
+    {
+        if (is_out_of_bounds(i))
+        {
+            BOOST_THROW_EXCEPTION(OutOfBoundsException(i, weights_.size()));
+        }
+
+        weights_[i] = Weight{w, w};
+    }
+
+    /**
+     * Sets given weights of a point at position i
+     *
+     * \param i         Index of point
+     * \param w_mean    point weight used to compute the first moment
+     * \param w_cov     point weight used to compute the second centered moment
+     *
+     * \throw OutOfBoundsException
+     */
+    void weight(size_t i, Point p, double w_mean , double w_cov)
+    {
+        if (is_out_of_bounds(i))
+        {
+            BOOST_THROW_EXCEPTION(OutOfBoundsException(i, weights_.size()));
+        }
+
+        weights_[i] = Weight{w_mean, w_cov};
+    }
+
+    /**
+     * Sets given weights of a point at position i
+     *
+     * \param i         Index of point
+     * \param weights   point weights
+     *
+     * \throw OutOfBoundsException
+     */
+    void weight(size_t i, Weight weights)
+    {
+        if (is_out_of_bounds(i))
+        {
+            BOOST_THROW_EXCEPTION(OutOfBoundsException(i, weights_.size()));
+        }
+
+        weights_[i] = weights;
+    }
+
+    /**
+     * @return Centered points matrix.
+     *
+     * Creates a PointMatrix populated with zero mean points
+     */
+    PointMatrix centered_points() const noexcept
+    {
+        PointMatrix centered(points_.rows(), points_.cols);
+
+        const size_t point_count = points_.cols();
+        for (size_t i = 0; i < point_count; ++i)
+        {
+            centered.col(i) = points_.col(i) - Mean();
+        }
+
+        return centered;
     }
 
 protected:
@@ -227,7 +400,7 @@ protected:
      *
      * \internal asserts size equallity of points and weights
      */
-    bool is_out_bounds(size_t i) const
+    bool is_out_of_bounds(size_t i) const noexcept
     {
         assert(points_.cols() == weights_.size());
 
@@ -236,14 +409,14 @@ protected:
 
 protected:
     /**
-     * @brief point container
+     * \brief point container
      */
     PointMatrix points_;
 
     /**
-     * @brief weight container
+     * \brief weight container
      */
-    Weights weights_;
+    WeightVector weights_;
 };
 
 }
