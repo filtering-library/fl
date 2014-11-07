@@ -6,7 +6,7 @@
  *    Jan Issac (jan.issac@gmail.com)
  *    Manuel Wuthrich (manuel.wuthrich@gmail.com)
  *
- *  All rights reserved.
+ *
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -50,29 +50,96 @@
 
 #include <map>
 #include <tuple>
+#include <memory>
 
-#include <fast_filtering/filtering_library/filter/gaussian/point_set_gaussian.hpp>
+#include <fast_filtering/utils/traits.hpp>
+
 #include <fast_filtering/filtering_library/exception/exception.hpp>
 #include <fast_filtering/filtering_library/filter/filter_interface.hpp>
+#include <fast_filtering/filtering_library/filter/gaussian/point_set_gaussian.hpp>
+#include <fast_filtering/filtering_library/filter/gaussian/point_set_transform.hpp>
+
 
 namespace fl
 {
 
-template <class ProcessModel, class ObservationModel>
+// Forward declarations
+template <class ProcessModel, class ObservationModel> class GaussianFilter;
+
 /**
- * @brief The GaussianFilter class
+ * GaussianFilter Traits
  */
+template <class ProcessModel, class ObservationModel>
+struct Traits<GaussianFilter<ProcessModel, ObservationModel>>
+{
+    typedef std::shared_ptr<GaussianFilter<ProcessModel, ObservationModel>> Ptr;
+
+    typedef double State;
+    typedef double Observation;
+
+    typedef PointSetGaussian<Eigen::VectorXd, -1> StateDistribution;
+    typedef PointSetGaussian<Eigen::VectorXd, -1> StateNoiseDistribution;
+
+    typedef PointSetTransform<
+                StateDistribution,
+                StateDistribution
+            > Transform;
+};
+
+/**
+ * GaussianFilter represents all filters based on Gaussian distributed systems.
+ * This includes the Kalman Filter and filters using non-linear models such as
+ * Sigma Point Kalman Filter family.
+ *
+ * \tparam ProcessModel
+ * \tparam ObservationModel
+ *
+ * \ingroup filters
+ */
+template<class ProcessModel, class ObservationModel>
 class GaussianFilter:
         public FilterInterface<
             GaussianFilter<ProcessModel, ObservationModel>
         >
 {
 public:
-//    typedef typename ProcessModel::State State;
-//    typedef typename ObservationModel::Observation Observation;
+    typedef GaussianFilter<ProcessModel, ObservationModel> This;
 
-    typedef PointSetGaussian<double, 0, double> StateDistribution;
+    typedef typename Traits<This>::Ptr Ptr;
+    typedef typename Traits<This>::State State;
+    typedef typename Traits<This>::Observation Observation;    
+    typedef typename Traits<This>::StateDistribution StateDistribution;
+    typedef typename Traits<This>::Transform Transform;
 
+protected:
+    /** \cond INTERNAL */
+    typedef typename Traits<This>::StateNoiseDistribution StateNoiseDistribution;
+    /** \endcond */
+
+public:
+
+    /**
+     * Creates a Gaussian filter
+     *
+     * @param process_model         Process model instance
+     * @param observation_model     Observation model instance
+     * @param poit_set_transform    Point set tranfrom such as the unscented
+     *                              transform
+     */
+    GaussianFilter(
+            const std::shared_ptr<ProcessModel>& process_model,
+            const std::shared_ptr<ObservationModel>& observation_model,
+            const std::shared_ptr<Transform>& point_set_transform)
+        : process_model_(process_model),
+          observation_model_(observation_model),
+          point_set_transform_(point_set_transform)
+    {
+
+    }
+
+    /**
+     * \copydoc FilterInterface::predict(...)
+     */
     virtual void predict(double delta_time,
                          const StateDistribution& prior_dist,
                          StateDistribution& predicted_dist)
@@ -80,62 +147,24 @@ public:
 
     }
 
+    /**
+     * \copydoc FilterInterface::update(...)
+     */
     virtual void update(const StateDistribution& predicted_dist,
                         const Observation& observation,
                         StateDistribution& posterior_dist)
     {
 
     }
+
+protected:
+    std::shared_ptr<ProcessModel> process_model_;
+    std::shared_ptr<ObservationModel> observation_model_;
+    std::shared_ptr<Transform> point_set_transform_;
+
+private:
+    StateDistribution X_;
 };
-
-// this went too far...
-//template <class ProcessModel, class ObservationModel>
-//class GaussianFilter
-//{
-
-//};
-
-//template<
-//    template <typename, typename...> class ProcessModel,
-//    template <typename, typename...> class ObservationModel,
-//    typename State,
-//    typename Observation,
-//    typename... ProcessModelArgs,
-//    typename... ObservationModelArgs
-//>
-//class GaussianFilter
-//      <
-//        ProcessModel<State, ProcessModelArgs...>,
-//        ObservationModel<Observation, ObservationModelArgs...>
-//      >
-//      : public FilterInterface
-//        <
-//            GaussianFilter
-//            <
-//              ProcessModel<State, ProcessModelArgs...>,
-//              ObservationModel<Observation, ObservationModelArgs...>
-//            >
-//        >
-//{
-//public:
-//    //typedef PointSetGaussian<double, 0, double> StateDistribution;
-//    typedef double StateDistribution;
-//    typedef double Observation;
-
-//    virtual void predict(double delta_time,
-//                         const StateDistribution& prior_dist,
-//                         StateDistribution& predicted_dist)
-//    {
-
-//    }
-
-//    virtual void update(const StateDistribution& predicted_dist,
-//                        const Observation& observation,
-//                        StateDistribution& posterior_dist)
-//    {
-
-//    }
-//};
 
 }
 
