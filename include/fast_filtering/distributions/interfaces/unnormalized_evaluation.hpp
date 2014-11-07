@@ -6,7 +6,7 @@
  *    Manuel Wuthrich (manuel.wuthrich@gmail.com)
  *    Jan Issac (jan.issac@gmail.com)
  *
- *  All rights reserved.
+ *
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -56,17 +56,30 @@
 namespace ff
 {
 
+/**
+ * \interface UnnormalizedEvaulation
+ */
 template <typename Vector, typename Scalar>
 class UnnormalizedEvaulation
 {
 public:
-    virtual ~UnnormalizedEvaulation() {}
+    virtual ~UnnormalizedEvaulation() { }
 
+    /**
+     * @brief UnnormalizedProbability bla
+     * @param vector
+     * @return bla
+     */
     virtual Scalar UnnormalizedProbability(const Vector& vector) const
     {
         std::exp(LogUnnormalizedProbability(vector));
     }
 
+    /**
+     * @brief LogUnnormalizedProbability bla
+     * @param vector
+     * @return bla
+     */
     virtual Scalar LogUnnormalizedProbability(const Vector& vector) const = 0;
 };
 
