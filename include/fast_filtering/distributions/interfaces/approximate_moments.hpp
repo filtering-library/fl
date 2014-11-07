@@ -6,7 +6,7 @@
  *    Manuel Wuthrich (manuel.wuthrich@gmail.com)
  *    Jan Issac (jan.issac@gmail.com)
  *
- *  All rights reserved.
+ *
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -50,14 +50,35 @@
 namespace ff
 {
 
+/**
+ * \interface ApproximateMoments
+ * \brief ApproximateMoments is the interface providing the first two moments
+ *
+ * \tparam Vector   Random variable type. This is equivalent to the first moment
+ *                  type.
+ * \tparam Operator Second moment type
+ *
+ * The ApproximateMoments interface provides access to a numerical approximation
+ * of the first moments of a distribution.
+ */
 template <typename Vector, typename Operator>
 class ApproximateMoments
 {
 public:
-    virtual ~ApproximateMoments() {}
+    /**
+     * \return First moment approximation, the mean
+     */
+    virtual Vector ApproximateMean() const = 0;
 
-    virtual Vector   ApproximateMean() = 0;
-    virtual Operator ApproximateCovariance() = 0;
+    /**
+     * \return Second centered moment, the covariance
+     */
+    virtual Operator ApproximateCovariance() const = 0;
+
+    /**
+     * \brief Overridable default destructor
+     */
+    virtual ~ApproximateMoments() { }
 };
 
 }
