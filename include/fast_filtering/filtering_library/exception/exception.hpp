@@ -6,7 +6,7 @@
  *    Jan Issac (jan.issac@gmail.com)
  *    Manuel Wuthrich (manuel.wuthrich@gmail.com)
  *
- *  All rights reserved.
+ *
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -79,6 +79,11 @@ public:
     explicit Exception(std::string message)
     {
         *this << boost::error_info<struct Msg, std::string>(message);
+    }
+
+    const char* what() const noexcept
+    {
+        return boost::diagnostic_information_what(*this);
     }
 };
 
