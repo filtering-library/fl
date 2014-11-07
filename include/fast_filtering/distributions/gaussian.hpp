@@ -6,7 +6,7 @@
  *    Manuel Wuthrich (manuel.wuthrich@gmail.com)
  *    Jan Issac (jan.issac@gmail.com)
  *
- *  All rights reserved.
+ *
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -41,22 +41,24 @@
  * @date 05/25/2014
  * @author Manuel Wuthrich (manuel.wuthrich@gmail.com)
  * @author Jan Issac (jan.issac@gmail.com)
- * Max-Planck-Institute for Intelligent Systems, University of Southern California
+ * Max-Planck-Institute for Intelligent Systems,
+ * University of Southern California
  */
 
 #ifndef FAST_FILTERING_DISTRIBUTIONS_GAUSSIAN_HPP
 #define FAST_FILTERING_DISTRIBUTIONS_GAUSSIAN_HPP
 
-// eigen
 #include <Eigen/Dense>
 
 #include <vector>
+#include <type_traits>
 
-// state_filtering
+#include <fast_filtering/utils/traits.hpp>
 #include <fast_filtering/utils/assertions.hpp>
 #include <fast_filtering/distributions/interfaces/moments.hpp>
 #include <fast_filtering/distributions/interfaces/evaluation.hpp>
 #include <fast_filtering/distributions/interfaces/gaussian_map.hpp>
+#include <fast_filtering/filtering_library/exception/exception.hpp>
 
 namespace ff
 {
@@ -64,218 +66,229 @@ namespace ff
 // Forward declarations
 template <typename Vector> class Gaussian;
 
-namespace internal
-{
 /**
- * Gaussian distribution traits specialization
- * \internal
+ * Gaussian distribution traits. This trait definition contains all types used
+ * internally within the distribution. Additionally, it provides the types
+ * needed externally to use the Gaussian.
  */
 template <typename Vector_>
-struct Traits<Gaussian<Vector_> >
+struct Traits<Gaussian<Vector_>>
 {
+    /**
+     * \brief Gaussian variable type
+     */
     typedef Vector_ Vector;
+
+    /**
+     * \brief Internal scalar type (e.g. double, float, std::complex)
+     */
     typedef typename Vector::Scalar Scalar;
+
+    /**
+     * \brief Random variable type. The Noise type is used in mapping of noise
+     * samples into the current Gaussian space.
+     */
     typedef Eigen::Matrix<Scalar, Vector::SizeAtCompileTime, 1>  Noise;
 
-    typedef Eigen::Matrix<Scalar, Vector::SizeAtCompileTime,
-                                  Vector::SizeAtCompileTime> Operator;
+    /**
+     * \brief Second moment type
+     */
+    typedef Eigen::Matrix<
+                Scalar,
+                Vector::SizeAtCompileTime,
+                Vector::SizeAtCompileTime
+            > Operator;
 
-    typedef Moments<Vector, Operator>          MomentsBase;
-    typedef Evaluation<Vector, Scalar>         EvaluationBase;
-    typedef GaussianMap<Vector, Noise>         GaussianMapBase;
+    /**
+     * \brief Moments interface of a Gaussian
+     */
+    typedef Moments<Vector, Operator> MomentsBase;
 
+    /**
+     * \brief Evalluation interface of a Gaussian
+     */
+    typedef Evaluation<Vector, Scalar>  EvaluationBase;
+
+    /**
+     * \brief GaussianMap interface of a Gaussian
+     */
+    typedef GaussianMap<Vector, Noise>  GaussianMapBase;
 };
-}
 
+/**
+ * \ingroup exceptions
+ *
+ * Exception used in case of accessing dynamic-size distribution attributes
+ * without initializing the Gaussian using a dimension greater 0.
+ */
+class GaussianUninitializedException:
+    public fl::Exception
+{
+public:
+    /**
+     * Creates a GaussianUninitializedException
+     */
+    GaussianUninitializedException():
+        fl::Exception("Accessing uninitialized distribution. "
+                      "Gaussian dimension is 0. "
+                      "Use ::SetStandard(dimension) to initialize the "
+                      "distribution!") { }
+};
+
+/**
+ * \ingroup exceptions
+ *
+ * Exception representing a unsupported representation ID
+ */
+class InvalidGaussianRepresentationException:
+    public fl::Exception
+{
+public:
+    /**
+     * Creates an InvalidGaussianRepresentationException
+     */
+    InvalidGaussianRepresentationException():
+        fl::Exception("Invalid Gaussian covariance representation") { }
+};
 
 /**
  * \class Gaussian
+ *
+ * \brief General Gaussian Distribution
  * \ingroup distributions
+ *
+ * The Gaussian is a general purpose distribution. It can be used in various
+ * ways while maintaining efficienty at the same time. This is due to it's
+ * multi-representation structure. The distribution can be represented either by
+ *
+ *  - the covariance matrix,
+ *  - the precision matrix,
+ *  - the covariance square root matrix (Cholesky decomposition or LDLT),
+ *  - or the diagonal form of the previous three options.
+ *
+ * A change in one representation results in change of all other
+ * representations.
+ *
+ * Two key features of the distribution are its aibility to evaluation the
+ * probability of a given sample and to map a noise sample into the distribution
+ * sample space.
+ *
+ * \cond INTERNAL
+ * The Gaussian internal structure uses lazy assignments or write on read
+ * technique. Due to the multi-representation of the Gaussian, modifying one
+ * representation affects all remaining ones. If one of the representation is
+ * modified, the other representations are only then updated when needed. This
+ * minimizes redundant computation and increases efficienty.
+ * \endcond
  */
 template <typename Vector_>
 class Gaussian:
-        public internal::Traits<Gaussian<Vector_> >::MomentsBase,
-        public internal::Traits<Gaussian<Vector_> >::EvaluationBase,
-        public internal::Traits<Gaussian<Vector_> >::GaussianMapBase
+        public Traits<Gaussian<Vector_>>::MomentsBase,
+        public Traits<Gaussian<Vector_>>::EvaluationBase,
+        public Traits<Gaussian<Vector_>>::GaussianMapBase
 {
 public:
-    typedef internal::Traits<Gaussian<Vector_> > Traits;
+    typedef Gaussian<Vector_> This;
 
-    typedef typename Traits::Vector     Vector;
-    typedef typename Traits::Scalar     Scalar;
-    typedef typename Traits::Operator   Operator;
-    typedef typename Traits::Noise      Noise;
+    typedef typename Traits<This>::Vector     Vector;
+    typedef typename Traits<This>::Scalar     Scalar;
+    typedef typename Traits<This>::Operator   Operator;
+    typedef typename Traits<This>::Noise      Noise;
+
+    using Traits<This>::GaussianMapBase::NoiseDimension;
 
 public:
-    explicit Gaussian(const unsigned& dimension = Vector::SizeAtCompileTime):
-        Traits::GaussianMapBase(dimension)
+    /** \cond INTERNAL */
+    /**
+     * \enum Attribute
+     * Implementation attributes. The enumeration lists the different
+     * representations along with other properties such as the rank of the
+     * second moment and the log normalizer.
+     */
+    enum Attribute
     {
-        static_assert_base(Vector,
-                           Eigen::Matrix<Scalar, Vector::SizeAtCompileTime, 1>);
+        CovarianceMatrix = 0,     /**< Covariance mat. */
+        PrecisionMatrix,          /**< Inverse of the cov. mat. */
+        SquareRootMatrix,         /**< Cholesky decomp. of the cov. mat. */
+        DiagonalCovarianceMatrix, /**< Diagonal form of the of cov. mat. */
+        DiagonalPrecisionMatrix,  /**< Diagonal form of the inv cov. mat. */
+        DiagonalSquareRootMatrix, /**< Diagonal form of the Cholesky decomp. */
+        Rank,                     /**< Covariance Rank */
+        Normalizer,               /**< Log probability normalizer */
 
-        mean_.resize(Dimension(), 1);
-        covariance_.resize(Dimension(), Dimension());
-        precision_.resize(Dimension(), Dimension());
-        cholesky_factor_.resize(Dimension(), Dimension());
+        Attributes                /**< Total number of attribute */
+    };
+    /** \endcond */
 
+public:
+    /**
+     * Creates a dynamic or fixed size Gaussian.
+     *
+     * \param dimension Dimension of the Gaussian. The default is defined by the
+     *                  dimension of the variable type \em Vector. If the size
+     *                  of the Vector at compile time is fixed, this will be
+     *                  adapted. For dynamic-sized Variable the dimension is
+     *                  initialized to 0.
+     */
+    explicit Gaussian(const unsigned& dimension = Vector::SizeAtCompileTime):
+        Traits<This>::GaussianMapBase(dimension),
+        dirty_(Attributes, true)
+    {
+        static_assert(Vector::SizeAtCompileTime != 0,
+                      "Illegal static dimension");
         SetStandard();
     }
 
+    /**
+     * \brief Overridable default constructor
+     */
     virtual ~Gaussian() { }
 
-    virtual Vector MapStandardGaussian(const Noise& sample) const
+    /**
+     * \return Gaussian dimension
+     */
+    virtual int Dimension() const
     {
-        return mean_ + cholesky_factor_ * sample;
+        return NoiseDimension();
     }
 
-    virtual void SetStandard()
-    {
-        full_rank_ = true;
-        Mean(Vector::Zero(Dimension()));
-        Covariance(Operator::Identity(Dimension(), Dimension()));
-    }
-
-    virtual void Mean(const Vector& mean)
-    {
-        mean_ = mean;
-    }
-
-    virtual void Covariance(const Operator& covariance)
-    {
-        covariance_ = covariance;
-
-        // we assume that the input matrix is positive semidefinite
-        Eigen::LDLT<Operator> ldlt;
-        ldlt.compute(covariance_);
-        Operator L = ldlt.matrixL();
-        Vector D_sqrt = ldlt.vectorD();
-        for(size_t i = 0; i < D_sqrt.rows(); i++)
-            D_sqrt(i) = std::sqrt(std::fabs(D_sqrt(i)));
-        cholesky_factor_ = ldlt.transpositionsP().transpose()*L*D_sqrt.asDiagonal();
-
-        if(covariance.colPivHouseholderQr().rank() == covariance.rows())
-        {
-            full_rank_ = true;
-            precision_ = covariance_.inverse();
-            log_normalizer_ = -0.5 * ( log(covariance_.determinant()) + double(covariance.rows()) * log(2.0 * M_PI) );
-        }
-        else
-            full_rank_ = false;
-    }
-
-
-    virtual void DiagonalCovariance(const Operator& covariance)
-    {
-        covariance_ = covariance;
-
-        double determinant = 1;
-        precision_ = Operator::Zero(covariance_.rows(), covariance_.cols());
-        cholesky_factor_ = Operator::Zero(covariance_.rows(), covariance_.cols());
-        full_rank_ = true;
-        for(size_t i = 0; i < covariance_.rows(); i++)
-        {
-            determinant *= covariance(i, i);
-            precision_(i,i) =  1.0 / covariance_(i, i);
-            if(!std::isfinite(precision_(i,i)))
-                full_rank_ = false;
-
-            cholesky_factor_(i,i) = std::sqrt(covariance_(i,i));
-        }
-
-        log_normalizer_ = -0.5 * ( std::log(determinant)
-                                + double(covariance.rows()) * std::log(2.0 * M_PI) );
-    }
-
-
+    /**
+     * \return Gaussian first moment
+     */
     virtual Vector Mean() const
     {
         return mean_;
     }
 
+    /**
+     * \return Gaussian second centered moment
+     *
+     * Computes the covariance from other representation of not available
+     *
+     * \throws GaussianUninitializedException if the Gaussian is of dynamic-size
+     *         and has not been initialized using SetStandard(dimension).
+     * \throws InvalidGaussianRepresentationException if non-of the
+     *         representation can be used as a source
+     *
+     * \cond INTERNAL
+     * \pre |{Valid Representations}| > 0
+     * \post {Valid Representations}
+     *       = {Valid Representations} \f$ \cup \f$ {#CovarianceMatrix}
+     * \endcond
+     */
     virtual Operator Covariance() const
     {
-        return covariance_;
-    }
-
-    virtual Scalar LogProbability(const Vector& vector) const
-    {
-        if(full_rank_)
-            return log_normalizer_ - 0.5 * (vector - mean_).transpose() * precision_ * (vector - mean_);
-        else
-            return -std::numeric_limits<Scalar>::infinity();
-    }
-
-    virtual int Dimension() const
-    {
-        return this->NoiseDimension(); // all dimensions are the same
-    }
-
-
-protected:
-    Vector mean_;
-    Operator covariance_;
-    bool full_rank_;
-    Operator precision_;
-    Operator cholesky_factor_;
-    Scalar log_normalizer_;
-};
-
-
-// == LazyGaussian ========================================================== //
-
-template <typename Vector_>
-class LazyGaussian// :
-//        public internal::Traits<Gaussian<Vector_> >::MomentsBase,
-//        public internal::Traits<Gaussian<Vector_> >::EvaluationBase,
-//        public internal::Traits<Gaussian<Vector_> >::GaussianMapBase
-{
-public:
-    typedef internal::Traits<Gaussian<Vector_> > Traits;
-
-    typedef typename Traits::Vector     Vector;
-    typedef typename Traits::Scalar     Scalar;
-    typedef typename Traits::Operator   Operator;
-    typedef typename Traits::Noise      Noise;
-
-    typedef typename Operator::DiagonalReturnType DiagonalReturnType;
-
-    enum Representation
-    {
-        CovarianceMatrix = 0,
-        PrecisionMatrix,
-        SquareRootMatrix,
-        DiagonalCovarianceMatrix,
-        DiagonalPrecisionMatrix,
-        DiagonalSquareRootMatrix,
-        Rank,
-        Normalizer,
-
-        Representations
-    };
-
-public:
-    explicit LazyGaussian(const unsigned& dimension = Vector::SizeAtCompileTime):
-        //Traits::GaussianMapBase(dimension),
-        dirty_(Representations, true)
-    {
-        SetStandard();
-    }
-
-    virtual ~LazyGaussian() { }
-
-    virtual const Vector& Mean() noexcept
-    {
-        return mean_;
-    }
-
-    virtual const Operator& Covariance()
-    {
-        if (IsDirty(CovarianceMatrix) && IsDirty(DiagonalCovarianceMatrix))
+        if (Dimension() == 0)
         {
-            switch (SelectRepresentation({DiagonalSquareRootMatrix,
-                                          DiagonalPrecisionMatrix,
-                                          SquareRootMatrix,
-                                          PrecisionMatrix}))
+            BOOST_THROW_EXCEPTION(GaussianUninitializedException());
+        }
+
+        if (is_dirty(CovarianceMatrix) && is_dirty(DiagonalCovarianceMatrix))
+        {
+            switch (select_first_representation({DiagonalSquareRootMatrix,
+                                                 DiagonalPrecisionMatrix,
+                                                 SquareRootMatrix,
+                                                 PrecisionMatrix}))
             {
             case SquareRootMatrix:
                 covariance_ = square_root_ * square_root_.transpose();
@@ -302,26 +315,49 @@ public:
                 break;
 
             default:
-                // THROW
+                BOOST_THROW_EXCEPTION(InvalidGaussianRepresentationException());
                 break;
             }
 
-            UpdatedInternally(CovarianceMatrix);
+            updated_internally(CovarianceMatrix);
         }
 
         return covariance_;
     }
 
-    virtual const Operator& Precision()
+    /**
+     * \return Gaussian second centered moment in the precision form (inverse
+     * of the covariance)
+     *
+     * Computes the precision from other representation of not available
+     *
+     * \throws GaussianUninitializedException if the Gaussian is of dynamic-size
+     *         and has not been initialized using SetStandard(dimension).
+     * \throws InvalidGaussianRepresentationException if non-of the
+     *         representation can be used as a source
+     * \throws Covariance()
+     *
+     * \cond INTERNAL
+     * \pre |{Valid Representations}| > 0
+     * \post {Valid Representations}
+     *       = {Valid Representations} \f$ \cup \f$ {#PrecisionMatrix}
+     * \endcond
+     */
+    virtual const Operator& Precision() const
     {
-        if (IsDirty(PrecisionMatrix) && IsDirty(DiagonalPrecisionMatrix))
+        if (Dimension() == 0)
+        {
+            BOOST_THROW_EXCEPTION(GaussianUninitializedException());
+        }
+
+        if (is_dirty(PrecisionMatrix) && is_dirty(DiagonalPrecisionMatrix))
         {
             const Operator& cov = Covariance();
 
-            switch (SelectRepresentation({DiagonalCovarianceMatrix,
-                                          DiagonalSquareRootMatrix,
-                                          CovarianceMatrix,
-                                          SquareRootMatrix}))
+            switch (select_first_representation({DiagonalCovarianceMatrix,
+                                                 DiagonalSquareRootMatrix,
+                                                 CovarianceMatrix,
+                                                 SquareRootMatrix}))
             {
             case CovarianceMatrix:
             case SquareRootMatrix:
@@ -338,79 +374,126 @@ public:
                 break;
 
             default:
-                // THROW
+                BOOST_THROW_EXCEPTION(InvalidGaussianRepresentationException());
                 break;
             }
 
-            UpdatedInternally(PrecisionMatrix);
+            updated_internally(PrecisionMatrix);
         }
 
         return precision_;
     }
 
-    virtual const Operator& SquareRoot()
+    /**
+     * \return Gaussian second centered moment in the square root form (
+     * Cholesky decomposition)
+     *
+     * Computes the square root from other representation of not available
+     *
+     * \throws GaussianUninitializedException if the Gaussian is of dynamic-size
+     *         and has not been initialized using SetStandard(dimension).
+     * \throws InvalidGaussianRepresentationException if non-of the
+     *         representation can be used as a source
+     * \throws Covariance()
+     *
+     * \cond INTERNAL
+     * \pre |{Valid Representations}| > 0
+     * \post {Valid Representations}
+     *       = {Valid Representations} \f$ \cup \f$ {#SquareRootMatrix}
+     * \endcond
+     */
+    virtual const Operator& SquareRoot() const
     {
-        if (IsDirty(SquareRootMatrix) && IsDirty(DiagonalSquareRootMatrix))
+        if (Dimension() == 0)
+        {
+            BOOST_THROW_EXCEPTION(GaussianUninitializedException());
+        }
+
+        if (is_dirty(SquareRootMatrix) && is_dirty(DiagonalSquareRootMatrix))
         {
             const Operator& cov = Covariance();
 
-            switch (SelectRepresentation({DiagonalCovarianceMatrix,
-                                          DiagonalPrecisionMatrix,
-                                          CovarianceMatrix,
-                                          PrecisionMatrix}))
+            switch (select_first_representation({DiagonalCovarianceMatrix,
+                                                 DiagonalPrecisionMatrix,
+                                                 CovarianceMatrix,
+                                                 PrecisionMatrix}))
             {
             case CovarianceMatrix:
             case PrecisionMatrix:
+            {
                 Eigen::LDLT<Operator> ldlt;
-                ldlt.compute(covariance_);
+                ldlt.compute(Covariance());
                 Vector D_sqrt = ldlt.vectorD();
                 for(size_t i = 0; i < D_sqrt.rows(); ++i)
                 {
                     D_sqrt(i) = std::sqrt(std::fabs(D_sqrt(i)));
                 }
                 square_root_ = ldlt.transpositionsP().transpose()
-                                * ldlt.matrixL()
+                                * (Operator)ldlt.matrixL()
                                 * D_sqrt.asDiagonal();
-                break;
+            } break;
 
             case DiagonalCovarianceMatrix:
             case DiagonalPrecisionMatrix:
+            {
                 square_root_.setZero(Dimension(), Dimension());
                 for (size_t i = 0; i < square_root_.rows(); ++i)
                 {
                     square_root_(i, i) = std::sqrt(cov(i, i));
                 }
-                break;
+            } break;
 
             default:
-                // THROW
+                BOOST_THROW_EXCEPTION(InvalidGaussianRepresentationException());
                 break;
             }
 
-            UpdatedInternally(SquareRootMatrix);
+            updated_internally(SquareRootMatrix);
         }
 
         return square_root_;
     }
 
-    virtual bool FullRank()
+    /**
+     * \return True if the covariance matrix has a full rank
+     *
+     * \throws Covariance()
+     *
+     * \cond INTERNAL
+     * \pre |{Valid Representations}| > 0
+     * \post {Valid Representations}
+     *       = {Valid Representations} \f$ \cup \f$ {#CovarianceMatrix}
+     * \endcond
+     */
+    virtual bool HasFullRank() const
     {
-        if (IsDirty(Rank))
+        if (is_dirty(Rank))
         {
             full_rank_ =
                Covariance().colPivHouseholderQr().rank() == Covariance().rows();
 
-            UpdatedInternally(Rank);
+            updated_internally(Rank);
         }
 
         return full_rank_;
     }
 
-    virtual Scalar LogNormalizer()
+    /**
+     * @return Log normalizing constant
+     *
+     * \throws HasFullRank()
+     *
+     * \cond INTERNAL
+     * \pre |{Valid Representations}| > 0
+     * \post {Valid Representations}
+     *       = {Valid Representations} \f$ \cup \f$ {#CovarianceMatrix}
+     * \endcond
+     */
+    virtual Scalar LogNormalizer() const
     {
-        if (IsDirty(Normalizer))
+        if (is_dirty(Normalizer))
         {
-            if (FullRank())
+            if (HasFullRank())
             {
                 log_normalizer_ = -0.5
                         * (log(Covariance().determinant())
@@ -421,15 +504,26 @@ public:
                 log_normalizer_ = 0.0; // FIXME
             }
 
-            UpdatedInternally(Normalizer);
+            updated_internally(Normalizer);
         }
 
         return log_normalizer_;
     }
 
-    virtual Scalar LogProbability(const Vector& vector)
+    /**
+     * @return Log of the probability of the given sample \c vector
+     *
+     * @param vector sample which should be evaluated
+     *
+     * \cond INTERNAL
+     * \pre |{Valid Representations}| > 0
+     * \post {Valid Representations}
+     *       = {Valid Representations} \f$ \cup \f$ {#PrecisionMatrix}
+     * \endcond
+     */
+    virtual Scalar LogProbability(const Vector& vector) const
     {
-        if(FullRank())
+        if(HasFullRank())
         {
             return LogNormalizer() - 0.5
                     * (vector - Mean()).transpose()
@@ -440,104 +534,262 @@ public:
         return -std::numeric_limits<Scalar>::infinity();
     }
 
-    virtual Vector MapStandardGaussian(const Noise& sample)
+    /**
+     * @return a Gaussian sample of the type \c Vector determined by mapping a
+     * noise sample into the Gaussian sample space
+     *
+     * @param sample    Noise Sample
+     *
+     * \cond INTERNAL
+     * \pre |{Valid Representations}| > 0
+     * \post {Valid Representations}
+     *       = {Valid Representations} \f$ \cup \f$ {#SquareRootMatrix}
+     * \endcond
+     */
+    virtual Vector MapStandardGaussian(const Noise& sample) const
     {
         return Mean() + SquareRoot() * sample;
     }
 
-    virtual int Dimension() const
-    {
-        return 0;//this->NoiseDimension();
-    }
-
+    /**
+     * Sets the Gaussian to a standard distribution with zero mean and identity
+     * covariance.
+     *
+     * \cond INTERNAL
+     * \pre {}
+     * \post
+     *  - Fully ranked covariance
+     *  - {Valid representations} = {#CovarianceMatrix}
+     * \endcond
+     */
     virtual void SetStandard()
     {
         Mean(Vector::Zero(Dimension()));
         Covariance(Operator::Identity(Dimension(), Dimension()));
 
         full_rank_ = true;
-        UpdatedInternally(Rank, false);
+        updated_internally(Rank);
     }
 
+    /**
+     * Changes the dimension of the dynamic-size Gaussian and sets it to a
+     * standard distribution with zero mean and identity covariance.
+     *
+     * @param new_dimension New dimension of the Gaussian
+     *
+     * \cond INTERNAL
+     * \pre {}
+     * \post
+     *  - Fully ranked covariance
+     *  - {Valid representations} = {#CovarianceMatrix}
+     * \endcond
+     */
+    template <typename T = void>
+    typename std::enable_if<Vector::SizeAtCompileTime==Eigen::Dynamic, T>::type
+    SetStandard(size_t new_dimension)
+    {
+        NoiseDimension(new_dimension);
+
+        SetStandard();
+    }
+
+    /**
+     * Sets the mean
+     *
+     * @param mean New Gaussian mean
+     */
     virtual void Mean(const Vector& mean) noexcept
     {
         mean_ = mean;
     }
 
+    /**
+     * Sets the covariance matrix
+     * @param covariance New covariance matrix
+     *
+     * \cond INTERNAL
+     * \pre |{Valid Representations}| > 0
+     * \post {Valid Representations}
+     *       = {Valid Representations} \f$ \cup \f$ {#CovarianceMatrix}
+     * \endcond
+     */
     virtual void Covariance(const Operator& covariance) noexcept
     {
         covariance_ = covariance;
-        UpdatedExternally(CovarianceMatrix);
+        updated_externally(CovarianceMatrix);
     }
 
+    /**
+     * Sets the covariance matrix in the form of its square root (Cholesky f
+     * actor)
+     *
+     * @param square_root New covariance square root
+     *
+     * \cond INTERNAL
+     * \pre |{Valid Representations}| > 0
+     * \post {Valid Representations}
+     *       = {Valid Representations} \f$ \cup \f$ {#SquareRootMatrix}
+     * \endcond
+     */
     virtual void SquareRoot(const Operator& square_root) noexcept
     {
         square_root_ = square_root;
-        UpdatedExternally(SquareRootMatrix);
+        updated_externally(SquareRootMatrix);
     }
 
+    /**
+     * Sets the covariance matrix in the precision form (inverse of covariance)
+     *
+     * @param precision New precision matrix
+     *
+     * \cond INTERNAL
+     * \pre |{Valid Representations}| > 0
+     * \post {Valid Representations}
+     *       = {Valid Representations} \f$ \cup \f$ {#PrecisionMatrix}
+     * \endcond
+     */
     virtual void Precision(const Operator& precision) noexcept
     {
         precision_ = precision;
-        UpdatedExternally(PrecisionMatrix);
+        updated_externally(PrecisionMatrix);
     }    
 
-    virtual void Covariance(
-            const DiagonalReturnType& covariance) noexcept
+    /**
+     * Sets the covariance matrix as a diagonal matrix
+     *
+     * @param diag_covariance New diagonal covariance matrix
+     *
+     * \cond INTERNAL
+     * \pre |{Valid Representations}| > 0
+     * \post {Valid Representations}
+     *       = {Valid Representations} \f$ \cup \f$ {#DiagonalCovarianceMatrix}
+     * \endcond
+     */
+    virtual void DiagonalCovariance(const Operator& diag_covariance) noexcept
     {
-        covariance_ = covariance;
-        UpdatedExternally(DiagonalCovarianceMatrix);
+        covariance_ = diag_covariance.diagonal().asDiagonal();
+        updated_externally(DiagonalCovarianceMatrix);
     }
 
-    virtual void SquareRoot(
-            const DiagonalReturnType& square_root) noexcept
+    /**
+     * Sets the covariance matrix in its diagonal square root form
+     *
+     * @param diag_square_root New diagonal square root of the covariance
+     *
+     * \cond INTERNAL
+     * \pre |{Valid Representations}| > 0
+     * \post {Valid Representations}
+     *       = {Valid Representations} \f$ \cup \f$ {#DiagonalSquareRootMatrix}
+     * \endcond
+     */
+    virtual void DiagonalSquareRoot(const Operator& diag_square_root) noexcept
     {
-        square_root_ = square_root;
-        UpdatedExternally(DiagonalSquareRootMatrix);
+        square_root_ = diag_square_root.diagonal().asDiagonal();
+        updated_externally(DiagonalSquareRootMatrix);
     }
 
-    virtual void Precision(
-            const DiagonalReturnType& precision) noexcept
+    /**
+     * Sets the covariance matrix in its diagonal precision form
+     *
+     * @param diag_precision New diagonal precision matrix
+     *
+     * \cond INTERNAL
+     * \pre |{Valid Representations}| > 0
+     * \post {Valid Representations}
+     *       = {Valid Representations} \f$ \cup \f$ {#DiagonalPrecisionMatrix}
+     * \endcond
+     */
+    virtual void DiagonalPrecision(const Operator& diag_precision) noexcept
     {
-        precision_ = precision;
-        UpdatedExternally(DiagonalPrecisionMatrix);
+        precision_ = diag_precision.diagonal().asDiagonal();
+        updated_externally(DiagonalPrecisionMatrix);
     }
 
 protected:
-    virtual void UpdatedExternally(Representation representation) noexcept
+    /** \cond INTERNAL */
+    /**
+     * Flags the specified attribute as valid and the rest of attributes as
+     * dirty.
+     *
+     * @param attribute Modified attribute
+     */
+    virtual void updated_externally(Attribute attribute) const noexcept
     {
         std::fill(dirty_.begin(), dirty_.end(), true);
-        UpdatedInternally(representation);
+        updated_internally(attribute);
     }
 
-    virtual void UpdatedInternally(Representation representation) noexcept
+    /**
+     * Flags the specified attribute as valid.
+     *
+     * @param attribute Modified attribute
+     */
+    virtual void updated_internally(Attribute attribute) const noexcept
     {
-        dirty_[representation] = false;
+        dirty_[attribute] = false;
     }
 
-    virtual bool IsDirty(Representation representation) const noexcept
+    /**
+     * @return True if any of the other representation was modified.
+     * @param attribute     Attribute in question
+     */
+    virtual bool is_dirty(Attribute attribute) const noexcept
     {
-        return dirty_[representation];
+        return dirty_[int(attribute)];
     }
 
-    virtual Representation SelectRepresentation(
-            const std::vector<Representation> representations) noexcept
+    /**
+     * @return First representation ID that is available
+     *
+     * @param representations   Representation list
+     *
+     * Example:
+     * If the last invoked functions were
+     *
+     * \code
+     * DiagonalCovariance(my_diagonal);
+     * my_covariance = Covariance();
+     * \endcode
+     *
+     * Now, the representation is set to \c DiagonalCovarianceMatrix and
+     * \c CovarianceMatrix since \c DiagonalCovariance() was used to set the
+     * covariance matrix followed by requesting \c Covariance().
+     * The following subsequent call
+     *
+     * \code
+     * Attribute att = SelectRepresentation({SquareRoot,
+     *                                       DiagonalCovarianceMatrix,
+     *                                       CovarianceMatrix});
+     * \endcode
+     *
+     * will assign att to DiagonalCovarianceMatrix since that is the first
+     * available representation within the initializer-list
+     * <tt>{#SquareRoot, #DiagonalCovarianceMatrix, #CovarianceMatrix}</tt>.
+     *
+     * This method is used to determine the best suitable representation
+     * for conversion. It is recommanded to put the diagonal forms at the
+     * beginning of the initialization-list. Diagonal forms can be converted
+     * most efficiently other  representations.
+     */
+    virtual Attribute select_first_representation(
+            const std::vector<Attribute>& representations) const noexcept
     {
-        for (auto& rep: representations)  if (dirty_[rep]) return rep;
-        return Representations;
+        for (auto& rep: representations)  if (!is_dirty(rep)) return rep;
+        return Attributes;
     }
+    /** \endcond */
 
-protected:
-    std::vector<bool> dirty_;
-
-    bool full_rank_;
-    Vector mean_;
-    Operator covariance_;    
-    Operator precision_;
-    Operator square_root_;
-    Scalar log_normalizer_;
+protected:    
+    /** \cond INTERNAL */
+    Vector mean_;                     /**< \brief first moment vector */
+    mutable Operator covariance_;     /**< \brief cov. form */
+    mutable Operator precision_;      /**< \brief cov. inverse form */
+    mutable Operator square_root_;    /**< \brief cov. square root form */
+    mutable bool full_rank_;          /**< \brief full rank flag */
+    mutable Scalar log_normalizer_;   /**< \brief log normalizing constant */
+    mutable std::vector<bool> dirty_; /**< \brief data validity flags */
+    /** \endcond */
 };
-
 
 }
 
