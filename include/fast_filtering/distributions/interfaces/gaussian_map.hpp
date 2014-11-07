@@ -49,6 +49,8 @@
 
 #include <Eigen/Dense>
 
+#include <type_traits>
+
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/variate_generator.hpp>
@@ -60,8 +62,6 @@
 
 namespace ff
 {
-
-
 
 
 template <typename Vector, typename Noise = internal::Empty>
@@ -88,6 +88,13 @@ public:
     virtual int NoiseDimension() const
     {
         return standard_gaussian_.Dimension();
+    }
+
+    template <typename T = void>
+    typename std::enable_if<Noise::SizeAtCompileTime==Eigen::Dynamic, T>::type
+    NoiseDimension(size_t new_noise_dimension)
+    {
+        standard_gaussian_.Dimension(new_noise_dimension);
     }
 
 private:
