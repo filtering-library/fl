@@ -6,7 +6,7 @@
  *    Jan Issac (jan.issac@gmail.com)
  *    Manuel Wuthrich (manuel.wuthrich@gmail.com)
  *
- *  All rights reserved.
+ *
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -104,8 +104,6 @@ namespace ff
 template <typename CohesiveState, typename FactorizedState, typename Observation>
 class ComposedStateDistribution;
 
-namespace internal
-{
 /**
  * ComposedStateDistribution distribution traits specialization
  * \internal
@@ -114,7 +112,7 @@ template <typename CohesiveState,
           typename FactorizedState,
           typename Observation>
 struct Traits<ComposedStateDistribution<
-        CohesiveState, FactorizedState, Observation> >
+        CohesiveState, FactorizedState, Observation>>
 {
     typedef typename CohesiveState::Scalar Scalar;
 
@@ -143,7 +141,6 @@ struct Traits<ComposedStateDistribution<
                           Observation::SizeAtCompileTime,
                           Observation::SizeAtCompileTime> Cov_yy;
 };
-}
 
 /**
  * \class ComposedStateDistribution
@@ -155,18 +152,20 @@ template <typename CohesiveState,
 class ComposedStateDistribution
 {
 public:
-    typedef internal::Traits<
-                ComposedStateDistribution<
-                    CohesiveState, FactorizedState, Observation> > Traits;
+    typedef ComposedStateDistribution<
+                CohesiveState,
+                FactorizedState,
+                Observation
+            > This;
 
-    typedef typename Traits::Scalar Scalar;
-    typedef typename Traits::Cov_aa Cov_aa;
-    typedef typename Traits::Cov_ab Cov_ab;
-    typedef typename Traits::Cov_ay Cov_ay;
-    typedef typename Traits::Cov_bb Cov_bb;
-    typedef typename Traits::Cov_by Cov_by;
-    typedef typename Traits::Cov_yy Cov_yy;
-    typedef typename Traits::Y Y;
+    typedef typename Traits<This>::Scalar Scalar;
+    typedef typename Traits<This>::Cov_aa Cov_aa;
+    typedef typename Traits<This>::Cov_ab Cov_ab;
+    typedef typename Traits<This>::Cov_ay Cov_ay;
+    typedef typename Traits<This>::Cov_bb Cov_bb;
+    typedef typename Traits<This>::Cov_by Cov_by;
+    typedef typename Traits<This>::Cov_yy Cov_yy;
+    typedef typename Traits<This>::Y Y;
 
     struct JointPartitions
     {

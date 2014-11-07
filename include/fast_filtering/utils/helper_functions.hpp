@@ -165,7 +165,7 @@ public:
 
 	~Structurer2D() {}
 
-	template <typename T> std::vector<T> Flatten(const std::vector<std::vector<T> >& deep_structure)
+	template <typename T> std::vector<T> Flatten(const std::vector<std::vector<T>>& deep_structure)
 	{
 		sizes_.resize(deep_structure.size());
 		size_t global_size = 0;
@@ -184,9 +184,9 @@ public:
 		return flat_structure;
 	}
 
-	template <typename T> std::vector<std::vector<T> > Deepen(const std::vector<T>& flat_structure)
+	template <typename T> std::vector<std::vector<T>> Deepen(const std::vector<T>& flat_structure)
 	{
-		std::vector<std::vector<T> > deep_structure(sizes_.size());
+		std::vector<std::vector<T>> deep_structure(sizes_.size());
 
 		size_t global_index = 0;
 		for(size_t i = 0; i < deep_structure.size(); i++)
@@ -211,7 +211,7 @@ public:
 
 	~Structurer3D() {}
 
-	template <typename T> std::vector<T> Flatten(const std::vector<std::vector<std::vector<T> > >& deep_structure)
+	template <typename T> std::vector<T> Flatten(const std::vector<std::vector<std::vector<T>> >& deep_structure)
 	{
 		size_t global_size = 0;
 		sizes_.resize(deep_structure.size());
@@ -235,10 +235,10 @@ public:
 		return flat_structure;
 	}
 
-	template <typename T> std::vector<std::vector<std::vector<T> > > Deepen(const std::vector<T>& flat_structure)
+	template <typename T> std::vector<std::vector<std::vector<T>> > Deepen(const std::vector<T>& flat_structure)
 	{
 		size_t global_index = 0;
-		std::vector<std::vector<std::vector<T> > > deep_structure(sizes_.size());
+		std::vector<std::vector<std::vector<T>> > deep_structure(sizes_.size());
 		for(size_t i = 0; i < deep_structure.size(); i++)
 		{
 			deep_structure[i].resize(sizes_[i].size());
@@ -253,7 +253,7 @@ public:
 	}
 
 private:
-	std::vector<std::vector<size_t> > sizes_;
+	std::vector<std::vector<size_t>> sizes_;
 };
 
 
@@ -313,7 +313,7 @@ template <typename T>  void PrintVector(std::vector<T> v)
 		std::cout << "(" << i << ": " << v[i] << ") ";
 	std::cout << std::endl;
 }
-template <typename T> void PrintVector(std::vector<std::vector<T> > v)
+template <typename T> void PrintVector(std::vector<std::vector<T>> v)
 {
 	for(size_t i = 0; i < v.size(); i++)
 	{
@@ -322,7 +322,7 @@ template <typename T> void PrintVector(std::vector<std::vector<T> > v)
 	}
 }
 
-template <typename T> void PrintVector(std::vector<std::vector<std::vector<T> > > v)
+template <typename T> void PrintVector(std::vector<std::vector<std::vector<T>> > v)
 {
 	for(size_t i = 0; i < v.size(); i++)
 	{
@@ -380,8 +380,8 @@ std::string Eigen2Mathematica(const Eigen::MatrixBase<Derived>& eigen, const std
 // returns the first index where the two vectors differ, if there is no difference then -1 is returned.
 template <typename T, int n_rows, int n_cols> int
 DifferenceAt(
-		const std::vector<Eigen::Matrix<T, n_rows, n_cols> >& a,
-		const std::vector<Eigen::Matrix<T, n_rows, n_cols> >& b,
+		const std::vector<Eigen::Matrix<T, n_rows, n_cols>>& a,
+		const std::vector<Eigen::Matrix<T, n_rows, n_cols>>& b,
 		const T& epsilon)
 {
 	if(a.size() < b.size())
@@ -474,10 +474,10 @@ template <typename T> struct ValuesIndex
 
 template <typename T> void
 SortAndCollapse(
-		std::vector<std::vector<T> >& values,
+		std::vector<std::vector<T>>& values,
 		std::vector<size_t>& multiplicities)
 {
-	std::vector<ValuesIndex<T> > values_indices(values.size());
+	std::vector<ValuesIndex<T>> values_indices(values.size());
 	for(size_t i = 0; i < values.size(); i++)
 	{
 		values_indices[i].index = i;
@@ -486,7 +486,7 @@ SortAndCollapse(
 
 	std::sort(values_indices.begin(), values_indices.end());
 
-	std::vector<std::vector<T> > temp_values = values;
+	std::vector<std::vector<T>> temp_values = values;
 	multiplicities = std::vector<size_t>(values.size(), 0);
 	size_t distinct_index = 0;
 	values[0] = temp_values[values_indices[0].index];
@@ -523,7 +523,7 @@ template <typename T> std::vector<int> SortAscend(const std::vector<T> &values)
 {
 	std::vector<int> indices(values.size());
 
-	std::vector<ValueIndex<T> > values_indices(values.size());
+	std::vector<ValueIndex<T>> values_indices(values.size());
 	for(int i = 0; i < int(values.size()); i++)
 	{
 		values_indices[i].index = i;
@@ -871,14 +871,14 @@ Image2Points(const Eigen::Matrix<T, -1, -1>& image,
 
 
 
-template <typename T> std::vector<Eigen::Matrix<T, 3, 1> >
+template <typename T> std::vector<Eigen::Matrix<T, 3, 1>>
 DepthImage2CartVectors(const std::vector<T>& image,
                        const size_t& n_rows, const size_t& n_cols,
                        const Eigen::Matrix<T, 3, 3>& camera_matrix)
 {
 	Eigen::Matrix<T, 3, 3> camera_matrix_inverse = camera_matrix.inverse();
 
-	std::vector<Eigen::Matrix<T, 3, 1> > vectors(n_rows*n_cols);
+	std::vector<Eigen::Matrix<T, 3, 1>> vectors(n_rows*n_cols);
 	for(size_t row = 0; row < n_rows; row++)
 		for(size_t col = 0; col < n_cols; col++)
 			vectors[row*n_cols + col] =
@@ -892,7 +892,7 @@ DepthImage2CartVectors(const std::vector<T>& image,
 
 template <typename T> std::vector<T>
 CartVectors2DepthImage(
-		const std::vector<Eigen::Matrix<T, 3, 1> >& vectors,
+		const std::vector<Eigen::Matrix<T, 3, 1>>& vectors,
 		const int& n_rows, const int& n_cols,
 		const Eigen::Matrix<T, 3, 3>& camera_matrix)
 {

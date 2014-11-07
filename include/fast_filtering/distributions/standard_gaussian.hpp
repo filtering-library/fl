@@ -6,7 +6,7 @@
  *    Manuel Wuthrich (manuel.wuthrich@gmail.com)
  *    Jan Issac (jan.issac@gmail.com)
  *
- *  All rights reserved.
+ *
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -61,7 +61,8 @@ namespace ff
 {
 
 template <typename Vector>
-class StandardGaussian: public Sampling<Vector>
+class StandardGaussian:
+        public Sampling<Vector>
 {
 public:
     explicit StandardGaussian(const int dimension = Vector::SizeAtCompileTime):
@@ -70,25 +71,10 @@ public:
         gaussian_distribution_(0.0, 1.0),
         gaussian_generator_(generator_, gaussian_distribution_)
     {
-        //static_assert_dynamic_sized(Vector);
-
         // make sure that vector is derived from eigen
         static_assert_base(Vector, Eigen::Matrix<typename Vector::Scalar,
-                                                   Vector::SizeAtCompileTime, 1>);
+                                                 Vector::SizeAtCompileTime, 1>);
     }
-
-//    StandardGaussian():
-//        dimension_ (Vector::SizeAtCompileTime),
-//        generator_(RANDOM_SEED),
-//        gaussian_distribution_(0.0, 1.0),
-//        gaussian_generator_(generator_, gaussian_distribution_)
-//    {
-//        //static_assert_const_sized(Vector);
-
-//        // make sure that vector is derived from eigen
-//        static_assert_base(Vector, Eigen::Matrix<typename Vector::Scalar,
-//                                                   Vector::SizeAtCompileTime, 1>);
-//    }
 
     virtual ~StandardGaussian() { }
 
@@ -108,11 +94,16 @@ public:
         return dimension_;
     }
 
+    virtual void Dimension(size_t new_dimension)
+    {
+        dimension_ = new_dimension;
+    }
+
 private:
     int dimension_;
     boost::mt19937 generator_;
     boost::normal_distribution<> gaussian_distribution_;
-    boost::variate_generator<boost::mt19937, boost::normal_distribution<> > gaussian_generator_;
+    boost::variate_generator<boost::mt19937, boost::normal_distribution<>> gaussian_generator_;
 };
 
 // specialization for scalar
@@ -140,7 +131,7 @@ public:
 private:
     boost::mt19937 generator_;
     boost::normal_distribution<> gaussian_distribution_;
-    boost::variate_generator<boost::mt19937, boost::normal_distribution<> > gaussian_generator_;
+    boost::variate_generator<boost::mt19937, boost::normal_distribution<>> gaussian_generator_;
 };
 
 }

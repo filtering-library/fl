@@ -6,7 +6,7 @@
  *    Jan Issac (jan.issac@gmail.com)
  *    Manuel Wuthrich (manuel.wuthrich@gmail.com)
  *
- *  All rights reserved.
+ *
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -57,7 +57,7 @@
 #include <boost/range.hpp>
 #include <boost/make_shared.hpp>
 
-#include "fukf_dummy_models.hpp"
+#include "factorized_ukf_dummies.hpp"
 
 const double EPSILON = 1.0e-12;
 
@@ -67,7 +67,7 @@ typedef Eigen::Matrix<double, 1, 1> Observation;
 typedef ff::FactorizedUnscentedKalmanFilter<
                 ProcessModelDummy<State>,
                 ProcessModelDummy<State>,
-                ObservationModelDummy<State, Observation> > Filter;
+                ObservationModelDummy<State, Observation>> Filter;
 
 const size_t DIMENSION = 10;
 
@@ -77,9 +77,9 @@ TEST(SquareRootTests, dense)
     Eigen::MatrixXd cov = Eigen::MatrixXd::Random(DIMENSION, DIMENSION);
     cov = cov * cov.transpose();
 
-    Filter filter(boost::make_shared<ProcessModelDummy<State> >(),
-                  boost::make_shared<ProcessModelDummy<State> >(),
-                  boost::make_shared<ObservationModelDummy<State, Observation> >());
+    Filter filter(boost::make_shared<ProcessModelDummy<State>>(),
+                  boost::make_shared<ProcessModelDummy<State>>(),
+                  boost::make_shared<ObservationModelDummy<State, Observation>>());
     filter.SquareRoot(cov, cov_sqrt);
 
     EXPECT_EQ(cov.rows(), cov_sqrt.rows());
@@ -92,9 +92,9 @@ TEST(SquareRootTests, diagonal)
     Eigen::MatrixXd cov_sqrt;
     Eigen::MatrixXd cov = Eigen::MatrixXd::Identity(DIMENSION, DIMENSION) * 1.3224;
 
-    Filter filter(boost::make_shared<ProcessModelDummy<State> >(),
-                  boost::make_shared<ProcessModelDummy<State> >(),
-                  boost::make_shared<ObservationModelDummy<State, Observation> >());
+    Filter filter(boost::make_shared<ProcessModelDummy<State>>(),
+                  boost::make_shared<ProcessModelDummy<State>>(),
+                  boost::make_shared<ObservationModelDummy<State, Observation>>());
     filter.SquareRootDiagonal(cov, cov_sqrt);
 
     EXPECT_EQ(cov.rows(), cov_sqrt.rows());
@@ -107,9 +107,9 @@ TEST(SquareRootTests, diagonalAsVector)
     Eigen::MatrixXd cov_sqrt;
     Eigen::MatrixXd cov = Eigen::MatrixXd::Ones(DIMENSION, 1) * 1.3224;
 
-    Filter filter(boost::make_shared<ProcessModelDummy<State> >(),
-                  boost::make_shared<ProcessModelDummy<State> >(),
-                  boost::make_shared<ObservationModelDummy<State, Observation> >());
+    Filter filter(boost::make_shared<ProcessModelDummy<State>>(),
+                  boost::make_shared<ProcessModelDummy<State>>(),
+                  boost::make_shared<ObservationModelDummy<State, Observation>>());
     filter.SquareRootDiagonalAsVector(cov, cov_sqrt);
 
     EXPECT_EQ(cov.rows(), cov_sqrt.rows());

@@ -5,7 +5,7 @@
  *                     University of Southern California
  *    Jan Issac (jan.issac@gmail.com)
  *
- *  All rights reserved.
+ *
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -48,17 +48,27 @@
 
 #include <Eigen/Dense>
 
+namespace fl
+{
+/**
+ * Generic distribution trait template
+ */
+template <typename> struct Traits { };
+}
+
 namespace ff
 {
 
-namespace internal
-{
+
 /**
- * \internal
  * Generic distribution trait template
+ *
+ * \deprecated
  */
 template <typename T> struct Traits { };
 
+namespace internal
+{
 //struct Empty { };
 typedef Eigen::Matrix<double, 0, 0> Empty;
 
@@ -67,10 +77,7 @@ enum SpaceType
     Scalar,
     Vectorial
 };
-
 }
-
-using internal::Traits;
 
 }
 

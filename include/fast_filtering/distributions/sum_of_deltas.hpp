@@ -6,7 +6,7 @@
  *    Manuel Wuthrich (manuel.wuthrich@gmail.com)
  *    Jan Issac (jan.issac@gmail.com)
  *
- *  All rights reserved.
+ *
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -64,25 +64,25 @@ namespace ff
 // Forward declarations
 template <typename Vector> class SumOfDeltas;
 
-namespace internal
-{
 /**
  * SumOfDeltas distribution traits specialization
  * \internal
  */
 template <typename Vector>
-struct Traits<SumOfDeltas<Vector> >
+struct Traits<SumOfDeltas<Vector>>
 {
-    typedef typename Vector::Scalar                             Scalar;
-    typedef Eigen::Matrix<Scalar,Vector::SizeAtCompileTime,
-                                 Vector::SizeAtCompileTime>     Operator;
+    typedef typename Vector::Scalar Scalar;
+    typedef Eigen::Matrix<
+                Scalar,
+                Vector::SizeAtCompileTime,
+                Vector::SizeAtCompileTime
+            > Operator;
 
-    typedef std::vector<Vector>                      Deltas;
+    typedef std::vector<Vector> Deltas;
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Weights;
 
     typedef Moments<Vector, Operator> MomentsBase;
 };
-}
 
 /**
  * \class SumOfDeltas
@@ -90,15 +90,15 @@ struct Traits<SumOfDeltas<Vector> >
  */
 template <typename Vector>
 class SumOfDeltas:
-        public internal::Traits<SumOfDeltas<Vector> >::MomentsBase
+        public Traits<SumOfDeltas<Vector>>::MomentsBase
 {
 public:
-    typedef internal::Traits<SumOfDeltas<Vector> > Traits;
+    typedef SumOfDeltas<Vector> This;
 
-    typedef typename Traits::Scalar     Scalar;
-    typedef typename Traits::Operator   Operator;
-    typedef typename Traits::Deltas     Deltas;
-    typedef typename Traits::Weights    Weights;
+    typedef typename Traits<This>::Scalar     Scalar;
+    typedef typename Traits<This>::Operator   Operator;
+    typedef typename Traits<This>::Deltas     Deltas;
+    typedef typename Traits<This>::Weights    Weights;
 
 public:
     explicit SumOfDeltas(const unsigned& dimension = Vector::SizeAtCompileTime)

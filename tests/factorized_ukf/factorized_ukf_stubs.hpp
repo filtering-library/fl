@@ -6,7 +6,7 @@
  *    Jan Issac (jan.issac@gmail.com)
  *    Manuel Wuthrich (manuel.wuthrich@gmail.com)
  *
- *  All rights reserved.
+ *
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -83,9 +83,14 @@ public:
         return Eigen::MatrixXd::Identity(state_.rows(), state_.cols());
     }
 
-    virtual size_t Dimension()
+    virtual size_t Dimension() const
     {
         return state_.rows();
+    }
+
+    virtual size_t InputDimension() const
+    {
+        return 0;
     }
 
 protected:
@@ -94,7 +99,7 @@ protected:
 
 template <typename State_a, typename State_b_i>
 class ObservationModelStub:
-        public ff::GaussianMap<Eigen::Matrix<double, 1, 1>, Eigen::Matrix<double, 1, 1> >
+        public ff::GaussianMap<Eigen::Matrix<double, 1, 1>, Eigen::Matrix<double, 1, 1>>
 {
 public:
     typedef Eigen::Matrix<double, 1, 1> Observation;

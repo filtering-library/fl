@@ -6,7 +6,7 @@
  *    Jan Issac (jan.issac@gmail.com)
  *    Manuel Wuthrich (manuel.wuthrich@gmail.com)
  *
- *  All rights reserved.
+ *
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -57,7 +57,7 @@
 #include <boost/range.hpp>
 #include <boost/make_shared.hpp>
 
-#include "fukf_dummy_models.hpp"
+#include "factorized_ukf_dummies.hpp"
 
 typedef Eigen::Matrix<double, 3, 1> State;
 typedef Eigen::Matrix<double, 1, 1> Observation;
@@ -65,7 +65,7 @@ typedef Eigen::Matrix<double, 1, 1> Observation;
 typedef ff::FactorizedUnscentedKalmanFilter<
                 ProcessModelDummy<State>,
                 ProcessModelDummy<State>,
-                ObservationModelDummy<State, Observation> > Filter;
+                ObservationModelDummy<State, Observation>> Filter;
 
 const size_t INV_DIMENSION = 14;
 const size_t SUBSAMPLING_FACTOR = 8;
@@ -74,9 +74,9 @@ const size_t INVERSION_ITERATIONS = OBSERVATION_DIMENSION * 30;
 
 TEST(InversionTests, SMWInversion)
 {
-    Filter filter(boost::make_shared<ProcessModelDummy<State> >(),
-                  boost::make_shared<ProcessModelDummy<State> >(),
-                  boost::make_shared<ObservationModelDummy<State, Observation> >());
+    Filter filter(boost::make_shared<ProcessModelDummy<State>>(),
+                  boost::make_shared<ProcessModelDummy<State>>(),
+                  boost::make_shared<ObservationModelDummy<State, Observation>>());
 
     Eigen::MatrixXd cov = Eigen::MatrixXd::Random(15, 15);
     cov = cov * cov.transpose();
@@ -124,9 +124,9 @@ TEST(InversionTests, fullMatrixInversionSpeed)
 
 TEST(InversionTests, SMWMatrixInversionSpeed)
 {
-    Filter filter(boost::make_shared<ProcessModelDummy<State> >(),
-                  boost::make_shared<ProcessModelDummy<State> >(),
-                  boost::make_shared<ObservationModelDummy<State, Observation> >());
+    Filter filter(boost::make_shared<ProcessModelDummy<State>>(),
+                  boost::make_shared<ProcessModelDummy<State>>(),
+                  boost::make_shared<ObservationModelDummy<State, Observation>>());
 
     Eigen::MatrixXd cov = Eigen::MatrixXd::Random(INV_DIMENSION, INV_DIMENSION);
     cov = cov * cov.transpose();
@@ -159,9 +159,9 @@ TEST(InversionTests, SMWMatrixInversionSpeed)
 
 TEST(InversionTests, SMWBlockMatrixInversionSpeed)
 {
-    Filter filter(boost::make_shared<ProcessModelDummy<State> >(),
-                  boost::make_shared<ProcessModelDummy<State> >(),
-                  boost::make_shared<ObservationModelDummy<State, Observation> >());
+    Filter filter(boost::make_shared<ProcessModelDummy<State>>(),
+                  boost::make_shared<ProcessModelDummy<State>>(),
+                  boost::make_shared<ObservationModelDummy<State, Observation>>());
 
     Eigen::MatrixXd cov = Eigen::MatrixXd::Random(INV_DIMENSION, INV_DIMENSION);
     cov = cov * cov.transpose();

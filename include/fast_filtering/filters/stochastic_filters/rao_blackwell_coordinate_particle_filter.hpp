@@ -53,10 +53,10 @@ template<typename ProcessModel, typename ObservationModel>
 class RaoBlackwellCoordinateParticleFilter
 {
 public:
-    typedef typename internal::Traits<ProcessModel>::Scalar Scalar;
-    typedef typename internal::Traits<ProcessModel>::State  State;
-    typedef typename internal::Traits<ProcessModel>::Input  Input;
-    typedef typename internal::Traits<ProcessModel>::Noise  Noise;
+    typedef typename Traits<ProcessModel>::Scalar Scalar;
+    typedef typename Traits<ProcessModel>::State  State;
+    typedef typename Traits<ProcessModel>::Input  Input;
+    typedef typename Traits<ProcessModel>::Noise  Noise;
 
     typedef typename ObservationModel::Observation Observation;
 
@@ -67,7 +67,7 @@ public:
     RaoBlackwellCoordinateParticleFilter(
             const boost::shared_ptr<ProcessModel> process_model,
             const boost::shared_ptr<ObservationModel>  observation_model,
-            const std::vector<std::vector<size_t> >& sampling_blocks,
+            const std::vector<std::vector<size_t>>& sampling_blocks,
             const Scalar& max_kl_divergence = 0):
         observation_model_(observation_model),
         process_model_(process_model),
@@ -210,7 +210,7 @@ public:
         indices_ = std::vector<size_t>(samples_.size(), 0); observation_model_->Reset();
         log_weights_ = std::vector<Scalar>(samples_.size(), 0);
     }
-    void SamplingBlocks(const std::vector<std::vector<size_t> >& sampling_blocks)
+    void SamplingBlocks(const std::vector<std::vector<size_t>>& sampling_blocks)
     {
         sampling_blocks_ = sampling_blocks;
 
@@ -258,11 +258,11 @@ private:
     boost::shared_ptr<ProcessModel> process_model_;
 
     // parameters
-    std::vector<std::vector<size_t> > sampling_blocks_;
+    std::vector<std::vector<size_t>> sampling_blocks_;
     Scalar max_kl_divergence_;
 
     // distribution for sampling
-    Gaussian<Eigen::Matrix<Scalar,1,1> > unit_gaussian_;
+    Gaussian<Eigen::Matrix<Scalar,1,1>> unit_gaussian_;
 };
 
 }

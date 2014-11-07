@@ -6,7 +6,7 @@
  *    Jan Issac (jan.issac@gmail.com)
  *    Manuel Wuthrich (manuel.wuthrich@gmail.com)
  *
- *  All rights reserved.
+ *
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -58,9 +58,8 @@ template <typename State_> class ProcessModelDummy;
 
 namespace ff
 {
-namespace internal
-{
-template <typename State_> struct Traits<ProcessModelDummy<State_> >
+
+template <typename State_> struct Traits<ProcessModelDummy<State_>>
 {
     typedef State_ State;
     typedef State_ Noise;
@@ -71,20 +70,19 @@ template <typename State_> struct Traits<ProcessModelDummy<State_> >
     typedef GaussianMap<State_, State_> GaussianMapBase;
 };
 }
-}
 
 template <typename State_>
 class ProcessModelDummy:
-        public ff::internal::Traits<ProcessModelDummy<State_> >::ProcessModelBase,
-        public ff::internal::Traits<ProcessModelDummy<State_> >::GaussianMapBase
+        public ff::Traits<ProcessModelDummy<State_>>::ProcessModelBase,
+        public ff::Traits<ProcessModelDummy<State_>>::GaussianMapBase
 {
 public:
-    typedef ff::internal::Traits<ProcessModelDummy<State_> > Traits;
+    typedef ProcessModelDummy<State_> This;
 
-    typedef typename Traits::Scalar Scalar;
-    typedef typename Traits::State  State;
-    typedef typename Traits::Noise  Noise;
-    typedef typename Traits::Input  Input;
+    typedef typename ff::Traits<This>::Scalar Scalar;
+    typedef typename ff::Traits<This>::State  State;
+    typedef typename ff::Traits<This>::Noise  Noise;
+    typedef typename ff::Traits<This>::Input  Input;
 
     virtual void Condition(const double& delta_time,
                            const State& state,
@@ -98,9 +96,14 @@ public:
 
     }
 
-    virtual size_t Dimension()
+    virtual size_t Dimension() const
     {
         return State::SizeAtCompileTime;
+    }
+
+    virtual size_t InputDimension() const
+    {
+        return 0;
     }
 };
 

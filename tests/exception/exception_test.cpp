@@ -8,7 +8,7 @@
  *    Jan Issac (jan.issac@gmail.com)
  *    Manuel Wuthrich (manuel.wuthrich@gmail.com)
  *
- *  All rights reserved.
+ *
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -50,6 +50,7 @@
 
 #include <fast_filtering/filtering_library/exception/exception.hpp>
 #include <fast_filtering/filtering_library/filter/gaussian/point_set_gaussian.hpp>
+#include <fast_filtering/filtering_library/filter/gaussian/gaussian_filter.hpp>
 
 TEST(Exception, create)
 {
@@ -89,20 +90,3 @@ TEST(Exception, create)
         std::cout << boost::diagnostic_information(e) << std::endl;
     }
 }
-
-
-//TEST(Exception, createFilter)
-//{
-//    typedef fl::SigmaPointKalmanFilter<double> FilterAlgorithm;
-
-//    fl::FilterInterface<FilterAlgorithm>* f = new FilterAlgorithm();
-
-//    FilterAlgorithm::StateDistribution dist;
-
-//    f->predict(0.03, dist, dist);
-//    f->update(dist, 0, dist);
-
-//    std::cout << dist << std::endl;
-
-//    delete f;
-//}

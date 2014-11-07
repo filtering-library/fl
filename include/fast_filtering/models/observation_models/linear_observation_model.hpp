@@ -6,7 +6,7 @@
  *    Jan Issac (jan.issac@gmail.com)
  *    Manuel Wuthrich (manuel.wuthrich@gmail.com)
  *
- *  All rights reserved.
+ *
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -57,65 +57,54 @@ namespace ff
 // Forward declarations
 template <typename Observation_, typename State_> class LinearGaussianObservationModel;
 
-namespace internal
-{
 template <typename Observation_, typename State_>
-struct Traits<LinearGaussianObservationModel<Observation_, State_> >
+struct Traits<LinearGaussianObservationModel<Observation_, State_>>
 {
     typedef Observation_ Observation;
     typedef State_ State;
     typedef Gaussian<Observation_> GaussianBase;
-    typedef typename internal::Traits<GaussianBase>::Scalar Scalar;
-    typedef typename internal::Traits<GaussianBase>::Operator Operator;
-    typedef typename internal::Traits<GaussianBase>::Noise Noise;
+    typedef typename Traits<GaussianBase>::Scalar Scalar;
+    typedef typename Traits<GaussianBase>::Operator Operator;
+    typedef typename Traits<GaussianBase>::Noise Noise;
     typedef Eigen::Matrix<Scalar,
                           Observation::SizeAtCompileTime,
                           State::SizeAtCompileTime> SensorMatrix;
 };
-}
 
 template <typename Observation_,typename State_>
 class LinearGaussianObservationModel:
     public Gaussian<Observation_>
 {
 public:
-    typedef internal::Traits<LinearGaussianObservationModel<Observation_,
-                                                           State_> > Traits;
+    typedef LinearGaussianObservationModel<Observation_, State_> This;
 
-    typedef typename Traits::State State;
-    typedef typename Traits::Observation Observation;
-    typedef typename Traits::Noise Noise;
-    typedef typename Traits::Scalar Scalar;
-    typedef typename Traits::Operator Operator;
-    typedef typename Traits::SensorMatrix SensorMatrix;
+    typedef typename Traits<This>::State State;
+    typedef typename Traits<This>::Observation Observation;
+    typedef typename Traits<This>::Noise Noise;
+    typedef typename Traits<This>::Scalar Scalar;
+    typedef typename Traits<This>::Operator Operator;
+    typedef typename Traits<This>::SensorMatrix SensorMatrix;
 
-    using Traits::GaussianBase::Mean;
-    using Traits::GaussianBase::Covariance;
-    using Traits::GaussianBase::Dimension;
+    using Traits<This>::GaussianBase::Mean;
+    using Traits<This>::GaussianBase::Covariance;
+    using Traits<This>::GaussianBase::Dimension;
 
 public:
     LinearGaussianObservationModel(
             const Operator& noise_covariance,
             const size_t observation_dimension = Observation::SizeAtCompileTime,
             const size_t state_dimension = State::SizeAtCompileTime):
-        Traits::GaussianBase(observation_dimension),
+        Traits<This>::GaussianBase(observation_dimension),
         state_dimension_(state_dimension == Eigen::Dynamic? 0 : state_dimension),
-        H_(SensorMatrix::Zero(Dimension(), StateDimension())),
-        delta_time_(1.)
+        H_(SensorMatrix::Zero(Dimension(), StateDimension()))
     {
         Covariance(noise_covariance);
     }
 
     ~LinearGaussianObservationModel() { }
 
-    virtual Observation MapStandardGaussian(const Noise& sample) const
-    {
-        return Mean() + delta_time_ * this->cholesky_factor_ * sample;
-    }
-
     virtual void Condition(const State& x)
     {
-        //delta_time_ = delta_time;
         Mean(H_ * x);
     }
 
@@ -137,7 +126,6 @@ public:
 protected:
     size_t state_dimension_;
     SensorMatrix H_;
-    double delta_time_;
 };
 
 
@@ -145,20 +133,18 @@ protected:
 template <typename Observation_, typename State_a_, typename State_b_>
 class FactorizedLinearGaussianObservationModel;
 
-namespace internal
-{
 template <typename Observation_, typename State_a_, typename State_b_>
 struct Traits<FactorizedLinearGaussianObservationModel<Observation_,
                                                       State_a_,
-                                                      State_b_> >
+                                                      State_b_>>
 {
     typedef Observation_ Observation;
     typedef State_a_ State_a;
     typedef State_b_ State_b;
     typedef Gaussian<Observation_> GaussianBase;
-    typedef typename internal::Traits<GaussianBase>::Scalar Scalar;
-    typedef typename internal::Traits<GaussianBase>::Operator Operator;
-    typedef typename internal::Traits<GaussianBase>::Noise Noise;
+    typedef typename Traits<GaussianBase>::Scalar Scalar;
+    typedef typename Traits<GaussianBase>::Operator Operator;
+    typedef typename Traits<GaussianBase>::Noise Noise;
     typedef Eigen::Matrix<Scalar,
                           Observation::SizeAtCompileTime,
                           State_a::SizeAtCompileTime> SensorMatrix_a;
@@ -166,31 +152,32 @@ struct Traits<FactorizedLinearGaussianObservationModel<Observation_,
                           Observation::SizeAtCompileTime,
                           State_b::SizeAtCompileTime> SensorMatrix_b;
 };
-}
 
 template <typename Observation_,typename State_a_, typename State_b_>
 class FactorizedLinearGaussianObservationModel:
-    public internal::Traits<
+    public Traits<
                FactorizedLinearGaussianObservationModel<
-                   Observation_, State_a_, State_b_> >::GaussianBase
+                   Observation_, State_a_, State_b_>>::GaussianBase
 {
 public:
-    typedef internal::Traits<
-                FactorizedLinearGaussianObservationModel<
-                    Observation_, State_a_, State_b_> > Traits;
+    typedef FactorizedLinearGaussianObservationModel<
+                Observation_,
+                State_a_,
+                State_b_
+            > This;
 
-    typedef typename Traits::Noise Noise;
-    typedef typename Traits::Scalar Scalar;
-    typedef typename Traits::Operator Operator;
-    typedef typename Traits::Observation Observation;
-    typedef typename Traits::State_a State_a;
-    typedef typename Traits::State_b State_b;
-    typedef typename Traits::SensorMatrix_a SensorMatrix_a;
-    typedef typename Traits::SensorMatrix_b SensorMatrix_b;
+    typedef typename Traits<This>::Noise Noise;
+    typedef typename Traits<This>::Scalar Scalar;
+    typedef typename Traits<This>::Operator Operator;
+    typedef typename Traits<This>::Observation Observation;
+    typedef typename Traits<This>::State_a State_a;
+    typedef typename Traits<This>::State_b State_b;
+    typedef typename Traits<This>::SensorMatrix_a SensorMatrix_a;
+    typedef typename Traits<This>::SensorMatrix_b SensorMatrix_b;
 
-    using Traits::GaussianBase::Mean;
-    using Traits::GaussianBase::Covariance;
-    using Traits::GaussianBase::Dimension;
+    using Traits<This>::GaussianBase::Mean;
+    using Traits<This>::GaussianBase::Covariance;
+    using Traits<This>::GaussianBase::Dimension;
 
 public:
     FactorizedLinearGaussianObservationModel(
@@ -198,7 +185,7 @@ public:
             const size_t observation_dimension = Observation::SizeAtCompileTime,
             const size_t state_a_dimension = State_a::SizeAtCompileTime,
             const size_t state_b_dimension = State_b::SizeAtCompileTime):
-        Traits::GaussianBase(observation_dimension),
+        Traits<This>::GaussianBase(observation_dimension),
         state_a_dimension_(state_a_dimension),
         state_b_dimension_(state_b_dimension),
         H_a_(SensorMatrix_a::Zero(Dimension(), State_a_Dimension())),
@@ -208,11 +195,6 @@ public:
     }
 
     ~FactorizedLinearGaussianObservationModel() { }
-
-    virtual Observation MapStandardGaussian(const Noise& noise) const
-    {
-        return Mean() + this->cholesky_factor_ * noise;
-    }
 
     virtual Observation Predict(const Noise& noise) const
     {
@@ -271,19 +253,18 @@ protected:
 //template <typename Observation_,typename State_a_, typename State_b_>
 //class FactorizedLinearGaussianOservationModel2;
 
-//namespace internal
-//{
+
 //template <typename Observation_, typename State_a_, typename State_b_>
 //struct Traits<FactorizedLinearGaussianOservationModel2<Observation_,
 //                                                       State_a_,
-//                                                       State_b_> >
+//                                                       State_b_>>
 //{
 //    typedef Observation_ Observation;
 
 //    typedef Gaussian<Observation_> GaussianBase;
-//    typedef typename internal::Traits<GaussianBase>::Scalar Scalar;
-//    typedef typename internal::Traits<GaussianBase>::Operator Operator;
-//    typedef typename internal::Traits<GaussianBase>::Noise Noise;
+//    typedef typename Traits<GaussianBase>::Scalar Scalar;
+//    typedef typename Traits<GaussianBase>::Operator Operator;
+//    typedef typename Traits<GaussianBase>::Noise Noise;
 
 //    typedef State_a_ State_a;
 //    typedef State_b_ State_b;
@@ -308,18 +289,17 @@ protected:
 
 //    typedef LinearGaussianOservationModel<Observation, State_ab> Base;
 //};
-//}
 
 
 
 //template <typename Observation_,typename State_a_, typename State_b_>
 //class FactorizedLinearGaussianOservationModel2:
-//        public internal::Traits<FactorizedLinearGaussianOservationModel2<
-//                    Observation_, State_a_, State_b_> >::Base
+//        public Traits<FactorizedLinearGaussianOservationModel2<
+//                    Observation_, State_a_, State_b_>>::Base
 //{
 //public:
-//    typedef internal::Traits<FactorizedLinearGaussianOservationModel2<
-//        Observation_, State_a_, State_b_> > Traits;
+//    typedef Traits<FactorizedLinearGaussianOservationModel2<
+//        Observation_, State_a_, State_b_>> Traits;
 
 //    typedef typename Traits::State_a State_a;
 //    typedef typename Traits::State_b State_b;

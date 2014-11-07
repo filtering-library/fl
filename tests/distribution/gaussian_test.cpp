@@ -8,7 +8,7 @@
  *    Jan Issac (jan.issac@gmail.com)
  *    Manuel Wuthrich (manuel.wuthrich@gmail.com)
  *
- *  All rights reserved.
+ *
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -58,15 +58,23 @@
 class GaussianTests:
         public testing::Test
 {
+public:
+    typedef Eigen::Matrix<double, 5, 1> FVector;
+    typedef Eigen::Matrix<double, Eigen::Dynamic, 1> DVector;
+
 protected:
     template <typename Gaussian>
-    void TestGaussianDimension(Gaussian& gaussian, size_t dim)
+    void test_gaussian_dimension(Gaussian& gaussian, size_t dim)
     {
         EXPECT_EQ(gaussian.Dimension(), dim);
         EXPECT_EQ(gaussian.NoiseDimension(), dim);
         EXPECT_EQ(gaussian.Mean().rows(), dim);
         EXPECT_EQ(gaussian.Covariance().rows(), dim);
         EXPECT_EQ(gaussian.Covariance().cols(), dim);
+        EXPECT_EQ(gaussian.Precision().rows(), dim);
+        EXPECT_EQ(gaussian.Precision().cols(), dim);
+        EXPECT_EQ(gaussian.SquareRoot().rows(), dim);
+        EXPECT_EQ(gaussian.SquareRoot().cols(), dim);
 
         typename Gaussian::Noise noise =
                 Gaussian::Noise::Random(gaussian.NoiseDimension(),1);
@@ -74,117 +82,180 @@ protected:
     }
 
     template <typename Gaussian>
-    void TestGaussianDimensionAfterModification(Gaussian& gaussian,
-                                                const size_t dim)
+    void test_gaussian_covariance(Gaussian& gaussian)
     {
-        // test dimensions before modification
-        TestGaussianDimension(gaussian, dim);
+        typedef typename ff::Traits<Gaussian>::Operator Covariance;
 
-        // test dimensions after setting to standard gaussian
-        gaussian.SetStandard();
-        TestGaussianDimension(gaussian, dim);
+        Covariance covariance = Eigen::MatrixXd::Identity(
+                                    gaussian.Dimension(),
+                                    gaussian.Dimension());
+        Covariance square_root = covariance;
+        Covariance precision = covariance;
 
-        // test dimension after modifying the mean
-        typename Gaussian::Vector random_mean
-                = Gaussian::Vector::Random(dim, 1);
-        gaussian.Mean(random_mean);
-        TestGaussianDimension(gaussian, dim);
+        // first verify standard gaussian
+        {SCOPED_TRACE("Unchanged");
+            test_gaussian_attributes(
+                        gaussian, covariance, precision, square_root);
+        }
 
-        // test dimension after setting a full ranked p.s.d. matrix
-        typename Gaussian::Operator covariance;
-        covariance = Gaussian::Operator::Random(dim, dim);
-        covariance *= covariance.transpose();
-        gaussian.Covariance(covariance);
-        TestGaussianDimension(gaussian, dim);
+        // set covariance and verify representations
+        {SCOPED_TRACE("Covariance setter");
+            covariance.setRandom();
+            covariance *= covariance.transpose();
+            square_root = covariance.llt().matrixL();
+            precision = covariance.inverse();
+            gaussian.Covariance(covariance);
+            test_gaussian_attributes(
+                        gaussian, covariance, precision, square_root);
+        }
 
-        // test dimensions after setting a singular matrix
-        covariance.row(0) = covariance.row(1);
-        gaussian.Covariance(covariance);
-        TestGaussianDimension(gaussian, dim);
+        // set square root and verify representations
+        {SCOPED_TRACE("SquareRoot setter");
+            square_root.setRandom();
+            covariance = square_root * square_root.transpose();
+            precision = covariance.inverse();
+            gaussian.SquareRoot(square_root);
+            test_gaussian_attributes(
+                        gaussian, covariance, precision, square_root);
+        }
 
-        // test dimension after setting a full ranked diagonal matrix
-        covariance = Gaussian::Operator::Identity(dim, dim)*1656;
-        gaussian.DiagonalCovariance(covariance);
-        TestGaussianDimension(gaussian, dim);
-
-        // test dimension after setting a singular diagonal matrix
-        covariance.row(0) = covariance.row(1);
-        gaussian.DiagonalCovariance(covariance);
-        TestGaussianDimension(gaussian, dim);
+        // set covariance and verify representations
+        {SCOPED_TRACE("Precision setter");
+            precision.setRandom();
+            precision *= precision.transpose();
+            covariance= precision .inverse();
+            square_root = covariance.llt().matrixL();
+            gaussian.Precision(precision);
+            test_gaussian_attributes(
+                        gaussian, covariance, precision, square_root);
+        }
     }
 
-
-    template <typename Gaussian>
-    void TestRank(Gaussian& gaussian)
+    template <typename Gaussian, typename Covariance>
+    void test_gaussian_attributes(Gaussian& gaussian,
+                                  const Covariance& covariance,
+                                  const Covariance& precision,
+                                  const Covariance& square_root)
     {
-        typename Gaussian::Vector random_mean
-                = Gaussian::Vector::Random(gaussian.Dimension(), 1);
+        EXPECT_GT(gaussian.Dimension(), 0);
 
-        typename Gaussian::Operator covariance;
-        covariance = Gaussian::Operator::Random(
-                    gaussian.Dimension(), gaussian.Dimension());
-
-        // test rank effect before modification
-        EXPECT_NE(gaussian.LogProbability(random_mean),
-                  -std::numeric_limits<double>::infinity());
-
-        // test rank effect after setting a a full ranked matrix
-        covariance *= covariance.transpose();
-        gaussian.Covariance(covariance);
-        EXPECT_NE(gaussian.LogProbability(random_mean),
-                  -std::numeric_limits<double>::infinity());
-
-        // test rank effect after setting a singular matrix
-        covariance.row(0) = covariance.row(1);
-        gaussian.Covariance(covariance);
-        EXPECT_EQ(gaussian.LogProbability(random_mean),
-                  -std::numeric_limits<double>::infinity());
-
-
-        // test rank effect after setting a a full ranked diagonal matrix
-        covariance = Gaussian::Operator::Identity(
-                    gaussian.Dimension(), gaussian.Dimension())*4235624;
-        gaussian.DiagonalCovariance(covariance);
-        EXPECT_NE(gaussian.LogProbability(random_mean),
-                  -std::numeric_limits<double>::infinity());
-
-        // test rank effect after setting a singular diagnoal matrix
-        covariance.row(0) = covariance.row(1);
-        gaussian.DiagonalCovariance(covariance);
-        EXPECT_EQ(gaussian.LogProbability(random_mean),
-                  -std::numeric_limits<double>::infinity());
+        EXPECT_TRUE(gaussian.Covariance().isApprox(covariance));
+        EXPECT_TRUE(gaussian.Precision().isApprox(precision));
+        const Covariance temp =
+                gaussian.SquareRoot() * gaussian.SquareRoot().transpose();
+        const Covariance temp2 = square_root * square_root.transpose();
+        //EXPECT_TRUE(temp.isApprox(temp2));
+        EXPECT_TRUE(gaussian.HasFullRank());
     }
 };
 
-TEST_F(GaussianTests, fixedDimension)
+//TEST_F(GaussianTests, eigen_O3_isApprox_bug)
+//{
+//    Eigen::MatrixXd m = Eigen::MatrixXd::Random(5, 5);
+//    bool expect_false = (m * m).isApprox(m * m.transpose());
+//}
+
+
+TEST_F(GaussianTests, fixed_dimension)
 {
     typedef Eigen::Matrix<double, 10, 1> Vector;
     ff::Gaussian<Vector> gaussian;
 
-    TestGaussianDimensionAfterModification(gaussian, 10);
+    test_gaussian_dimension(gaussian, 10);
 }
 
-TEST_F(GaussianTests, dynamicDimension)
+TEST_F(GaussianTests, dynamic_dimension)
 {
     const size_t dim = 10;
     typedef Eigen::Matrix<double, Eigen::Dynamic, 1> Vector;
     ff::Gaussian<Vector> gaussian(dim);
 
-    TestGaussianDimensionAfterModification(gaussian, dim);
+    test_gaussian_dimension(gaussian, dim);
 }
 
-TEST_F(GaussianTests, rankForFixedDimension)
+TEST_F(GaussianTests, fixed_standard_covariance)
 {
-    typedef Eigen::Matrix<double, 10, 1> Vector;
-    ff::Gaussian<Vector> gaussian;
+    typedef ff::Gaussian<FVector> Gaussian;
+    typedef typename ff::Traits<Gaussian>::Operator Covariance;
 
-    TestRank(gaussian);
+    Gaussian gaussian;
+    Covariance covariance = Eigen::MatrixXd::Identity(
+                                gaussian.Dimension(),
+                                gaussian.Dimension());
+
+    test_gaussian_attributes(gaussian, covariance, covariance, covariance);
+    gaussian.SetStandard();
+    test_gaussian_attributes(gaussian, covariance, covariance, covariance);
+    // gaussian.SetStandard(10); // causes compile time error as expected
 }
 
-TEST_F(GaussianTests, rankForDynamicDimension)
+
+TEST_F(GaussianTests, dynamic_standard_covariance)
 {
-    typedef Eigen::Matrix<double, Eigen::Dynamic, 1> Vector;
-    ff::Gaussian<Vector> gaussian(10);
+    typedef ff::Gaussian<DVector> Gaussian;
+    typedef typename ff::Traits<Gaussian>::Operator Covariance;
 
-    TestRank(gaussian);
+    Gaussian gaussian(6);
+    Covariance covariance = Eigen::MatrixXd::Identity(gaussian.Dimension(),
+                                                      gaussian.Dimension());
+
+    {SCOPED_TRACE("Unchanged");
+        EXPECT_EQ(gaussian.Dimension(), 6);
+        test_gaussian_attributes(gaussian, covariance, covariance, covariance);
+    }
+
+    {SCOPED_TRACE("gaussian.SetStandard()");
+        gaussian.SetStandard();
+        EXPECT_EQ(gaussian.Dimension(), 6);
+        //test_gaussian_attributes(gaussian, covariance, covariance, covariance);
+    }
+
+    {SCOPED_TRACE("gaussian.SetStandard(10)");
+        gaussian.SetStandard(10);
+        EXPECT_EQ(gaussian.Dimension(), 10);
+        covariance = Eigen::MatrixXd::Identity(gaussian.Dimension(),
+                                               gaussian.Dimension());
+        //test_gaussian_attributes(gaussian, covariance, covariance, covariance);
+    }
 }
+
+TEST_F(GaussianTests, fixed_gaussian_covariance)
+{
+    // triggers static assert as expected:
+    // ff::Gaussian<Eigen::Matrix<double, 0, 0>> gaussian;
+
+    ff::Gaussian<FVector> gaussian;
+    test_gaussian_covariance(gaussian);
+}
+
+TEST_F(GaussianTests, dynamic_gaussian_covariance_constructor_init)
+{
+    ff::Gaussian<DVector> gaussian(6);
+    test_gaussian_covariance(gaussian);
+}
+
+TEST_F(GaussianTests, dynamic_gaussian_covariance_SetStandard_init)
+{
+    ff::Gaussian<DVector> gaussian;
+    gaussian.SetStandard(7);
+    test_gaussian_covariance(gaussian);
+}
+
+TEST_F(GaussianTests, dynamic_uninitialized_gaussian)
+{
+    ff::Gaussian<DVector> gaussian;
+    EXPECT_THROW(gaussian.Covariance(), ff::GaussianUninitializedException);
+    EXPECT_THROW(gaussian.Precision(), ff::GaussianUninitializedException);
+    EXPECT_THROW(gaussian.SquareRoot(), ff::GaussianUninitializedException);
+
+    gaussian.SetStandard(1);
+    EXPECT_NO_THROW(gaussian.Covariance());
+    EXPECT_NO_THROW(gaussian.Precision());
+    EXPECT_NO_THROW(gaussian.SquareRoot());
+
+    gaussian.SetStandard(0);
+    EXPECT_THROW(gaussian.Covariance(), ff::GaussianUninitializedException);
+    EXPECT_THROW(gaussian.Precision(), ff::GaussianUninitializedException);
+    EXPECT_THROW(gaussian.SquareRoot(), ff::GaussianUninitializedException);
+}
+

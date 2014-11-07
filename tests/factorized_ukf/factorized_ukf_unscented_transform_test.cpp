@@ -6,7 +6,7 @@
  *    Jan Issac (jan.issac@gmail.com)
  *    Manuel Wuthrich (manuel.wuthrich@gmail.com)
  *
- *  All rights reserved.
+ *
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -57,7 +57,7 @@
 #include <boost/range.hpp>
 #include <boost/make_shared.hpp>
 
-#include "fukf_dummy_models.hpp"
+#include "factorized_ukf_dummies.hpp"
 
 class UnscentedTransformTest:
         public testing::Test
@@ -69,13 +69,13 @@ public:
     typedef ff::FactorizedUnscentedKalmanFilter<
                     ProcessModelDummy<State>,
                     ProcessModelDummy<State>,
-                    ObservationModelDummy<State, Observation> > Filter;
+                    ObservationModelDummy<State, Observation>> Filter;
 
     UnscentedTransformTest():
-        filter(Filter(boost::make_shared<ProcessModelDummy<State> >(),
-                      boost::make_shared<ProcessModelDummy<State> >(),
+        filter(Filter(boost::make_shared<ProcessModelDummy<State>>(),
+                      boost::make_shared<ProcessModelDummy<State>>(),
                       boost::make_shared<ObservationModelDummy<
-                        State, Observation> >()))
+                        State, Observation>>()))
     {
 
     }

@@ -5,7 +5,7 @@
  *                     University of Southern California
  *    Manuel Wuthrich (manuel.wuthrich@gmail.com)
  *
- *  All rights reserved.
+ *
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -65,14 +65,12 @@ namespace ff
 // Forward declarations
 template <typename State> class IntegratedDampedWienerProcessModel;
 
-namespace internal
-{
 /**
  * IntegratedDampedWienerProcess distribution traits specialization
  * \internal
  */
 template <typename State_>
-struct Traits<IntegratedDampedWienerProcessModel<State_> >
+struct Traits<IntegratedDampedWienerProcessModel<State_>>
 {
     enum
     {
@@ -94,7 +92,6 @@ struct Traits<IntegratedDampedWienerProcessModel<State_> >
 
     typedef typename GaussianType::Operator      Operator;
 };
-}
 
 /**
  * \class IntegratedDampedWienerProcess
@@ -104,31 +101,31 @@ struct Traits<IntegratedDampedWienerProcessModel<State_> >
  */
 template <typename State_>
 class IntegratedDampedWienerProcessModel:
-        public internal::Traits<IntegratedDampedWienerProcessModel<State_> >::ProcessModelBase,
-        public internal::Traits<IntegratedDampedWienerProcessModel<State_> >::GaussianMapBase
+        public Traits<IntegratedDampedWienerProcessModel<State_>>::ProcessModelBase,
+        public Traits<IntegratedDampedWienerProcessModel<State_>>::GaussianMapBase
 {
 public:
-    typedef internal::Traits<IntegratedDampedWienerProcessModel<State_> > Traits;
+    typedef IntegratedDampedWienerProcessModel<State_> This;
 
-    typedef typename Traits::Scalar     Scalar;
-    typedef typename Traits::State      State;
-    typedef typename Traits::Input      Input;
-    typedef typename Traits::Operator   Operator;
-    typedef typename Traits::Noise      Noise;
+    typedef typename Traits<This>::Scalar     Scalar;
+    typedef typename Traits<This>::State      State;
+    typedef typename Traits<This>::Input      Input;
+    typedef typename Traits<This>::Operator   Operator;
+    typedef typename Traits<This>::Noise      Noise;
 
-    typedef typename Traits::GaussianType               GaussianType;
-    typedef typename Traits::DampedWienerProcessType    DampedWienerProcessType;
+    typedef typename Traits<This>::GaussianType GaussianType;
+    typedef typename Traits<This>::DampedWienerProcessType DampedWienerProcessType;
 
     enum
     {
-        STATE_DIMENSION = Traits::STATE_DIMENSION,
-        DEGREE_OF_FREEDOM = Traits::DEGREE_OF_FREEDOM
+        STATE_DIMENSION = Traits<This>::STATE_DIMENSION,
+        DEGREE_OF_FREEDOM = Traits<This>::DEGREE_OF_FREEDOM
     };
 
 public:
     IntegratedDampedWienerProcessModel(
             const unsigned& degree_of_freedom = DEGREE_OF_FREEDOM):
-        Traits::GaussianMapBase(degree_of_freedom),
+        Traits<This>::GaussianMapBase(degree_of_freedom),
         velocity_distribution_(degree_of_freedom),
         position_distribution_(degree_of_freedom)
     {

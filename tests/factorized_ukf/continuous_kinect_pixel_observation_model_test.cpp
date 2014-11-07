@@ -6,7 +6,7 @@
  *    Jan Issac (jan.issac@gmail.com)
  *    Manuel Wuthrich (manuel.wuthrich@gmail.com)
  *
- *  All rights reserved.
+ *
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -62,7 +62,7 @@ TEST(HashMapAndEigen, hasmapsForEigenMatrixXd)
     Eigen::MatrixXd anotherMatrix = Eigen::MatrixXd::Random(15, 1);
     Eigen::MatrixXd sameMatrix = someMatrix;
 
-    boost::unordered_map<Eigen::MatrixXd, int, boost::hash<Eigen::MatrixXd> > boolify_eigen_stuff;
+    boost::unordered_map<Eigen::MatrixXd, int, boost::hash<Eigen::MatrixXd>> boolify_eigen_stuff;
 
     boolify_eigen_stuff[someMatrix] = 654654;
     boolify_eigen_stuff[someOtherMatrix] = 5;

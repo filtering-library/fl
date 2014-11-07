@@ -6,7 +6,7 @@
  *    Jan Issac (jan.issac@gmail.com)
  *    Manuel Wuthrich (manuel.wuthrich@gmail.com)
  *
- *  All rights reserved.
+ *
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -616,7 +616,7 @@ public:
      */
     void ComputeSigmaPointPartitions(
             const std::vector<std::pair<Eigen::MatrixXd,
-                                        Eigen::MatrixXd> >& moment_pairs,
+                                        Eigen::MatrixXd>>& moment_pairs,
             std::vector<SigmaPoints>& X)
     {
         size_t dim = 0;
