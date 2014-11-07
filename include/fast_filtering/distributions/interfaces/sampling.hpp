@@ -5,7 +5,7 @@
  *                     University of Southern California
  *    Jan Issac (jan.issac@gmail.com)
  *
- *  All rights reserved.
+ *
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -47,17 +47,28 @@
 #ifndef FAST_FILTERING_DISTRIBUTIONS_INTERFACES_SAMPLING_HPP
 #define FAST_FILTERING_DISTRIBUTIONS_INTERFACES_SAMPLING_HPP
 
-
 namespace ff
 {
 
+/**
+ * \interface Sampling
+ * \brief Distribution sampling interface
+ *
+ * \tparam Vector   Sample variable type
+ */
 template <typename Vector>
 class Sampling
 {
-public:
-    virtual ~Sampling() {}
-
+public:    
+    /**
+     * @return A random sample of the underlying distribution
+     */
     virtual Vector Sample() = 0;
+
+    /**
+     * \brief Overridable default destructor
+     */
+    virtual ~Sampling() { }
 };
 
 }
