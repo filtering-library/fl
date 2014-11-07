@@ -6,7 +6,7 @@ set(CMAKE_BUILD_TYPE Release)
 add_definitions(-DPROFILING_ON=1) #print profiling output
 add_definitions(-std=c++0x)
 
-set(USE_CUDA False)
+set(USE_CUDA True)
 
 find_package(catkin REQUIRED
     roscpp
@@ -23,7 +23,6 @@ find_package(catkin REQUIRED
 )
 
 find_package(Doxygen)
-
 if(DOXYGEN_FOUND)
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/doxygen/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
     add_custom_target(doc
@@ -352,101 +351,73 @@ endif(USE_CUDA AND CUDA_FOUND AND OPENGL_FOUND AND GLEW_FOUND)
 ## Tests ##
 ###########
 
-catkin_add_gtest(fl_exception_test
-                 tests/gtest_main.cpp
-                 tests/fl_exception_test.cpp)
-target_link_libraries(fl_exception_test
+## filter interface tests ##
+catkin_add_gtest(filter_interface_tests
+                 tests/filter_interface/filter_interface_test.cpp
+                 tests/filter_interface/filter_interface_stubs.hpp
+                 tests/gtest_main.cpp)
+target_link_libraries(filter_interface_tests
                       ${catkin_LIBRARIES})
 
-catkin_add_gtest(ff_fukf_kf_test
-                 tests/gtest_main.cpp
-                 tests/ff_fukf_kf_test.cpp)
-target_link_libraries(ff_fukf_kf_test
+## Gaussian filter tests ##
+catkin_add_gtest(gaussian_filter_tests
+                 tests/gaussian_filter/gaussian_filter_test.cpp
+                 tests/gaussian_filter/gaussian_filter_stubs.hpp
+                 tests/gtest_main.cpp)
+target_link_libraries(gaussian_filter_tests
                       ${catkin_LIBRARIES})
 
-catkin_add_gtest(ff_kalman_filter_test
-                 tests/gtest_main.cpp
-                 tests/ff_kalman_filter_test.cpp)
-target_link_libraries(ff_kalman_filter_test
+## various filter tests ##
+catkin_add_gtest(distribution_tests
+                 tests/distribution/gaussian_test.cpp
+                 tests/gtest_main.cpp)
+target_link_libraries(distribution_tests
                       ${catkin_LIBRARIES})
 
-catkin_add_gtest(ff_linear_process_model_test
-                 tests/gtest_main.cpp
-                 tests/ff_linear_process_model_test.cpp)
-target_link_libraries(ff_linear_process_model_test
+## exceptions tests ##
+catkin_add_gtest(exception_tests
+                 tests/exception/exception_test.cpp
+                 tests/gtest_main.cpp)
+target_link_libraries(exception_tests
                       ${catkin_LIBRARIES})
 
-catkin_add_gtest(ff_linear_observation_model_test
-                 tests/gtest_main.cpp
-                 tests/ff_linear_observation_model_test.cpp)
-target_link_libraries(ff_linear_observation_model_test
+
+## Kalman filter tests ##
+catkin_add_gtest(kalman_filter_tests
+                 tests/kalman_filter/kalman_filter_test.cpp
+                 tests/gtest_main.cpp)
+target_link_libraries(kalman_filter_tests
                       ${catkin_LIBRARIES})
 
-catkin_add_gtest(ff_gaussian_test
-                 tests/gtest_main.cpp
-                 tests/ff_gaussian_test.cpp)
-target_link_libraries(ff_gaussian_test
+## linear models tests ##
+catkin_add_gtest(linear_models_tests
+                 tests/linear_models/linear_process_model_test.cpp
+                 tests/linear_models/linear_observation_model_test.cpp
+                 tests/gtest_main.cpp)
+target_link_libraries(linear_models_tests
                       ${catkin_LIBRARIES})
 
-catkin_add_gtest(fukf_linear_gaussian_models_test
-                 tests/gtest_main.cpp
-                 tests/fukf_linear_gaussian_models_test.cpp)
-target_link_libraries(fukf_linear_gaussian_models_test
+## Factorized UKF vs. Kalman filter tests ##
+catkin_add_gtest(factorized_ukf_kf_tests
+                 tests/factorized_ukf/factorized_ukf_kf_test.cpp
+                 tests/gtest_main.cpp)
+target_link_libraries(factorized_ukf_kf_tests
                       ${catkin_LIBRARIES})
 
-catkin_add_gtest(fukf_hash_tests
-                 tests/gtest_main.cpp
-                 tests/fukf_hash_tests.cpp)
-target_link_libraries(fukf_hash_tests
-                      ${PROJECT_NAME_TRACKING}
-                      ${catkin_LIBRARIES})
-
-catkin_add_gtest(fukf_partitioned_ut_test
-                 tests/gtest_main.cpp
-                 tests/fukf_partitioned_ut_test.cpp)
-target_link_libraries(fukf_partitioned_ut_test
+## Factorized UKF tests ##
+catkin_add_gtest(factorized_ukf_tests
+                 tests/factorized_ukf/linear_models_test.cpp
+                 tests/factorized_ukf/partitioned_ut_test.cpp
+                 tests/factorized_ukf/smw_inversion_test.cpp
+                 tests/factorized_ukf/square_root_test.cpp
+                 tests/factorized_ukf/llt_diagonal_test.cpp
+                 tests/factorized_ukf/factorized_ukf_unscented_transform_test.cpp
+                 tests/factorized_ukf/predict_test.cpp
+                 tests/factorized_ukf/factorized_ukf_dummies.hpp
+                 tests/factorized_ukf/factorized_ukf_stubs.hpp
+                 tests/factorized_ukf/continuous_kinect_pixel_observation_model_test.cpp
+                 tests/gtest_main.cpp)
+target_link_libraries(factorized_ukf_tests
                       ${PROJECT_NAME_TRACKING_INTERFACE}
-                      ${catkin_LIBRARIES})
-
-catkin_add_gtest(fukf_smw_inversion_test
-                 tests/gtest_main.cpp
-                 tests/fukf_smw_inversion_test.cpp)
-target_link_libraries(fukf_smw_inversion_test
-                      ${PROJECT_NAME_TRACKING_INTERFACE}
-                      ${catkin_LIBRARIES})
-
-catkin_add_gtest(fukf_square_root_test
-                 tests/gtest_main.cpp
-                 tests/fukf_square_root_test.cpp)
-target_link_libraries(fukf_square_root_test
-                      ${PROJECT_NAME_TRACKING_INTERFACE}
-                      ${catkin_LIBRARIES})
-
-catkin_add_gtest(fukf_llt_diagonal_test
-                 tests/gtest_main.cpp
-                 tests/fukf_llt_diagonal_test.cpp)
-target_link_libraries(fukf_llt_diagonal_test
-                      ${catkin_LIBRARIES})
-
-catkin_add_gtest(fukf_ut_test
-                 tests/gtest_main.cpp
-                 tests/fukf_ut_test.cpp
-                 tests/fukf_dummy_models.hpp)
-target_link_libraries(fukf_ut_test
-                      ${PROJECT_NAME_TRACKING_INTERFACE}
-                      ${catkin_LIBRARIES})
-
-catkin_add_gtest(fukf_predict_test
-                 tests/gtest_main.cpp
-                 tests/fukf_predict_test.cpp
-                 tests/fukf_stub_models.hpp)
-target_link_libraries(fukf_predict_test
-                      ${PROJECT_NAME_TRACKING_INTERFACE}
-                      ${catkin_LIBRARIES})
-
-catkin_add_gtest(fukf_continuous_kinect_pixel_observation_model_test
-                 tests/gtest_main.cpp
-                 tests/fukf_continuous_kinect_pixel_observation_model_test.cpp)
-target_link_libraries(fukf_continuous_kinect_pixel_observation_model_test
                       ${PROJECT_NAME_TRACKING}
                       ${catkin_LIBRARIES})
