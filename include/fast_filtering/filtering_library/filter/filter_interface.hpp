@@ -6,7 +6,7 @@
  *    Jan Issac (jan.issac@gmail.com)
  *    Manuel Wuthrich (manuel.wuthrich@gmail.com)
  *
- *  All rights reserved.
+ *
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -54,23 +54,63 @@ namespace fl
 {
 
 /**
- * \class FilterInterface
  * \brief Common filter interface
  *
- * FilterInterface is the base of each filter.
+ * \ingroup filter
+ * \ingroup filter_interface
  *
- * \note Techincal note: The interface employs static polymorphism using CTRP.
- * That is, the base class takes the derived type as its template argument.
- * This interface functions dispatch is then performed directly insteady of
- * dynamically using vtable lookups.
  *
- * \ingroup Filter
+ * FilterInterface represents the common interface of all filters. Each filter
+ * must implement the two filter steps, predict/propagate and update.
+ * The filtered state, observation and the state distribution are subject to the
+ * underlying filtering algorithm and therefore may differ from one to another.
+ * This interface, provides these types of the actual algorithm, such as the
+ * the State, Observation, and StateDistribution types. Therefore, the traits
+ * of each filter implememntation must provide the following types
+ *
+ * Types                 | Description
+ * --------------------- | -----------
+ * \c State              | Used State type
+ * \c Observation        | Used Observation type
+ * \c StateDistribution  | Used StateDistribution extending Moments
+ * \c Ptr                | Shared pointer of the derived type
  */
 template <typename Derived>
 class FilterInterface
 {
 public:
+    /**
+     * @brief Ptr is the shared pointer type of the filter specialization
+     *
+     * The filter specialization traits must provide the shared pointer type
+     */
+    typedef typename Traits<Derived>::Ptr Ptr;
 
+    /**
+     * @brief State type provided by the filter specialization
+     *
+     * The filter specialization traits must provide the State type. The state
+     * type is commonly either provided by the process model or the filter
+     * self.
+     */
+    typedef typename Traits<Derived>::State State;
+
+    /**
+     * @brief Observation type provided by the filter specialization
+     *
+     * The filter specialization traits must provide the Observation type. The
+     * Observation type is commonly either provided by the measurement model.
+     */
+    typedef typename Traits<Derived>::Observation Observation;
+
+    /**
+     * @brief StateDistribution type uses by the filter specialization.
+     *
+     * The filter specialization uses a suitable state distribution. By
+     * convension, the StateDistribution must implement the Moments interface
+     * which provides the first two moments.
+     */
+    typedef typename Traits<Derived>::StateDistribution StateDistribution;
 
     /**
      * Predicts the distribution over the state give a delta time in seconds
@@ -79,32 +119,20 @@ public:
      * \param prior_dist        Prior state distribution
      * \param predicted_dist    Predicted state distribution
      */
-    template <typename StateDistribution>
-    void predict(double delta_time,
-                 const StateDistribution& prior_dist,
-                 StateDistribution& predicted_dist)
-    {
-        static_cast<Derived*>(this)->predict(delta_time,
-                                             prior_dist,
-                                             predicted_dist);
-    }
+    virtual void predict(double delta_time,
+                         const StateDistribution& prior_dist,
+                         StateDistribution& predicted_dist) = 0;
 
     /**
      * Updates a predicted state given an observation
      *
-     * \param predicted_dist
-     * \param observation
-     * \param posterior_dist
+     * \param predicted_dist    Predicted state distribution
+     * \param observation       Latest observation
+     * \param posterior_dist    Updated posterior state distribution
      */
-    template <typename StateDistribution, typename Observation>
-    void update(const StateDistribution& predicted_dist,
-                const Observation& observation,
-                StateDistribution& posterior_dist)
-    {
-        static_cast<Derived*>(this)->update(predicted_dist,
-                                            observation,
-                                            posterior_dist);
-    }
+    virtual void update(const StateDistribution& predicted_dist,
+                        const Observation& observation,
+                        StateDistribution& posterior_dist) = 0;
 };
 
 }
