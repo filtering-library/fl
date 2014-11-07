@@ -6,7 +6,7 @@
  *    Jan Issac (jan.issac@gmail.com)
  *    Manuel Wuthrich (manuel.wuthrich@gmail.com)
  *
- *  All rights reserved.
+ *
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -57,7 +57,7 @@ template <typename State, typename Noise, typename Input>
 class ProcessModelInterface
 {
 public:
-    virtual State propagate(const State& state,
+    virtual State predict_state(const State& state,
                             const Noise& noise,
                             const Input& input) = 0;
 
