@@ -47,18 +47,52 @@
 #define FAST_FILTERING_UTILS_TRAITS_HPP
 
 #include <Eigen/Dense>
+#include <type_traits>
 
 namespace fl
 {
+
 /**
  * Generic distribution trait template
  */
 template <typename> struct Traits { };
+
+template <int> struct IsDynamic
+{
+    static constexpr bool value = false;
+    constexpr operator bool () { return value; }
+};
+
+template <> struct IsDynamic<Eigen::Dynamic>
+{
+    static constexpr bool value = true;
+    constexpr operator bool () { return value; }
+};
+
+template <int s> struct IsFixed
+{
+    static constexpr bool value = true;
+    constexpr operator bool () { return value; }
+};
+
+template <> struct IsFixed<Eigen::Dynamic>
+{
+    static constexpr bool value = false;
+    constexpr operator bool () { return value; }
+};
+
+template <typename Matrix> struct DimensionOf
+{
+    static constexpr size_t value = IsFixed<Matrix::SizeAtCompileTime>()
+                                        ? Matrix::RowsAtCompileTime
+                                        : 0;
+    constexpr operator size_t () { return value; }
+};
+
 }
 
 namespace ff
 {
-
 
 /**
  * Generic distribution trait template
