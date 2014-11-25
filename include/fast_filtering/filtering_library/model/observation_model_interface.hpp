@@ -40,7 +40,6 @@
 /**
  * @date 10/21/2014
  * @author Jan Issac (jan.issac@gmail.com)
- * @author Manuel Wuthrich (manuel.wuthrich@gmail.com)
  * Max-Planck-Institute for Intelligent Systems,
  * University of Southern California
  */
@@ -60,9 +59,9 @@ public:
     virtual Observation predict_observation(const State& state,
                                             const Noise& noise) = 0;
 
-    virtual size_t observation_dimension() = 0;
-    virtual size_t noise_dimension() = 0;
-    virtual size_t state_dimension() = 0;
+    virtual size_t state_dimension() const = 0;
+    virtual size_t obsrv_dimension() const = 0;
+    virtual size_t noise_dimension() const = 0;
 };
 
 }

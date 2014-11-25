@@ -40,7 +40,6 @@
 /**
  * @date 10/21/2014
  * @author Jan Issac (jan.issac@gmail.com)
- * @author Manuel Wuthrich (manuel.wuthrich@gmail.com)
  * Max-Planck-Institute for Intelligent Systems,
  * University of Southern California
  */
@@ -57,13 +56,14 @@ template <typename State, typename Noise, typename Input>
 class ProcessModelInterface
 {
 public:
-    virtual State predict_state(const State& state,
-                            const Noise& noise,
-                            const Input& input) = 0;
+    virtual State predict_state(double delta_time,
+                                const State& state,
+                                const Noise& noise,
+                                const Input& input) = 0;
 
-    virtual size_t state_dimension() = 0;
-    virtual size_t noise_dimension() = 0;
-    virtual size_t input_dimension() = 0;
+    virtual size_t state_dimension() const = 0;
+    virtual size_t noise_dimension() const = 0;
+    virtual size_t input_dimension() const = 0;
 };
 
 }
