@@ -3,8 +3,8 @@
  *
  *  Copyright (c) 2014 Max-Planck-Institute for Intelligent Systems,
  *                     University of Southern California
- *    Jan Issac (jan.issac@gmail.com)
- *    Manuel Wuthrich (manuel.wuthrich@gmail.com)
+ *    Jan Issac (jan.issac\gmail.com)
+ *    Manuel Wuthrich (manuel.wuthrich\gmail.com)
  *
  *
  *
@@ -38,8 +38,8 @@
  */
 
 /**
- * @date 11/5/2014
- * @author Jan Issac (jan.issac@gmail.com)
+ * \date 11/5/2014
+ * \author Jan Issac (jan.issac\gmail.com)
  * Max-Planck-Institute for Intelligent Systems,
  * University of Southern California
  */
@@ -54,193 +54,149 @@
 namespace fl
 {
 
-// Forward declarations
-template <typename PointSetGaussian_, typename Gaussian_>
-class UnscentedTransform;
-
-/**
- *
- */
-template <typename PointSetGaussian_, typename Gaussian_>
-struct Traits<UnscentedTransform<PointSetGaussian_, Gaussian_>>
-{
-    typedef typename Traits<PointSetGaussian_>::Point  Point;
-    typedef typename Traits<PointSetGaussian_>::Weight Weight;
-    typedef typename ff::Traits<
-                        typename Traits<PointSetGaussian_>::Base
-                     >::Operator Operator;
-
-    enum
-    {
-        NumberOfPoints = IsFixed<Point::RowsAtCompileTime>()
-                           ? 2 * Point::RowsAtCompileTime + 1
-                           : Eigen::Dynamic
-    };
-};
-
-
-
 /**
  * This is the Unscented Transform used in the Unscented Kalman Filter
  * \cite wan2000unscented. It implememnts the PointSetTransform interface.
  *
  * \copydetails PointSetTransform
  */
-template <typename PointSetGaussian_, typename Gaussian_ = PointSetGaussian_>
-class UnscentedTransform:
-        public PointSetTransform<PointSetGaussian_, Gaussian_>
+class UnscentedTransform
+        : public PointSetTransform<UnscentedTransform>
 {
-public:
-    typedef UnscentedTransform<PointSetGaussian_, Gaussian_> This;
-
-    typedef typename Traits<This>::Point Point;
-    typedef typename Traits<This>::Weight Weight;
-    typedef typename Traits<This>::Operator Operator;
-
 public:
     /**
      * Creates a UnscentedTransform
      *
-     * @param alpha     UT Scaling parameter alpha (distance to the mean)
-     * @param beta      UT Scaling parameter beta  (2.0 is optimal for Gaussian)
-     * @param kappa     UT Scaling parameter kappa (higher order parameter)
+     * \param alpha     UT Scaling parameter alpha (distance to the mean)
+     * \param beta      UT Scaling parameter beta  (2.0 is optimal for Gaussian)
+     * \param kappa     UT Scaling parameter kappa (higher order parameter)
      */
     UnscentedTransform(double alpha = 1., double beta = 2., double kappa = 0.)
-        : alpha_(alpha),
+        : PointSetTransform<UnscentedTransform>(this),
+          alpha_(alpha),
           beta_(beta),
           kappa_(kappa)
+    { }
+
+
+    /**
+     * \copydoc PointSetTransform::forward(const Gaussian&,
+     *                                     PointSetGaussian&) const
+     *
+     * \throws WrongSizeException
+     * \throws ResizingFixedSizeEntityException
+     */
+    template <typename Gaussian_, typename PointSetGaussian_>
+    void forward(const Gaussian_& gaussian,
+                 PointSetGaussian_& point_set) const
     {
+        forward(gaussian, gaussian.Dimension(), 0, point_set);
+    }
+
+    /**
+     * \copydoc PointSetTransform::forward(const Gaussian&,
+     *                                     size_t global_dimension,
+     *                                     size_t dimension_offset,
+     *                                     PointSetGaussian&) const
+     *
+     * \throws WrongSizeException
+     * \throws ResizingFixedSizeEntityException
+     */
+    template <typename Gaussian_, typename PointSetGaussian_>
+    void forward(const Gaussian_& gaussian,
+                 size_t global_dimension,
+                 size_t dimension_offset,
+                 PointSetGaussian_& point_set) const
+    {
+        typedef typename Traits<PointSetGaussian_>::Point  Point;
+        typedef typename Traits<PointSetGaussian_>::Weight Weight;
+
+        const double dim = double(global_dimension);
+        const size_t point_count = number_of_points(dim);
+
         /**
          * \internal
          *
-         * assert the implication:
-         *  isFixed(TransformNumberOfPoints) AND isFixed(PointSetNumberOfPoints)
-         *  => TransformNumberOfPoints EQUAL PointSetNumberOfPoints
-         */
-        enum
-        {
-            TransformNumberOfPoints = Traits<This>::NumberOfPoints,
-            PointSetNumberOfPoints = Traits<PointSetGaussian_>::NumberOfPoints
-        };
-        static_assert(!(IsFixed<TransformNumberOfPoints>() &&
-                        IsFixed<PointSetNumberOfPoints>()) ||
-                      (TransformNumberOfPoints == PointSetNumberOfPoints),
-                      "Incompatible number of points of the specified"
-                      " fixed-size PointSetGaussian");
-    }
-
-    /**
-     * \copydoc PointSetTransform::forward(const Moments_&,
-     *                                     PointSetGaussian_&) const
-     *
-     * \throws WrongSizeException
-     * \throws ResizingFixedSizeEntityException
-     */
-    virtual void forward(const Gaussian_& gaussian,
-                         PointSetGaussian_& transform) const
-    {
-        forward(gaussian, gaussian.Dimension(), 0, transform);
-    }
-
-    /**
-     * \copydoc PointSetTransform::forward(const Moments_&,
-     *                                     size_t,
-     *                                     size_t,
-     *                                     PointSetGaussian_&) const
-     *
-     * \throws WrongSizeException
-     * \throws ResizingFixedSizeEntityException
-     */
-    virtual void forward(const Gaussian_& gaussian,
-                         size_t global_rank,
-                         size_t rank_offset,
-                         PointSetGaussian_& transform) const
-    {
-        const double dim = double(global_rank);
-
-        /**
-         * \internal
+         * \remark
          * A PointSetGaussian with a fixed number of points must have the
          * correct number of points which is required by this transform
          */
         if (IsFixed<Traits<PointSetGaussian_>::NumberOfPoints>() &&
-            Traits<PointSetGaussian_>::NumberOfPoints != number_of_points(dim))
+            Traits<PointSetGaussian_>::NumberOfPoints != point_count)
         {
             BOOST_THROW_EXCEPTION(
                 WrongSizeException("Incompatible number of points of the"
                                    " specified fixed-size PointSetGaussian"));
         }
 
-        transform.resize(number_of_points(dim));
+        // will resize of transform size is different from point count.
+        point_set.resize(point_count);
 
-        Operator covarianceSqr = gaussian.SquareRoot();
-        covarianceSqr *= gamma_factor(dim);
+        auto covariance_sqrt = gaussian.SquareRoot();
+        covariance_sqrt *= gamma_factor(dim);
 
         Point point_shift;
         const Point& mean = gaussian.Mean();
 
-        const Weight weight_0{weight_mean_0(dim), weight_cov_0(dim)};
-        const Weight weight_i{weight_mean_i(dim), weight_cov_i(dim)};
+        // set the first point
+        point_set.point(0, mean, Weight{weight_mean_0(dim), weight_cov_0(dim)});
 
-        transform.point(0, mean, weight_0);
+        // compute the remaining points
+        Weight weight_i{weight_mean_i(dim), weight_cov_i(dim)};
 
         // use squential loops to enable loop unrolling
         const size_t start_1 = 1;
-        const size_t limit_1 = start_1 + rank_offset;
-        const size_t start_2 = limit_1;
-        const size_t limit_2 = start_2 + gaussian.Dimension();
-        const size_t start_3 = limit_2;
-        const size_t limit_3 = global_rank;
+        const size_t limit_1 = start_1 + dimension_offset;
+        const size_t limit_2 = limit_1 + gaussian.Dimension();
+        const size_t limit_3 = global_dimension;
 
         for (size_t i = start_1; i < limit_1; ++i)
         {
-            transform.point(i, mean, weight_i);
-            transform.point(global_rank + i, mean, weight_i);
+            point_set.point(i, mean, weight_i);
+            point_set.point(global_dimension + i, mean, weight_i);
         }
 
-        for (size_t i = start_2; i < limit_2; ++i)
+        for (size_t i = limit_1; i < limit_2; ++i)
         {
-            point_shift = covarianceSqr.col(i - (rank_offset + 1));
-
-            transform.point(i, mean + point_shift, weight_i);
-            transform.point(global_rank + i, mean - point_shift, weight_i);
+            point_shift = covariance_sqrt.col(i - dimension_offset - 1);
+            point_set.point(i, mean + point_shift, weight_i);
+            point_set.point(global_dimension + i, mean - point_shift, weight_i);
         }
 
-        for (size_t i = start_3; i <= limit_3; ++i)
+        for (size_t i = limit_2; i <= limit_3; ++i)
         {
-            transform.point(i, mean, weight_i);
-            transform.point(global_rank + i, mean, weight_i);
+            point_set.point(i, mean, weight_i);
+            point_set.point(global_dimension + i, mean, weight_i);
         }
     }
 
     /**
-     * @return Number of points generated by this transform
+     * \return Number of points generated by this transform
      *
-     * @param global_rank Dimension of the Gaussian
+     * \param dimension Dimension of the Gaussian
      */
-    static constexpr size_t number_of_points(size_t global_rank)
+    static constexpr size_t number_of_points(int dimension)
     {
-        return 2 * global_rank + 1;
+        return (dimension != Eigen::Dynamic) ? 2 * dimension + 1 : 0;
     }
 
 public:
     /** \cond INTERNAL */
 
     /**
-     * @return First mean weight
+     * \return First mean weight
      *
-     * @param dim Dimension of the Gaussian
+     * \param dim Dimension of the Gaussian
      */
     double weight_mean_0(double dim) const
     {
-
         return lambda_scalar(dim) / (dim + lambda_scalar(dim));
     }
 
     /**
-     * @return First covariance weight
+     * \return First covariance weight
      *
-     * @param dim Dimension of the Gaussian
+     * \param dim Dimension of the Gaussian
      */
     double weight_cov_0(double dim) const
     {
@@ -248,9 +204,9 @@ public:
     }
 
     /**
-     * @return i-th mean weight
+     * \return i-th mean weight
      *
-     * @param dimension Dimension of the Gaussian
+     * \param dimension Dimension of the Gaussian
      */
     double weight_mean_i(double dim) const
     {
@@ -258,9 +214,9 @@ public:
     }
 
     /**
-     * @return i-th covariance weight
+     * \return i-th covariance weight
      *
-     * @param dimension Dimension of the Gaussian
+     * \param dimension Dimension of the Gaussian
      */
     double weight_cov_i(double dim) const
     {
@@ -268,7 +224,7 @@ public:
     }
 
     /**
-     * @param dim Dimension of the Gaussian
+     * \param dim Dimension of the Gaussian
      */
     double lambda_scalar(double dim) const
     {
@@ -276,7 +232,7 @@ public:
     }
 
     /**
-     * @param dim  Dimension of the Gaussian
+     * \param dim  Dimension of the Gaussian
      */
     double gamma_factor(double dim) const
     {
