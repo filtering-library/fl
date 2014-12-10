@@ -3,8 +3,8 @@
  *
  *  Copyright (c) 2014 Max-Planck-Institute for Intelligent Systems,
  *                     University of Southern California
- *    Jan Issac (jan.issac\gmail.com)
- *    Manuel Wuthrich (manuel.wuthrich\gmail.com)
+ *    Jan Issac (jan.issac@gmail.com)
+ *    Manuel Wuthrich (manuel.wuthrich@gmail.com)
  *
  *
  *
@@ -39,7 +39,7 @@
 
 /**
  * \date 11/5/2014
- * \author Jan Issac (jan.issac\gmail.com)
+ * \author Jan Issac (jan.issac@gmail.com)
  * Max-Planck-Institute for Intelligent Systems,
  * University of Southern California
  */
@@ -81,14 +81,14 @@ public:
 
     /**
      * \copydoc PointSetTransform::forward(const Gaussian&,
-     *                                     PointSetGaussian&) const
+     *                                     PointSet&) const
      *
      * \throws WrongSizeException
      * \throws ResizingFixedSizeEntityException
      */
-    template <typename Gaussian_, typename PointSetGaussian_>
+    template <typename Gaussian_, typename PointSet_>
     void forward(const Gaussian_& gaussian,
-                 PointSetGaussian_& point_set) const
+                 PointSet_& point_set) const
     {
         forward(gaussian, gaussian.Dimension(), 0, point_set);
     }
@@ -97,19 +97,19 @@ public:
      * \copydoc PointSetTransform::forward(const Gaussian&,
      *                                     size_t global_dimension,
      *                                     size_t dimension_offset,
-     *                                     PointSetGaussian&) const
+     *                                     PointSet&) const
      *
      * \throws WrongSizeException
      * \throws ResizingFixedSizeEntityException
      */
-    template <typename Gaussian_, typename PointSetGaussian_>
+    template <typename Gaussian_, typename PointSet_>
     void forward(const Gaussian_& gaussian,
                  size_t global_dimension,
                  size_t dimension_offset,
-                 PointSetGaussian_& point_set) const
+                 PointSet_& point_set) const
     {
-        typedef typename Traits<PointSetGaussian_>::Point  Point;
-        typedef typename Traits<PointSetGaussian_>::Weight Weight;
+        typedef typename Traits<PointSet_>::Point  Point;
+        typedef typename Traits<PointSet_>::Weight Weight;
 
         const double dim = double(global_dimension);
         const size_t point_count = number_of_points(dim);
@@ -118,22 +118,21 @@ public:
          * \internal
          *
          * \remark
-         * A PointSetGaussian with a fixed number of points must have the
+         * A PointSet with a fixed number of points must have the
          * correct number of points which is required by this transform
          */
-        if (IsFixed<Traits<PointSetGaussian_>::NumberOfPoints>() &&
-            Traits<PointSetGaussian_>::NumberOfPoints != point_count)
+        if (IsFixed<Traits<PointSet_>::NumberOfPoints>() &&
+            Traits<PointSet_>::NumberOfPoints != point_count)
         {
             BOOST_THROW_EXCEPTION(
                 WrongSizeException("Incompatible number of points of the"
-                                   " specified fixed-size PointSetGaussian"));
+                                   " specified fixed-size PointSet"));
         }
 
         // will resize of transform size is different from point count.
         point_set.resize(point_count);
 
-        auto covariance_sqrt = gaussian.SquareRoot();
-        covariance_sqrt *= gamma_factor(dim);
+        auto&& covariance_sqrt = gaussian.SquareRoot() * gamma_factor(dim);
 
         Point point_shift;
         const Point& mean = gaussian.Mean();
