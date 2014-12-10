@@ -50,7 +50,7 @@
 #include <cstddef>
 #include <fast_filtering/utils/meta.hpp>
 #include <fast_filtering/distributions/gaussian.hpp>
-#include <fast_filtering/filtering_library/filter/gaussian/point_set_gaussian.hpp>
+#include <fast_filtering/filtering_library/filter/gaussian/point_set.hpp>
 
 namespace fl
 {
@@ -85,15 +85,15 @@ public:
          * - Assert the existence of the function
          * \code constexpr size_t number_of_points(int dimension) const \endcode
          */
-        PointSetGaussian<Point, Derived::number_of_points(1)> point_set;
+        PointSet<Point, Derived::number_of_points(1)> point_set;
 
         /**
          * - Asserts the existens of the forward function with the required
          * parameters \code
-         *   void forward(const Gaussian& src, PointSetGaussian& dest) const
+         *   void forward(const Gaussian& src, PointSet& dest) const
          * \endcode
          */
-        //derived->forward(ff::Gaussian<Point>(), point_set);
+        derived->forward(ff::Gaussian<Point>(), point_set);
 
         /**
          * - Asserts the existens of the forward function with the required
@@ -101,10 +101,10 @@ public:
          *   void forward(const Gaussian& src,
          *                size_t global_dimension,
          *                size_t dimension_offset,
-         *                PointSetGaussian& dest) const
+         *                PointSet& dest) const
          * \endcode
          */
-        //derived->forward(ff::Gaussian<Point>(), 1, 0, point_set);
+        derived->forward(ff::Gaussian<Point>(), 1, 0, point_set);
 
         /** \endcond */
     }
@@ -119,13 +119,13 @@ public:
      * points.
      *
      * @param [in]  gaussian    Source Gaussian distribution
-     * @param [out] transform   Destination PointSetGaussian containing the
+     * @param [out] point_set   Destination PointSet containing the
      *                          selected set of points represeting the source
      *                          Gaussian.
      */
-    template <typename Gaussian, typename PointSetGaussian>
+    template <typename Gaussian, typename PointSet>
     void forward(const Gaussian& gaussian,
-                 PointSetGaussian& transform) const;
+                 PointSet& point_set) const;
 
     /**
      * \note This function is not explicitly definded nor implemented within
@@ -169,15 +169,15 @@ public:
      * @param [in]  global_dimension Dimension of the global covariance
      * @param [in]  dimension_offset Dimension offset determining the position
      *                               of the current marginal Gaussian.
-     * @param [out] transform        Destination PointSetGaussian containing the
+     * @param [out] point_set        Destination PointSet containing the
      *                               selected set of points represeting the
      *                               source Gaussian.
      */
-    template <typename Gaussian, typename PointSetGaussian>
+    template <typename Gaussian, typename PointSet>
     void forward(const Gaussian& gaussian,
                  size_t global_dimension,
                  size_t dimension_offset,
-                 PointSetGaussian& transform) const;
+                 PointSet& point_set) const;
 #endif
 };
 
