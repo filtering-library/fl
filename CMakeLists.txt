@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(state_filtering)
 
-set(CMAKE_BUILD_TYPE Release)
-#set(CMAKE_BUILD_TYPE Debug)
+#set(CMAKE_BUILD_TYPE Release)
+set(CMAKE_BUILD_TYPE Debug)
 add_definitions(-DPROFILING_ON=1) #print profiling output
 add_definitions(-std=c++0x)
 
@@ -21,6 +21,18 @@ find_package(catkin REQUIRED
     robot_state_pub
     image_transport
 )
+
+# versioning
+set(FL_MAJOR_VERSION 0)
+set(FL_MINOR_VERSION 0)
+execute_process(COMMAND git rev-list --count HEAD
+                WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+                OUTPUT_VARIABLE FL_BUILD_VERSION
+                OUTPUT_STRIP_TRAILING_WHITESPACE)
+execute_process(COMMAND git rev-parse --short HEAD
+                WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+                OUTPUT_VARIABLE FL_REV_VERSION
+                OUTPUT_STRIP_TRAILING_WHITESPACE)
 
 find_package(Doxygen)
 if(DOXYGEN_FOUND)
@@ -351,6 +363,13 @@ endif(USE_CUDA AND CUDA_FOUND AND OPENGL_FOUND AND GLEW_FOUND)
 ## Tests ##
 ###########
 
+## trait tests ##
+catkin_add_gtest(traits_tests
+                 tests/utils/traits_test.cpp
+                 tests/gtest_main.cpp)
+target_link_libraries(traits_tests
+                      ${catkin_LIBRARIES})
+
 ## filter interface tests ##
 catkin_add_gtest(filter_interface_tests
                  tests/filter_interface/filter_interface_test.cpp
@@ -365,6 +384,20 @@ catkin_add_gtest(gaussian_filter_tests
                  tests/gaussian_filter/gaussian_filter_stubs.hpp
                  tests/gtest_main.cpp)
 target_link_libraries(gaussian_filter_tests
+                      ${catkin_LIBRARIES})
+
+## point_set_tests tests ##
+catkin_add_gtest(point_set_tests
+                 tests/gaussian_filter/point_set_test.cpp
+                 tests/gtest_main.cpp)
+target_link_libraries(point_set_tests
+                      ${catkin_LIBRARIES})
+
+## unscented_transform tests ##
+catkin_add_gtest(unscented_transform_tests
+                 tests/gaussian_filter/unscented_transform_test.cpp
+                 tests/gtest_main.cpp)
+target_link_libraries(unscented_transform_tests
                       ${catkin_LIBRARIES})
 
 ## various filter tests ##
