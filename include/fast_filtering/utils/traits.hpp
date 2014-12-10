@@ -53,7 +53,7 @@ namespace fl
 {
 
 /**
- * Generic distribution trait template
+ * Generic trait template
  */
 template <typename> struct Traits { };
 
@@ -89,6 +89,12 @@ template <typename Matrix> struct DimensionOf
     constexpr operator size_t () { return value; }
 };
 
+template <int A, int B> struct MaxOf
+{
+    static constexpr int value = (A > B) ? A : B;
+    constexpr operator int () { return value; }
+};
+
 }
 
 namespace ff
@@ -97,7 +103,7 @@ namespace ff
 /**
  * Generic distribution trait template
  *
- * \deprecated
+ * deprecated
  */
 template <typename T> struct Traits { };
 
