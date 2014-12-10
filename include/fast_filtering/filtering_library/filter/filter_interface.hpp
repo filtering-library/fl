@@ -35,12 +35,16 @@
  *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
  *
+ *  (C) Copyright Greg Colvin and Beman Dawes 1998, 1999.
+ *  Copyright (c) 2001-2008 Peter Dimov
+ *
+ *  Distributed under the MIT Software License. (See accompanying file LICENSE
+ *  or copy at http://opensource.org/licenses/MIT)
  */
 
 /**
  * @date 10/21/2014
  * @author Jan Issac (jan.issac@gmail.com)
- * @author Manuel Wuthrich (manuel.wuthrich@gmail.com)
  * Max-Planck-Institute for Intelligent Systems,
  * University of Southern California
  */
@@ -54,10 +58,10 @@ namespace fl
 {
 
 /**
+ * \interface FilterInterface
+ *
  * \brief Common filter interface
  *
- * \ingroup filter
- * \ingroup filter_interface
  *
  *
  * FilterInterface represents the common interface of all filters. Each filter
@@ -68,43 +72,54 @@ namespace fl
  * the State, Observation, and StateDistribution types. Therefore, the traits
  * of each filter implememntation must provide the following types
  *
- * Types                 | Description
- * --------------------- | -----------
- * \c State              | Used State type
- * \c Observation        | Used Observation type
- * \c StateDistribution  | Used StateDistribution extending Moments
- * \c Ptr                | Shared pointer of the derived type
+ * Required Types        | Description | Requirements
+ * --------------------- | ----------- | -
+ * \c State              | Used State type | -
+ * \c Input              | Process control input type | -
+ * \c Observation        | Used Observation type | -
+ * \c StateDistribution  | Distribution type over the state | must implement ff::Moments
+ * \c Ptr                | Shared pointer of the derived type | must specialize std::shared_ptr<>
  */
 template <typename Derived>
 class FilterInterface
 {
 public:
     /**
-     * @brief Ptr is the shared pointer type of the filter specialization
+     * \brief Ptr is the shared pointer type of the filter specialization
      *
      * The filter specialization traits must provide the shared pointer type
      */
     typedef typename Traits<Derived>::Ptr Ptr;
 
     /**
-     * @brief State type provided by the filter specialization
+     * \brief State type provided by the filter specialization
      *
-     * The filter specialization traits must provide the State type. The state
-     * type is commonly either provided by the process model or the filter
+     * The filter specialization traits must provide the \c State type. The
+     * state type is commonly either provided by the process model or the filter
      * self.
      */
     typedef typename Traits<Derived>::State State;
 
     /**
-     * @brief Observation type provided by the filter specialization
+     * \brief Input control type provided by the filter specialization
      *
-     * The filter specialization traits must provide the Observation type. The
-     * Observation type is commonly either provided by the measurement model.
+     * The filter specialization traits must provide the \c Input control type.
+     * The \c Input type is commonly either provided by the process model or the
+     * filter self.
+     */
+    typedef typename Traits<Derived>::Input Input;
+
+    /**
+     * \brief Observation type provided by the filter specialization
+     *
+     * The filter specialization traits must provide the \c Observation type.
+     * The \c Observation type is commonly provided by the measurement
+     * model.
      */
     typedef typename Traits<Derived>::Observation Observation;
 
     /**
-     * @brief StateDistribution type uses by the filter specialization.
+     * \brief StateDistribution type uses by the filter specialization.
      *
      * The filter specialization uses a suitable state distribution. By
      * convension, the StateDistribution must implement the Moments interface
@@ -115,11 +130,13 @@ public:
     /**
      * Predicts the distribution over the state give a delta time in seconds
      *
-     * \param delta_time        Delta time to predict for
-     * \param prior_dist        Prior state distribution
+     * \param delta_time        Delta time of prediction
+     * \param input             Control input argument
+     * \param prior_dist        Prior state distribution     
      * \param predicted_dist    Predicted state distribution
      */
     virtual void predict(double delta_time,
+                         const Input& input,
                          const StateDistribution& prior_dist,
                          StateDistribution& predicted_dist) = 0;
 
@@ -130,9 +147,25 @@ public:
      * \param observation       Latest observation
      * \param posterior_dist    Updated posterior state distribution
      */
-    virtual void update(const StateDistribution& predicted_dist,
-                        const Observation& observation,
+    virtual void update(const Observation& observation,
+                        const StateDistribution& predicted_dist,
                         StateDistribution& posterior_dist) = 0;
+
+    /**
+     * Predicts the state distribution for a given delta time and subsequently
+     * updates the prediction using a measurement.
+     *
+     * @param delta_time
+     * @param input
+     * @param observation
+     * @param prior_dist
+     * @param posterior_dist
+     */
+    virtual void predict_and_update(double delta_time,
+                                    const Input& input,
+                                    const Observation& observation,
+                                    const StateDistribution& prior_dist,
+                                    StateDistribution& posterior_dist) = 0;
 };
 
 }
