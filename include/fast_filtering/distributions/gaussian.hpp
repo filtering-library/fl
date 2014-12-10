@@ -39,7 +39,6 @@
 
 /**
  * @date 05/25/2014
- * @author Manuel Wuthrich (manuel.wuthrich@gmail.com)
  * @author Jan Issac (jan.issac@gmail.com)
  * Max-Planck-Institute for Intelligent Systems,
  * University of Southern California
@@ -51,6 +50,7 @@
 #include <Eigen/Dense>
 
 #include <vector>
+#include <string>
 #include <type_traits>
 
 #include <fast_filtering/utils/traits.hpp>
@@ -73,7 +73,19 @@ template <typename Vector> class Gaussian;
  */
 template <typename Vector_>
 struct Traits<Gaussian<Vector_>>
-{
+{    
+    enum
+    {
+        /**
+         * \brief Gaussian dimension
+         *
+         * For fixed-size Point type and hence a fixed-size Gaussian, the
+         * \c Dimension value is greater zero. Dynamic-size Gaussians have the
+         * dymension Eigen::Dynamic.
+         */
+        Dimension = Vector_::SizeAtCompileTime
+    };
+
     /**
      * \brief Gaussian variable type
      */
@@ -88,16 +100,12 @@ struct Traits<Gaussian<Vector_>>
      * \brief Random variable type. The Noise type is used in mapping of noise
      * samples into the current Gaussian space.
      */
-    typedef Eigen::Matrix<Scalar, Vector::SizeAtCompileTime, 1>  Noise;
+    typedef Eigen::Matrix<Scalar, Dimension, 1> Noise;
 
     /**
      * \brief Second moment type
      */
-    typedef Eigen::Matrix<
-                Scalar,
-                Vector::SizeAtCompileTime,
-                Vector::SizeAtCompileTime
-            > Operator;
+    typedef Eigen::Matrix<Scalar, Dimension, Dimension> Operator;
 
     /**
      * \brief Moments interface of a Gaussian
@@ -107,12 +115,12 @@ struct Traits<Gaussian<Vector_>>
     /**
      * \brief Evalluation interface of a Gaussian
      */
-    typedef Evaluation<Vector, Scalar>  EvaluationBase;
+    typedef Evaluation<Vector, Scalar> EvaluationBase;
 
     /**
      * \brief GaussianMap interface of a Gaussian
      */
-    typedef GaussianMap<Vector, Noise>  GaussianMapBase;
+    typedef GaussianMap<Vector, Noise> GaussianMapBase;
 };
 
 /**
@@ -129,7 +137,7 @@ public:
      * Creates a GaussianUninitializedException
      */
     GaussianUninitializedException():
-        fl::Exception("Accessing uninitialized distribution. "
+        fl::Exception("Accessing uninitialized dynamic-size distribution. "
                       "Gaussian dimension is 0. "
                       "Use ::SetStandard(dimension) to initialize the "
                       "distribution!") { }
@@ -156,6 +164,7 @@ public:
  *
  * \brief General Gaussian Distribution
  * \ingroup distributions
+ * @{
  *
  * The Gaussian is a general purpose distribution. It can be used in various
  * ways while maintaining efficienty at the same time. This is due to it's
@@ -197,7 +206,7 @@ public:
 
     using Traits<This>::GaussianMapBase::NoiseDimension;
 
-public:
+protected:
     /** \cond INTERNAL */
     /**
      * \enum Attribute
@@ -335,7 +344,6 @@ public:
      *         and has not been initialized using SetStandard(dimension).
      * \throws InvalidGaussianRepresentationException if non-of the
      *         representation can be used as a source
-     * \throws Covariance()
      *
      * \cond INTERNAL
      * \pre |{Valid Representations}| > 0
@@ -361,7 +369,7 @@ public:
             {
             case CovarianceMatrix:
             case SquareRootMatrix:
-                precision_ = cov.inverse();
+                precision_ = Covariance().inverse();
                 break;
 
             case DiagonalCovarianceMatrix:
@@ -394,7 +402,6 @@ public:
      *         and has not been initialized using SetStandard(dimension).
      * \throws InvalidGaussianRepresentationException if non-of the
      *         representation can be used as a source
-     * \throws Covariance()
      *
      * \cond INTERNAL
      * \pre |{Valid Representations}| > 0
@@ -457,7 +464,7 @@ public:
     /**
      * \return True if the covariance matrix has a full rank
      *
-     * \throws Covariance()
+     * \throws see Covariance()
      *
      * \cond INTERNAL
      * \pre |{Valid Representations}| > 0
@@ -481,7 +488,7 @@ public:
     /**
      * @return Log normalizing constant
      *
-     * \throws HasFullRank()
+     * \throws see HasFullRank()
      *
      * \cond INTERNAL
      * \pre |{Valid Representations}| > 0
@@ -515,6 +522,8 @@ public:
      *
      * @param vector sample which should be evaluated
      *
+     * \throws see HasFullRank()
+     *
      * \cond INTERNAL
      * \pre |{Valid Representations}| > 0
      * \post {Valid Representations}
@@ -540,6 +549,8 @@ public:
      *
      * @param sample    Noise Sample
      *
+     * \throws see SquareRoot()
+     *
      * \cond INTERNAL
      * \pre |{Valid Representations}| > 0
      * \post {Valid Representations}
@@ -564,6 +575,9 @@ public:
      */
     virtual void SetStandard()
     {
+        mean_.resize(Dimension());
+        covariance_.resize(Dimension(), Dimension());
+
         Mean(Vector::Zero(Dimension()));
         Covariance(Operator::Identity(Dimension(), Dimension()));
 
@@ -583,13 +597,13 @@ public:
      *  - Fully ranked covariance
      *  - {Valid representations} = {#CovarianceMatrix}
      * \endcond
+     *
+     * \throws ResizingFixedSizeEntityException
+     *         see GaussianMap::NoiseDimension(size_t)
      */
-    template <typename T = void>
-    typename std::enable_if<Vector::SizeAtCompileTime==Eigen::Dynamic, T>::type
-    SetStandard(size_t new_dimension)
+    virtual void Dimension(size_t new_dimension)
     {
         NoiseDimension(new_dimension);
-
         SetStandard();
     }
 
@@ -597,9 +611,17 @@ public:
      * Sets the mean
      *
      * @param mean New Gaussian mean
+     *
+     * \throws WrongSizeException
      */
     virtual void Mean(const Vector& mean) noexcept
     {
+        if (mean_.size() != mean.size())
+        {
+            BOOST_THROW_EXCEPTION(fl::WrongSizeException(mean.size(),
+                                                         mean_.size()));
+        }
+
         mean_ = mean;
     }
 
@@ -612,9 +634,17 @@ public:
      * \post {Valid Representations}
      *       = {Valid Representations} \f$ \cup \f$ {#CovarianceMatrix}
      * \endcond
+     *
+     * \throws WrongSizeException
      */
     virtual void Covariance(const Operator& covariance) noexcept
     {
+        if (covariance_.size() != covariance.size())
+        {
+            BOOST_THROW_EXCEPTION(fl::WrongSizeException(covariance.size(),
+                                                         covariance_.size()));
+        }
+
         covariance_ = covariance;
         updated_externally(CovarianceMatrix);
     }
@@ -630,9 +660,17 @@ public:
      * \post {Valid Representations}
      *       = {Valid Representations} \f$ \cup \f$ {#SquareRootMatrix}
      * \endcond
+     *
+     * \throws WrongSizeException
      */
     virtual void SquareRoot(const Operator& square_root) noexcept
     {
+        if (square_root_.size() != square_root.size())
+        {
+            BOOST_THROW_EXCEPTION(fl::WrongSizeException(square_root.size(),
+                                                         square_root_.size()));
+        }
+
         square_root_ = square_root;
         updated_externally(SquareRootMatrix);
     }
@@ -647,9 +685,17 @@ public:
      * \post {Valid Representations}
      *       = {Valid Representations} \f$ \cup \f$ {#PrecisionMatrix}
      * \endcond
+     *
+     * \throws WrongSizeException
      */
     virtual void Precision(const Operator& precision) noexcept
     {
+        if (precision_.size() != precision.size())
+        {
+            BOOST_THROW_EXCEPTION(fl::WrongSizeException(precision.size(),
+                                                         precision_.size()));
+        }
+
         precision_ = precision;
         updated_externally(PrecisionMatrix);
     }    
@@ -664,9 +710,18 @@ public:
      * \post {Valid Representations}
      *       = {Valid Representations} \f$ \cup \f$ {#DiagonalCovarianceMatrix}
      * \endcond
+     *
+     * \throws WrongSizeException
      */
     virtual void DiagonalCovariance(const Operator& diag_covariance) noexcept
     {
+        if (diag_covariance.size() != covariance_.size())
+        {
+            BOOST_THROW_EXCEPTION(
+                fl::WrongSizeException(
+                    diag_covariance.size(), covariance_.size()));
+        }
+
         covariance_ = diag_covariance.diagonal().asDiagonal();
         updated_externally(DiagonalCovarianceMatrix);
     }
@@ -681,9 +736,18 @@ public:
      * \post {Valid Representations}
      *       = {Valid Representations} \f$ \cup \f$ {#DiagonalSquareRootMatrix}
      * \endcond
+     *
+     * \throws WrongSizeException
      */
     virtual void DiagonalSquareRoot(const Operator& diag_square_root) noexcept
     {
+        if (diag_square_root.size() != square_root_.size())
+        {
+            BOOST_THROW_EXCEPTION(
+                fl::WrongSizeException(
+                    diag_square_root.size(), square_root_.size()));
+        }
+
         square_root_ = diag_square_root.diagonal().asDiagonal();
         updated_externally(DiagonalSquareRootMatrix);
     }
@@ -698,9 +762,18 @@ public:
      * \post {Valid Representations}
      *       = {Valid Representations} \f$ \cup \f$ {#DiagonalPrecisionMatrix}
      * \endcond
+     *
+     * \throws WrongSizeException
      */
     virtual void DiagonalPrecision(const Operator& diag_precision) noexcept
     {
+        if (diag_precision.size() != precision_.size())
+        {
+            BOOST_THROW_EXCEPTION(
+                fl::WrongSizeException(
+                    diag_precision.size(), precision_.size()));
+        }
+
         precision_ = diag_precision.diagonal().asDiagonal();
         updated_externally(DiagonalPrecisionMatrix);
     }
@@ -790,6 +863,8 @@ protected:
     mutable std::vector<bool> dirty_; /**< \brief data validity flags */
     /** \endcond */
 };
+
+/** @} */
 
 }
 
