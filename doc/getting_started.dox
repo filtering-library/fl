@@ -1,0 +1,22 @@
+
+namespace fl
+{
+
+/**
+ \page page_getting_started Getting Started
+ 
+ \tableofcontents
+ 
+  FL is a pure template based library. The general usage is to run a filter of 
+  choice with predefined system dynamics and state space. 
+  
+  Before diving
+  into the construction and usage of filters, it is important to understand 
+  the basic concept and interface of the filtering algorithms in this library.  
+  
+   -# \subpage page_filter_concept   
+   -# \subpage page_constructing_filters 
+   -# \subpage page_using_filters 
+*/
+
+}
