@@ -55,7 +55,9 @@
 
 #include <fast_filtering/utils/random_seed.hpp>
 #include <fast_filtering/utils/assertions.hpp>
+#include <fast_filtering/utils/traits.hpp>
 #include <fast_filtering/distributions/interfaces/sampling.hpp>
+#include <fast_filtering/filtering_library/exception/exception.hpp>
 
 namespace ff
 {
@@ -70,11 +72,7 @@ public:
         generator_(RANDOM_SEED),
         gaussian_distribution_(0.0, 1.0),
         gaussian_generator_(generator_, gaussian_distribution_)
-    {
-        // make sure that vector is derived from eigen
-        static_assert_base(Vector, Eigen::Matrix<typename Vector::Scalar,
-                                                 Vector::SizeAtCompileTime, 1>);
-    }
+    { }
 
     virtual ~StandardGaussian() { }
 
@@ -96,6 +94,16 @@ public:
 
     virtual void Dimension(size_t new_dimension)
     {
+        if (dimension_ == new_dimension) return;
+
+        if (fl::IsFixed<Vector::SizeAtCompileTime>())
+        {
+            BOOST_THROW_EXCEPTION(
+                fl::ResizingFixedSizeEntityException(dimension_,
+                                                     new_dimension,
+                                                     "Gaussian"));
+        }
+
         dimension_ = new_dimension;
     }
 
