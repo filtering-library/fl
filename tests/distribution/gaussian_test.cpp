@@ -42,8 +42,8 @@
 /**
  * @date 2014
  * @author Jan Issac (jan.issac@gmail.com)
- * @author Manuel Wuthrich (manuel.wuthrich@gmail.com)
- * Max-Planck-Institute for Intelligent Systems, University of Southern California
+ * Max-Planck-Institute for Intelligent Systems,
+ * University of Southern California
  */
 
 #include <gtest/gtest.h>
@@ -93,13 +93,17 @@ protected:
         Covariance precision = covariance;
 
         // first verify standard gaussian
-        {SCOPED_TRACE("Unchanged");
+        {
+            SCOPED_TRACE("Unchanged");
+
             test_gaussian_attributes(
                         gaussian, covariance, precision, square_root);
         }
 
         // set covariance and verify representations
-        {SCOPED_TRACE("Covariance setter");
+        {
+            SCOPED_TRACE("Covariance setter");
+
             covariance.setRandom();
             covariance *= covariance.transpose();
             square_root = covariance.llt().matrixL();
@@ -110,7 +114,9 @@ protected:
         }
 
         // set square root and verify representations
-        {SCOPED_TRACE("SquareRoot setter");
+        {
+            SCOPED_TRACE("SquareRoot setter");
+
             square_root.setRandom();
             covariance = square_root * square_root.transpose();
             precision = covariance.inverse();
@@ -120,7 +126,9 @@ protected:
         }
 
         // set covariance and verify representations
-        {SCOPED_TRACE("Precision setter");
+        {
+            SCOPED_TRACE("Precision setter");
+
             precision.setRandom();
             precision *= precision.transpose();
             covariance= precision .inverse();
@@ -199,19 +207,25 @@ TEST_F(GaussianTests, dynamic_standard_covariance)
     Covariance covariance = Eigen::MatrixXd::Identity(gaussian.Dimension(),
                                                       gaussian.Dimension());
 
-    {SCOPED_TRACE("Unchanged");
+    {
+        SCOPED_TRACE("Unchanged");
+
         EXPECT_EQ(gaussian.Dimension(), 6);
         test_gaussian_attributes(gaussian, covariance, covariance, covariance);
     }
 
-    {SCOPED_TRACE("gaussian.SetStandard()");
+    {
+        SCOPED_TRACE("gaussian.SetStandard()");
+
         gaussian.SetStandard();
         EXPECT_EQ(gaussian.Dimension(), 6);
         //test_gaussian_attributes(gaussian, covariance, covariance, covariance);
     }
 
-    {SCOPED_TRACE("gaussian.SetStandard(10)");
-        gaussian.SetStandard(10);
+    {
+        SCOPED_TRACE("gaussian.SetStandard(10)");
+
+        gaussian.Dimension(10);
         EXPECT_EQ(gaussian.Dimension(), 10);
         covariance = Eigen::MatrixXd::Identity(gaussian.Dimension(),
                                                gaussian.Dimension());
@@ -237,7 +251,7 @@ TEST_F(GaussianTests, dynamic_gaussian_covariance_constructor_init)
 TEST_F(GaussianTests, dynamic_gaussian_covariance_SetStandard_init)
 {
     ff::Gaussian<DVector> gaussian;
-    gaussian.SetStandard(7);
+    gaussian.Dimension(7);
     test_gaussian_covariance(gaussian);
 }
 
@@ -248,12 +262,12 @@ TEST_F(GaussianTests, dynamic_uninitialized_gaussian)
     EXPECT_THROW(gaussian.Precision(), ff::GaussianUninitializedException);
     EXPECT_THROW(gaussian.SquareRoot(), ff::GaussianUninitializedException);
 
-    gaussian.SetStandard(1);
+    gaussian.Dimension(1);
     EXPECT_NO_THROW(gaussian.Covariance());
     EXPECT_NO_THROW(gaussian.Precision());
     EXPECT_NO_THROW(gaussian.SquareRoot());
 
-    gaussian.SetStandard(0);
+    gaussian.Dimension(0);
     EXPECT_THROW(gaussian.Covariance(), ff::GaussianUninitializedException);
     EXPECT_THROW(gaussian.Precision(), ff::GaussianUninitializedException);
     EXPECT_THROW(gaussian.SquareRoot(), ff::GaussianUninitializedException);
