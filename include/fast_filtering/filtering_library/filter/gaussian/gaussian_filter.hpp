@@ -40,7 +40,6 @@
 /**
  * @date 10/21/2014
  * @author Jan Issac (jan.issac@gmail.com)
- * @author Manuel Wuthrich (manuel.wuthrich@gmail.com)
  * Max-Planck-Institute for Intelligent Systems,
  * University of Southern California
  */
@@ -48,124 +47,7 @@
 #ifndef FL__FILTER__GAUSSIAN__GAUSSIAN_FILTER_HPP
 #define FL__FILTER__GAUSSIAN__GAUSSIAN_FILTER_HPP
 
-#include <map>
-#include <tuple>
-#include <memory>
-
-#include <fast_filtering/utils/traits.hpp>
-
-#include <fast_filtering/filtering_library/exception/exception.hpp>
-#include <fast_filtering/filtering_library/filter/filter_interface.hpp>
-#include <fast_filtering/filtering_library/filter/gaussian/point_set_gaussian.hpp>
-#include <fast_filtering/filtering_library/filter/gaussian/point_set_transform.hpp>
-
-
-namespace fl
-{
-
-// Forward declarations
-template <class ProcessModel, class ObservationModel> class GaussianFilter;
-
-/**
- * GaussianFilter Traits
- */
-template <class ProcessModel, class ObservationModel>
-struct Traits<GaussianFilter<ProcessModel, ObservationModel>>
-{
-    typedef std::shared_ptr<GaussianFilter<ProcessModel, ObservationModel>> Ptr;
-
-    typedef double State;
-    typedef double Observation;
-
-    typedef PointSetGaussian<Eigen::VectorXd, -1> StateDistribution;
-    typedef PointSetGaussian<Eigen::VectorXd, -1> StateNoiseDistribution;
-
-    typedef PointSetTransform<
-                StateDistribution,
-                StateDistribution
-            > Transform;
-};
-
-/**
- * GaussianFilter represents all filters based on Gaussian distributed systems.
- * This includes the Kalman Filter and filters using non-linear models such as
- * Sigma Point Kalman Filter family.
- *
- * \tparam ProcessModel
- * \tparam ObservationModel
- *
- * \ingroup filters
- */
-template<class ProcessModel, class ObservationModel>
-class GaussianFilter:
-        public FilterInterface<
-            GaussianFilter<ProcessModel, ObservationModel>
-        >
-{
-public:
-    typedef GaussianFilter<ProcessModel, ObservationModel> This;
-
-    typedef typename Traits<This>::Ptr Ptr;
-    typedef typename Traits<This>::State State;
-    typedef typename Traits<This>::Observation Observation;    
-    typedef typename Traits<This>::StateDistribution StateDistribution;
-    typedef typename Traits<This>::Transform Transform;
-
-protected:
-    /** \cond INTERNAL */
-    typedef typename Traits<This>::StateNoiseDistribution StateNoiseDistribution;
-    /** \endcond */
-
-public:
-
-    /**
-     * Creates a Gaussian filter
-     *
-     * @param process_model         Process model instance
-     * @param observation_model     Observation model instance
-     * @param poit_set_transform    Point set tranfrom such as the unscented
-     *                              transform
-     */
-    GaussianFilter(
-            const std::shared_ptr<ProcessModel>& process_model,
-            const std::shared_ptr<ObservationModel>& observation_model,
-            const std::shared_ptr<Transform>& point_set_transform)
-        : process_model_(process_model),
-          observation_model_(observation_model),
-          point_set_transform_(point_set_transform)
-    {
-
-    }
-
-    /**
-     * \copydoc FilterInterface::predict(...)
-     */
-    virtual void predict(double delta_time,
-                         const StateDistribution& prior_dist,
-                         StateDistribution& predicted_dist)
-    {
-
-    }
-
-    /**
-     * \copydoc FilterInterface::update(...)
-     */
-    virtual void update(const StateDistribution& predicted_dist,
-                        const Observation& observation,
-                        StateDistribution& posterior_dist)
-    {
-
-    }
-
-protected:
-    std::shared_ptr<ProcessModel> process_model_;
-    std::shared_ptr<ObservationModel> observation_model_;
-    std::shared_ptr<Transform> point_set_transform_;
-
-private:
-    StateDistribution X_;
-};
-
-}
+#include <fast_filtering/filtering_library/filter/gaussian/gaussian_filter_kf.hpp>
+#include <fast_filtering/filtering_library/filter/gaussian/gaussian_filter_ukf.hpp>
 
 #endif
