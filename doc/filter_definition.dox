@@ -1,0 +1,157 @@
+
+namespace fl
+{
+
+/**
+ \page page_constructing_filters Defining a Filter
+ 
+ \tableofcontents
+ 
+ \section defining_filter Filter Concept Interface
+
+The first decision to construct a filter lies in the choice of the filtering
+algorithm
+
+\code typedef FilterInterface<MyAlgorithm> MyFilter; \endcode
+The filter algorithm type is passed as a template argument to the \c FilterInterface.
+The various filtering algorithms in turn have different individual
+dependencies such as the models. 
+Some filtering algorithms are defined by the types of the process and 
+measurement models. Each model may also depend on State and Observation types.
+
+The composition process is summarized as follows:
+
+ -# Decide which filtering algorithm is required
+    (Particle Filter, Kalman Filter, Unscented Kalman Filter, etc.)
+    \code typedef ParticleFilter<MyProcessModel, MyObservationModel> MyFilterAlgorithm; \endcode 
+    Each algorithm is different may take more or fewer arguments than the one
+    stated above.
+    <br />
+    <br />
+    
+ -# Decide which process and measurement models are needed (if not provided by the \e filter)
+    \code typedef SomeFancyProcessModel<MyState, MyInput> MyProcessModel; \endcode
+    \code typedef ACrazyObservationModel<MyObservation, MyState> MyObservationModel; \endcode
+    <br />
+    
+ -# Define the required State and Observation type (if not provided by the \e models)
+    \code 
+          typedef Eigen::Matrix<double, 7,  1> State; 
+          typedef Eigen::Matrix<double, 6,  1> Input; 
+          typedef Eigen::Matrix<double, 12, 1> Observation; 
+    \endcode
+    <br />
+    
+    
+\note The definition process is bottom up. That is, first define the vectorial
+types \c State, \c Input and \c Observation. Then define the models using the
+vectorial types. Finally, use these models to specify the filter 
+algorithm as shown in step 1.
+
+
+\section available_filters Available Filters
+
+Filter Name  | Abbreviation | Type 
+------------ | ------- | ----
+Kalman Filter | KF | GaussianFilter<State, Input, Observation> 
+Sigma Point Kalman Filter | SPKF | GaussianFilter<ProcessModel, ObservationModel, PointSetTransform> 
+Unscented Kalman Filter\n(specialization of the SPKF) | UKF | GaussianFilter<ProcessModel, ObservationModel, UnscentedTransform> 
+Particle Filter | PF | ParticleFilter<ProcessModel, ObservationModel>
+Coordinate Particle Filter | CPF | CoordinateParticleFilter<ProcessModel, ObservationModel>
+Rao-Blackwellized Particle Filter | RBPF | RaoBlackwellizedParticleFilter<ProcessModel, ObservationModel>
+
+
+\section available_process_models Available Process Models
+
+Model Name | Type
+---------- | ----
+Linear Process Model | LinearGaussianProcessModel<State, Input>
+Damped Wiener Process Model | DampedWienerProcessModel<State>
+Integrated Damped Wiener Process Model | IntegratedDampedWienerProcessModel<State>
+
+
+\section available_observation_models Available Observation Models
+
+Model Name | Type
+---------- | ----
+Linear Observation Model | LinearGaussianObservationModel<Observation, State>
+
+<br />
+<br />
+
+\section example_filter_definition Example: Filter Definition 
+
+In this example we aim to use an Unscented Kalman Filter. From the filter
+table above we know that the UKF is simply a \c GaussianFilter using an \c UnscentedTransform.
+
+Further more we are interested in a damped wiener process with a linear
+observation model.
+
+The requirements are
+ - a State type for the \c DampedWienerProcessModel
+ - an Observation type for the \c LinearGaussianObservationModel 
+
+Now we can define our filter
+
+\code
+#ifndef MY_LIB_MY_FILTER_CONTEXT_HPP
+#define MY_LIB_MY_FILTER_CONTEXT_HPP
+
+#include <fl/model/process/damped_wiener_process_model.hpp>
+#include <fl/model/observation/linear_observation_model.hpp>
+#include <fl/filter/gaussian/unscented_transform.hpp>
+#include <fl/filter/gaussian/gaussian_filter.hpp>
+    
+class MyFilteringContext
+{
+public:
+    /**
+     * My 7 degree-of-freedom state representation
+     */
+    typedef Eigen::Matrix<double, 7, 1> State;
+
+    /**
+     * My 6 dimensional measurement
+     */
+    typedef Eigen::Matrix<double, 7, 1> Observation;
+    
+    /**
+     * 7D Damped Wiener Process
+     */
+    typedef DampedWienerProcessModel<State> ProcessModel;
+    
+    /**
+     * A linear observation model
+     */
+    typedef LinearGaussianObservationModel<Observation, State> ObservationModel;
+    
+    /**
+     * My Filter Algorithm
+     */
+    typedef GaussianFilter<
+                ProcessModel, 
+                ObservationModel, 
+                UnscentedTransform
+            > FilterAlgorithm;
+            
+    /**
+     * Final filter definition
+     */
+    typedef FilterInterface<FilterAlgorithm> MyFilter;
+
+// ...
+}
+
+#endif
+\endcode
+
+<br />
+
+
+Next: \ref page_using_filters
+
+*/
+
+}
+
+
