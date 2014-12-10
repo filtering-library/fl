@@ -1,0 +1,97 @@
+namespace fl
+{
+
+/**
+ \page page_filter_concept Filter Concept
+ 
+ \tableofcontents
+ 
+All filter share a
+common static \c concept or \c interface represented by the 
+
+@code
+class FilterInterface<FilterAlgorithm>;
+@endcode
+
+The \c FilterAlgorithm type will be discussed in deeper detains in the next section.
+
+Given any algorithm implementation \c FilterAlgorithm, the class
+\c FilterInterface is guaranteed to provide you access to the following types
+
+Types                                               | Description
+--------------------------------------------------- | ----------------------------------------------------------------------
+FilterInterface<FilterAlgorithm>::State             | State type defining the state space
+FilterInterface<FilterAlgorithm>::Input             | Process control input type used within the system dynamics
+FilterInterface<FilterAlgorithm>::Observation       | Measurement type used within the measurement model to update the state
+FilterInterface<FilterAlgorithm>::StateDistribution | Distribution type over the state which always implements the ff::Moments interface providing the first and the second moments (mean and covariance)
+ 
+The interface is depicted in the UML diagram blow
+ 
+![FilterInterface Concept Class](filter_interface.svg)
+
+During the filtering process the client will invoke the FilterInterface::predict
+and the FilterInterface::update methods interchangeably as demonstrated in the
+pseudocode listings below
+
+\code{python}
+    FilterInterface<FilterAlgorithm> filter = FilterAlgorithm(/* filter arguments ... */);
+    
+    Time t = Time::now();
+    while (running())
+    {
+        Observation y = wait_and_get_observation();
+        
+        filter.predict(Time::now() - t, ...);
+        filter.update(y, ...);
+        
+        t = Time::now();
+    }
+\endcode
+
+or call \c predict several times until a measurement is available in order to invoke 
+\c update
+
+\code{python}
+    FilterInterface<FilterAlgorithm> filter = FilterAlgorithm(/* filter arguments ... */);
+    
+    Time t = Time::now();
+    while (running())
+    {
+        while (!new_observation_available())
+        {
+            filter.predict(Time::now() - t, ...);
+        }
+        
+        Observation y = get_observation();
+        
+        filter.update(y, ...);
+        
+        t = Time::now();
+    }
+\endcode
+
+Alternatively, the FilterInterface::predict_and_update can be called repeatedly
+instead
+
+\code{python}
+    FilterInterface<FilterAlgorithm> filter = FilterAlgorithm(/* filter arguments ... */);
+    
+    Time t = Time::now();
+    while (running())
+    {
+        Observation y = wait_and_get_observation();
+        filter.predict_and_filter(Time::now() - t, ..., y, ...);
+        
+        t = Time::now();
+    }
+\endcode
+
+Depending on the \c FilterAlgorithm implementation, the combined
+function \c predict_and_update may be fast. In this case the algorithm is able
+to exploit the <em> all at once</em> structure.
+
+Next: \ref page_constructing_filters
+
+*/
+
+}
