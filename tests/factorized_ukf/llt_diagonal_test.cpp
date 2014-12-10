@@ -42,7 +42,6 @@
 /**
  * @date 2014
  * @author Jan Issac (jan.issac@gmail.com)
- * @author Manuel Wuthrich (manuel.wuthrich@gmail.com)
  * Max-Planck-Institute for Intelligent Systems, University of Southern California
  */
 
@@ -62,7 +61,7 @@ TEST(Diags, diagAsDiagInv)
     Eigen::MatrixXd C = Eigen::MatrixXd::Identity(dia_dimension, dia_dimension) * 3;
     Eigen::MatrixXd R(dia_dimension, dia_dimension);
 
-    for (size_t i = 0; i < 1000000; ++i)
+    for (size_t i = 0; i < 10000; ++i)
     {
         R = C.diagonal().asDiagonal().inverse();
     }
@@ -76,7 +75,7 @@ TEST(Diags, diagLoopInv)
     Eigen::MatrixXd C = Eigen::MatrixXd::Identity(dia_dimension, dia_dimension) * 3;
     Eigen::MatrixXd R(dia_dimension, dia_dimension);
 
-    for (size_t i = 0; i < 1000000; ++i)
+    for (size_t i = 0; i < 10000; ++i)
     {
         for (int j = 0; j < dia_dimension; ++j)
         {
@@ -185,7 +184,7 @@ TEST(OneDimensionalTests, scalar)
 
     b *= b;
 
-    for (size_t i = 0; i < 1e6; ++i)
+    for (size_t i = 0; i < 1e4; ++i)
     {
         r = scalar_function(a, b, c, d) + r;
     }

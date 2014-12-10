@@ -40,8 +40,8 @@
 /**
  * @date 2014
  * @author Jan Issac (jan.issac@gmail.com)
- * @author Manuel Wuthrich (manuel.wuthrich@gmail.com)
- * Max-Planck-Institute for Intelligent Systems, University of Southern California
+ * Max-Planck-Institute for Intelligent Systems,
+ * University of Southern California
  */
 
 #include <gtest/gtest.h>
@@ -58,7 +58,7 @@
 #include <fast_filtering/models/observation_models/linear_observation_model.hpp>
 #include <fast_filtering/filters/deterministic/kalman_filter.hpp>
 
-TEST(KalmanFilterTests, init_fixedsize_predict)
+TEST(KalmanFilterTests, init_fixed_size_predict)
 {
     typedef double Scalar;
     typedef Eigen::Matrix<Scalar, 10, 1> State;
@@ -90,7 +90,7 @@ TEST(KalmanFilterTests, init_fixedsize_predict)
 
 }
 
-TEST(KalmanFilterTests, init_dynamicsize_predict)
+TEST(KalmanFilterTests, init_dynamic_size_predict)
 {
     typedef double Scalar;
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> State;
@@ -129,7 +129,7 @@ TEST(KalmanFilterTests, init_dynamicsize_predict)
 }
 
 
-TEST(KalmanFilterTests, fixedsize_predict_update)
+TEST(KalmanFilterTests, fixed_size_predict_update)
 {
     typedef double Scalar;
     typedef Eigen::Matrix<Scalar, 6, 1> State;
@@ -163,7 +163,7 @@ TEST(KalmanFilterTests, fixedsize_predict_update)
     Filter::StateDistribution state_dist;
     EXPECT_TRUE(state_dist.Covariance().ldlt().isPositive());
 
-    for (size_t i = 0; i < 20000; ++i)
+    for (size_t i = 0; i < 2000; ++i)
     {
         filter.Predict(1.0, state_dist, state_dist);
         EXPECT_TRUE(state_dist.Covariance().ldlt().isPositive());
@@ -174,7 +174,7 @@ TEST(KalmanFilterTests, fixedsize_predict_update)
 }
 
 
-TEST(KalmanFilterTests, dynamicsize_predict_update)
+TEST(KalmanFilterTests, dynamic_size_predict_update)
 {
     typedef double Scalar;
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> State;
@@ -210,7 +210,7 @@ TEST(KalmanFilterTests, dynamicsize_predict_update)
     Filter::StateDistribution state_dist(dim_state);
     EXPECT_TRUE(state_dist.Covariance().ldlt().isPositive());
 
-    for (size_t i = 0; i < 20000; ++i)
+    for (size_t i = 0; i < 2000; ++i)
     {
         filter.Predict(1.0, state_dist, state_dist);
         EXPECT_TRUE(state_dist.Covariance().ldlt().isPositive());

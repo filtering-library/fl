@@ -44,8 +44,8 @@
  * University of Southern California
  */
 
-#ifndef FL__FILTER__GAUSSIAN__POINT_SET_GAUSSIAN_HPP
-#define FL__FILTER__GAUSSIAN__POINT_SET_GAUSSIAN_HPP
+#ifndef FL__FILTER__GAUSSIAN__POINT_SET_HPP
+#define FL__FILTER__GAUSSIAN__POINT_SET_HPP
 
 #include <map>
 #include <cmath>
@@ -53,37 +53,56 @@
 
 #include <Eigen/Dense>
 
+
+#include <fast_filtering/utils/meta.hpp>
+#include <fast_filtering/utils/traits.hpp>
+
 #include <fast_filtering/distributions/gaussian.hpp>
 #include <fast_filtering/filtering_library/exception/exception.hpp>
 #include <fast_filtering/filtering_library/filter/filter_interface.hpp>
+
+/** \cond INTERNAL */
+/**
+ * Checks dimensions
+ */
+#define INLINE_CHECK_POINT_SET_DIMENSIONS() \
+    assert(points_.cols() == weights_.size()); \
+    if (points_.rows() == 0) \
+    { \
+        BOOST_THROW_EXCEPTION(ZeroDimensionException("PointSet")); \
+    } \
+    if (points_.cols() == 0)  \
+    { \
+        BOOST_THROW_EXCEPTION(Exception("PointSet contains no points.")); \
+    }
+
+/**
+ * Checks for index out of bounds and valid dimensions
+ */
+#define INLINE_CHECK_POINT_SET_BOUNDS(i) \
+    if (i >= weights_.size()) \
+    { \
+        BOOST_THROW_EXCEPTION(OutOfBoundsException(i, weights_.size())); \
+    } \
+    INLINE_CHECK_POINT_SET_DIMENSIONS();
+/** \endcond */
 
 namespace fl
 {
 
 // Forward declaration
-template <typename Point, int Points_> class PointSetGaussian;
+template <typename Point, int Points_> class PointSet;
 
 /**
- * Trait struct of a PointSetGaussian
+ * Trait struct of a PointSet
  */
 template <typename Point_, int Points_>
-struct Traits<PointSetGaussian<Point_, Points_>>
+struct Traits<PointSet<Point_, Points_>>
 {    
     /**
-     * \brief Gaussian sample type
+     * \brief Point type
      */
     typedef Point_ Point;
-
-    /**
-     * \brief Base class type
-     */
-    typedef ff::Gaussian<Point> Base;
-
-    /* Gaussian Base types */
-    typedef typename ff::Traits<Base>::Vector   Vector;
-    typedef typename ff::Traits<Base>::Scalar   Scalar;
-    typedef typename ff::Traits<Base>::Noise    Noise;
-    typedef typename ff::Traits<Base>::Operator Operator;
 
     /**
      * \brief Number of points for fixed-size set
@@ -91,16 +110,7 @@ struct Traits<PointSetGaussian<Point_, Points_>>
     enum
     {
         /**
-         * \brief Gaussian dimension
-         *
-         * For fixed-size Point type and hence a fixed-size Gaussian, the
-         * \c Dimension value is greater zero. Dynamic-size Gaussians have the
-         * dymension Eigen::Dynamic.
-         */
-        Dimension = ff::Traits<Base>::Dimension,
-
-        /**
-         * \brief Number of points which provided by the PointSetGaussian.
+         * \brief Number of points which provided by the PointSet.
          *
          * If the number of points is unknown and there for dynamic, then
          * NumberOfPoints is set to Eigen::Dynamic
@@ -137,10 +147,14 @@ struct Traits<PointSetGaussian<Point_, Points_>>
      * The point container type has a fixed-size dimension of a point
      * and the number of the points is statically known.
      */
-    typedef Eigen::Matrix<Scalar, Dimension, Points_ > PointMatrix;
+    typedef Eigen::Matrix<
+                typename Point::Scalar,
+                Point::RowsAtCompileTime,
+                Points_
+            > PointMatrix;
 
     /**
-     * @brief WeightVector
+     * \brief WeightVector
      */
     typedef Eigen::Matrix<
                 typename Point::Scalar,
@@ -152,62 +166,43 @@ struct Traits<PointSetGaussian<Point_, Points_>>
      * \brief Weight list of all points
      */
     typedef std::vector<Weight> Weights;
-
-
 };
 
 /**
- * \class PointSetGaussian
+ * \class PointSet
  *
- * PointSetGaussian is Gaussian distribution represented by a set of points
- * (a statistic)
+ * PointSet represents a container of fixed-size or dynamic-size points each
+ * paired with a set of weights. PointSet has two degree-of-freedoms. The first
+ * is the dimension of the points. The second os the number of points within the
+ * set. Each of the parameter can either be fixed at compile time or left
+ * unspecified. That is, the parameter is set to Eigen::Dynamic.
  *
  * \tparam Point    Gaussian variable type
  * \tparam Points_  Number of points representing the gaussian
  */
 template <typename Point_, int Points_ = Eigen::Dynamic>
-class PointSetGaussian:
-        public ff::Gaussian<Point_>
+class PointSet
 {
 public:
-    typedef PointSetGaussian<Point_, Points_> This;
+    typedef PointSet<Point_, Points_> This;
 
-    typedef typename Traits<This>::Base         Base;
-    typedef typename Traits<This>::Scalar       Scalar;
-    typedef typename Traits<This>::Operator     Operator;
-    typedef typename Traits<This>::Noise        Noise;
     typedef typename Traits<This>::Point        Point;
     typedef typename Traits<This>::PointMatrix  PointMatrix;
     typedef typename Traits<This>::Weight       Weight;
     typedef typename Traits<This>::Weights      Weights;
     typedef typename Traits<This>::WeightVector WeightVector;    
 
-    using Base::Mean;
-    using Base::Covariance;
-    using Base::Precision;
-    using Base::SquareRoot;
-    using Base::DiagonalCovariance;
-    using Base::DiagonalSquareRoot;
-    using Base::DiagonalPrecision;
-    using Base::SetStandard;
-    using Base::Probability;
-    using Base::LogProbability;
-    using Base::Dimension;
-    using Base::NoiseDimension;
-
 public:
     /**
-     * Creates a PointSetGaussian
+     * Creates a PointSet
      *
      * \param points_count   Number of points representing the Gaussian
      * \param dimension      Sample space dimension
      */
-    PointSetGaussian(size_t points_count = (Points_ > 0) ? Points_ : 0,
-                     size_t dimension = Point::RowsAtCompileTime)
-        : Base(dimension),
-          points_(Dimension(), points_count),
-          weights_(points_count),
-          changes_staged_(false)
+    PointSet(size_t dimension = DimensionOf<Point>(),
+             size_t points_count = MaxOf<Points_, 0>())
+        : points_(dimension, points_count),
+          weights_(points_count)
     {
         assert(points_count >= 0);
         static_assert(Points_ >= Eigen::Dynamic, "Invalid point count");
@@ -221,10 +216,10 @@ public:
     /**
      * \brief Overridable default constructor
      */
-    virtual ~PointSetGaussian() { }
+    virtual ~PointSet() { }
 
     /**
-     * Resizes a dynamic-size PointSetGaussian to a desired. For
+     * Resizes a dynamic-size PointSet to a desired. For
      *
      * \param Points_   Number of points
      *
@@ -242,7 +237,7 @@ public:
                                                      "poit set Gaussian"));
         }
 
-        points_.setZero(Dimension(), points_count);
+        points_.setZero(points_.rows(), points_count);
 
         weights_.resize(points_count);
         const double weight = (points_count > 0)? 1. / double(points_count) : 0;
@@ -250,19 +245,26 @@ public:
     }
 
     /**
-     * Sets the new Gaussian dimension for dynamic-size Gaussian (not to confuse
+     * Sets the new dimension for dynamic-size points (not to confuse
      * with the number of points)
      *
-     * @param new_dimension New Gaussian dimension
+     * \param dim  Dimension of each point
      */
-    virtual void Dimension(size_t new_dimension)
+    void dimension(size_t dim)
     {
-        Base::Dimension(new_dimension);
-        points_.resize(Dimension(), count_points());
+        points_.resize(dim, count_points());
     }
 
     /**
-     * @return The number of points
+     * \return Dimension of containing points
+     */
+    size_t dimension() const
+    {
+        return points_.rows();
+    }
+
+    /**
+     * \return The number of points
      */
     size_t count_points() const
     {
@@ -279,7 +281,7 @@ public:
      */
     Point point(size_t i) const
     {
-        assert_bounds(i);
+        INLINE_CHECK_POINT_SET_BOUNDS(i);
 
         return points_.col(i);
     }
@@ -294,7 +296,7 @@ public:
      */
     double weight(size_t i)
     {
-        assert_bounds(i);
+        INLINE_CHECK_POINT_SET_BOUNDS(i);
 
         return weights_[i].w_mean;
     }
@@ -309,7 +311,7 @@ public:
      */
     const Weight& weights(size_t i) const
     {
-        assert_bounds(i);
+        INLINE_CHECK_POINT_SET_BOUNDS(i);
 
         return weights_[i];
     }
@@ -331,7 +333,7 @@ public:
     }
 
     /**
-     * @return Returns the weights for the mean of the points as a vector
+     * \return Returns the weights for the mean of the points as a vector
      */
     WeightVector mean_weights_vector() const noexcept
     {
@@ -348,7 +350,7 @@ public:
     }
 
     /**
-     * @return Returns the weights for the covariance of the points as a vector
+     * \return Returns the weights for the covariance of the points as a vector
      */
     WeightVector covariance_weights_vector() const noexcept
     {
@@ -375,10 +377,9 @@ public:
      */
     void point(size_t i, Point p)
     {
-        assert_bounds(i);
+        INLINE_CHECK_POINT_SET_BOUNDS(i);
 
         points_.col(i) = p;
-        stage_point_changes();
     }
 
     /**
@@ -425,11 +426,10 @@ public:
      */
     void point(size_t i, Point p, Weight weights)
     {
-        assert_bounds(i);
+        INLINE_CHECK_POINT_SET_BOUNDS(i);
 
         points_.col(i) = p;
         weights_[i] = weights;
-        stage_point_changes();
     }
 
     /**
@@ -473,36 +473,26 @@ public:
      */
     void weight(size_t i, Weight weights)
     {
-        assert_bounds(i);
+        INLINE_CHECK_POINT_SET_BOUNDS(i);
 
         weights_[i] = weights;
-        stage_point_changes();
-    }
-
-    void commit_point_changes()
-    {
-        changes_staged_ = false;
-
-        if (moments_dirty_)
-        {
-            PointMatrix P = weighted_centered_points();
-            Covariance(P * P.transpose());
-            Mean(weighted_mean());
-
-            moments_dirty_ = false;
-        }
     }
 
     /**
-     * @return Centered points matrix.
+     * \return Centered points matrix.
      *
      * Creates a PointMatrix populated with zero mean points
+     *
+     * \throws ZeroDimensionException
+     * \throws Exception
      */
-    PointMatrix centered_points() const noexcept
+    PointMatrix centered_points() const
     {
+        INLINE_CHECK_POINT_SET_DIMENSIONS();
+
         PointMatrix centered(points_.rows(), points_.cols());
 
-        const Point weighted_mean = weighted_mean();
+        const Point weighted_mean = mean();
         const size_t point_count = points_.cols();
         for (size_t i = 0; i < point_count; ++i)
         {
@@ -513,32 +503,17 @@ public:
     }
 
     /**
-     * @return Weighted centered points matrix.
+     * \return The weighted mean of all points
      *
-     * Creates a PointMatrix populated with weighted zero mean points
+     * \throws ZeroDimensionException
+     * \throws Exception
      */
-    PointMatrix weighted_centered_points() const noexcept
-    {
-        PointMatrix centered(points_.rows(), points_.cols());
+    Point mean() const
+    {        
+        INLINE_CHECK_POINT_SET_DIMENSIONS();
 
-        const Point mean = weighted_mean();
-        const size_t point_count = points_.cols();
-        for (size_t i = 0; i < point_count; ++i)
-        {
-            centered.col(i) =
-                    weights_[i].w_cov * (points_.col(i) - mean);
-        }
-
-        return centered;
-    }
-
-    /**
-     * @return The weighted mean of all points
-     */
-    Point weighted_mean() const
-    {
         Point weighted_mean;
-        weighted_mean.setZero(Dimension());
+        weighted_mean.setZero(points_.rows());
 
         const size_t point_count = points_.cols();
         for (size_t i = 0; i < point_count; ++i)
@@ -549,119 +524,16 @@ public:
         return weighted_mean;
     }
 
-    /**
-     * The point set becomes dirty once one of moment representations has been
-     * changed.
-     *
-     * @return point set dirty status
-     */
-    bool is_point_set_dirty() const noexcept
-    {
-        return point_set_dirty_;
-    }
-
-    /* Gaussian interface */
-
-    virtual Vector Mean() const
-    {
-        if (moments_dirty_)
-        {
-
-        }
-
-        return mean_;
-    }
-
-    virtual void Mean(const Vector& mean) noexcept
-    {
-        point_set_dirty_ = true;
-        Base::Mean(mean);
-    }
-
-    virtual void Covariance(const Operator& covariance) noexcept
-    {
-        point_set_dirty_ = true;
-        Covariance(covariance);
-    }
-
-    virtual void SquareRoot(const Operator& square_root) noexcept
-    {
-        point_set_dirty_ = true;
-        SquareRoot(square_root);
-    }
-
-    virtual void Precision(const Operator& precision) noexcept
-    {
-        point_set_dirty_ = true;
-        Precision(precision);
-    }
-
-    virtual void DiagonalCovariance(const Operator& diag_covariance) noexcept
-    {
-        point_set_dirty_ = true;
-        DiagonalCovariance(diag_covariance);
-    }
-
-    virtual void DiagonalSquareRoot(const Operator& diag_square_root) noexcept
-    {
-        point_set_dirty_ = true;
-        DiagonalSquareRoot(diag_square_root);
-    }
-
-    virtual void DiagonalPrecision(const Operator& diag_precision) noexcept
-    {
-        point_set_dirty_ = true;
-        DiagonalPrecision(diag_precision);
-    }
-
-protected:
-    /**
-     * Asserts that the specified index is within bounds and that the dimension
-     * is greater zero.
-     *
-     * \param i Point index
-     *
-     * \internal asserts size equallity of points and weights
-     *
-     * \throws OutOfBoundsException
-     * \throws ZeroDimensionException
-     */
-    void assert_bounds(size_t i) const
-    {
-        assert(points_.cols() == weights_.size());
-
-        if (i >= weights_.size())
-        {
-            BOOST_THROW_EXCEPTION(OutOfBoundsException(i, weights_.size()));
-        }
-
-        if (Dimension() == 0)
-        {
-            BOOST_THROW_EXCEPTION(ZeroDimensionException("PointSetGaussian"));
-        }
-    }
-
-
-    void stage_point_changes()
-    {
-        moments_dirty_ = true;
-        changes_staged_ = true;
-    }
-
 protected:
     /**
      * \brief point container
      */
-    mutable PointMatrix points_;
+    PointMatrix points_;
 
     /**
      * \brief weight container
      */
-    mutable Weights weights_;
-
-    bool changes_staged_;
-    bool moments_dirty_;
-    bool point_set_dirty_;
+    Weights weights_;
 };
 
 }

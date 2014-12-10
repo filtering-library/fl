@@ -42,7 +42,6 @@
 /**
  * @date 2014
  * @author Jan Issac (jan.issac@gmail.com)
- * @author Manuel Wuthrich (manuel.wuthrich@gmail.com)
  * Max-Planck-Institute for Intelligent Systems, University of Southern California
  */
 
@@ -60,7 +59,7 @@ TEST(Exception, create)
         std::string name;
     };
 
-    typedef fl::PointSetGaussian<Eigen::Matrix<double, 1, 1>, -1> SigmaPointGaussian;
+    typedef fl::PointSet<Eigen::Matrix<double, 1, 1>, -1> SigmaPointGaussian;
     SigmaPointGaussian sigmas(1);
 
     try
@@ -68,25 +67,10 @@ TEST(Exception, create)
         sigmas.point(0, Eigen::Matrix<double, 1, 1>::Random(), {1.23, 1.24});
         sigmas.point(1, Eigen::Matrix<double, 1, 1>::Random(), {1.23, 1.24});
         sigmas.point(2, Eigen::Matrix<double, 1, 1>::Random(), {1.23, 1.24});
-
-        std::cout << sigmas.point(0) << std::endl;
-        std::cout << sigmas.point(1) << std::endl;
-        std::cout << sigmas.point(2) << std::endl;
-
-//        std::cout << sigmas.parameter<0>(0).w << std::endl;
-//        std::cout << sigmas.parameter<0>(0).name << std::endl;
-//        std::cout << sigmas.parameter<1>(0) << std::endl;
-//        std::cout << sigmas.parameter<0>(1).w << std::endl;
-//        std::cout << sigmas.parameter<0>(1).name << std::endl;
-//        std::cout << sigmas.parameter<1>(1) << std::endl;
-//        std::cout << sigmas.parameter<1>(10) << std::endl;
     }
-    catch(fl::OutOfBoundsException& e)
+    catch(fl::OutOfBoundsException& e) { }
+    catch(...)
     {
-        std::cout << boost::diagnostic_information(e) << std::endl;
-    }
-    catch(fl::Exception& e)
-    {
-        std::cout << boost::diagnostic_information(e) << std::endl;
+        ADD_FAILURE();
     }
 }

@@ -40,8 +40,8 @@
 /**
  * @date 2014
  * @author Jan Issac (jan.issac@gmail.com)
- * @author Manuel Wuthrich (manuel.wuthrich@gmail.com)
- * Max-Planck-Institute for Intelligent Systems, University of Southern California
+ * Max-Planck-Institute for Intelligent Systems,
+ * University of Southern California
  */
 
 #include <gtest/gtest.h>
@@ -115,10 +115,10 @@ TEST(InversionTests, fullMatrixInversionSpeed)
         number_of_inversions++;
     }
 
-    std::cout << "fullMatrixInversionSpeed::number_of_inversions: "
-              << number_of_inversions
-              << "(" << number_of_inversions/OBSERVATION_DIMENSION << " fps)"
-              << std::endl;
+//    std::cout << "fullMatrixInversionSpeed::number_of_inversions: "
+//              << number_of_inversions
+//              << "(" << number_of_inversions/OBSERVATION_DIMENSION << " fps)"
+//              << std::endl;
 
 }
 
@@ -151,10 +151,10 @@ TEST(InversionTests, SMWMatrixInversionSpeed)
         number_of_inversions++;
     }
 
-    std::cout << "SMWMatrixInversionSpeed::number_of_inversions: "
-              << number_of_inversions
-              << "(" << number_of_inversions/OBSERVATION_DIMENSION << " fps)"
-              << std::endl;
+//    std::cout << "SMWMatrixInversionSpeed::number_of_inversions: "
+//              << number_of_inversions
+//              << "(" << number_of_inversions/OBSERVATION_DIMENSION << " fps)"
+//              << std::endl;
 }
 
 TEST(InversionTests, SMWBlockMatrixInversionSpeed)
@@ -185,8 +185,8 @@ TEST(InversionTests, SMWBlockMatrixInversionSpeed)
         number_of_inversions++;
     }
 
-    std::cout << "SMWMatrixBlockInversionSpeed::number_of_inversions: "
-              << number_of_inversions
-              << "(" << number_of_inversions/OBSERVATION_DIMENSION << " fps)"
-              << std::endl;
+//    std::cout << "SMWMatrixBlockInversionSpeed::number_of_inversions: "
+//              << number_of_inversions
+//              << "(" << number_of_inversions/OBSERVATION_DIMENSION << " fps)"
+//              << std::endl;
 }
