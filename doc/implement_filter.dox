@@ -1,0 +1,314 @@
+
+namespace fl
+{
+
+/**
+\page page_implement_filter Write your own filter  
+
+\tableofcontents
+
+A filter within FL implements the FilterInterface. That is, it derives from 
+this class. This interface represents
+the filter concept in which a minimum set of types and function signatures
+must be provided and implemented.
+
+The issue at hand is each filter algorithm operates on different state space,
+measurement space and especially a different state distribution. However,
+all filters do have these \em conceptual traits in common. The FilterInterface 
+is precisely this conceptual interface providing these types and methods although
+none of the mentioned traits or types are actually defined with in this interface.
+The benefits are a common interface for all filters while leaving the decision 
+of types to the actual filtering algorithm implementation.
+
+In order to solve this issue few generic programming idioms have been very 
+helpful. It is important to understand how these work and use them. In order to 
+do so, first the interface is introduced while pointing out the relevant details.
+Then, a step-by-step filter class implementation is presented.
+
+\section filter_interface Filter interface
+
+The interface is summarized in the following listing
+
+\code
+template <typename Derived>
+class FilterInterface
+{
+public:
+    typedef typename Traits<Derived>::Ptr Ptr;
+    typedef typename Traits<Derived>::State State;
+    typedef typename Traits<Derived>::Input Input;
+    typedef typename Traits<Derived>::Observation Observation;
+    typedef typename Traits<Derived>::StateDistribution StateDistribution;
+
+    virtual void predict(double delta_time,
+                         const Input& input,
+                         const StateDistribution& prior_dist,
+                         StateDistribution& predicted_dist) = 0;
+
+    virtual void update(const Observation& observation,
+                        const StateDistribution& predicted_dist,
+                        StateDistribution& posterior_dist) = 0;
+
+    virtual void predict_and_update(double delta_time,
+                                    const Input& input,
+                                    const Observation& observation,
+                                    const StateDistribution& prior_dist,
+                                    StateDistribution& posterior_dist) = 0;
+};
+\endcode
+
+Every filter algorithm ought to provide the minimum set of types and function. 
+
+ Required Types        | Description | Requirements
+ --------------------- | ----------- | -
+ \c State              | Used State type | -
+ \c Input              | Process control input type | -
+ \c Observation        | Used Observation type | -
+ \c StateDistribution  | Distribution type over the state | must implement ff::Moments
+ \c Ptr                | Shared pointer of the derived type | must specialize std::shared_ptr<>
+
+
+However, due to the lack of the [C++ Concepts](http://en.wikipedia.org/wiki/Concepts_%28C%2B%2B%29), 
+there is still no built in C++ language construct forcing a class (template), i.e. filter algorithm template class,  to 
+have a specific structure. This is where FilterInterface comes into play. The 
+interface itself is a template applying the [Curiously Recurring Template Pattern](http://en.wikipedia.org/wiki/Curiously_recurring_template_pattern) or 
+short CRTP. Here, the interface takes the derived type as a template argument
+
+\code 
+class MyFilterAlgorithm: public FilterInterface<MyFilterAlgorithm>  { ... }; 
+\endcode
+
+The interface takes the algorithm type and checks for the required types and
+provides them itself. This is achieved via Traits which shall be elaborated 
+in the following section.
+
+\subsection library_traits Traits
+
+By convention, every filter algorithm provides a Traits definition for itself.
+The Traits struct is a simple generic template of the form
+
+\code template <typename> struct Traits { }; \endcode 
+
+This is will serve as the basic Traits definition for all modules and we will 
+encounter it many times as we shall see. At this point, a filter specializes 
+the Traits template with its own type
+
+\code template <> struct  Traits<YourFilterType> { ... }; \endcode 
+
+If \c YourFilterType is a template itself, the Traits specialization becomes
+
+\code 
+template </* YourFilterType template arguments */>
+struct  Traits<
+            YourFilterType</* YourFilterType template arguments */>
+        > 
+{ ... }; 
+\endcode 
+
+Essentially, the Traits is where your filter algorithm will define all its
+required types. In doing so, we provide the types for the interface and for
+the filter algorithm in one place. Redundant and erroneous declarations are 
+thus avoided. This shall become more clear after examining a concrete example.
+
+\subsection filter_traits Filter Traits
+
+A typical filter Traits specialization is depicted below
+
+\code
+// Forward declare the filter class
+template <typename ProcessModel, typename ObservationModel> class MyFancyGaussianFilter;
+
+// MyFancyGaussianFilter Traits declaration
+template <typename ProcessModel,
+          typename ObservationModel>
+struct Traits<
+           MyFancyGaussianFilter<ProcessModel, ObservationModel>>
+{
+    typedef MyFancyGaussianFilter<ProcessModel, ObservationModel> Filter;
+
+    /*  Required  types */
+    
+    typedef std::shared_ptr<Filter> Ptr;
+    typedef typename Traits<ProcessModel>::State State;
+    typedef typename Traits<ProcessModel>::Input Input;    
+    typedef typename Traits<ObservationModel>::Observation Observation;
+
+    typedef ff::Gaussian<State> StateDistribution;
+};
+\endcode
+
+\subsubsection filter_traits_explained Line by line walkthrough 
+
+At the beginning of the listing above, the filter algorithm class is forward declared.
+In this case the class \c MyFancyGaussianFilter is template taking the \c ProcessModel type
+and the \c ObservationModel type as template parameters. 
+
+\code template <typename ProcessModel, typename ObservationModel> class MyFancyGaussianFilter; \endcode
+
+What follows is the specialization of Traits for \c MyFancyGaussianFilter<...>.
+
+\code 
+template <typename ProcessModel,
+          typename ObservationModel>
+struct Traits<
+           MyFancyGaussianFilter<ProcessModel, ObservationModel>>
+{ ... };
+\endcode
+
+Within Traits the required types are defined. Note that the \c State, 
+\c Input and the \c Observation types are provided by the models. They
+are being access by the Traits of these models. Hence, it assumes or requires that 
+the models provide these types
+
+\code
+typedef typename Traits<ProcessModel>::State State;
+typedef typename Traits<ProcessModel>::Input Input;    
+typedef typename Traits<ObservationModel>::Observation Observation;
+\endcode
+
+Finally, the \c StateDistribution is a ff::Gaussian over the \c State. The 
+ff::Gaussian already implements the ff::Moments interface and therefore
+satisfies the requirement on \c StateDistribution type.
+
+\code typedef ff::Gaussian<State> StateDistribution; \endcode
+
+
+\section filter_class Filter Class
+
+The previous section covered the filter concept principle using the FilterInterface
+and the filter Traits. Here a full dummy filter example is presented.
+
+The following assumptions are made
+ - A process model \c MyProcessModel exists which provides the \c State and an \c Input type declaration via its Traits<MyProcessModel>.
+ - An observation model \c MyObservationModel exists which provides the \c Observation type via its Traits<MyObservationModel>.
+ - The \c StateDistribution is a simple Gaussian.
+ 
+Implementing the filter class is summarized in the following three steps 
+
+ -# Forward declaration of the filter
+ -# Declare filter Traits. Here you may constrain the model or even provide the models directly (see GaussianFilter<State, Input, Observation> aka KalmanFilter).
+ -# Declare filter class by deriving from FilterInterface
+ 
+
+\code
+
+#ifndef FL__FILTER__MY_FANCY_GAUSSIAN_FILTER_HPP
+#define FL__FILTER__MY_FANCY_GAUSSIAN_FILTER_HPP
+
+#include <fl/util/traits.hpp>
+#include <fl/filter/filter_interface.hpp>
+#include <fl/distribution/gaussian.hpp>
+
+
+namespace fl
+{
+
+// 1. Forward declare the filter class
+template <typename ProcessModel, typename ObservationModel> class MyFancyGaussianFilter;
+
+// 2. MyFancyGaussianFilter Traits declaration
+template <typename ProcessModel,
+          typename ObservationModel>
+struct Traits<
+           MyFancyGaussianFilter<ProcessModel, ObservationModel>>
+{
+    typedef MyFancyGaussianFilter<ProcessModel, ObservationModel> Filter;
+
+    /*  Required  types */
+    
+    typedef std::shared_ptr<Filter> Ptr;
+    typedef typename Traits<ProcessModel>::State State;
+    typedef typename Traits<ProcessModel>::Input Input;    
+    typedef typename Traits<ObservationModel>::Observation Observation;
+
+    typedef ff::Gaussian<State> StateDistribution;
+};
+
+
+/**
+ * \class MyFancyGaussianFilter
+ * \brief What does this filter represent?
+ *
+ * \ingroup filters
+ * \ingroup gaussian_filters
+ *
+ * \tparam ProcessModel         E.g. non-linear process model type
+ * \tparam ObservationModel     E.g. non-linear observation model type
+ *
+ * \details 
+ * Some elaborated details about the filter
+ *
+ */
+template <typename ProcessModel,
+          typename ObservationModel>
+class MyFancyGaussianFilter
+    : public FilterInterface<
+                MyFancyGaussianFilter<ProcessModel, ObservationModel>>
+{
+public:    
+    typedef MyFancyGaussianFilter<ProcessModel, ObservationModel> This;
+    
+    // make the Traits types available within this scope
+    typedef typename Traits<This>::State             State;
+    typedef typename Traits<This>::Input             Input;
+    typedef typename Traits<This>::Observation       Observation;
+    typedef typename Traits<This>::StateDistribution StateDistribution;
+    
+    
+    // == implement the interface procedures ============================== // 
+    
+    /**
+     * \copydoc FilterInterface::predict
+     *
+     * Explain how the prediction is done
+     */
+    virtual void predict(double delta_time,
+                         const Input& input,
+                         const StateDistribution& prior_dist,
+                         StateDistribution& predicted_dist)
+    {
+        // here goes your filter prediction implementation
+    }
+       
+    /**
+     * \copydoc FilterInterface::update
+     *
+     * Explain how the update is done
+     */
+    virtual void update(const Observation& observation,
+                        const StateDistribution& predicted_dist,
+                        StateDistribution& posterior_dist)
+    {
+        // here goes your filter update implementation
+    }
+        
+    /**
+     * \copydoc FilterInterface::predict_and_update
+     */
+    virtual void predict_and_update(double delta_time,
+                                    const Input& input,
+                                    const Observation& observation,
+                                    const StateDistribution& prior_dist,
+                                    StateDistribution& posterior_dist)
+    {
+        // this is the easiest solution
+        predict(delta_time, input, prior_dist, posterior_dist);
+        update(observation, posterior_dist, posterior_dist);
+        
+        // however, it might be far more efficient if you provide an 
+        // implementation which exploits the all in-one-place structure
+    }  
+    
+    // ...
+};
+
+}
+          
+#endif
+
+\endcode
+ 
+ 
+*/
+
+}
