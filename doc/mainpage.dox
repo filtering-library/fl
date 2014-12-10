@@ -1,0 +1,76 @@
+
+namespace fl
+{
+
+/**
+ \defgroup filter Filter Algorithms
+ \defgroup distributions Distributions
+ \defgroup observation_models Observation Models
+ \defgroup process_models Process Models
+ \defgroup exceptions Exceptions
+*/
+
+
+/**
+
+\mainpage notitle
+
+\tableofcontents
+
+\section about_fl About FL (draft)
+ 
+FL is general purpose C++ ([C++11 or C++0x](http://en.wikipedia.org/wiki/C%2B%2B11) 
+standard) Bayesian filtering framework library with real-time support for
+linear and non-linear systems. Currently available filters are (just an 
+example list)
+
+
+ - General Particle Filter
+ - Coordinate Particle Filter 
+ - KalmanFilter for purely linear systems
+ - Unscented Kalman Filter for linear and non-linear systems
+ - Extended Unscented Kalman Filter for high-dimension measurement spaces
+ - Factorized Unscented Kalman Filter for high-dimension state and measurement spaces
+ - General (Sigma) Point Kalman Filter for linear and non-linear systems 
+
+
+The library is being developed as an extensible framework with low application
+restrictions.
+
+The employed underlying concepts are aimed to use this library in
+regular offline mode applications as well as in real-time systems. As a result
+of the real-time capability, the user has the option to take advantage of
+vectorization optimizations (SEE2, SSE3 or SSE4, AltiVec, ARM NEON) and zero 
+runtime heap allocation all together with minimum effort.
+
+\section dependecies Dependencies and Compiling
+
+FL doesn't require pre-complication nor any library linking. The entire code
+base is generic and based on templates. 
+
+The library dependencies are 
+
+  - Boost ([Boost 1.48 or higher](http://www.boost.org/doc/libs/1_48_0/)) (requires testing)
+  - Eigen3 ([Eigen 3.1.2 or higher](http://eigen.tuxfamily.org/)) (requires testing)
+
+To be able to compile your code with FL you need to enable the C++11 or C++0x
+standard for your compiler. With GCC you may add the definition
+
+    -std=c++0x OR -std=c++11
+    
+\subsection tested_compilers Tested Compilers
+
+  - GCC 4.6
+  - GCC 4.8 (to be tested; full c++11 standard support) ?
+  - clang 3.3 or later (to be tested; on OSX, Precise and Trusty) ?
+  - VC++ (to be tested) ?
+  
+\subsection tested_os Tested OS 
+
+  - Ubuntu 12.04 LTS (Precise) 
+  - Ubuntu 14.04 LTS (Trusty Tahr) (to be tested)
+  - OS X (to be tested) ?
+
+*/
+
+}
