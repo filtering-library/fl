@@ -71,11 +71,8 @@ class GaussianMap:
 public:
     explicit GaussianMap(const unsigned& noise_dimension = Noise::SizeAtCompileTime):
         standard_gaussian_(noise_dimension)
-    {
-        static_assert_base(Noise,
-                           Eigen::Matrix<typename Noise::Scalar,
-                                         Noise::SizeAtCompileTime, 1>);
-    }
+    { }
+
     virtual ~GaussianMap() { }
 
     virtual Vector MapStandardGaussian(const Noise& sample) const = 0;
@@ -90,9 +87,7 @@ public:
         return standard_gaussian_.Dimension();
     }
 
-    template <typename T = void>
-    typename std::enable_if<Noise::SizeAtCompileTime==Eigen::Dynamic, T>::type
-    NoiseDimension(size_t new_noise_dimension)
+    virtual void NoiseDimension(size_t new_noise_dimension)
     {
         standard_gaussian_.Dimension(new_noise_dimension);
     }
