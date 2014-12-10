@@ -1,0 +1,151 @@
+
+namespace fl
+{
+
+/**
+ \page page_developer Working with FL Framework
+ 
+ \tableofcontents
+ 
+ FL comes with a set of pre-implemented filtering algorithms, models and
+ distributions. Nevertheless, in many use cases you will be implementing your 
+ own filters and models. This applies especially in particular to measurement 
+ models.
+
+ In order to use the FL framework, few basic concepts and conventions need to
+ be addressed. 
+ 
+ \section prerequisites Standards & Prerequisites
+ 
+ The library is essentially subject to meta- and generic programming using
+ C++ Template language constructs. The implementations follow the C++11 
+ Standard. Furthermore, most of vector and distribution sample spaces 
+ implemented within FL are based on Eigen types.
+ 
+ 
+ \subsection prerequisites_meta_generic_programming Why Meta and Generic Programming?
+ 
+ FL is intended to be used in off-line, on-line and real-time systems. 
+ The last case in particular may demand strong requirements such as 
+ 
+  - zero heap memory allocation
+  - zero heap memory allocation after initialization 
+  - static alignment and vectorization optimization
+  
+  This raises the question how does meta and generic programming help with 
+  these issues? The short answer is by being very explicit about all types and
+  their sizes while maintaining the generality of the design of algorithms.
+  
+  In order to satisfy the requirement listed above we have two options
+  
+  -# Specifying the exact sizes of all types
+  -# Specifying the maximum used sizes of all types
+  
+  This two points above involve specifying the dimensions of vectors and
+  matrices and their scalar type (floating point, integral, complex, etc.). These
+  properties are application dependent and hard and sometimes impossible to be 
+  predict.
+  
+  In the following the two points shall be further elaborated.
+  
+  \subsubsection prerequisites_meta_generic_programming_exact_types Specify the Exact Sizes of All Types
+  This option involves hard coding the dimension constants within the 
+  algorithm leaving \e no option to use the algorithm in any different way. 
+  However, the vital pro arguments are
+   - It provides the compiler with full information about the sizes and enables exhaustive optimizations and vectorizations
+   - The required memory is pre-allocated directly on the faster accessible stack.
+  
+  \subsubsection prerequisites_meta_generic_programming_max_sizes Specify the Maximum Used Sizes of All Types
+  This is the second and less restrictive option. Although the scalar types
+  still have to be specified within the algorithm, the exact type sizes do
+  not have to be known at compile time. By providing an upper bound sizes the 
+  maximum required memory is pre-allocated. In doing so, any further memory
+  allocation is avoided during runtime. 
+  
+  This approach however is not without drawbacks. The dynamic-size types
+  with small sizes, i.e roughly 32 or smaller, do not benefit from static alignment 
+  and loops unrolling and therefore dropping a huge performance improvements.
+  Finally, the maximum size is often not know or hard to guess at compile time.
+  A compiled unit in release mode will bypass bound assertions and therefore
+  any dynamic size exceeding the compile time maximum size will lead to invalid
+  memory access resulting in segmentation faults or continue silently with
+  random memory values. The latter issue leads to hard-to-detect bugs.
+     
+     
+ \subsubsection prerequisites_meta_generic_programming_templates Template Meta-Programming (TMP)
+ TMP is an elegant way to satisfy the requirements stated at the beginning of 
+ this section while maintaining the \e genericity of algorithms. That is,
+ algorithms are parametrized such that the user can choose which types to use.
+ 
+ The benefits of TMP are not limited to the aforementioned problems. Among 
+ other advantages here are few important ones worth mentioning
+ 
+  - Compile-time errors (but can be very hard to read)
+  - Flexibility in algorithm design.
+    Many algorithms exhibit different structures even though intended to solve
+    same or similar problems. 
+ 
+ Admittedly, the caveat is TMP requires a familiarization phase if being new to 
+ the idioms  employed within this field. Addressing these is out of the scope 
+ of this documentation. For sake of completeness and curiosity, here is a list 
+ of most idioms used internally
+ 
+ - [Policy-Based Design](http://en.wikipedia.org/wiki/Policy-based_design)
+ - [SFINAE](http://en.wikipedia.org/wiki/Substitution_failure_is_not_an_error) 
+ - [Static Polymorphism] (http://en.wikipedia.org/wiki/Template_metaprogramming#Static_polymorphism) ([CRTP](http://en.wikipedia.org/wiki/Curiously_recurring_template_pattern))
+ - [Variadic Templates](http://en.wikipedia.org/wiki/Variadic_template)
+ - [Constexpr](http://en.wikipedia.org/wiki/C%2B%2B11#constexpr_.E2.80.93_Generalized_constant_expressions) ([constexpr specifier C++11](http://en.cppreference.com/w/cpp/language/constexpr))
+ - The Concept of [C++ Concepts](http://en.wikipedia.org/wiki/Concepts_%28C%2B%2B%29)
+ - [Template Template Parameter](http://en.cppreference.com/w/cpp/language/template_parameters) in template parameter type introspection
+ - [Compile Time Function Execution (CTFE)](http://en.wikipedia.org/wiki/Compile_time_function_execution)
+ 
+ However, using FL will not require deep knowledge in those fields in order to 
+ be able use it.  
+ 
+  
+  
+ \subsection prerequisites_eige Eigen Types
+ 
+ It is encouraged to use Eigen types for vectors and matrices. Eigen provides
+ a wide range of type representations, algebraic operations and various 
+ numerical solvers. It also provides solid static alignment and vectorization 
+ optimization out of the box. 
+ 
+ FL utilizes extensively the types ported by Eigen. For  instance, a \c State 
+ type describing a pose of a rigid body with 7 degree-of-freedom will be 
+ represented as an Eigen column vector of the type
+ 
+ \code typedef Eigen::Matrix<double, 7, 1> State; \endcode
+ 
+ The same applies to control \c Input vectors, Observations, matrices such as
+ covariances and so forth. However, depending on the filter algorithm, these
+ vectorial types may also be of custom types other than Eigen matrices and
+ arrays. 
+ 
+ It is interesting to note that Eigen offers a simple way of customizing the 
+ library via "plugins". The extension idea boils down to injecting custom code
+ within Eigen generic classes such as Eigen::Matrix. See the 
+ [Customizing](http://eigen.tuxfamily.org/dox/TopicCustomizingEigen.html) 
+ chapter for more details on this topic.
+ 
+ 
+ \subsection prerequisites_exceptions Exceptions and Exception Safety
+ FL endorses error handling through exceptions. The library is [exception-safe](http://en.wikipedia.org/wiki/Exception_safety).
+ All exceptions are derived from fl::Exception. This exception in turn has the 
+ base classes the std::exception and the boost::exception . With that in mind
+ any exception thrown by FL can be caught by one of these exceptions. The 
+ default implementation of fl::Exception::what() provides diagnostic information 
+ about the error and potentially the location of the throw instruction.
+ Please checkout [Boost Exception] (http://www.boost.org/doc/libs/1_48_0/libs/exception/doc/boost-exception.html)
+ to learn about customizing exceptions and providing [Tagged Error Info](http://www.boost.org/doc/libs/1_48_0/libs/exception/doc/error_info.html).
+ 
+ 
+ 
+ 
+ <div style="display:none;">
+   \subpage page_howto
+   \subpage page_filters  
+ </div>
+*/
+
+}
