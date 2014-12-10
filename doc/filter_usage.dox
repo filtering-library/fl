@@ -1,0 +1,142 @@
+
+namespace fl
+{
+
+/**
+\page page_using_filters Using a Filter
+
+ \tableofcontents
+
+See [Defining a Filter](\ref page_constructing_filters) to learn about the process of defining a filter.
+The page also shows a list of available filter algorithms and models
+followed by an example.
+
+Once the filter is defined (see [Filter Definition](\ref example_filter_definition))
+\code  typedef FilterInterface<FilterAlgorithm> Filter; \endcode
+we have every thing setup up to use the filter.
+    
+All filters operate on a distribution over the state. Although each individual
+filter may use a distribution of its own, it also provides the exact type of the
+distribution in the typedef FilterInterface<FilterAlgorithm>::StateDistribution
+or short \c Filter::StateDistribution. More importantly, the provided
+distribution type always implements the ff::Moments interface regardless actual
+type of the underlying distribution (parametric, sample based, multi-modal,
+Gaussian, etc.). This  provides access to the current state via
+ff::Moments::Mean(). In this context the Mean() function is available in \c
+Filter::StateDistribution::StateDistribution::Mean().
+
+The FilterInterface depicted below shows that the predict and update functions
+take a \c StateDistribution as an \c in argument and return a \c StateDistribution
+again.
+
+The following example listing shall clarify the use of the \c StateDistribution in 
+conjunction with the filter functions. The example is an extension of 
+[Filter Definition](\ref example_filter_definition).
+
+\code
+#ifndef MY_LIB_MY_FILTER_CONTEXT_HPP
+#define MY_LIB_MY_FILTER_CONTEXT_HPP
+
+#include <fl/model/process/damped_wiener_process_model.hpp>
+#include <fl/model/observation/linear_observation_model.hpp>
+#include <fl/filter/gaussian/unscented_transform.hpp>
+#include <fl/filter/gaussian/gaussian_filter.hpp>
+    
+class MyFilteringContext
+{
+public:
+    /* ==================================================================== */
+    /* == Filter algorithm specific part                                 == */
+    /* ==================================================================== */
+    
+    /**
+     * My 7 degree-of-freedom state representation
+     */
+    typedef Eigen::Matrix<double, 7, 1> State;
+
+    /**
+     * My 6 dimensional measurement
+     */
+    typedef Eigen::Matrix<double, 7, 1> Observation;
+    
+    /**
+     * 7D Damped Wiener Process
+     */
+    typedef DampedWienerProcessModel<State> ProcessModel;
+    
+    /**
+     * A linear observation model
+     */
+    typedef LinearGaussianObservationModel<Observation, State> ObservationModel;
+    
+    /**
+     * My Filter Algorithm
+     */
+    typedef GaussianFilter<
+                ProcessModel, 
+                ObservationModel, 
+                UnscentedTransform
+            > FilterAlgorithm;
+            
+    /* ==================================================================== */
+    /* == Filter algorithm independent part                              == */
+    /* ==================================================================== */
+            
+    /**
+     * Final filter definition
+     */
+    typedef FilterInterface<FilterAlgorithm> Filter;
+    
+    
+    // get the remaining required types from the filter definition
+    typedef Filter::Input             Input;
+    typedef Filter::StateDistribution StateDistribution;
+        
+public:
+    MyFilteringContext()
+        : time_(0),
+          filter_(/* filter arguments, models, transform, etc. */) { }
+
+    /**
+     * Where the magic happens
+     * 
+     * Applies the entire filtering process
+     */
+    void apply_filter(const Observation& observation)
+    {
+        // predict
+        filter_.predict(time_now() - time_,   // delta time since last prediction
+                        Input(),              // Empty input (for simplicity reasons)
+                        state_distribution_,  // prior state distribution
+                        state_distribution_); // predicted state distribution
+                
+        // update state using the measurement
+        filter_.update(observation,          // given latest observation
+                       state_distribution_,  // predicted state distribution
+                       state_distribution_); // posterior state distribution
+    
+        time_ = time_now();
+    }
+        
+    /** Provides access to the current StateDistribution */
+    StateDistribution& state_distribution()
+    {
+        return state_distribution_;
+    }
+    
+    /** \return current time stamp as double in seconds */
+    double time_now() { return ....; }
+
+private:
+    StateDistribution state_distribution_;
+    double time_;
+    Filter filter_;
+}
+
+#endif
+\endcode
+    
+*/
+
+}
+
