@@ -1,0 +1,21 @@
+
+namespace fl
+{
+
+/**
+ \page page_howto How to ...
+   - \subpage page_implement_filter
+   - \subpage page_implement_model
+   - \subpage page_implement_distribution
+   - \subpage page_implement_transform
+*/
+
+/** \page page_implement_model Write your own model  
+*/
+/** \page page_implement_distribution Write your own distribution 
+*/
+/** \page page_implement_transform Write your own transform policy
+*/
+
+
+}
