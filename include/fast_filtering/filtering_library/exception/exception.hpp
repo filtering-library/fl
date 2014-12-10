@@ -40,7 +40,6 @@
 /**
  * @date 10/21/2014
  * @author Jan Issac (jan.issac@gmail.com)
- * @author Manuel Wuthrich (manuel.wuthrich@gmail.com)
  * Max-Planck-Institute for Intelligent Systems,
  * University of Southern California
  */
@@ -134,6 +133,75 @@ public:
                     + boost::lexical_cast<std::string>(size)
                     + ")");
     }
+};
+
+/**
+ * \ingroup exceptions
+ *
+ * Exception representing a wrong size or dimension
+ */
+class WrongSizeException:
+    public fl::Exception
+{
+public:
+    /**
+     * Creates an WrongSizeException with a customized message
+     */
+    WrongSizeException(std::string msg):
+        fl::Exception(msg)
+    {
+    }
+
+    /**
+     * Creates an WrongSizeException
+     */
+    WrongSizeException(size_t given, size_t expected):
+        fl::Exception(
+            "Wrong size ("
+            + boost::lexical_cast<std::string>(given)
+            + "). Expected ("
+            + boost::lexical_cast<std::string>(expected)
+            + ")") { }
+};
+
+/**
+ * \ingroup exceptions
+ *
+ * Exception representing an uninitialized dimension of a dynamic sized Gaussian
+ */
+class ZeroDimensionException:
+    public fl::Exception
+{
+public:
+    /**
+     * Creates an ZeroDimensionException
+     */
+    ZeroDimensionException(std::string entity = "Entity"):
+        fl::Exception(entity + " dimension is 0.") { }
+};
+
+/**
+ * \ingroup exceptions
+ *
+ * Exception representing an attempt to resize a fixed-size entity
+ */
+class ResizingFixedSizeEntityException:
+    public fl::Exception
+{
+public:
+    /**
+     * Creates an ResizingFixedSizeEntityException
+     */
+    ResizingFixedSizeEntityException(size_t fixed_size,
+                                     size_t new_size,
+                                     std::string entity = "entity"):
+        fl::Exception("Attempt to resize the fixed-size ("
+                      + boost::lexical_cast<std::string>(fixed_size)
+                      + ") "
+                      + entity
+                      + " to ("
+                      + boost::lexical_cast<std::string>(new_size)
+                      + ")") { }
 };
 
 }
