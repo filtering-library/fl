@@ -14,16 +14,39 @@
  */
 
 /**
- * \file gtest_main.hpp
+ * \file sampling.hpp
  * \date May 2014
  * \author Jan Issac (jan.issac@gmail.com)
+ * \author Manuel Wuthrich (manuel.wuthrich@gmail.com)
  */
-#include <ros/ros.h>
-#include <gtest/gtest.h>
 
-int main(int argc, char **argv)
+#ifndef FL__DISTRIBUTION__INTERFACE__SAMPLING_HPP
+#define FL__DISTRIBUTION__INTERFACE__SAMPLING_HPP
+
+namespace fl
 {
-    testing::InitGoogleTest(&argc, argv);
 
-    return RUN_ALL_TESTS();
+/**
+ * \interface Sampling
+ * \brief Distribution sampling interface
+ *
+ * \tparam Vector   Sample variable type
+ */
+template <typename Vector>
+class Sampling
+{
+public:    
+    /**
+     * @return A random sample of the underlying distribution
+     */
+    virtual Vector Sample() = 0;
+
+    /**
+     * \brief Overridable default destructor
+     */
+    virtual ~Sampling() { }
+};
+
 }
+
+#endif

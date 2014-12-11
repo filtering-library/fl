@@ -14,16 +14,16 @@
  */
 
 /**
- * \file gtest_main.hpp
- * \date May 2014
- * \author Jan Issac (jan.issac@gmail.com)
+ * \file random_seed.hpp
+ * \date 2014
+ * \author Manuel Wuthrich (manuel.wuthrich@gmail.com)
  */
-#include <ros/ros.h>
-#include <gtest/gtest.h>
 
-int main(int argc, char **argv)
-{
-    testing::InitGoogleTest(&argc, argv);
+#ifndef FL__UTIL__RANDOM_SEED_HPP
+#define FL__UTIL__RANDOM_SEED_HPP
 
-    return RUN_ALL_TESTS();
-}
+#include <ctime>
+
+#define RANDOM_SEED (unsigned) std::time(0) // 1
+
+#endif

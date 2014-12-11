@@ -1,0 +1,42 @@
+/*
+ * This is part of the FL library, a C++ Bayesian filtering library
+ * (https://github.com/filtering-library)
+ *
+ * Copyright (c) 2014 Jan Issac (jan.issac@gmail.com)
+ * Copyright (c) 2014 Manuel Wuthrich (manuel.wuthrich@gmail.com)
+ *
+ * Max-Planck Institute for Intelligent Systems, AMD Lab
+ * University of Southern California, CLMC Lab
+ *
+ * This Source Code Form is subject to the terms of the MIT License (MIT).
+ * A copy of the license can be found in the LICENSE file distributed with this
+ * source code.
+ */
+
+/**
+ * \file observation_model_interface.hpp
+ * \date October 2014
+ * \author Jan Issac (jan.issac@gmail.com)
+ */
+
+#ifndef FL__MODEL__OBSERVATION__OBSERVATION_MODEL_INTERFACE_HPP
+#define FL__MODEL__OBSERVATION__OBSERVATION_MODEL_INTERFACE_HPP
+
+namespace fl
+{
+
+template <typename State, typename Observation, typename Noise>
+class ObservationModelInterface
+{
+public:
+    virtual Observation predict_observation(const State& state,
+                                            const Noise& noise) = 0;
+
+    virtual size_t state_dimension() const = 0;
+    virtual size_t obsrv_dimension() const = 0;
+    virtual size_t noise_dimension() const = 0;
+};
+
+}
+
+#endif

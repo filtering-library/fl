@@ -14,16 +14,16 @@
  */
 
 /**
- * \file gtest_main.hpp
- * \date May 2014
+ * \file gaussian_filter.hpp
+ * \date October 2014
  * \author Jan Issac (jan.issac@gmail.com)
  */
-#include <ros/ros.h>
-#include <gtest/gtest.h>
 
-int main(int argc, char **argv)
-{
-    testing::InitGoogleTest(&argc, argv);
 
-    return RUN_ALL_TESTS();
-}
+#ifndef FL__FILTER__GAUSSIAN__GAUSSIAN_FILTER_HPP
+#define FL__FILTER__GAUSSIAN__GAUSSIAN_FILTER_HPP
+
+#include <fl/filter/gaussian/gaussian_filter_kf.hpp>
+#include <fl/filter/gaussian/gaussian_filter_ukf.hpp>
+
+#endif
