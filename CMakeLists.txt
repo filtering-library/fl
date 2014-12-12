@@ -33,13 +33,11 @@ execute_process(COMMAND git rev-parse --short HEAD
 #  $ cmake ..
 #  $ make doc
 #
-# The documentation will be generated within /path/to/fl/build/doc  
+# The documentation will be generated within /path/to/fl/build/doc
 #
 find_package(Doxygen)
 if(DOXYGEN_FOUND)
-    configure_file(
-        ${CMAKE_CURRENT_SOURCE_DIR}/doc/Doxyfile.in 
-        ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/doc/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
     add_custom_target(doc
         ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
@@ -60,8 +58,8 @@ include_directories(${Eigen_INCLUDE_DIRS})
 ###################################
 catkin_package(
     INCLUDE_DIRS include
-    # LIBRARIES 
-    # CATKIN_DEPENDS 
+    # LIBRARIES
+    # CATKIN_DEPENDS
     DEPENDS Boost Eigen
 )
 
@@ -70,7 +68,7 @@ catkin_package(
 ###########
 
 include_directories(include ${catkin_INCLUDE_DIRS})
-file(GLOB_RECURSE header_files include/${PROJECT_NAME}/*.hpp 
+file(GLOB_RECURSE header_files include/${PROJECT_NAME}/*.hpp
                                include/${PROJECT_NAME}/*.h)
 
 add_library(${PROJECT_NAME} ${header_files})
@@ -86,7 +84,7 @@ catkin_add_gtest(traits_tests
                  tests/gtest_main.cpp)
 target_link_libraries(traits_tests
                       ${catkin_LIBRARIES})
-# 
+#
 # ## filter interface tests ##
 # catkin_add_gtest(filter_interface_tests
 #                  tests/filter_interface/filter_interface_test.cpp
@@ -94,7 +92,7 @@ target_link_libraries(traits_tests
 #                  tests/gtest_main.cpp)
 # target_link_libraries(filter_interface_tests
 #                       ${catkin_LIBRARIES})
-# 
+#
 # ## Gaussian filter tests ##
 # catkin_add_gtest(gaussian_filter_tests
 #                  tests/gaussian_filter/gaussian_filter_test.cpp
@@ -102,43 +100,43 @@ target_link_libraries(traits_tests
 #                  tests/gtest_main.cpp)
 # target_link_libraries(gaussian_filter_tests
 #                       ${catkin_LIBRARIES})
-# 
+#
 # ## point_set_tests tests ##
 # catkin_add_gtest(point_set_tests
 #                  tests/gaussian_filter/point_set_test.cpp
 #                  tests/gtest_main.cpp)
 # target_link_libraries(point_set_tests
 #                       ${catkin_LIBRARIES})
-# 
+#
 # ## unscented_transform tests ##
 # catkin_add_gtest(unscented_transform_tests
 #                  tests/gaussian_filter/unscented_transform_test.cpp
 #                  tests/gtest_main.cpp)
 # target_link_libraries(unscented_transform_tests
 #                       ${catkin_LIBRARIES})
-# 
+#
 # ## various filter tests ##
 # catkin_add_gtest(distribution_tests
 #                  tests/distribution/gaussian_test.cpp
 #                  tests/gtest_main.cpp)
 # target_link_libraries(distribution_tests
 #                       ${catkin_LIBRARIES})
-# 
+#
 # ## exceptions tests ##
 # catkin_add_gtest(exception_tests
 #                  tests/exception/exception_test.cpp
 #                  tests/gtest_main.cpp)
 # target_link_libraries(exception_tests
 #                       ${catkin_LIBRARIES})
-# 
-# 
+#
+#
 # ## Kalman filter tests ##
 # catkin_add_gtest(kalman_filter_tests
 #                  tests/kalman_filter/kalman_filter_test.cpp
 #                  tests/gtest_main.cpp)
 # target_link_libraries(kalman_filter_tests
 #                       ${catkin_LIBRARIES})
-# 
+#
 # ## linear models tests ##
 # catkin_add_gtest(linear_models_tests
 #                  tests/linear_model/linear_process_model_test.cpp
@@ -146,14 +144,14 @@ target_link_libraries(traits_tests
 #                  tests/gtest_main.cpp)
 # target_link_libraries(linear_models_tests
 #                       ${catkin_LIBRARIES})
-# 
+#
 # ## Factorized UKF vs. Kalman filter tests ##
 # catkin_add_gtest(factorized_ukf_kf_tests
 #                  tests/factorized_ukf/factorized_ukf_kf_test.cpp
 #                  tests/gtest_main.cpp)
 # target_link_libraries(factorized_ukf_kf_tests
 #                       ${catkin_LIBRARIES})
-# 
+#
 # ## Factorized UKF tests ##
 # catkin_add_gtest(factorized_ukf_tests
 #                  tests/factorized_ukf/linear_models_test.cpp
