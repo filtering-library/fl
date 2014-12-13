@@ -6,8 +6,6 @@ set(CMAKE_BUILD_TYPE Debug)
 add_definitions(-DPROFILING_ON=1) #print profiling output
 add_definitions(-std=c++0x)
 
-find_package(catkin REQUIRED)
-
 # library version
 set(FL_MAJOR_VERSION 0)
 set(FL_MINOR_VERSION 1)
@@ -19,6 +17,13 @@ execute_process(COMMAND git rev-parse --short HEAD
                 WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
                 OUTPUT_VARIABLE FL_REV_VERSION
                 OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+message("##############################################")
+message("# Filtering Library ")
+message("# Version v${FL_MAJOR_VERSION}.${FL_MINOR_VERSION}.${FL_BUILD_VERSION} (rev-${FL_REV_VERSION})")
+message("##############################################")
+
+find_package(catkin REQUIRED)
 
 ############################
 # documentation generation #
@@ -37,9 +42,12 @@ execute_process(COMMAND git rev-parse --short HEAD
 #
 find_package(Doxygen)
 if(DOXYGEN_FOUND)
-    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/doc/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
+    configure_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/doc/Doxyfile.in
+        ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
     add_custom_target(doc
-        ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
+        ${CMAKE_COMMAND} ${CMAKE_CURRENT_SOURCE_DIR}
+        COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         COMMENT "Generating API documentation with Doxygen" VERBATIM)
 endif(DOXYGEN_FOUND)
