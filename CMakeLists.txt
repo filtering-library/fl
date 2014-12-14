@@ -77,7 +77,9 @@ catkin_package(
 
 include_directories(include ${catkin_INCLUDE_DIRS})
 file(GLOB_RECURSE header_files include/${PROJECT_NAME}/*.hpp
-                               include/${PROJECT_NAME}/*.h)
+                               include/${PROJECT_NAME}/*.h
+                               include/ff/*.hpp
+                               include/ff/*.h)
 
 add_library(${PROJECT_NAME} ${header_files})
 set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
