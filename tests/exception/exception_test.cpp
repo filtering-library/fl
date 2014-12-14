@@ -47,9 +47,9 @@
 
 #include <gtest/gtest.h>
 
-#include <fast_filtering/filtering_library/exception/exception.hpp>
-#include <fast_filtering/filtering_library/filter/gaussian/point_set_gaussian.hpp>
-#include <fast_filtering/filtering_library/filter/gaussian/gaussian_filter.hpp>
+#include <fl/exception/exception.hpp>
+#include <fl/filter/gaussian/point_set.hpp>
+#include <fl/filter/gaussian/gaussian_filter.hpp>
 
 TEST(Exception, create)
 {

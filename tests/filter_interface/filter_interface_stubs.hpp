@@ -48,9 +48,9 @@
 
 #include <memory.h>
 
-#include <fast_filtering/utils/traits.hpp>
-#include <fast_filtering/filtering_library/exception/exception.hpp>
-#include <fast_filtering/filtering_library/filter/gaussian/gaussian_filter.hpp>
+#include <fl/util/traits.hpp>
+#include <fl/exception/exception.hpp>
+#include <fl/filter/filter_interface.hpp>
 
 
 /*
@@ -66,6 +66,7 @@ namespace fl
 template <> struct Traits<FilterForFun>
 {
     typedef double State;
+    typedef double Input;
     typedef double Observation;
     typedef double StateDistribution;
     typedef std::shared_ptr<FilterForFun> Ptr;
@@ -83,10 +84,12 @@ public:
 
     typedef typename fl::Traits<This>::Ptr Ptr;
     typedef typename fl::Traits<This>::State State;
+    typedef typename fl::Traits<This>::Input Input;
     typedef typename fl::Traits<This>::Observation Observation;
     typedef typename fl::Traits<This>::StateDistribution StateDistribution;
 
     virtual void predict(double delta_time,
+                         const Input& input,
                          const StateDistribution& prior_dist,
                          StateDistribution& predicted_dist)
     {
@@ -98,6 +101,16 @@ public:
                         StateDistribution& posterior_dist)
     {
         posterior_dist = (predicted_dist + observation) / 2.;
+    }
+
+    virtual void predict_and_update(double delta_time,
+                                    const Input& input,
+                                    const Observation& observation,
+                                    const StateDistribution& prior_dist,
+                                    StateDistribution& posterior_dist)
+    {
+        predict(delta_time, input, prior_dist, posterior_dist);
+        update(observation, posterior_dist, posterior_dist);
     }
 };
 
@@ -118,6 +131,7 @@ template <typename A, typename B, typename C>
 struct Traits<FilterForMoreFun<A, B, C>>
 {
     typedef double State;
+    typedef double Input;
     typedef double Observation;
     typedef double StateDistribution;
     typedef std::shared_ptr<FilterForMoreFun<A, B, C>> Ptr;
@@ -136,10 +150,12 @@ public:
 
     typedef typename fl::Traits<This>::Ptr Ptr;
     typedef typename fl::Traits<This>::State State;
+    typedef typename fl::Traits<This>::Input Input;
     typedef typename fl::Traits<This>::Observation Observation;
     typedef typename fl::Traits<This>::StateDistribution StateDistribution;
 
     virtual void predict(double delta_time,
+                         const Input& input,
                          const StateDistribution& prior_dist,
                          StateDistribution& predicted_dist)
     {
@@ -151,5 +167,15 @@ public:
                         StateDistribution& posterior_dist)
     {
         posterior_dist = (predicted_dist + observation) / 3.;
+    }
+
+    virtual void predict_and_update(double delta_time,
+                                    const Input& input,
+                                    const Observation& observation,
+                                    const StateDistribution& prior_dist,
+                                    StateDistribution& posterior_dist)
+    {
+        predict(delta_time, input, prior_dist, posterior_dist);
+        update(observation, posterior_dist, posterior_dist);
     }
 };

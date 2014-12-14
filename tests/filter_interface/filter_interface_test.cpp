@@ -48,7 +48,7 @@
 
 #include <memory.h>
 
-#include <fast_filtering/filtering_library/exception/exception.hpp>
+#include <fl/exception/exception.hpp>
 
 #include "filter_interface_stubs.hpp"
 
@@ -64,13 +64,14 @@ public:
     FilterContext(typename Filter::Ptr _filter)
         : filter_(_filter),
           dist_(1.),
-          y_(2.)
+          u_(0.),
+          y_(2.)        
     {
     }
 
     void predict()
     {
-        filter_->predict(1.0, dist_, dist_);
+        filter_->predict(1.0, u_, dist_, dist_);
     }
 
     void update()
@@ -84,6 +85,7 @@ public:
     }
 
     typename Filter::Ptr filter_;
+    typename Filter::Input u_;
     typename Filter::Observation y_;
     typename Filter::StateDistribution dist_;
 };

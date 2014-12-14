@@ -53,7 +53,7 @@
 #include <cmath>
 #include <iostream>
 
-#include <fast_filtering/distributions/gaussian.hpp>
+#include <fl/distribution/gaussian.hpp>
 
 class GaussianTests:
         public testing::Test
@@ -84,7 +84,7 @@ protected:
     template <typename Gaussian>
     void test_gaussian_covariance(Gaussian& gaussian)
     {
-        typedef typename ff::Traits<Gaussian>::Operator Covariance;
+        typedef typename fl::Traits<Gaussian>::Operator Covariance;
 
         Covariance covariance = Eigen::MatrixXd::Identity(
                                     gaussian.Dimension(),
@@ -167,7 +167,7 @@ protected:
 TEST_F(GaussianTests, fixed_dimension)
 {
     typedef Eigen::Matrix<double, 10, 1> Vector;
-    ff::Gaussian<Vector> gaussian;
+    fl::Gaussian<Vector> gaussian;
 
     test_gaussian_dimension(gaussian, 10);
 }
@@ -176,15 +176,15 @@ TEST_F(GaussianTests, dynamic_dimension)
 {
     const size_t dim = 10;
     typedef Eigen::Matrix<double, Eigen::Dynamic, 1> Vector;
-    ff::Gaussian<Vector> gaussian(dim);
+    fl::Gaussian<Vector> gaussian(dim);
 
     test_gaussian_dimension(gaussian, dim);
 }
 
 TEST_F(GaussianTests, fixed_standard_covariance)
 {
-    typedef ff::Gaussian<FVector> Gaussian;
-    typedef typename ff::Traits<Gaussian>::Operator Covariance;
+    typedef fl::Gaussian<FVector> Gaussian;
+    typedef typename fl::Traits<Gaussian>::Operator Covariance;
 
     Gaussian gaussian;
     Covariance covariance = Eigen::MatrixXd::Identity(
@@ -200,8 +200,8 @@ TEST_F(GaussianTests, fixed_standard_covariance)
 
 TEST_F(GaussianTests, dynamic_standard_covariance)
 {
-    typedef ff::Gaussian<DVector> Gaussian;
-    typedef typename ff::Traits<Gaussian>::Operator Covariance;
+    typedef fl::Gaussian<DVector> Gaussian;
+    typedef typename fl::Traits<Gaussian>::Operator Covariance;
 
     Gaussian gaussian(6);
     Covariance covariance = Eigen::MatrixXd::Identity(gaussian.Dimension(),
@@ -236,31 +236,31 @@ TEST_F(GaussianTests, dynamic_standard_covariance)
 TEST_F(GaussianTests, fixed_gaussian_covariance)
 {
     // triggers static assert as expected:
-    // ff::Gaussian<Eigen::Matrix<double, 0, 0>> gaussian;
+    // fl::Gaussian<Eigen::Matrix<double, 0, 0>> gaussian;
 
-    ff::Gaussian<FVector> gaussian;
+    fl::Gaussian<FVector> gaussian;
     test_gaussian_covariance(gaussian);
 }
 
 TEST_F(GaussianTests, dynamic_gaussian_covariance_constructor_init)
 {
-    ff::Gaussian<DVector> gaussian(6);
+    fl::Gaussian<DVector> gaussian(6);
     test_gaussian_covariance(gaussian);
 }
 
 TEST_F(GaussianTests, dynamic_gaussian_covariance_SetStandard_init)
 {
-    ff::Gaussian<DVector> gaussian;
+    fl::Gaussian<DVector> gaussian;
     gaussian.Dimension(7);
     test_gaussian_covariance(gaussian);
 }
 
 TEST_F(GaussianTests, dynamic_uninitialized_gaussian)
 {
-    ff::Gaussian<DVector> gaussian;
-    EXPECT_THROW(gaussian.Covariance(), ff::GaussianUninitializedException);
-    EXPECT_THROW(gaussian.Precision(), ff::GaussianUninitializedException);
-    EXPECT_THROW(gaussian.SquareRoot(), ff::GaussianUninitializedException);
+    fl::Gaussian<DVector> gaussian;
+    EXPECT_THROW(gaussian.Covariance(), fl::GaussianUninitializedException);
+    EXPECT_THROW(gaussian.Precision(), fl::GaussianUninitializedException);
+    EXPECT_THROW(gaussian.SquareRoot(), fl::GaussianUninitializedException);
 
     gaussian.Dimension(1);
     EXPECT_NO_THROW(gaussian.Covariance());
@@ -268,8 +268,8 @@ TEST_F(GaussianTests, dynamic_uninitialized_gaussian)
     EXPECT_NO_THROW(gaussian.SquareRoot());
 
     gaussian.Dimension(0);
-    EXPECT_THROW(gaussian.Covariance(), ff::GaussianUninitializedException);
-    EXPECT_THROW(gaussian.Precision(), ff::GaussianUninitializedException);
-    EXPECT_THROW(gaussian.SquareRoot(), ff::GaussianUninitializedException);
+    EXPECT_THROW(gaussian.Covariance(), fl::GaussianUninitializedException);
+    EXPECT_THROW(gaussian.Precision(), fl::GaussianUninitializedException);
+    EXPECT_THROW(gaussian.SquareRoot(), fl::GaussianUninitializedException);
 }
 

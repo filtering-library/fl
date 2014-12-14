@@ -133,7 +133,7 @@ template<
     typename ObsrvModel,
     typename PointSetTransform
 >
-class GaussianFilter<ProcessModel, ObsrvModel, PointSetTransform, AdditiveObservationNoise>
+class GaussianFilter<ProcessModel, ObsrvModel, PointSetTransform>
     :
     /* Implement the conceptual filter interface */
     public FilterInterface<

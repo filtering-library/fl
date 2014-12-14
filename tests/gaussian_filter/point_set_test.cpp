@@ -48,8 +48,8 @@
 
 #include <memory.h>
 
-#include <fast_filtering/filtering_library/exception/exception.hpp>
-#include <fast_filtering/filtering_library/filter/gaussian/point_set_gaussian.hpp>
+#include <fl/exception/exception.hpp>
+#include <fl/filter/gaussian/point_set.hpp>
 
 
 TEST(PointSet, fixed_fixed)
