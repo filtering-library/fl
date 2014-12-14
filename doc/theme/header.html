@@ -138,55 +138,37 @@ jQuery.fn.highlight_static_functions = function() {
 
 $(function () {
 
-    var traits_keywords = ['Traits', 'DimensionOf', 'IsFixed', 'IsDynamic', 'MaxOf', 'JoinSizes'];
+    var traits_keywords = [
+        'Traits', 'DimensionOf', 'IsFixed', 'IsDynamic', 'MaxOf', 'JoinSizes'];
     traits_keywords.forEach(function(entry) {
-        $(".fragment").highlight(entry, { className: 'traits', wordsOnly: true, caseSensitive: true });
+        $(".fragment").highlight(entry, { className: 'traits',
+                                          wordsOnly: true,
+                                          caseSensitive: true });
     });
 
-    var concept_keywords = ['Ptr', 'State', 'Input', 'Observation', 'Obsrv', 'StateDistribution'];
+    var concept_keywords = [
+        'Ptr', 'State', 'Input', 'Observation', 'Obsrv', 'StateDistribution'];
     concept_keywords.forEach(function(entry) {
-        $(".fragment").highlight(entry, { className: 'concept', wordsOnly: true, caseSensitive: true });
+        $(".fragment").highlight(entry, { className: 'concept',
+                                          wordsOnly: true,
+                                          caseSensitive: true });
     });
 
-    var comment_command = ['\\param',
-                           '\\tparam',
-                           '\\return',
-                           '\\returns',
-                           '\\cond',
-                           '\\endcond',
-                           '\\class',
-                           '\\struct',
-                           '\\interface',
-                           '\\throw',
-                           '\\throws',
-                           '\\author',
-                           '\\date',
-                           '\\brief',
-                           '\\date',
-                           '\\details',
-                           '\\if',
-                           '\\else',
-                           '\\endif',
-                           '\\internal',
-                           '\\endinternal',
-                           '\\see',
-                           '\\enum',
-                           '\\addgroup',
-                           '\\defgroup',
-                           '\\ingroup',
-                           '\\page',
-                           '\\subpage',
-                           '\\section',
-                           '\\subsection',
-                           '\\subsubsection',
-                           '\\warning',
-                           '\\note',
-                           '\\attention',
-                           '\\todo',
-                           '\\f$',
-                           '\\copydoc'];
+    var comment_command = [
+        '\\param',       '\\tparam',     '\\return',        '\\returns',
+        '\\cond',        '\\endcond',    '\\class',         '\\struct',
+        '\\interface',   '\\throw',      '\\throws',        '\\author',
+        '\\date',        '\\brief',      '\\date',          '\\details',
+        '\\if',          '\\else',       '\\endif',         '\\internal',
+        '\\endinternal', '\\see',        '\\enum',          '\\addgroup',
+        '\\defgroup',    '\\ingroup',    '\\page',          '\\subpage',
+        '\\section',     '\\subsection', '\\subsubsection', '\\warning',
+        '\\note',        '\\attention',  '\\todo',          '\\f$',
+        '\\copydoc',     '\\file' ];
     comment_command.forEach(function(entry) {
-        $(".fragment").highlight(entry, { className: 'doccommand', wordsOnly: false, caseSensitive: true });
+        $(".fragment").highlight(entry, { className: 'doccommand',
+                                          wordsOnly: false,
+                                          caseSensitive: true });
     });
 
     $(".fragment").highlight_functions();
