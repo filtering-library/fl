@@ -46,16 +46,16 @@
 #ifndef FAST_FILTERING_DISTRIBUTIONS_TRUNCATED_GAUSSIAN_HPP
 #define FAST_FILTERING_DISTRIBUTIONS_TRUNCATED_GAUSSIAN_HPP
 
-// eigen
+
 #include <limits>
 #include <cmath>
 #include <boost/math/special_functions/erf.hpp>
 
-// state_filtering
-#include <fast_filtering/distributions/interfaces/evaluation.hpp>
-#include <fast_filtering/distributions/interfaces/gaussian_map.hpp>
 
-namespace ff
+#include <fl/distribution/interface/evaluation.hpp>
+#include <fl/distribution/interface/gaussian_map.hpp>
+
+namespace fl
 {
 
 class TruncatedGaussian:

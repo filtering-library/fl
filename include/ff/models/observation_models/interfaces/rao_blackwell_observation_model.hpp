@@ -30,10 +30,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define FAST_FILTERING_MODELS_OBSERVATION_MODELS_INTERFACES_RAO_BLACKWELL_OBSERVATION_MODEL_HPP
 
 #include <vector>
-#include <fast_filtering/utils/traits.hpp>
+#include <fl/util/traits.hpp>
 
 
-namespace ff
+namespace fl
 {
 
 /**

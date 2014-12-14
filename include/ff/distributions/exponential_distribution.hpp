@@ -46,15 +46,15 @@
 #ifndef FAST_FILTERING_DISTRIBUTIONS_EXPONENTIAL_DISTRIBUTION_HPP
 #define FAST_FILTERING_DISTRIBUTIONS_EXPONENTIAL_DISTRIBUTION_HPP
 
-// eigen
+
 #include <limits>
 #include <cmath>
 
-// state_filtering
-#include <fast_filtering/distributions/interfaces/evaluation.hpp>
-#include <fast_filtering/distributions/interfaces/gaussian_map.hpp>
 
-namespace ff
+#include <fl/distribution/interface/evaluation.hpp>
+#include <fl/distribution/interface/gaussian_map.hpp>
+
+namespace fl
 {
 
 class ExponentialDistribution:

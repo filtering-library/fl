@@ -51,10 +51,10 @@
 #include <vector>
 #include <boost/static_assert.hpp>
 
-#include <fast_filtering/utils/traits.hpp>
-#include <fast_filtering/distributions/gaussian.hpp>
+#include <fl/util/traits.hpp>
+#include <fl/distribution/gaussian.hpp>
 
-namespace ff
+namespace fl
 {
 
 
@@ -62,7 +62,7 @@ namespace ff
 //class FactorizedGaussian
 //{
 //public:
-//    typedef ff::Gaussian<VectorPartition> PartitionGaussian;
+//    typedef fl::Gaussian<VectorPartition> PartitionGaussian;
 
 //    virtual const PartitionGaussian& Gaussian(size_t i)
 //    {
@@ -84,7 +84,7 @@ namespace ff
 //        public FactorizedGaussian<VectorPartition>
 //{
 //public:
-//    typedef ff::Gaussian<VectorPartition0> HeadGaussianPartition;
+//    typedef fl::Gaussian<VectorPartition0> HeadGaussianPartition;
 //    using PartitionGaussian;
 //    using Gaussian;
 //    using operator[];

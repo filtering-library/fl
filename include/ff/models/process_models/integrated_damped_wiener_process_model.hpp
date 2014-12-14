@@ -49,17 +49,17 @@
 #include <boost/static_assert.hpp>
 #include <boost/math/special_functions/gamma.hpp>
 
-// state_filtering
-#include <fast_filtering/utils/assertions.hpp>
-#include <fast_filtering/distributions/interfaces/gaussian_map.hpp>
-#include <fast_filtering/distributions/gaussian.hpp>
-#include <fast_filtering/models/process_models/damped_wiener_process_model.hpp>
+
+#include <ff/utils/assertions.hpp>
+#include <fl/distribution/interface/gaussian_map.hpp>
+#include <fl/distribution/gaussian.hpp>
+#include <ff/models/process_models/damped_wiener_process_model.hpp>
 
 
 //TODO: THIS IS A LINEAR GAUSSIAN PROCESS, THIS CLASS SHOULD DISAPPEAR
 
 
-namespace ff
+namespace fl
 {
 
 // Forward declarations

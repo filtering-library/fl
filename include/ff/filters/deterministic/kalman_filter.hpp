@@ -47,15 +47,15 @@
 #ifndef FAST_FILTERING_FILTERS_DETERMINISTIC_KALMAN_FILTER_HPP
 #define FAST_FILTERING_FILTERS_DETERMINISTIC_KALMAN_FILTER_HPP
 
-#include <fast_filtering/utils/traits.hpp>
+#include <fl/util/traits.hpp>
 
 #include <boost/shared_ptr.hpp>
 
-#include <fast_filtering/distributions/gaussian.hpp>
-#include <fast_filtering/models/process_models/linear_process_model.hpp>
-#include <fast_filtering/models/observation_models/linear_observation_model.hpp>
+#include <fl/distribution/gaussian.hpp>
+#include <fl/model/process/linear_process_model.hpp>
+#include <fl/model/observation/linear_observation_model.hpp>
 
-namespace ff
+namespace fl
 {
 
 template <typename ProcessModel, typename ObservationModel>

@@ -47,10 +47,10 @@
 #ifndef FAST_FILTERING_MODELS_PROCESS_MODELS_INTERFACES_STATIONARY_PROCESS_MODEL_HPP
 #define FAST_FILTERING_MODELS_PROCESS_MODELS_INTERFACES_STATIONARY_PROCESS_MODEL_HPP
 
-#include <fast_filtering/utils/traits.hpp>
+#include <fl/util/traits.hpp>
 
 
-namespace ff
+namespace fl
 {
 
 template <typename State_, typename Input_ = internal::Empty>

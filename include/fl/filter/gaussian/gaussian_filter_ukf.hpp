@@ -70,7 +70,7 @@ struct Traits<GaussianFilter<ProcessModel, ObsrvModel, PointSetTransform>>
      * case of a Point Based Kalman filter, the distribution is a simple
      * Gaussian with the dimension of the \c State.
      */
-    typedef ff::Gaussian<State> StateDistribution;
+    typedef fl::Gaussian<State> StateDistribution;
 
     /** \cond INTERNAL */
     typedef typename Traits<ProcessModel>::Noise StateNoise;
@@ -218,7 +218,7 @@ public:
          * and the dimension offset dim(P) as parameters.
          */
         point_set_transform_->forward(
-            ff::Gaussian<StateNoise>(process_model_->noise_dimension()),
+            fl::Gaussian<StateNoise>(process_model_->noise_dimension()),
             global_dimension_,
             process_model_->state_dimension(),
             X_Q);
@@ -241,7 +241,7 @@ public:
          * and the dimension offset dim(P) + dim(Q) as parameters.
          */
         point_set_transform_->forward(
-            ff::Gaussian<ObsrvNoise>(obsrv_model_->noise_dimension()),
+            fl::Gaussian<ObsrvNoise>(obsrv_model_->noise_dimension()),
             global_dimension_,
             process_model_->state_dimension()
             + process_model_->noise_dimension(),

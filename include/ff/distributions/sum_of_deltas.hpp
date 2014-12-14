@@ -47,18 +47,18 @@
 #ifndef FAST_FILTERING_DISTRIBUTIONS_SUM_OF_DELTAS_HPP
 #define FAST_FILTERING_DISTRIBUTIONS_SUM_OF_DELTAS_HPP
 
-// eigen
+
 #include <Eigen/Dense>
 
 // std
 #include <vector>
 
-// state_filtering
-#include <fast_filtering/utils/assertions.hpp>
-#include <fast_filtering/utils/traits.hpp>
-#include <fast_filtering/distributions/interfaces/moments.hpp>
 
-namespace ff
+#include <ff/utils/assertions.hpp>
+#include <fl/util/traits.hpp>
+#include <fl/distribution/interface/moments.hpp>
+
+namespace fl
 {
 
 // Forward declarations

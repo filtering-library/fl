@@ -49,11 +49,11 @@
 
 #include <Eigen/Dense>
 
-#include <fast_filtering/utils/assertions.hpp>
-#include <fast_filtering/models/process_models/interfaces/stationary_process_model.hpp>
-#include <fast_filtering/distributions/gaussian.hpp>
+#include <ff/utils/assertions.hpp>
+#include <ff/models/process_models/interfaces/stationary_process_model.hpp>
+#include <fl/distribution/gaussian.hpp>
 
-namespace ff
+namespace fl
 {
 
 // Forward declarations

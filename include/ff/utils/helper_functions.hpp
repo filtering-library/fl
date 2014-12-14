@@ -45,13 +45,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <boost/lexical_cast.hpp>
 #include <boost/random/lagged_fibonacci.hpp>
 
-#include <fast_filtering/utils/random_seed.hpp>
+#include <fl/util/random_seed.hpp>
 
 
 
 // TODO: THIS HAS TO BE CLEANED, POSSIBLY SPLIT INTO SEVERAL FILES
 
-namespace ff
+namespace fl
 {
 
 namespace hf
@@ -995,7 +995,7 @@ public:
 		fibo_.seed(RANDOM_SEED);
 
         // compute the prob and normalize them
-        sorted_indices_ = ff::hf::SortDescend(log_prob);
+        sorted_indices_ = fl::hf::SortDescend(log_prob);
         double max = log_prob[sorted_indices_[0]];
         for(int i = 0; i < int(log_prob.size()); i++)
             log_prob[i] -= max;

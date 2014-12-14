@@ -36,17 +36,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <Eigen/Core>
 
-#include <fast_filtering/utils/assertions.hpp>
-#include <fast_filtering/utils/profiling.hpp>
-#include <fast_filtering/utils/traits.hpp>
-#include <fast_filtering/utils/helper_functions.hpp>
-#include <fast_filtering/distributions/gaussian.hpp>
-#include <fast_filtering/distributions/sum_of_deltas.hpp>
-#include <fast_filtering/distributions/interfaces/gaussian_map.hpp>
-#include <fast_filtering/models/observation_models/interfaces/rao_blackwell_observation_model.hpp>
-#include <fast_filtering/models/process_models/interfaces/stationary_process_model.hpp>
+#include <ff/utils/assertions.hpp>
+#include <ff/utils/profiling.hpp>
+#include <fl/util/traits.hpp>
+#include <ff/utils/helper_functions.hpp>
+#include <fl/distribution/gaussian.hpp>
+#include <ff/distributions/sum_of_deltas.hpp>
+#include <fl/distribution/interface/gaussian_map.hpp>
+#include <ff/models/observation_models/interfaces/rao_blackwell_observation_model.hpp>
+#include <ff/models/process_models/interfaces/stationary_process_model.hpp>
 
-namespace ff
+namespace fl
 {
 
 template<typename ProcessModel, typename ObservationModel>
@@ -150,7 +150,7 @@ public:
         std::vector<State> next_samples(sample_count);
         std::vector<Scalar> loglikes(sample_count);
 
-        ff::hf::DiscreteSampler sampler(log_weights_);
+        fl::hf::DiscreteSampler sampler(log_weights_);
 
         for(size_t i = 0; i < sample_count; i++)
         {
@@ -180,13 +180,13 @@ private:
             log_weights_[i] += log_weight_diffs[i];
 
         std::vector<Scalar> weights = log_weights_;
-        ff::hf::Sort(weights, 1);
+        fl::hf::Sort(weights, 1);
 
         for(int i = weights.size() - 1; i >= 0; i--)
             weights[i] -= weights[0];
 
-        weights = ff::hf::Apply<Scalar, Scalar>(weights, std::exp);
-        weights = ff::hf::SetSum(weights, Scalar(1));
+        weights = fl::hf::Apply<Scalar, Scalar>(weights, std::exp);
+        weights = fl::hf::SetSum(weights, Scalar(1));
 
         // compute KL divergence to uniform distribution KL(p|u)
         Scalar kl_divergence = std::log(Scalar(weights.size()));

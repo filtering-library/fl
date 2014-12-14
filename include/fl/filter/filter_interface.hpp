@@ -47,7 +47,7 @@ namespace fl
  * \c State              | Used State type                    | -
  * \c Input              | Process control input type         | -
  * \c Observation        | Used Observation type              | -
- * \c StateDistribution  | Distribution type over the state   | must implement ff::Moments
+ * \c StateDistribution  | Distribution type over the state   | must implement fl::Moments
  * \c Ptr                | Shared pointer of the derived type | must specialize std::shared_ptr<>
  */
 template <typename Derived>

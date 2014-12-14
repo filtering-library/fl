@@ -276,24 +276,23 @@ protected:
 //                    Observation_, State_a_, State_b_>>::Base
 //{
 //public:
-//    typedef Traits<FactorizedLinearGaussianOservationModel2<
-//        Observation_, State_a_, State_b_>> Traits;
+//    typedef FactorizedLinearGaussianOservationModel2<Observation_, State_a_, State_b_> Traits;
 
-//    typedef typename Traits::State_a State_a;
-//    typedef typename Traits::State_b State_b;
-//    typedef typename Traits::Observation Observation;
-//    typedef typename Traits::Noise Noise;
-//    typedef typename Traits::Scalar Scalar;
-//    typedef typename Traits::Operator Operator;
-//    typedef typename Traits::SensorMatrix_a SensorMatrix_a;
-//    typedef typename Traits::SensorMatrix_b SensorMatrix_b;
+//    typedef typename Traits<This>::State_a State_a;
+//    typedef typename Traits<This>::State_b State_b;
+//    typedef typename Traits<This>::Observation Observation;
+//    typedef typename Traits<This>::Noise Noise;
+//    typedef typename Traits<This>::Scalar Scalar;
+//    typedef typename Traits<This>::Operator Operator;
+//    typedef typename Traits<This>::SensorMatrix_a SensorMatrix_a;
+//    typedef typename Traits<This>::SensorMatrix_b SensorMatrix_b;
 
-//    using Traits::GaussianBase::Mean;
-//    using Traits::GaussianBase::Covariance;
-//    using Traits::GaussianBase::Dimension;
-//    using Traits::Base::MapStandardGaussian;
-//    using Traits::Base::H;
-//    using Traits::Base::StateDimension;
+//    using Traits<This>::GaussianBase::Mean;
+//    using Traits<This>::GaussianBase::Covariance;
+//    using Traits<This>::GaussianBase::Dimension;
+//    using Traits<This>::Base::MapStandardGaussian;
+//    using Traits<This>::Base::H;
+//    using Traits<This>::Base::StateDimension;
 
 //public:
 //    FactorizedLinearGaussianOservationModel2(
@@ -301,12 +300,12 @@ protected:
 //            const size_t observation_dimension = Observation::SizeAtCompileTime,
 //            const size_t state_a_dimension = State_a::SizeAtCompileTime,
 //            const size_t state_b_dimension = State_b::SizeAtCompileTime):
-//        Traits::GaussianBase(observation_dimension),
+//        Traits<This>::GaussianBase(observation_dimension),
 //        state_a_dimension_(State_a::SizeAtCompileTime),
 //        state_b_dimension_(State_b::SizeAtCompileTime),
 //        H_a_(SensorMatrix_a::Zero(Dimension(), State_a_Dimension())),
 //        H_b_(SensorMatrix_b::Zero(Dimension(), State_b_Dimension())),
-//        Traits::Base(noise_covariance, )
+//        Traits<This>::Base(noise_covariance, )
 //    {
 //        Covariance(noise_covariance);
 //    }

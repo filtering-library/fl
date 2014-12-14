@@ -54,14 +54,14 @@
 #include <cmath>
 #include <type_traits>
 
-#include <fast_filtering/utils/assertions.hpp>
-#include <fast_filtering/distributions/interfaces/gaussian_map.hpp>
-#include <fast_filtering/distributions/sum_of_deltas.hpp>
-#include <fast_filtering/filters/deterministic/composed_state_distribution.hpp>
-#include <fast_filtering/models/process_models/interfaces/stationary_process_model.hpp>
-#include <fast_filtering/utils/profiling.hpp>
+#include <ff/utils/assertions.hpp>
+#include <fl/distribution/interface/gaussian_map.hpp>
+#include <ff/distributions/sum_of_deltas.hpp>
+#include <ff/filters/deterministic/composed_state_distribution.hpp>
+#include <ff/models/process_models/interfaces/stationary_process_model.hpp>
+#include <ff/utils/profiling.hpp>
 
-namespace ff
+namespace fl
 {
 
 /**

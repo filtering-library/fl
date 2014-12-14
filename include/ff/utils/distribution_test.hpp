@@ -3,13 +3,13 @@
 
 #include <iostream>
 
-#include <fast_filtering/utils/helper_functions.hpp>
+#include <ff/utils/helper_functions.hpp>
 
 #include <boost/filesystem.hpp>
 #include <limits>
 
 
-namespace ff
+namespace fl
 {
 
 template<typename Distribution>
