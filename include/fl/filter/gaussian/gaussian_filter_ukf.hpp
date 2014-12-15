@@ -45,11 +45,11 @@ template <typename...> class GaussianFilter;
  * GaussianFilter Traits
  */
 template <typename ProcessModel,
-          typename ObsrvModel,
+          typename ObservationModel,
           typename PointSetTransform>
-struct Traits<GaussianFilter<ProcessModel, ObsrvModel, PointSetTransform>>
+struct Traits<GaussianFilter<ProcessModel, ObservationModel, PointSetTransform>>
 {
-    typedef GaussianFilter<ProcessModel, ObsrvModel, PointSetTransform> Filter;
+    typedef GaussianFilter<ProcessModel, ObservationModel, PointSetTransform> Filter;
 
     /*
      * Required concept (interface) types
@@ -63,7 +63,7 @@ struct Traits<GaussianFilter<ProcessModel, ObsrvModel, PointSetTransform>>
     typedef std::shared_ptr<Filter> Ptr;
     typedef typename Traits<ProcessModel>::State State;
     typedef typename Traits<ProcessModel>::Input Input;    
-    typedef typename Traits<ObsrvModel>::Observation Observation;
+    typedef typename Traits<ObservationModel>::Observation Observation;
 
     /**
      * Represents the underlying distribution of the estimated state. In the
@@ -74,7 +74,7 @@ struct Traits<GaussianFilter<ProcessModel, ObsrvModel, PointSetTransform>>
 
     /** \cond INTERNAL */
     typedef typename Traits<ProcessModel>::Noise StateNoise;
-    typedef typename Traits<ObsrvModel>::Noise ObsrvNoise;
+    typedef typename Traits<ObservationModel>::Noise ObsrvNoise;
 
     enum
     {
@@ -124,25 +124,25 @@ struct Traits<GaussianFilter<ProcessModel, ObsrvModel, PointSetTransform>>
  * Sigma Point Kalman Filter family.
  *
  * \tparam ProcessModel
- * \tparam ObsrvModel
+ * \tparam ObservationModel
  *
  * \ingroup filters
  */
 template<
     typename ProcessModel,
-    typename ObsrvModel,
+    typename ObservationModel,
     typename PointSetTransform
 >
-class GaussianFilter<ProcessModel, ObsrvModel, PointSetTransform>
+class GaussianFilter<ProcessModel, ObservationModel, PointSetTransform>
     :
     /* Implement the conceptual filter interface */
     public FilterInterface<
-               GaussianFilter<ProcessModel, ObsrvModel, PointSetTransform>>
+               GaussianFilter<ProcessModel, ObservationModel, PointSetTransform>>
 
 {
 protected:
     /** \cond INTERNAL */
-    typedef GaussianFilter<ProcessModel, ObsrvModel, PointSetTransform> This;
+    typedef GaussianFilter<ProcessModel, ObservationModel, PointSetTransform> This;
     typedef typename Traits<This>::KalmanGain KalmanGain;
     typedef typename Traits<This>::StateNoise StateNoise;
     typedef typename Traits<This>::ObsrvNoise ObsrvNoise;
@@ -169,7 +169,7 @@ public:
      *                              transform
      */
     GaussianFilter(const std::shared_ptr<ProcessModel>& process_model,
-                   const std::shared_ptr<ObsrvModel>& Obsrv_model,
+                   const std::shared_ptr<ObservationModel>& Obsrv_model,
                    const std::shared_ptr<PointSetTransform>& point_set_transform)
         : process_model_(process_model),
           obsrv_model_(Obsrv_model),
@@ -384,7 +384,7 @@ public:
 
 protected:
     std::shared_ptr<ProcessModel> process_model_;
-    std::shared_ptr<ObsrvModel> obsrv_model_;
+    std::shared_ptr<ObservationModel> obsrv_model_;
     std::shared_ptr<PointSetTransform> point_set_transform_;
 
     /** \cond INTERNAL */

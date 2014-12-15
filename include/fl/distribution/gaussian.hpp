@@ -114,7 +114,7 @@ public:
     GaussianUninitializedException():
         fl::Exception("Accessing uninitialized dynamic-size distribution. "
                       "Gaussian dimension is 0. "
-                      "Use ::SetStandard(dimension) to initialize the "
+                      "Use ::Dimension(dimension) to initialize the "
                       "distribution!") { }
 };
 
@@ -214,7 +214,7 @@ public:
      *                  adapted. For dynamic-sized Variable the dimension is
      *                  initialized to 0.
      */
-    explicit Gaussian(const unsigned& dimension = Vector::SizeAtCompileTime):
+    explicit Gaussian(const unsigned& dimension = DimensionOf<Vector>()):
         Traits<This>::GaussianMapBase(dimension),
         dirty_(Attributes, true)
     {

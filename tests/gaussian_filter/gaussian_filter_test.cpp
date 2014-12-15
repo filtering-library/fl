@@ -50,11 +50,12 @@
 
 #include <Eigen/Dense>
 
-#include <fast_filtering/filtering_library/exception/exception.hpp>
-#include <fast_filtering/filtering_library/filter/gaussian/gaussian_filter.hpp>
-#include <fast_filtering/filtering_library/filter/gaussian/unscented_transform.hpp>
+#include <fl/exception/exception.hpp>
+#include <fl/filter/gaussian/gaussian_filter.hpp>
+#include <fl/filter/gaussian/unscented_transform.hpp>
 
 #include "gaussian_filter_stubs.hpp"
+
 
 template <typename FilteringAlgorithm>
 class FilteringContext
@@ -87,7 +88,6 @@ public:
     typename Filter::Observation y_;
     typename Filter::StateDistribution state_distr_;
 };
-
 
 TEST(GaussianFilter, some_test)
 {

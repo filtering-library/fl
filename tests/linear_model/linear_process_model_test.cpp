@@ -51,7 +51,7 @@
 #include <cmath>
 #include <iostream>
 
-#include <fast_filtering/models/process_models/linear_process_model.hpp>
+#include <fl/model/process/linear_process_model.hpp>
 
 
 class LinearGaussianProcessModelTests:
@@ -70,12 +70,11 @@ public:
     }
 };
 
-
 TEST_F(LinearGaussianProcessModelTests, init_fixedsize_dimension)
 {
     typedef Eigen::Matrix<double, 10, 1> State;
     const size_t dim = State::SizeAtCompileTime;
-    typedef ff::LinearGaussianProcessModel<State> LGModel;
+    typedef fl::LinearGaussianProcessModel<State> LGModel;
 
     LGModel::Operator cov = LGModel::Operator::Identity() * 5.5465;
     LGModel model(cov);
@@ -87,7 +86,7 @@ TEST_F(LinearGaussianProcessModelTests, init_dynamicsize_dimension)
 {
     const size_t dim = 10;
     typedef Eigen::VectorXd State;
-    typedef ff::LinearGaussianProcessModel<State> LGModel;
+    typedef fl::LinearGaussianProcessModel<State> LGModel;
 
     LGModel::Operator cov = LGModel::Operator::Identity(dim, dim) * 5.5465;
     LGModel model(cov, dim);
@@ -99,7 +98,7 @@ TEST_F(LinearGaussianProcessModelTests, predict_fixedsize_with_zero_noise)
 {
     typedef Eigen::Matrix<double, 10, 1> State;
     const size_t dim = State::SizeAtCompileTime;
-    typedef ff::LinearGaussianProcessModel<State> LGModel;
+    typedef fl::LinearGaussianProcessModel<State> LGModel;
 
     State state = State::Random(dim, 1);
     LGModel::Noise sample = LGModel::Noise::Zero(dim, 1);
@@ -117,7 +116,7 @@ TEST_F(LinearGaussianProcessModelTests, predict_dynamic_with_zero_noise)
 {
     const size_t dim = 10;
     typedef Eigen::VectorXd State;
-    typedef ff::LinearGaussianProcessModel<State> LGModel;
+    typedef fl::LinearGaussianProcessModel<State> LGModel;
 
     State state = State::Random(dim, 1);
     LGModel::Noise sample = LGModel::Noise::Zero(dim, 1);
@@ -135,7 +134,7 @@ TEST_F(LinearGaussianProcessModelTests, predict_fixedsize_with_noise)
 {
     typedef Eigen::Matrix<double, 10, 1> State;
     const size_t dim = State::SizeAtCompileTime;
-    typedef ff::LinearGaussianProcessModel<State> LGModel;
+    typedef fl::LinearGaussianProcessModel<State> LGModel;
 
     State state = State::Random(dim, 1);
     LGModel::Noise noise = LGModel::Noise::Random(dim, 1);
@@ -153,7 +152,7 @@ TEST_F(LinearGaussianProcessModelTests, predict_dynamic_with_noise)
 {
     const size_t dim = 10;
     typedef Eigen::VectorXd State;
-    typedef ff::LinearGaussianProcessModel<State> LGModel;
+    typedef fl::LinearGaussianProcessModel<State> LGModel;
 
     State state = State::Random(dim, 1);
     LGModel::Noise noise = LGModel::Noise::Random(dim, 1);
@@ -171,7 +170,7 @@ TEST_F(LinearGaussianProcessModelTests, dynamics_matrix)
 {
     const size_t dim = 10;
     typedef Eigen::VectorXd State;
-    typedef ff::LinearGaussianProcessModel<State> LGModel;
+    typedef fl::LinearGaussianProcessModel<State> LGModel;
 
     State state = State::Random(dim, 1);
     LGModel::Noise sample = LGModel::Noise::Zero(dim, 1);

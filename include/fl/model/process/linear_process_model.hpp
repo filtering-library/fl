@@ -73,9 +73,9 @@ public:
 public:
     LinearGaussianProcessModel(
             const Operator& noise_covariance,
-            const size_t dimension = State::SizeAtCompileTime):
+            const size_t dimension = DimensionOf<State>()):
         Traits<This>::GaussianBase(dimension),
-        A_(DynamicsMatrix::Identity(Dimension(), Dimension())),
+        A_(DynamicsMatrix::Identity(dimension, dimension)),
         delta_time_(1.)
     {
         Covariance(noise_covariance);

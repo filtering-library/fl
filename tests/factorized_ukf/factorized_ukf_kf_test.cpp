@@ -58,12 +58,12 @@
 #include <boost/range.hpp>
 #include <boost/make_shared.hpp>
 
-#include <fast_filtering/utils/traits.hpp>
-#include <fast_filtering/filters/deterministic/kalman_filter.hpp>
-#include <fast_filtering/models/process_models/linear_process_model.hpp>
-#include <fast_filtering/models/observation_models/linear_observation_model.hpp>
-#include <fast_filtering/filters/deterministic/composed_state_distribution.hpp>
-#include <fast_filtering/filters/deterministic/factorized_unscented_kalman_filter.hpp>
+#include <fl/util/traits.hpp>
+#include <ff/filters/deterministic/kalman_filter.hpp>
+#include <fl/model/process/linear_process_model.hpp>
+#include <fl/model/observation/linear_observation_model.hpp>
+#include <ff/filters/deterministic/composed_state_distribution.hpp>
+#include <ff/filters/deterministic/factorized_unscented_kalman_filter.hpp>
 
 #define DIM_STATE_A             11
 #define DIM_STATE_B             5
@@ -177,14 +177,14 @@ TEST(FukfKFTest, init)
     typedef Eigen::Matrix<Scalar, DIM_STATE_B, 1> State_b;
     typedef Eigen::Matrix<Scalar, DIM_OBSERVATION, 1> Observation_ab;
 
-    typedef ff::LinearGaussianProcessModel<State_a> ProcessModel_a;
-    typedef ff::LinearGaussianProcessModel<State_b, State_a> ProcessModel_b;
-    typedef ff::FactorizedLinearGaussianObservationModel<
+    typedef fl::LinearGaussianProcessModel<State_a> ProcessModel_a;
+    typedef fl::LinearGaussianProcessModel<State_b, State_a> ProcessModel_b;
+    typedef fl::FactorizedLinearGaussianObservationModel<
             Observation_ab,
             State_a,
             State_b> FactorizedObservationModel;
 
-    typedef ff::FactorizedUnscentedKalmanFilter<
+    typedef fl::FactorizedUnscentedKalmanFilter<
             ProcessModel_a,
             ProcessModel_b,
             FactorizedObservationModel> FukfFilter;
@@ -237,12 +237,12 @@ TEST(FukfKFTest, init)
     typedef Eigen::Matrix< Scalar, DIM_JOINT_STATE, 1> State;
     typedef Eigen::Matrix<Scalar, DIM_JOINT_OBSERVATION, 1> Observation;
 
-    typedef ff::LinearGaussianProcessModel<State> ProcessModel;
-    typedef ff::LinearGaussianObservationModel<
+    typedef fl::LinearGaussianProcessModel<State> ProcessModel;
+    typedef fl::LinearGaussianObservationModel<
             Observation,
             State> ObservationModel;
 
-    typedef ff::KalmanFilter<ProcessModel, ObservationModel> KalmanFilter;
+    typedef fl::KalmanFilter<ProcessModel, ObservationModel> KalmanFilter;
 
     // joint process dynamics
     ProcessModel::DynamicsMatrix A;

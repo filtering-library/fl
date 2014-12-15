@@ -48,8 +48,8 @@
 
 #include <Eigen/Dense>
 
-#include <fast_filtering/filtering_library/filter/gaussian/point_set_gaussian.hpp>
-#include <fast_filtering/filtering_library/filter/gaussian/unscented_transform.hpp>
+#include <fl/filter/gaussian/point_set.hpp>
+#include <fl/filter/gaussian/unscented_transform.hpp>
 
 TEST(UnscentedTransformTest, weights)
 {
@@ -71,7 +71,7 @@ void test_mean_transform(PointSet<Point, Dim>& point_set, int dim)
     fl::UnscentedTransform ut;
 
     Point a = Point::Ones(dim) * 9;
-    ff::Gaussian<Point> gaussian;
+    fl::Gaussian<Point> gaussian;
 
     gaussian.Dimension(dim);
     gaussian.Mean(a);
@@ -127,7 +127,7 @@ TEST(UnscentedTransformTest, mean_recovery_dynamic_fixed_throw)
     fl::UnscentedTransform ut;
     Point a = Point::Ones(dim) * 9;
 
-    ff::Gaussian<Point> gaussian;
+    fl::Gaussian<Point> gaussian;
     gaussian.Dimension(dim);
     gaussian.Mean(a);
 
@@ -161,13 +161,13 @@ void test_covariance_transform(PointSet<Point, Dim>& point_set, int dim)
 {
     fl::UnscentedTransform ut;
 
-    typename ff::Traits<ff::Gaussian<Point>>::Operator cov;
+    typename fl::Traits<fl::Gaussian<Point>>::Operator cov;
     cov.setRandom(dim, dim);
     cov *= cov.transpose();
 
     Point a = Point::Random(dim);
 
-    ff::Gaussian<Point> gaussian;
+    fl::Gaussian<Point> gaussian;
     gaussian.Dimension(dim);
     gaussian.Mean(a);
     gaussian.Covariance(cov);
@@ -218,13 +218,13 @@ TEST(UnscentedTransformTest, covariance_recovery_dynamic_fixed_throw)
 
     fl::UnscentedTransform ut;
 
-    typename ff::Traits<ff::Gaussian<Point>>::Operator cov;
+    typename fl::Traits<fl::Gaussian<Point>>::Operator cov;
     cov.setRandom(dim, dim);
     cov *= cov.transpose();
 
     Point a = Point::Random(dim);
 
-    ff::Gaussian<Point> gaussian;
+    fl::Gaussian<Point> gaussian;
     gaussian.Dimension(dim);
     gaussian.Mean(a);
     gaussian.Covariance(cov);

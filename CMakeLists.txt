@@ -103,13 +103,13 @@ target_link_libraries(traits_tests
  target_link_libraries(filter_interface_tests
                        ${catkin_LIBRARIES})
 
-# ## Gaussian filter tests ##
-# catkin_add_gtest(gaussian_filter_tests
-#                  tests/gaussian_filter/gaussian_filter_test.cpp
-#                  tests/gaussian_filter/gaussian_filter_stubs.hpp
-#                  tests/gtest_main.cpp)
-# target_link_libraries(gaussian_filter_tests
-#                       ${catkin_LIBRARIES})
+ ## Gaussian filter tests ##
+ catkin_add_gtest(gaussian_filter_tests
+                  tests/gaussian_filter/gaussian_filter_test.cpp
+                  tests/gaussian_filter/gaussian_filter_stubs.hpp
+                  tests/gtest_main.cpp)
+ target_link_libraries(gaussian_filter_tests
+                       ${catkin_LIBRARIES})
 
  ## point_set_tests tests ##
  catkin_add_gtest(point_set_tests
@@ -118,12 +118,12 @@ target_link_libraries(traits_tests
  target_link_libraries(point_set_tests
                        ${catkin_LIBRARIES})
 
-# ## unscented_transform tests ##
-# catkin_add_gtest(unscented_transform_tests
-#                  tests/gaussian_filter/unscented_transform_test.cpp
-#                  tests/gtest_main.cpp)
-# target_link_libraries(unscented_transform_tests
-#                       ${catkin_LIBRARIES})
+ ## unscented_transform tests ##
+ catkin_add_gtest(unscented_transform_tests
+                  tests/gaussian_filter/unscented_transform_test.cpp
+                  tests/gtest_main.cpp)
+ target_link_libraries(unscented_transform_tests
+                       ${catkin_LIBRARIES})
 
  ## various filter tests ##
  catkin_add_gtest(distribution_tests
@@ -140,22 +140,22 @@ target_link_libraries(traits_tests
                        ${catkin_LIBRARIES})
 
 
-# ## Kalman filter tests ##
-# catkin_add_gtest(kalman_filter_tests
-#                  tests/kalman_filter/kalman_filter_test.cpp
-#                  tests/gtest_main.cpp)
-# target_link_libraries(kalman_filter_tests
-#                       ${catkin_LIBRARIES})
-#
-# ## linear models tests ##
-# catkin_add_gtest(linear_models_tests
-#                  tests/linear_model/linear_process_model_test.cpp
-#                  tests/linear_model/linear_observation_model_test.cpp
-#                  tests/gtest_main.cpp)
-# target_link_libraries(linear_models_tests
-#                       ${catkin_LIBRARIES})
-#
-# ## Factorized UKF vs. Kalman filter tests ##
+ ## Kalman filter tests ##
+ catkin_add_gtest(kalman_filter_tests
+                  tests/kalman_filter/kalman_filter_test.cpp
+                  tests/gtest_main.cpp)
+ target_link_libraries(kalman_filter_tests
+                       ${catkin_LIBRARIES})
+
+ ## linear models tests ##
+ catkin_add_gtest(linear_models_tests
+                  tests/linear_model/linear_process_model_test.cpp
+                  tests/linear_model/linear_observation_model_test.cpp
+                  tests/gtest_main.cpp)
+ target_link_libraries(linear_models_tests
+                       ${catkin_LIBRARIES})
+
+## Factorized UKF vs. Kalman filter tests ##
 # catkin_add_gtest(factorized_ukf_kf_tests
 #                  tests/factorized_ukf/factorized_ukf_kf_test.cpp
 #                  tests/gtest_main.cpp)

@@ -54,37 +54,43 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
 
-#include <fast_filtering/models/process_models/linear_process_model.hpp>
-#include <fast_filtering/models/observation_models/linear_observation_model.hpp>
-#include <fast_filtering/filters/deterministic/kalman_filter.hpp>
+#include <fl/model/process/linear_process_model.hpp>
+#include <fl/model/observation/linear_observation_model.hpp>
+#include <fl/filter/filter_interface.hpp>
+#include <fl/filter/gaussian/gaussian_filter.hpp>
 
 TEST(KalmanFilterTests, init_fixed_size_predict)
 {
     typedef double Scalar;
     typedef Eigen::Matrix<Scalar, 10, 1> State;
+    typedef Eigen::Matrix<Scalar, 1, 1> Input;
     typedef Eigen::Matrix<Scalar, 20, 1> Observation;
 
-    typedef ff::LinearGaussianProcessModel<State> ProcessModel;
-    typedef ff::LinearGaussianObservationModel<Observation,
-                                              State> ObservationModel;
+    // the KalmanFilter
+    typedef fl::GaussianFilter<
+                fl::LinearGaussianProcessModel<State, Input>,
+                fl::LinearGaussianObservationModel<Observation, State>
+            > Filter;
 
-    typedef ff::KalmanFilter<ProcessModel, ObservationModel> Filter;
+    typedef typename fl::Traits<Filter>::ProcessModel ProcessModel;
+    typedef typename fl::Traits<Filter>::ObservationModel ObservationModel;
 
     ProcessModel::Operator Q = ProcessModel::Operator::Identity();
     ObservationModel::Operator R = ObservationModel::Operator::Identity();
 
-    Filter::ProcessModelPtr process_model =
-            boost::make_shared<ProcessModel>(Q);
-    Filter::ObservationModelPtr observation_model =
-            boost::make_shared<ObservationModel>(R);
+    std::shared_ptr<ProcessModel> process_model =
+            std::make_shared<ProcessModel>(Q);
+    std::shared_ptr<ObservationModel> observation_model =
+            std::make_shared<ObservationModel>(R);
 
-    Filter filter(process_model, observation_model);
+    fl::FilterInterface<Filter>::Ptr filter =
+            std::make_shared<Filter>(process_model, observation_model);
 
     Filter::StateDistribution state_dist;
 
     EXPECT_TRUE(state_dist.Mean().isZero());
     EXPECT_TRUE(state_dist.Covariance().isIdentity());
-    filter.Predict(1.0, state_dist, state_dist);
+    filter->predict(1.0, Input(1), state_dist, state_dist);
     EXPECT_TRUE(state_dist.Mean().isZero());
     EXPECT_TRUE(state_dist.Covariance().isApprox(2. * Q));
 
@@ -94,16 +100,20 @@ TEST(KalmanFilterTests, init_dynamic_size_predict)
 {
     typedef double Scalar;
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> State;
+    typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Input;
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Observation;
 
     const size_t dim_state = 10;
     const size_t dim_observation = 20;
 
-    typedef ff::LinearGaussianProcessModel<State> ProcessModel;
-    typedef ff::LinearGaussianObservationModel<Observation,
-                                              State> ObservationModel;
+    // the KalmanFilter
+    typedef fl::GaussianFilter<
+                fl::LinearGaussianProcessModel<State, Input>,
+                fl::LinearGaussianObservationModel<Observation, State>
+            > Filter;
 
-    typedef ff::KalmanFilter<ProcessModel, ObservationModel> Filter;
+    typedef typename fl::Traits<Filter>::ProcessModel ProcessModel;
+    typedef typename fl::Traits<Filter>::ObservationModel ObservationModel;
 
     ProcessModel::Operator Q =
             ProcessModel::Operator::Identity(dim_state,
@@ -112,34 +122,42 @@ TEST(KalmanFilterTests, init_dynamic_size_predict)
             ObservationModel::Operator::Identity(dim_observation,
                                                  dim_observation);
 
-    Filter::ProcessModelPtr process_model =
-            boost::make_shared<ProcessModel>(Q, dim_state);
-    Filter::ObservationModelPtr observation_model =
-            boost::make_shared<ObservationModel>(R, dim_observation, dim_state);
+    std::shared_ptr<ProcessModel> process_model =
+            std::make_shared<ProcessModel>(Q, dim_state);
+    std::shared_ptr<ObservationModel> observation_model =
+            std::make_shared<ObservationModel>(R, dim_observation, dim_state);
 
-    Filter filter(process_model, observation_model);
+    fl::FilterInterface<Filter>::Ptr filter =
+            std::make_shared<Filter>(process_model, observation_model);
 
     Filter::StateDistribution state_dist(dim_state);
 
     EXPECT_TRUE(state_dist.Mean().isZero());
     EXPECT_TRUE(state_dist.Covariance().isIdentity());
-    filter.Predict(1.0, state_dist, state_dist);
+
+//    std::cout << state_dist.Covariance() << std::endl << std::endl;
+    filter->predict(1.0, Input(1), state_dist, state_dist);
     EXPECT_TRUE(state_dist.Mean().isZero());
     EXPECT_TRUE(state_dist.Covariance().isApprox(2. * Q));
+//    std::cout << state_dist.Covariance() << std::endl << std::endl;
+    //std::cout <<  Q << std::endl;
 }
-
 
 TEST(KalmanFilterTests, fixed_size_predict_update)
 {
     typedef double Scalar;
     typedef Eigen::Matrix<Scalar, 6, 1> State;
+    typedef Eigen::Matrix<Scalar, 6, 1> Input;
     typedef Eigen::Matrix<Scalar, 6, 1> Observation;
 
-    typedef ff::LinearGaussianProcessModel<State> ProcessModel;
-    typedef ff::LinearGaussianObservationModel<Observation,
-                                              State> ObservationModel;
+    // the KalmanFilter
+    typedef fl::GaussianFilter<
+                fl::LinearGaussianProcessModel<State, Input>,
+                fl::LinearGaussianObservationModel<Observation, State>
+            > Filter;
 
-    typedef ff::KalmanFilter<ProcessModel, ObservationModel> Filter;
+    typedef typename fl::Traits<Filter>::ProcessModel ProcessModel;
+    typedef typename fl::Traits<Filter>::ObservationModel ObservationModel;
 
     ProcessModel::Operator Q = ProcessModel::Operator::Random() * 1.5;
     ObservationModel::Operator R = ObservationModel::Operator::Random();
@@ -150,72 +168,83 @@ TEST(KalmanFilterTests, fixed_size_predict_update)
     ProcessModel::DynamicsMatrix A = ProcessModel::DynamicsMatrix::Random();
     ObservationModel::SensorMatrix H = ObservationModel::SensorMatrix::Random();
 
-    Filter::ProcessModelPtr process_model =
-            boost::make_shared<ProcessModel>(Q);
-    Filter::ObservationModelPtr observation_model =
-            boost::make_shared<ObservationModel>(R);
+    std::shared_ptr<ProcessModel> process_model =
+            std::make_shared<ProcessModel>(Q);
+    std::shared_ptr<ObservationModel> observation_model =
+            std::make_shared<ObservationModel>(R);
 
     process_model->A(A);
     observation_model->H(H);
 
-    Filter filter(process_model, observation_model);
+    fl::FilterInterface<Filter>::Ptr filter =
+            std::make_shared<Filter>(process_model, observation_model);
 
     Filter::StateDistribution state_dist;
     EXPECT_TRUE(state_dist.Covariance().ldlt().isPositive());
 
     for (size_t i = 0; i < 2000; ++i)
     {
-        filter.Predict(1.0, state_dist, state_dist);
+        filter->predict(1.0, Input(), state_dist, state_dist);
         EXPECT_TRUE(state_dist.Covariance().ldlt().isPositive());
         Observation y = Observation::Random();
-        filter.Update(state_dist, y, state_dist);
+        filter->update(y, state_dist, state_dist);
         EXPECT_TRUE(state_dist.Covariance().ldlt().isPositive());
     }
 }
-
 
 TEST(KalmanFilterTests, dynamic_size_predict_update)
 {
     typedef double Scalar;
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> State;
+    typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Input;
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Observation;
 
     const size_t dim_state = 10;
     const size_t dim_observation = 10;
 
-    typedef ff::LinearGaussianProcessModel<State> ProcessModel;
-    typedef ff::LinearGaussianObservationModel<Observation,
-                                              State> ObservationModel;
+    // the KalmanFilter
+    typedef fl::GaussianFilter<
+                fl::LinearGaussianProcessModel<State, Input>,
+                fl::LinearGaussianObservationModel<Observation, State>
+            > Filter;
 
-    typedef ff::KalmanFilter<ProcessModel, ObservationModel> Filter;
+    typedef typename fl::Traits<Filter>::ProcessModel ProcessModel;
+    typedef typename fl::Traits<Filter>::ObservationModel ObservationModel;
 
-    ProcessModel::Operator Q = ProcessModel::Operator::Random(dim_state, dim_state)*1.5;
+    ProcessModel::Operator Q =
+            ProcessModel::Operator::Random(dim_state, dim_state)*1.5;
     Q *= Q.transpose();
-    ProcessModel::DynamicsMatrix A = ProcessModel::DynamicsMatrix::Random(dim_state, dim_state);
 
-    ObservationModel::Operator R = ObservationModel::Operator::Random(dim_observation, dim_observation);
+    ProcessModel::DynamicsMatrix A =
+            ProcessModel::DynamicsMatrix::Random(dim_state, dim_state);
+
+    ObservationModel::Operator R =
+            ObservationModel::Operator::Random(dim_observation, dim_observation);
     R *= R.transpose();
-    ObservationModel::SensorMatrix H = ObservationModel::SensorMatrix::Random(dim_observation, dim_state);
 
-    Filter::ProcessModelPtr process_model =
-            boost::make_shared<ProcessModel>(Q, dim_state);
-    Filter::ObservationModelPtr observation_model =
-            boost::make_shared<ObservationModel>(R, dim_observation, dim_state);
+    ObservationModel::SensorMatrix H =
+            ObservationModel::SensorMatrix::Random(dim_observation, dim_state);
+
+    std::shared_ptr<ProcessModel> process_model =
+            std::make_shared<ProcessModel>(Q, dim_state);
+    std::shared_ptr<ObservationModel> observation_model =
+            std::make_shared<ObservationModel>(R, dim_observation, dim_state);
 
     process_model->A(A);
     observation_model->H(H);
 
-    Filter filter(process_model, observation_model);
+    fl::FilterInterface<Filter>::Ptr filter =
+            std::make_shared<Filter>(process_model, observation_model);
 
     Filter::StateDistribution state_dist(dim_state);
     EXPECT_TRUE(state_dist.Covariance().ldlt().isPositive());
 
     for (size_t i = 0; i < 2000; ++i)
     {
-        filter.Predict(1.0, state_dist, state_dist);
+        filter->predict(1.0, Input(1), state_dist, state_dist);
         EXPECT_TRUE(state_dist.Covariance().ldlt().isPositive());
-        Observation y = Observation::Random(dim_observation, 1);
-        filter.Update(state_dist, y, state_dist);
+        Observation y = Observation::Random(dim_observation);
+        filter->update(y, state_dist, state_dist);
         EXPECT_TRUE(state_dist.Covariance().ldlt().isPositive());
     }
 }

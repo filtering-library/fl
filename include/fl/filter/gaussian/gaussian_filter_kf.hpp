@@ -66,7 +66,7 @@ struct Traits<
      * \c LinearGaussianObservationModel taking an \c Observation and a
      * \c State type as the only parameters.
      */
-    typedef fl::LinearGaussianObservationModel<Observation_, State_> ObsrvModel;
+    typedef fl::LinearGaussianObservationModel<Observation_, State_> ObservationModel;
 
     /**
      * Represents KalmanFilter definition
@@ -91,7 +91,7 @@ struct Traits<
     typedef std::shared_ptr<Filter> Ptr;
     typedef typename Traits<ProcessModel>::State State;
     typedef typename Traits<ProcessModel>::Input Input;
-    typedef typename Traits<ObsrvModel>::Observation Observation;
+    typedef typename Traits<ObservationModel>::Observation Observation;
 
     /**
      * Represents the underlying distribution of the estimated state. In the
@@ -140,14 +140,14 @@ protected:
     typedef GaussianFilter<
                 fl::LinearGaussianProcessModel<State, Input>,
                 fl::LinearGaussianObservationModel<Obsrv, State>
-             > This;
+            > This;
 
     typedef typename Traits<This>::KalmanGain KalmanGain;
     /** \endcond */
 
 public:
     /* public concept interface types */
-    typedef typename Traits<This>::ObsrvModel ObsrvModel;
+    typedef typename Traits<This>::ObservationModel ObservationModel;
     typedef typename Traits<This>::ProcessModel ProcessModel;
     typedef typename Traits<This>::StateDistribution StateDistribution;
 
@@ -159,7 +159,7 @@ public:
      * @param obsrv_model           Obsrv model instance
      */
     GaussianFilter(const std::shared_ptr<ProcessModel>& process_model,
-                   const std::shared_ptr<ObsrvModel>& obsrv_model)
+                   const std::shared_ptr<ObservationModel>& obsrv_model)
         : process_model_(process_model),
           obsrv_model_(obsrv_model) { }
 
@@ -187,8 +187,16 @@ public:
                          const StateDistribution& prior_dist,
                          StateDistribution& predicted_dist)
     {
-        auto&& A = process_model_->A();
-        auto&& Q = delta_time * process_model_->Covariance();
+        auto A = delta_time * process_model_->A();
+        auto Q = delta_time * process_model_->Covariance();
+
+//        std::cout <<  A << std::endl << std::endl;
+//        std::cout <<  Q << std::endl << std::endl;
+//        std::cout <<  process_model_->Covariance() << std::endl << std::endl;
+//        std::cout <<  prior_dist.Covariance() << std::endl << std::endl;
+
+//        std::cout <<  A * prior_dist.Covariance() * A.transpose() << std::endl << std::endl;
+//        std::cout <<  A * prior_dist.Covariance() * A.transpose() + Q << std::endl << std::endl;
 
         predicted_dist.Mean(
             A * prior_dist.Mean());
@@ -250,7 +258,7 @@ public:
 
 protected:
     std::shared_ptr<ProcessModel> process_model_;
-    std::shared_ptr<ObsrvModel> obsrv_model_;
+    std::shared_ptr<ObservationModel> obsrv_model_;
 };
 
 }

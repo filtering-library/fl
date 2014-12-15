@@ -46,9 +46,9 @@
 
 #include <gtest/gtest.h>
 
-#include <fast_filtering/utils/traits.hpp>
-#include <fast_filtering/filtering_library/model/process_model_interface.hpp>
-#include <fast_filtering/filtering_library/model/observation_model_interface.hpp>
+#include <fl/util/traits.hpp>
+#include <fl/model/process/process_model_interface.hpp>
+#include <fl/model/observation/observation_model_interface.hpp>
 
 template <typename State, typename Noise, typename Input>
 class ProcessModelStub;

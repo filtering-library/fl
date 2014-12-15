@@ -51,7 +51,7 @@
 #include <cmath>
 #include <iostream>
 
-#include <fast_filtering/models/observation_models/linear_observation_model.hpp>
+#include <fl/model/observation/linear_observation_model.hpp>
 
 class LinearObservationModelTests:
         public testing::Test
@@ -77,7 +77,7 @@ TEST_F(LinearObservationModelTests, init_fixedsize_dimension)
     typedef Eigen::Matrix<double, 20, 1> Observation;
     const size_t dim = Observation::SizeAtCompileTime;
     const size_t dim_state = State::SizeAtCompileTime;
-    typedef ff::LinearGaussianObservationModel<Observation, State> LGModel;
+    typedef fl::LinearGaussianObservationModel<Observation, State> LGModel;
 
     LGModel::Operator cov = LGModel::Operator::Identity() * 5.5465;
     LGModel model(cov);
@@ -91,7 +91,7 @@ TEST_F(LinearObservationModelTests, init_dynamicsize_dimension)
     const size_t dim_state = 10;
     typedef Eigen::VectorXd State;
     typedef Eigen::VectorXd Observation;
-    typedef ff::LinearGaussianObservationModel<Observation, State> LGModel;
+    typedef fl::LinearGaussianObservationModel<Observation, State> LGModel;
 
     LGModel::Operator cov = LGModel::Operator::Identity(dim, dim) * 5.5465;
     LGModel model(cov, dim, dim_state);
@@ -105,7 +105,7 @@ TEST_F(LinearObservationModelTests, predict_fixedsize_with_zero_noise)
     typedef Eigen::Matrix<double, 20, 1> Observation;
     const size_t dim = Observation::SizeAtCompileTime;
     const size_t dim_state = State::SizeAtCompileTime;
-    typedef ff::LinearGaussianObservationModel<Observation, State> LGModel;
+    typedef fl::LinearGaussianObservationModel<Observation, State> LGModel;
 
     State state = State::Random(dim_state, 1);
     Observation observation = Observation::Random(dim, 1);
@@ -126,7 +126,7 @@ TEST_F(LinearObservationModelTests, predict_dynamic_with_zero_noise)
     const size_t dim_state = 10;
     typedef Eigen::VectorXd State;
     typedef Eigen::VectorXd Observation;
-    typedef ff::LinearGaussianObservationModel<Observation, State> LGModel;
+    typedef fl::LinearGaussianObservationModel<Observation, State> LGModel;
 
     State state = State::Random(dim_state, 1);
     Observation observation = Observation::Random(dim, 1);
@@ -147,7 +147,7 @@ TEST_F(LinearObservationModelTests, sensor_matrix)
     const size_t dim_state = 10;
     typedef Eigen::VectorXd State;
     typedef Eigen::VectorXd Observation;
-    typedef ff::LinearGaussianObservationModel<Observation, State> LGModel;
+    typedef fl::LinearGaussianObservationModel<Observation, State> LGModel;
 
     State state = State::Random(dim_state, 1);
     Observation observation = Observation::Zero(dim, 1);
