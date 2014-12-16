@@ -39,7 +39,6 @@ namespace fl
 /**
  * Rao-Blackwellized particle filter observation model interface
  *
- * \ingroup observation_models
  */
 template<typename State_, typename Observation_>
 class RaoBlackwellObservationModel

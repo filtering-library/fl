@@ -2,8 +2,8 @@
  * This is part of the FL library, a C++ Bayesian filtering library
  * (https://github.com/filtering-library)
  *
- * Copyright (c) 2014 Jan Issac (jan.issac@gmail.com)
- * Copyright (c) 2014 Manuel Wuthrich (manuel.wuthrich@gmail.com)
+ * Copyright (c) 2014 Jan Issac (jan.issac\gmail.com)
+ * Copyright (c) 2014 Manuel Wuthrich (manuel.wuthrich\gmail.com)
  *
  * Max-Planck Institute for Intelligent Systems, AMD Lab
  * University of Southern California, CLMC Lab
@@ -16,7 +16,7 @@
 /**
  * \file gaussian_filter_ukf.hpp
  * \date October 2014
- * \author Jan Issac (jan.issac@gmail.com)
+ * \author Jan Issac (jan.issac\gmail.com)
  */
 
 #ifndef FL__FILTER__GAUSSIAN__GAUSSIAN_FILTER_UKF_HPP
@@ -127,6 +127,7 @@ struct Traits<GaussianFilter<ProcessModel, ObservationModel, PointSetTransform>>
  * \tparam ObservationModel
  *
  * \ingroup filters
+ * \ingroup sigma_point_kalman_filters
  */
 template<
     typename ProcessModel,
@@ -163,9 +164,9 @@ public:
     /**
      * Creates a Gaussian filter
      *
-     * @param process_model         Process model instance
-     * @param Obsrv_model           Obsrv model instance
-     * @param point_set_transform   Point set tranfrom such as the unscented
+     * \param process_model         Process model instance
+     * \param Obsrv_model           Obsrv model instance
+     * \param point_set_transform   Point set tranfrom such as the unscented
      *                              transform
      */
     GaussianFilter(const std::shared_ptr<ProcessModel>& process_model,

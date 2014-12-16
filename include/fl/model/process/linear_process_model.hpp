@@ -51,6 +51,9 @@ struct Traits<LinearGaussianProcessModel<State_, Input_>>
                           State::SizeAtCompileTime> DynamicsMatrix;
 };
 
+/**
+ * \ingroup process_models
+ */
 template <typename State_, typename Input_ = internal::Empty>
 class LinearGaussianProcessModel:
     public Traits<LinearGaussianProcessModel<State_, Input_>>::ProcessModelBase,

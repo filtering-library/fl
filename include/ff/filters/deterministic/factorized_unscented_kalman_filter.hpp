@@ -66,7 +66,6 @@ namespace fl
 
 /**
  * \class FactorizedUnscentedKalmanFilter
- * \ingroup filters
  *
  * The Factorized UKF filters high dimensional states using high dimensional
  * measurements. The state is composed of a unfactorized low-dimensional part

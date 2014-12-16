@@ -61,6 +61,9 @@
 namespace fl
 {
 
+/**
+ * \ingroup distributions
+ */
 template <typename Vector>
 class StandardGaussian:
         public Sampling<Vector>

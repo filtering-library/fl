@@ -30,6 +30,8 @@ namespace fl
 
 /**
  * \interface Moments
+ * \ingroup distribution_interfaces
+ *
  * \brief Moments is the interface providing the first two moments
  *
  * \tparam Vector   Random variable type. This is equivalent to the first moment

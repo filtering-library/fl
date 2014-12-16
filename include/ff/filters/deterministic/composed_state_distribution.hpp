@@ -144,7 +144,6 @@ struct Traits<ComposedStateDistribution<
 
 /**
  * \class ComposedStateDistribution
- * \ingroup states
  */
 template <typename CohesiveState,
           typename FactorizedState,

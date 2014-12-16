@@ -25,6 +25,9 @@
 namespace fl
 {
 
+/**
+ * \ingroup process_models
+ */
 template <typename State, typename Noise, typename Input>
 class ProcessModelInterface
 {

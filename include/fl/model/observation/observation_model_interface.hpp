@@ -25,6 +25,9 @@
 namespace fl
 {
 
+/**
+ * \ingroup observation_models
+ */
 template <typename State, typename Observation, typename Noise>
 class ObservationModelInterface
 {

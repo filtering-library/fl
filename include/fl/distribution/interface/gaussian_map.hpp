@@ -38,7 +38,9 @@
 namespace fl
 {
 
-
+/**
+ * \ingroup distribution_interfaces
+ */
 template <typename Vector, typename Noise = internal::Empty>
 class GaussianMap:
         public Sampling<Vector>
@@ -72,6 +74,9 @@ private:
 };
 
 // specialization for scalar noise
+/**
+ * \ingroup distribution_interfaces
+ */
 template <typename Vector>
 class GaussianMap<Vector, double>:
         public Sampling<Vector>
@@ -97,6 +102,9 @@ private:
 
 
 // specialization for no noise
+/**
+ * \ingroup distribution_interfaces
+ */
 template <typename Vector>
 class GaussianMap<Vector, internal::Empty>:
         public Sampling<Vector>

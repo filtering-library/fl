@@ -81,7 +81,6 @@ struct Traits<DampedWienerProcessModel<State_>>
 /**
  * \class DampedWienerProcess
  *
- * \ingroup distributions
  * \ingroup process_models
  */
 template <typename State>

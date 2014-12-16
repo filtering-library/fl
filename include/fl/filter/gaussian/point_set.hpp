@@ -146,6 +146,8 @@ struct Traits<PointSet<Point_, Points_>>
 /**
  * \class PointSet
  *
+ * \ingroup sigma_point_kalman_filters
+ *
  * PointSet represents a container of fixed-size or dynamic-size points each
  * paired with a set of weights. PointSet has two degree-of-freedoms. The first
  * is the dimension of the points. The second os the number of points within the

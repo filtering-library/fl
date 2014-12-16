@@ -62,6 +62,8 @@ public:
 };
 
 /**
+ * \ingroup exceptions
+ *
  * Index out of bounds exception
  */
 class OutOfBoundsException:

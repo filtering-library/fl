@@ -33,6 +33,8 @@ namespace fl
 
 /**
  * \interface Evaluation
+ * \ingroup distribution_interfaces
+ *
  * \brief Distribution evaulation interface
  *
  * \tparam Vector   Random variable type

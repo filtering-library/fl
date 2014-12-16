@@ -28,6 +28,8 @@ namespace fl
 
 /**
  * \interface ApproximateMoments
+ * \ingroup distribution_interfaces
+ *
  * \brief ApproximateMoments is the interface providing the first two moments
  *
  * \tparam Vector   Random variable type. This is equivalent to the first moment
@@ -36,6 +38,7 @@ namespace fl
  *
  * The ApproximateMoments interface provides access to a numerical approximation
  * of the first moments of a distribution.
+ *
  */
 template <typename Vector, typename Operator>
 class ApproximateMoments

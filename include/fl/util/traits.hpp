@@ -29,6 +29,7 @@ namespace fl
 
 /**
  * \struct Traits
+ * \ingroup traits
  * \brief Generic trait template
  *
  * Filters, models and distributions may specify a \c Traits specialization
@@ -36,6 +37,8 @@ namespace fl
 template <typename> struct Traits { };
 
 /**
+ * \ingroup traits
+ *
  * \brief \c IsDynamic<int> trait for static dynamic-size checks.
  *
  * Generic IsDynamic<int> definition which evaluates to false.
@@ -53,6 +56,7 @@ template <int> struct IsDynamic
 };
 
 /**
+ * \ingroup traits
  * \brief \c IsDynamic<-1> or \c IsDynamic<Eigen::Dynamic> trait for static
  * dynamic-size checks.
  *
@@ -73,6 +77,8 @@ template <> struct IsDynamic<Eigen::Dynamic>
 };
 
 /**
+ * \ingroup traits
+ *
  * \brief \c IsFixed<int> trait for static fixed-size checks.
  *
  * Generic IsFixed<int> definition which evaluates to true. This traits is the
@@ -92,6 +98,7 @@ template <int> struct IsFixed
 };
 
 /**
+ * \ingroup traits
  * \brief \c IsFixed<-1> or \c IsFixed<Eigen::Dynamic> trait for static
  * fixed-size checks.
  *
@@ -111,6 +118,8 @@ template <> struct IsFixed<Eigen::Dynamic>
 };
 
 /**
+ * \ingroup traits
+ *
  * \brief Mapps Eigen::Dynamic onto 0.
  *
  * For any type matrix or column vector the dimension is the number of rows,
@@ -134,6 +143,8 @@ template <typename Matrix> struct DimensionOf
 };
 
 /**
+ * \ingroup traits
+ *
  * \brief Returns simple the max integer of A and B
  */
 template <int A, int B> struct MaxOf

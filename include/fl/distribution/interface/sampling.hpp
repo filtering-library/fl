@@ -28,6 +28,8 @@ namespace fl
 
 /**
  * \interface Sampling
+ * \ingroup distribution_interfaces
+ *
  * \brief Distribution sampling interface
  *
  * \tparam Vector   Sample variable type

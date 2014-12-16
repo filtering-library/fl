@@ -96,7 +96,6 @@ struct Traits<IntegratedDampedWienerProcessModel<State_>>
 /**
  * \class IntegratedDampedWienerProcess
  *
- * \ingroup distributions
  * \ingroup process_models
  */
 template <typename State_>

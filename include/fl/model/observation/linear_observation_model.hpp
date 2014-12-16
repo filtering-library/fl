@@ -47,6 +47,9 @@ struct Traits<
                           State::SizeAtCompileTime> SensorMatrix;
 };
 
+/**
+ * \ingroup observation_models
+ */
 template <typename Observation_,typename State_>
 class LinearGaussianObservationModel
     : public Traits<
