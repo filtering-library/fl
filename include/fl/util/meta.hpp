@@ -45,6 +45,7 @@ namespace fl
 template <int... Sizes> struct JoinSizes;
 
 /**
+ * \internal
  * \ingroup meta
  * \sa JoinSizes
  * \copydoc JoinSizes
