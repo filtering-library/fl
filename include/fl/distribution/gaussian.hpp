@@ -104,18 +104,26 @@ struct Traits<Gaussian<Vector_>>
  * Exception used in case of accessing dynamic-size distribution attributes
  * without initializing the Gaussian using a dimension greater 0.
  */
-class GaussianUninitializedException:
-    public fl::Exception
+class GaussianUninitializedException
+        : public Exception
 {
 public:
     /**
      * Creates a GaussianUninitializedException
      */
-    GaussianUninitializedException():
-        fl::Exception("Accessing uninitialized dynamic-size distribution. "
-                      "Gaussian dimension is 0. "
-                      "Use ::Dimension(dimension) to initialize the "
-                      "distribution!") { }
+    GaussianUninitializedException()
+        : Exception("Accessing uninitialized dynamic-size distribution. "
+                    "Gaussian dimension is 0. "
+                    "Use ::Dimension(dimension) to initialize the "
+                    "distribution!") { }
+
+    /**
+     * \return Exception name
+     */
+    virtual std::string name() const noexcept
+    {
+        return "fl::GaussianUninitializedException";
+    }
 };
 
 /**
@@ -123,15 +131,23 @@ public:
  *
  * Exception representing a unsupported representation ID
  */
-class InvalidGaussianRepresentationException:
-    public fl::Exception
+class InvalidGaussianRepresentationException
+        : public Exception
 {
 public:
     /**
      * Creates an InvalidGaussianRepresentationException
      */
-    InvalidGaussianRepresentationException():
-        fl::Exception("Invalid Gaussian covariance representation") { }
+    InvalidGaussianRepresentationException()
+        : Exception("Invalid Gaussian covariance representation") { }
+
+    /**
+     * \return Exception name
+     */
+    virtual std::string name() const noexcept
+    {
+        return "fl::InvalidGaussianRepresentationException";
+    }
 };
 
 /**
@@ -139,7 +155,7 @@ public:
  *
  * \brief General Gaussian Distribution
  * \ingroup distributions
- * @{
+ * \{
  *
  * The Gaussian is a general purpose distribution. It can be used in various
  * ways while maintaining efficienty at the same time. This is due to it's
@@ -166,10 +182,10 @@ public:
  * \endcond
  */
 template <typename Vector_>
-class Gaussian:
-        public Traits<Gaussian<Vector_>>::MomentsBase,
-        public Traits<Gaussian<Vector_>>::EvaluationBase,
-        public Traits<Gaussian<Vector_>>::GaussianMapBase
+class Gaussian
+        : public Traits<Gaussian<Vector_>>::MomentsBase,
+          public Traits<Gaussian<Vector_>>::EvaluationBase,
+          public Traits<Gaussian<Vector_>>::GaussianMapBase
 {
 public:
     typedef Gaussian<Vector_> This;
@@ -264,7 +280,7 @@ public:
     {
         if (Dimension() == 0)
         {
-            BOOST_THROW_EXCEPTION(GaussianUninitializedException());
+            fl_throw(GaussianUninitializedException());
         }
 
         if (is_dirty(CovarianceMatrix) && is_dirty(DiagonalCovarianceMatrix))
@@ -299,7 +315,7 @@ public:
                 break;
 
             default:
-                BOOST_THROW_EXCEPTION(InvalidGaussianRepresentationException());
+                fl_throw(InvalidGaussianRepresentationException());
                 break;
             }
 
@@ -330,7 +346,7 @@ public:
     {
         if (Dimension() == 0)
         {
-            BOOST_THROW_EXCEPTION(GaussianUninitializedException());
+            fl_throw(GaussianUninitializedException());
         }
 
         if (is_dirty(PrecisionMatrix) && is_dirty(DiagonalPrecisionMatrix))
@@ -357,7 +373,7 @@ public:
                 break;
 
             default:
-                BOOST_THROW_EXCEPTION(InvalidGaussianRepresentationException());
+                fl_throw(InvalidGaussianRepresentationException());
                 break;
             }
 
@@ -388,7 +404,7 @@ public:
     {
         if (Dimension() == 0)
         {
-            BOOST_THROW_EXCEPTION(GaussianUninitializedException());
+            fl_throw(GaussianUninitializedException());
         }
 
         if (is_dirty(SquareRootMatrix) && is_dirty(DiagonalSquareRootMatrix))
@@ -426,7 +442,7 @@ public:
             } break;
 
             default:
-                BOOST_THROW_EXCEPTION(InvalidGaussianRepresentationException());
+                fl_throw(InvalidGaussianRepresentationException());
                 break;
             }
 
@@ -461,7 +477,7 @@ public:
     }
 
     /**
-     * @return Log normalizing constant
+     * \return Log normalizing constant
      *
      * \throws see HasFullRank()
      *
@@ -493,9 +509,9 @@ public:
     }
 
     /**
-     * @return Log of the probability of the given sample \c vector
+     * \return Log of the probability of the given sample \c vector
      *
-     * @param vector sample which should be evaluated
+     * \param vector sample which should be evaluated
      *
      * \throws see HasFullRank()
      *
@@ -519,10 +535,10 @@ public:
     }
 
     /**
-     * @return a Gaussian sample of the type \c Vector determined by mapping a
+     * \return a Gaussian sample of the type \c Vector determined by mapping a
      * noise sample into the Gaussian sample space
      *
-     * @param sample    Noise Sample
+     * \param sample    Noise Sample
      *
      * \throws see SquareRoot()
      *
@@ -564,7 +580,7 @@ public:
      * Changes the dimension of the dynamic-size Gaussian and sets it to a
      * standard distribution with zero mean and identity covariance.
      *
-     * @param new_dimension New dimension of the Gaussian
+     * \param new_dimension New dimension of the Gaussian
      *
      * \cond INTERNAL
      * \pre {}
@@ -585,7 +601,7 @@ public:
     /**
      * Sets the mean
      *
-     * @param mean New Gaussian mean
+     * \param mean New Gaussian mean
      *
      * \throws WrongSizeException
      */
@@ -593,7 +609,7 @@ public:
     {
         if (mean_.size() != mean.size())
         {
-            BOOST_THROW_EXCEPTION(fl::WrongSizeException(mean.size(),
+            fl_throw(fl::WrongSizeException(mean.size(),
                                                          mean_.size()));
         }
 
@@ -602,7 +618,7 @@ public:
 
     /**
      * Sets the covariance matrix
-     * @param covariance New covariance matrix
+     * \param covariance New covariance matrix
      *
      * \cond INTERNAL
      * \pre |{Valid Representations}| > 0
@@ -616,7 +632,7 @@ public:
     {
         if (covariance_.size() != covariance.size())
         {
-            BOOST_THROW_EXCEPTION(fl::WrongSizeException(covariance.size(),
+            fl_throw(fl::WrongSizeException(covariance.size(),
                                                          covariance_.size()));
         }
 
@@ -628,7 +644,7 @@ public:
      * Sets the covariance matrix in the form of its square root (Cholesky f
      * actor)
      *
-     * @param square_root New covariance square root
+     * \param square_root New covariance square root
      *
      * \cond INTERNAL
      * \pre |{Valid Representations}| > 0
@@ -642,7 +658,7 @@ public:
     {
         if (square_root_.size() != square_root.size())
         {
-            BOOST_THROW_EXCEPTION(fl::WrongSizeException(square_root.size(),
+            fl_throw(fl::WrongSizeException(square_root.size(),
                                                          square_root_.size()));
         }
 
@@ -653,7 +669,7 @@ public:
     /**
      * Sets the covariance matrix in the precision form (inverse of covariance)
      *
-     * @param precision New precision matrix
+     * \param precision New precision matrix
      *
      * \cond INTERNAL
      * \pre |{Valid Representations}| > 0
@@ -667,7 +683,7 @@ public:
     {
         if (precision_.size() != precision.size())
         {
-            BOOST_THROW_EXCEPTION(fl::WrongSizeException(precision.size(),
+            fl_throw(fl::WrongSizeException(precision.size(),
                                                          precision_.size()));
         }
 
@@ -678,7 +694,7 @@ public:
     /**
      * Sets the covariance matrix as a diagonal matrix
      *
-     * @param diag_covariance New diagonal covariance matrix
+     * \param diag_covariance New diagonal covariance matrix
      *
      * \cond INTERNAL
      * \pre |{Valid Representations}| > 0
@@ -692,7 +708,7 @@ public:
     {
         if (diag_covariance.size() != covariance_.size())
         {
-            BOOST_THROW_EXCEPTION(
+            fl_throw(
                 fl::WrongSizeException(
                     diag_covariance.size(), covariance_.size()));
         }
@@ -704,7 +720,7 @@ public:
     /**
      * Sets the covariance matrix in its diagonal square root form
      *
-     * @param diag_square_root New diagonal square root of the covariance
+     * \param diag_square_root New diagonal square root of the covariance
      *
      * \cond INTERNAL
      * \pre |{Valid Representations}| > 0
@@ -718,7 +734,7 @@ public:
     {
         if (diag_square_root.size() != square_root_.size())
         {
-            BOOST_THROW_EXCEPTION(
+            fl_throw(
                 fl::WrongSizeException(
                     diag_square_root.size(), square_root_.size()));
         }
@@ -730,7 +746,7 @@ public:
     /**
      * Sets the covariance matrix in its diagonal precision form
      *
-     * @param diag_precision New diagonal precision matrix
+     * \param diag_precision New diagonal precision matrix
      *
      * \cond INTERNAL
      * \pre |{Valid Representations}| > 0
@@ -744,7 +760,7 @@ public:
     {
         if (diag_precision.size() != precision_.size())
         {
-            BOOST_THROW_EXCEPTION(
+            fl_throw(
                 fl::WrongSizeException(
                     diag_precision.size(), precision_.size()));
         }
@@ -759,7 +775,7 @@ protected:
      * Flags the specified attribute as valid and the rest of attributes as
      * dirty.
      *
-     * @param attribute Modified attribute
+     * \param attribute Modified attribute
      */
     virtual void updated_externally(Attribute attribute) const noexcept
     {
@@ -770,7 +786,7 @@ protected:
     /**
      * Flags the specified attribute as valid.
      *
-     * @param attribute Modified attribute
+     * \param attribute Modified attribute
      */
     virtual void updated_internally(Attribute attribute) const noexcept
     {
@@ -778,8 +794,8 @@ protected:
     }
 
     /**
-     * @return True if any of the other representation was modified.
-     * @param attribute     Attribute in question
+     * \return True if any of the other representation was modified.
+     * \param attribute     Attribute in question
      */
     virtual bool is_dirty(Attribute attribute) const noexcept
     {
@@ -787,9 +803,9 @@ protected:
     }
 
     /**
-     * @return First representation ID that is available
+     * \return First representation ID that is available
      *
-     * @param representations   Representation list
+     * \param representations   Representation list
      *
      * Example:
      * If the last invoked functions were
@@ -839,7 +855,7 @@ protected:
     /** \endcond */
 };
 
-/** @} */
+/** \} */
 
 }
 
