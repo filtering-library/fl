@@ -123,9 +123,9 @@ public:
     /**
      * Throw
      */
-    template <typename ExceptioType>
+    template <typename ExceptionType>
     fl_attribute_noreturn
-    static inline void throw_exception(ExceptioType&& excep,
+    static inline void throw_exception(ExceptionType&& excep,
                                        const std::string& file,
                                        const std::string& function_name,
                                        int line)
