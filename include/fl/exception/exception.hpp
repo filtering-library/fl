@@ -22,10 +22,37 @@
 #ifndef FL__EXCEPTION__EXCEPTION_HPP
 #define FL__EXCEPTION__EXCEPTION_HPP
 
+#include <map>
 #include <string>
 #include <exception>
-#include <boost/exception/all.hpp>
-#include <boost/lexical_cast.hpp>
+
+#ifndef NDEBUG
+    #if defined(__GNUC__)
+        #define fl_current_function __PRETTY_FUNCTION__
+    #elif defined(__FUNCSIG__)
+        # define fl_current_function __FUNCSIG__
+    #elif  defined(__func__)
+        #define fl_current_function __func__
+    #else
+        #define fl_current_function "(unknown)"
+    #endif
+
+    #define fl_throw(excep) \
+        fl::Exception::throw_exception(excep, \
+                                       fl_current_function, \
+                                       __FILE__, \
+                                       __LINE__);
+#else
+    #define fl_throw(excep) throw excep;
+#endif
+
+#if defined(__GNUC__)
+    #define fl_attribute_noreturn __attribute__((noreturn))
+#elif defined(_MSC_VER)
+    #define fl_attribute_noreturn __declspec(noreturn)
+#else
+    #define fl_attribute_noreturn
+#endif
 
 namespace fl
 {
@@ -35,9 +62,8 @@ namespace fl
  *
  * \ingroup exceptions
  */
-class Exception:
-        virtual public std::exception,
-        virtual public boost::exception
+class Exception
+        : public std::exception
 {
 public:
     /**
@@ -46,19 +72,77 @@ public:
     Exception() = default;
 
     /**
+     *
+     */
+    virtual ~Exception() throw() { }
+
+    /**
      * Create an exception with a customized message under the tag \em Msg.
      *
      * @param message   Customized error message using the Msg tag.
      */
-    explicit Exception(std::string message)
+    explicit Exception(std::string msg)
     {
-        *this << boost::error_info<struct Msg, std::string>(message);
+        info("Error", msg);
     }
 
     const char* what() const noexcept
     {
-        return boost::diagnostic_information_what(*this);
+        std::string whats_wrong = "Dynamic exception "
+                                  + name() + "\n" ;
+
+        for (auto&& msg : diagnostic_)
+        {
+            whats_wrong += "[Exception " + name() + "] "
+                            + msg.first + ": "
+                            + msg.second + "\n";
+        }
+        //whats_wrong.pop_back(); not supported by C++0x
+        whats_wrong.resize(whats_wrong.size () - 1);
+
+        return whats_wrong.c_str();
     }
+
+
+    /**
+     * Sets a tagged diagnostic info message
+     *
+     * \param tag       Message tag
+     * @param msg       Message text
+     */
+    void info(std::string tag, std::string msg)
+    {
+        diagnostic_[tag] = msg;
+    }
+
+    /**
+     * \return Exception name
+     */
+    virtual std::string name() const noexcept { return "fl::Exception"; }
+
+    /**
+     * Throw
+     */
+    template <typename ExceptioType>
+    fl_attribute_noreturn
+    static inline void throw_exception(ExceptioType&& excep,
+                                       const std::string& file,
+                                       const std::string& function_name,
+                                       int line)
+    {
+        excep.info("Function", function_name);
+        excep.info("Line", std::to_string(line));
+        excep.info("File", file);
+
+        throw excep;
+    }
+
+protected:
+    /**
+     * \brief Diagnostic information. This may contain tagged messages used to
+     * construct the what() message.
+     */
+    std::map<std::string, std::string> diagnostic_;
 };
 
 /**
@@ -66,18 +150,18 @@ public:
  *
  * Index out of bounds exception
  */
-class OutOfBoundsException:
-        public Exception
+class OutOfBoundsException
+        : public Exception
 {
-public:
-    typedef boost::error_info<struct OutOfBounds, std::string> OutOfBoundsInfo;
+public:    
 
     /**
      * Creates an OutOfBoundsException with a default message
      */
     OutOfBoundsException()
+        : Exception("Index out of bounds")
     {
-        *this << OutOfBoundsInfo("Index out of bounds");
+        // *this << OutOfBoundsInfo("Index out of bounds");
     }
 
     /**
@@ -87,12 +171,10 @@ public:
      * @param index     The out of bounds index
      */
     explicit OutOfBoundsException(long int index)
-    {
-        *this << OutOfBoundsInfo(
-                    "Index("
-                    + boost::lexical_cast<std::string>(index)
-                    + ") out of bounds");
-    }
+        : Exception("Index["
+                    + std::to_string(index)
+                    + "] out of bounds")
+    { }
 
     /**
      * Creates an OutOfBoundsException with a default message including the
@@ -102,13 +184,19 @@ public:
      * @param size      Container size
      */
     OutOfBoundsException(long int index, long int size)
-    {
-        *this << OutOfBoundsInfo(
-                    "Index["
-                    + boost::lexical_cast<std::string>(index)
+        : Exception("Index["
+                    + std::to_string(index)
                     + "] out of bounds [0, "
-                    + boost::lexical_cast<std::string>(size)
-                    + ")");
+                    + std::to_string(size)
+                    + ")")
+    { }
+
+    /**
+     * \return Exception name
+     */
+    virtual std::string name() const noexcept
+    {
+        return "fl::OutOfBoundsException";
     }
 };
 
@@ -117,28 +205,35 @@ public:
  *
  * Exception representing a wrong size or dimension
  */
-class WrongSizeException:
-    public fl::Exception
+class WrongSizeException
+        : public Exception
 {
 public:
     /**
      * Creates an WrongSizeException with a customized message
      */
-    WrongSizeException(std::string msg):
-        fl::Exception(msg)
+    WrongSizeException(std::string msg)
+        : Exception(msg)
     {
     }
 
     /**
      * Creates an WrongSizeException
      */
-    WrongSizeException(size_t given, size_t expected):
-        fl::Exception(
-            "Wrong size ("
-            + boost::lexical_cast<std::string>(given)
-            + "). Expected ("
-            + boost::lexical_cast<std::string>(expected)
-            + ")") { }
+    WrongSizeException(size_t given, size_t expected)
+        : Exception("Wrong size ("
+                    + std::to_string(given)
+                    + "). Expected ("
+                    + std::to_string(expected)
+                    + ")") { }
+
+    /**
+     * \return Exception name
+     */
+    virtual std::string name() const noexcept
+    {
+        return "fl::WrongSizeException";
+    }
 };
 
 /**
@@ -146,15 +241,23 @@ public:
  *
  * Exception representing an uninitialized dimension of a dynamic sized Gaussian
  */
-class ZeroDimensionException:
-    public fl::Exception
+class ZeroDimensionException
+        : public Exception
 {
 public:
     /**
      * Creates an ZeroDimensionException
      */
-    ZeroDimensionException(std::string entity = "Entity"):
-        fl::Exception(entity + " dimension is 0.") { }
+    ZeroDimensionException(std::string entity = "Entity")
+        : Exception(entity + " dimension is 0.") { }
+
+    /**
+     * \return Exception name
+     */
+    virtual std::string name() const noexcept
+    {
+        return "fl::ZeroDimensionException";
+    }
 };
 
 /**
@@ -162,8 +265,8 @@ public:
  *
  * Exception representing an attempt to resize a fixed-size entity
  */
-class ResizingFixedSizeEntityException:
-    public fl::Exception
+class ResizingFixedSizeEntityException
+        : public Exception
 {
 public:
     /**
@@ -171,14 +274,22 @@ public:
      */
     ResizingFixedSizeEntityException(size_t fixed_size,
                                      size_t new_size,
-                                     std::string entity = "entity"):
-        fl::Exception("Attempt to resize the fixed-size ("
-                      + boost::lexical_cast<std::string>(fixed_size)
-                      + ") "
-                      + entity
-                      + " to ("
-                      + boost::lexical_cast<std::string>(new_size)
-                      + ")") { }
+                                     std::string entity = "entity")
+        : Exception("Attempt to resize the fixed-size ("
+                    + std::to_string(fixed_size)
+                    + ") "
+                    + entity
+                    + " to ("
+                    + std::to_string(new_size)
+                    + ")") { }
+
+    /**
+     * \return Exception name
+     */
+    virtual std::string name() const noexcept
+    {
+        return "fl::ResizingFixedSizeEntityException";
+    }
 };
 
 }
