@@ -78,29 +78,29 @@ TEST(Exception, create)
 TEST(Exception, OutOfBoundsException_default_construction)
 {
     fl::OutOfBoundsException e;
-//    EXPECT_NE(
-//        std::string(e.what()).find("Index out of bounds"),
-//        std::string::npos);
+    EXPECT_NE(
+        std::string(e.what()).find("Index out of bounds"),
+        std::string::npos);
 
-    try {
-        fl_throw(fl::OutOfBoundsException());
-    } catch (fl::Exception& e) {
-        std::cout << e.what() << std::endl;
-    }
+//    try {
+//        fl_throw(fl::OutOfBoundsException());
+//    } catch (fl::Exception& e) {
+//        std::cout << e.what() << std::endl;
+//    }
 }
 
 TEST(Exception, OutOfBoundsException_index)
 {
     fl::OutOfBoundsException e(10);
-//    EXPECT_NE(
-//        std::string(e.what()).find("Index[10] out of bounds"),
-//        std::string::npos);
+    EXPECT_NE(
+        std::string(e.what()).find("Index[10] out of bounds"),
+        std::string::npos);
 
-    try {
-        fl_throw(e);
-    } catch (fl::Exception& e) {
-        std::cout << e.what() << std::endl;
-    }
+//    try {
+//        fl_throw(e);
+//    } catch (fl::Exception& e) {
+//        std::cout << e.what() << std::endl;
+//    }
 }
 
 TEST(Exception, OutOfBoundsException_index_size)
@@ -110,9 +110,9 @@ TEST(Exception, OutOfBoundsException_index_size)
         std::string(e.what()).find("Index[10] out of bounds [0, 8)"),
         std::string::npos);
 
-    try {
-        fl_throw(e);
-    } catch (fl::Exception& e) {
-        std::cout << e.what() << std::endl;
-    }
+//    try {
+//        fl_throw(e);
+//    } catch (fl::Exception& e) {
+//        std::cout << e.what() << std::endl;
+//    }
 }
