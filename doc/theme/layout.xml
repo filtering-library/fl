@@ -4,9 +4,7 @@
   <navindex>
     <tab type="mainpage" visible="yes" title=""/>     
     <tab type="pages" visible="yes" title="" intro=""/>
-    <tab type="user" visible="yes" url="" />
     <tab type="modules" visible="yes" title="Modules" intro=""/>
-    
     <tab type="usergroup" visible="yes" title=":: fl ::">
         <tab type="classlist" visible="yes" title="" intro=""/>
         <tab type="hierarchy" visible="yes" title="" intro=""/>       
