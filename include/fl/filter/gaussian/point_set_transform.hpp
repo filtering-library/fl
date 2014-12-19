@@ -36,7 +36,7 @@ namespace fl
  * \brief The PointSetTransform is the interface of any transform that
  * transforms a Gaussian or the first two moments of a distribution into a set
  * of points (a statistic) representing the moments exactly. A typical transform
- * is the well known Unscented Transform \cite wan2000unscented.
+ * is the well known Unscented Transform \cite wan2000unscented .
  *
  *
  * \tparam Derived  PointSetTransform implementation type which must provide the
