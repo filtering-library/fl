@@ -34,7 +34,7 @@ namespace fl
  * \ingroup unscented_kalman_filter
  *
  * This is the Unscented Transform used in the Unscented Kalman Filter
- * \cite wan2000unscented. It implememnts the PointSetTransform interface.
+ * \cite wan2000unscented . It implememnts the PointSetTransform interface.
  *
  * \copydetails PointSetTransform
  */
@@ -102,7 +102,7 @@ public:
         if (IsFixed<Traits<PointSet_>::NumberOfPoints>() &&
             Traits<PointSet_>::NumberOfPoints != point_count)
         {
-            BOOST_THROW_EXCEPTION(
+            fl_throw(
                 WrongSizeException("Incompatible number of points of the"
                                    " specified fixed-size PointSet"));
         }

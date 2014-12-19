@@ -44,11 +44,11 @@
     assert(points_.cols() == weights_.size()); \
     if (points_.rows() == 0) \
     { \
-        BOOST_THROW_EXCEPTION(ZeroDimensionException("PointSet")); \
+        fl_throw(ZeroDimensionException("PointSet")); \
     } \
     if (points_.cols() == 0)  \
     { \
-        BOOST_THROW_EXCEPTION(Exception("PointSet contains no points.")); \
+        fl_throw(Exception("PointSet contains no points.")); \
     }
 
 /**
@@ -57,7 +57,7 @@
 #define INLINE_CHECK_POINT_SET_BOUNDS(i) \
     if (i >= weights_.size()) \
     { \
-        BOOST_THROW_EXCEPTION(OutOfBoundsException(i, weights_.size())); \
+        fl_throw(OutOfBoundsException(i, weights_.size())); \
     } \
     INLINE_CHECK_POINT_SET_DIMENSIONS();
 /** \endcond */
@@ -208,7 +208,7 @@ public:
 
         if (IsFixed<Points_>())
         {
-            BOOST_THROW_EXCEPTION(
+            fl_throw(
                 fl::ResizingFixedSizeEntityException(weights_.size(),
                                                      points_count,
                                                      "poit set Gaussian"));

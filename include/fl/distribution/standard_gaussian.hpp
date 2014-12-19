@@ -100,7 +100,7 @@ public:
 
         if (fl::IsFixed<Vector::SizeAtCompileTime>())
         {
-            BOOST_THROW_EXCEPTION(
+            fl_throw(
                 fl::ResizingFixedSizeEntityException(dimension_,
                                                      new_dimension,
                                                      "Gaussian"));
