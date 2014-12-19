@@ -26,8 +26,6 @@
 #include <tuple>
 #include <memory>
 
-#include <boost/shared_ptr.hpp>
-
 #include <fl/util/meta.hpp>
 #include <fl/util/traits.hpp>
 
