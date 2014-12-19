@@ -49,9 +49,7 @@
 
 #include <Eigen/Dense>
 
-#include <boost/random/normal_distribution.hpp>
-#include <boost/random/mersenne_twister.hpp>
-#include <boost/random/variate_generator.hpp>
+#include <random>
 
 #include <fl/util/random_seed.hpp>
 #include <fl/util/traits.hpp>
@@ -69,12 +67,13 @@ class StandardGaussian:
         public Sampling<Vector>
 {
 public:
-    explicit StandardGaussian(const int dimension = DimensionOf<Vector>()):
-        dimension_ (dimension),
-        generator_(RANDOM_SEED),
-        gaussian_distribution_(0.0, 1.0),
-        gaussian_generator_(generator_, gaussian_distribution_)
-    { }
+    explicit StandardGaussian(const int dimension = DimensionOf<Vector>())
+        : dimension_ (dimension),
+          generator_(RANDOM_SEED),
+          gaussian_distribution_(0.0, 1.0),
+          gaussian_generator_(std::bind(gaussian_distribution_, generator_))
+    {
+    }
 
     virtual ~StandardGaussian() { }
 
@@ -111,10 +110,9 @@ public:
 
 private:
     int dimension_;
-    boost::mt19937 generator_;
-    boost::normal_distribution<> gaussian_distribution_;
-    boost::variate_generator<
-        boost::mt19937, boost::normal_distribution<>> gaussian_generator_;
+    std::mt19937 generator_;
+    std::normal_distribution<> gaussian_distribution_;
+    std::function<double()> gaussian_generator_;
 };
 
 // specialization for scalar
@@ -122,10 +120,11 @@ template<>
 class StandardGaussian<double>: public Sampling<double>
 {
 public:
-    StandardGaussian():
-        generator_(RANDOM_SEED),
-        gaussian_distribution_(0.0, 1.0),
-        gaussian_generator_(generator_, gaussian_distribution_) { }
+    StandardGaussian()
+        : generator_(RANDOM_SEED),
+          gaussian_distribution_(0.0, 1.0),
+          gaussian_generator_(std::bind(gaussian_distribution_, generator_))
+    { }
 
     virtual ~StandardGaussian() { }
 
@@ -140,10 +139,9 @@ public:
     }
 
 private:
-    boost::mt19937 generator_;
-    boost::normal_distribution<> gaussian_distribution_;
-    boost::variate_generator<
-        boost::mt19937, boost::normal_distribution<>> gaussian_generator_;
+    std::mt19937 generator_;
+    std::normal_distribution<> gaussian_distribution_;
+    std::function<double()> gaussian_generator_;
 };
 
 }

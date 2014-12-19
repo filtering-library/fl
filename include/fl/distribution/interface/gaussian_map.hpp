@@ -27,10 +27,6 @@
 
 #include <type_traits>
 
-#include <boost/random/normal_distribution.hpp>
-#include <boost/random/mersenne_twister.hpp>
-#include <boost/random/variate_generator.hpp>
-
 #include <fl/util/traits.hpp>
 #include <fl/distribution/interface/sampling.hpp>
 #include <fl/distribution/standard_gaussian.hpp>
