@@ -51,9 +51,6 @@
 #include <cmath>
 #include <iostream>
 
-#include <boost/shared_ptr.hpp>
-#include <boost/make_shared.hpp>
-
 #include <fl/model/process/linear_process_model.hpp>
 #include <fl/model/observation/linear_observation_model.hpp>
 #include <fl/filter/filter_interface.hpp>
