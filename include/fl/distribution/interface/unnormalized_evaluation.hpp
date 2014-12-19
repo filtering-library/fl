@@ -2,8 +2,8 @@
  * This is part of the FL library, a C++ Bayesian filtering library
  * (https://github.com/filtering-library)
  *
- * Copyright (c) 2014 Jan Issac (jan.issac\gmail.com)
- * Copyright (c) 2014 Manuel Wuthrich (manuel.wuthrich\gmail.com)
+ * Copyright (c) 2014 Jan Issac (jan.issac@gmail.com)
+ * Copyright (c) 2014 Manuel Wuthrich (manuel.wuthrich@gmail.com)
  *
  * Max-Planck Institute for Intelligent Systems, AMD Lab
  * University of Southern California, CLMC Lab
@@ -16,7 +16,7 @@
 /**
  * \file unnormalized_evaluation.hpp
  * \date May 2014
- * \author Manuel Wuthrich (manuel.wuthrich\gmail.com)
+ * \author Manuel Wuthrich (manuel.wuthrich@gmail.com)
  */
 
 
