@@ -4,9 +4,13 @@ namespace fl
 
 /**
  \defgroup filter Filter Algorithms
+ \defgroup sigma_point_kalman_filter Sigma Point Kalman Filters
+ \defgroup unscented_kalman_filter Unscented Kalman Filter
  \defgroup distributions Distributions
  \defgroup observation_models Observation Models
  \defgroup process_models Process Models
+ \defgroup traits Traits
+ \defgroup meta Meta
  \defgroup exceptions Exceptions
 */
 
