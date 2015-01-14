@@ -36,13 +36,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <Eigen/Core>
 
-#include <fl/util/assertions.hpp>
-#include <fl/util/profiling.hpp>
+#include <fl/util/math.hpp>
 #include <fl/util/traits.hpp>
-#include <ff/utils/helper_functions.hpp>
+#include <fl/util/profiling.hpp>
+#include <fl/util/assertions.hpp>
+
 #include <fl/distribution/gaussian.hpp>
-#include <ff/distributions/sum_of_deltas.hpp>
 #include <fl/distribution/interface/gaussian_map.hpp>
+
+#include <pose_tracking/utils/helper_functions.hpp>
+#include <ff/utils/helper_functions.hpp>
+#include <ff/distributions/sum_of_deltas.hpp>
 #include <ff/models/observation_models/interfaces/rao_blackwell_observation_model.hpp>
 #include <ff/models/process_models/interfaces/stationary_process_model.hpp>
 
@@ -147,7 +151,7 @@ public:
         std::vector<State> next_samples(sample_count);
         std::vector<Scalar> loglikes(sample_count);
 
-        fl::hf::DiscreteSampler sampler(log_weights_);
+        hf::DiscreteDistribution sampler(log_weights_);
 
         for(size_t i = 0; i < sample_count; i++)
         {
@@ -183,7 +187,7 @@ private:
             weights[i] -= weights[0];
 
         weights = fl::hf::Apply<Scalar, Scalar>(weights, std::exp);
-        weights = fl::hf::SetSum(weights, Scalar(1));
+        weights = fl::normalize(weights, Scalar(1));
 
         // compute KL divergence to uniform distribution KL(p|u)
         Scalar kl_divergence = std::log(Scalar(weights.size()));
