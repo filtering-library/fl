@@ -31,6 +31,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <vector>
 #include <limits>
 #include <string>
+#include <algorithm>
+#include <cmath>
 
 #include <boost/shared_ptr.hpp>
 
@@ -175,18 +177,21 @@ public:
     }
 
 private:
+    // O(6n + nlog(n)) might be reducible to O(4n)
     void UpdateWeights(std::vector<Scalar> log_weight_diffs)
     {
         for(size_t i = 0; i < log_weight_diffs.size(); i++)
             log_weights_[i] += log_weight_diffs[i];
 
         std::vector<Scalar> weights = log_weights_;
-        fl::hf::Sort(weights, 1);
+        // descendant sorting
+        std::sort(weights.begin(), weights.end(), std::greater<Scalar>());
 
         for(int i = weights.size() - 1; i >= 0; i--)
             weights[i] -= weights[0];
 
-        weights = fl::hf::Apply<Scalar, Scalar>(weights, std::exp);
+        std::for_each(weights.begin(), weights.end(), [](Scalar& w){ w = std::exp(w); });
+
         weights = fl::normalize(weights, Scalar(1));
 
         // compute KL divergence to uniform distribution KL(p|u)
