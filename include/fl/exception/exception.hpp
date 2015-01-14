@@ -121,7 +121,7 @@ public:
     virtual std::string name() const noexcept { return "fl::Exception"; }
 
     /**
-     * Throw
+     * Throw an exception with diagnostic information
      */
     template <typename ExceptionType>
     fl_attribute_noreturn
@@ -279,9 +279,8 @@ public:
                     + std::to_string(fixed_size)
                     + ") "
                     + entity
-                    + " to ("
-                    + std::to_string(new_size)
-                    + ")") { }
+                    + " to (" + std::to_string(new_size) + ")")
+    { }
 
     /**
      * \return Exception name
