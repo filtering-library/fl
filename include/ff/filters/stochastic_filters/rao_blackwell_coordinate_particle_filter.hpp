@@ -36,8 +36,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <Eigen/Core>
 
-#include <ff/utils/assertions.hpp>
-#include <ff/utils/profiling.hpp>
+#include <fl/util/assertions.hpp>
+#include <fl/util/profiling.hpp>
 #include <fl/util/traits.hpp>
 #include <ff/utils/helper_functions.hpp>
 #include <fl/distribution/gaussian.hpp>
@@ -88,7 +88,7 @@ public:
         SamplingBlocks(sampling_blocks);
     }
 
-    virtual ~RaoBlackwellCoordinateParticleFilter() {}
+    virtual ~RaoBlackwellCoordinateParticleFilter() { }
 
 public:
     void Filter(const Observation&  observation,
@@ -115,10 +115,7 @@ public:
                 process_model_->Condition(delta_time,
                                           samples_[particle_index],
                                           input);
-            }
-            MEASURE("conditioning");
-            for(size_t particle_index = 0; particle_index < samples_.size(); particle_index++)
-            {
+
                 next_samples_[particle_index] = process_model_->MapStandardGaussian(noises_[particle_index]);
             }
             MEASURE("propagation");
