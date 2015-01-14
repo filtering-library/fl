@@ -78,17 +78,6 @@ template <typename T> T bound_value(const std::vector<T> &values, bool bound_typ
 	return values[BoundIndex(values, bound_type)];
 }
 
-// use std::transform or for_each instead
-template <typename Tin, typename Tout>
-std::vector<Tout> Apply(const std::vector<Tin> &input, Tout(*f)(Tin))
-{
-	std::vector<Tout> output(input.size());
-	for(size_t i = 0; i < output.size(); i++)
-		output[i] = (*f)(input[i]);
-
-	return output;
-}
-
 // sampling class >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 class DiscreteDistribution
