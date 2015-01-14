@@ -609,8 +609,7 @@ public:
     {
         if (mean_.size() != mean.size())
         {
-            fl_throw(fl::WrongSizeException(mean.size(),
-                                                         mean_.size()));
+            fl_throw(fl::WrongSizeException(mean.size(), mean_.size()));
         }
 
         mean_ = mean;
@@ -632,8 +631,8 @@ public:
     {
         if (covariance_.size() != covariance.size())
         {
-            fl_throw(fl::WrongSizeException(covariance.size(),
-                                                         covariance_.size()));
+            fl_throw(fl::WrongSizeException(
+                         covariance.size(), covariance_.size()));
         }
 
         covariance_ = covariance;
@@ -658,8 +657,8 @@ public:
     {
         if (square_root_.size() != square_root.size())
         {
-            fl_throw(fl::WrongSizeException(square_root.size(),
-                                                         square_root_.size()));
+            fl_throw(fl::WrongSizeException(
+                         square_root.size(), square_root_.size()));
         }
 
         square_root_ = square_root;
@@ -683,8 +682,8 @@ public:
     {
         if (precision_.size() != precision.size())
         {
-            fl_throw(fl::WrongSizeException(precision.size(),
-                                                         precision_.size()));
+            fl_throw(fl::WrongSizeException(
+                         precision.size(), precision_.size()));
         }
 
         precision_ = precision;
