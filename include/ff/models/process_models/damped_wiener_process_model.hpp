@@ -49,7 +49,7 @@
 
 #include <Eigen/Dense>
 
-#include <ff/utils/assertions.hpp>
+#include <fl/util/assertions.hpp>
 #include <ff/models/process_models/interfaces/stationary_process_model.hpp>
 #include <fl/distribution/gaussian.hpp>
 

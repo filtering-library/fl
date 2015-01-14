@@ -84,7 +84,6 @@ protected:
     template <typename Gaussian>
     void test_gaussian_covariance(Gaussian& gaussian)
     {
-        /*
         typedef typename fl::Traits<Gaussian>::Operator Covariance;
 
         Covariance covariance = Eigen::MatrixXd::Identity(
@@ -138,7 +137,6 @@ protected:
             test_gaussian_attributes(
                         gaussian, covariance, precision, square_root);
         }
-        */
     }
 
     template <typename Gaussian, typename Covariance>

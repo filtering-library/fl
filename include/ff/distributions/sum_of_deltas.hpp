@@ -54,7 +54,7 @@
 #include <vector>
 
 
-#include <ff/utils/assertions.hpp>
+#include <fl/util/assertions.hpp>
 #include <fl/util/traits.hpp>
 #include <fl/distribution/interface/moments.hpp>
 

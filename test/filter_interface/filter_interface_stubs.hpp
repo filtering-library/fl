@@ -52,7 +52,6 @@
 #include <fl/exception/exception.hpp>
 #include <fl/filter/filter_interface.hpp>
 
-
 /*
  * FilterForFun forward declaration
  */

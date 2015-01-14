@@ -50,7 +50,7 @@
 #include <boost/math/special_functions/gamma.hpp>
 
 
-#include <ff/utils/assertions.hpp>
+#include <fl/util/assertions.hpp>
 #include <fl/distribution/interface/gaussian_map.hpp>
 #include <fl/distribution/gaussian.hpp>
 #include <ff/models/process_models/damped_wiener_process_model.hpp>

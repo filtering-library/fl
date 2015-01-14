@@ -37,8 +37,8 @@ public:
                                 const Noise& noise,
                                 const Input& input) = 0;
 
-    virtual size_t state_dimension() const = 0;
-    virtual size_t noise_dimension() const = 0;
+    virtual size_t state_dimension() const = 0;   
+    virtual size_t noise_dimension() const = 0;         
     virtual size_t input_dimension() const = 0;
 };
 

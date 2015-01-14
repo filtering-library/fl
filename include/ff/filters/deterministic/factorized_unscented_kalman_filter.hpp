@@ -54,12 +54,12 @@
 #include <cmath>
 #include <type_traits>
 
-#include <ff/utils/assertions.hpp>
+#include <fl/util/assertions.hpp>
 #include <fl/distribution/interface/gaussian_map.hpp>
 #include <ff/distributions/sum_of_deltas.hpp>
 #include <ff/filters/deterministic/composed_state_distribution.hpp>
 #include <ff/models/process_models/interfaces/stationary_process_model.hpp>
-#include <ff/utils/profiling.hpp>
+#include <fl/util/profiling.hpp>
 
 namespace fl
 {
