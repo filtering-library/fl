@@ -25,9 +25,8 @@
 
 #include <limits>
 #include <cmath>
-#include <boost/math/special_functions/erf.hpp>
 
-
+#include <fl/util/math.hpp>
 #include <fl/distribution/interface/evaluation.hpp>
 #include <fl/distribution/interface/gaussian_map.hpp>
 
@@ -43,11 +42,11 @@ public:
     TruncatedGaussian(double mean = 0.0,
                       double sigma = 1.0,
                       double min = -std::numeric_limits<double>::infinity(),
-                      double max = std::numeric_limits<double>::infinity()):
-                                                        mean_(mean),
-                                                        sigma_(sigma),
-                                                        min_(min),
-                                                        max_(max)
+                      double max = std::numeric_limits<double>::infinity())
+        : mean_(mean),
+          sigma_(sigma),
+          min_(min),
+          max_(max)
     {
         ComputeAuxiliaryParameters();
     }
@@ -56,10 +55,10 @@ public:
 
     virtual void SetParameters(double mean, double sigma, double min, double max)
     {
-        mean_ =     mean;
-        sigma_ =    sigma;
-        min_ =      min;
-        max_ =      max;
+        mean_ =  mean;
+        sigma_ = sigma;
+        min_ =   min;
+        max_ =   max;
 
         ComputeAuxiliaryParameters();
     }
@@ -87,8 +86,9 @@ public:
         double truncated_uniform_sample = cumulative_min_ +
                   standard_uniform_sample * (cumulative_max_ - cumulative_min_);
         // map onto truncated gaussian
+
         return mean_ + sigma_ * std::sqrt(2.0) *
-                  boost::math::erf_inv(2.0 * truncated_uniform_sample - 1.0);
+                  fl::erfinv(2.0 * truncated_uniform_sample - 1.0);
     }
 
 private:
