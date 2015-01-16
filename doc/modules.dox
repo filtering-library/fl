@@ -11,6 +11,7 @@ namespace fl
  \defgroup process_models Process Models
  \defgroup traits Traits
  \defgroup meta Meta
+ \defgroup math Math
  \defgroup exceptions Exceptions
 */
 
