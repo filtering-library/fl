@@ -64,7 +64,7 @@ struct Traits<GaussianFilter<ProcessModel, ObservationModel, PointSetTransform>>
     typedef typename Traits<ObservationModel>::Observation Observation;
 
     /**
-     * Represents the underlying distribution of the estimated state. In the
+     * Represents the underlying distribution of the estimated state. In
      * case of a Point Based Kalman filter, the distribution is a simple
      * Gaussian with the dimension of the \c State.
      */
@@ -263,8 +263,6 @@ public:
                          const StateDistribution& prior_dist,
                          StateDistribution& predicted_dist)
     {
-        std::cout << "-> predicting ... " << std::endl;
-
         /*
          * Compute the state points from the given prior state Gaussian
          * distribution and store the points in the X_r PointSet

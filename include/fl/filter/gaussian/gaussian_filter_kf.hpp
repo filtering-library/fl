@@ -190,14 +190,6 @@ public:
         auto A = delta_time * process_model_->A();
         auto Q = delta_time * process_model_->Covariance();
 
-//        std::cout <<  A << std::endl << std::endl;
-//        std::cout <<  Q << std::endl << std::endl;
-//        std::cout <<  process_model_->Covariance() << std::endl << std::endl;
-//        std::cout <<  prior_dist.Covariance() << std::endl << std::endl;
-
-//        std::cout <<  A * prior_dist.Covariance() * A.transpose() << std::endl << std::endl;
-//        std::cout <<  A * prior_dist.Covariance() * A.transpose() + Q << std::endl << std::endl;
-
         predicted_dist.Mean(
             A * prior_dist.Mean());
 
@@ -240,7 +232,8 @@ public:
         posterior_dist.Mean(
             predicted_dist.Mean() + K * (y - H * predicted_dist.Mean()));
 
-        posterior_dist.Covariance(cov_xx - K * H * cov_xx);
+        posterior_dist.Covariance(
+            cov_xx - K * H * cov_xx);
     }
 
     /**
