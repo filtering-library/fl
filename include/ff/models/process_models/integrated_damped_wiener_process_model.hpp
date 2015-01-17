@@ -47,9 +47,9 @@
 
 // boost
 #include <boost/static_assert.hpp>
-#include <boost/math/special_functions/gamma.hpp>
 
 
+#include <fl/util/math.hpp>
 #include <fl/util/assertions.hpp>
 #include <fl/distribution/interface/gaussian_map.hpp>
 #include <fl/distribution/gaussian.hpp>
@@ -208,7 +208,7 @@ private:
         Scalar factor =
                (-1.0 + exp(-2.0*damping_*delta_time))/(8.0*pow(damping_, 3)) +
                 (2.0 - exp(-2.0*damping_*delta_time))/(4.0*pow(damping_, 2)) * delta_time +
-                (-1.5 + gamma_ + boost::math::tgamma(0.00000000001, 2.0*damping_*delta_time) +
+                (-1.5 + gamma_ + fl::igamma(0.0, 2.0*damping_*delta_time) +
                  log(2.0*damping_*delta_time))/(2.0*damping_)*pow(delta_time, 2);
         if(!std::isfinite(factor))
             factor = 1.0/3.0 * pow(delta_time, 3);
