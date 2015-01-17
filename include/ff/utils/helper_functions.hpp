@@ -28,26 +28,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef FAST_FILTERING_UTILS_HELPER_FUNCTIONS_HPP
 #define FAST_FILTERING_UTILS_HELPER_FUNCTIONS_HPP
 
+#include <Eigen/Dense>
+
 #include <vector>
 #include <algorithm>
 #include <iostream>
 #include <limits>
-#include <Eigen/Dense>
+#include <random>
 #include <cmath>
 
 #include <ctime>
 #include <fstream>
 
-
-
-#include <boost/lexical_cast.hpp>
-#include <boost/random/lagged_fibonacci.hpp>
-
 #include <fl/util/random_seed.hpp>
-
-
-
-// TODO: THIS HAS TO BE CLEANED, POSSIBLY SPLIT INTO SEVERAL FILES
+#include <fl/util/math.hpp>
 
 namespace fl
 {
@@ -55,40 +49,23 @@ namespace fl
 namespace hf
 {
 
-
-// use std::min_element & std::max_element instead. better API if split into two functions
-template <typename T> int BoundIndex(const std::vector<T> &values, bool bound_type) // bound type 1 for max and 0 for min
-{
-	int BoundIndex = 0;
-	T bound_value = bound_type ? -std::numeric_limits<T>::max() : std::numeric_limits<T>::max();
-
-	for(int i = 0; i < int(values.size()); i++)
-		if(bound_type ? (values[i] > bound_value) : (values[i] < bound_value) )
-		{
-			BoundIndex = i;
-			bound_value = values[i];
-		}
-
-	return BoundIndex;
-}
-
-// use std::min_element & std::max_element instead
-template <typename T> T bound_value(const std::vector<T> &values, bool bound_type) // bound type 1 for max and 0 for min
-{
-	return values[BoundIndex(values, bound_type)];
-}
-
 // sampling class >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
+// SumOfDeltas and this distribution
 class DiscreteDistribution
 {
 public:
     template <typename T> DiscreteDistribution(std::vector<T> log_prob)
+        : generator_(RANDOM_SEED),
+          uniform_distribution_(0., 1.),
+          uniform_generator_(std::bind(uniform_distribution_, generator_))
     {
-        uniform_sampler_.seed(RANDOM_SEED);
-
         // substract max to avoid numerical issues
-        double max = hf::bound_value(log_prob, true);
+
+        // replaced by std::max_element
+        //double max = hf::bound_value(log_prob, true);
+        double max = *(std::max_element(log_prob.begin(), log_prob.end()));
+
         for(int i = 0; i < int(log_prob.size()); i++)
             log_prob[i] -= max;
 
@@ -114,13 +91,14 @@ public:
 
     int Sample()
     {
-        return MapStandardUniform(uniform_sampler_());
+        return MapStandardUniform(uniform_generator_());
     }
 
     int MapStandardGaussian(double gaussian_sample) const
     {
         double uniform_sample =
                 0.5 * (1.0 + std::erf(gaussian_sample / std::sqrt(2.0)));
+
         return MapStandardUniform(uniform_sample);
     }
 
@@ -135,8 +113,11 @@ public:
     }
 
 private:
-    boost::lagged_fibonacci607  uniform_sampler_;
-    std::vector<double>         cumulative_prob_;
+    std::vector<double> cumulative_prob_;
+
+    fl::mt11213b generator_;
+    std::uniform_real_distribution<double> uniform_distribution_;
+    std::function<double()> uniform_generator_;
 };
 
 }
