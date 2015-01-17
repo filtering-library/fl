@@ -14,6 +14,7 @@
 
 #include <fl/util/random_seed.hpp>
 #include <fl/util/traits.hpp>
+#include <fl/util/math.hpp>
 #include <fl/distribution/interface/sampling.hpp>
 #include <fl/exception/exception.hpp>
 
@@ -71,7 +72,7 @@ public:
 
 private:
     int dimension_;
-    std::mt19937 generator_;
+    fl::mt11213b generator_;
     std::normal_distribution<> gaussian_distribution_;
     std::function<double()> gaussian_generator_;
 };
@@ -100,7 +101,7 @@ public:
     }
 
 private:
-    std::mt19937 generator_;
+    fl::mt11213b generator_;
     std::normal_distribution<> gaussian_distribution_;
     std::function<double()> gaussian_generator_;
 };
