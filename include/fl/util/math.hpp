@@ -27,9 +27,25 @@
 
 #include <cmath>
 #include <vector>
+#include <random>
 
 namespace fl
 {
+
+/**
+ * Mersenne Twister specialization mt11213b \cite matsumoto1998mersenne
+ * \ingroup math
+ *
+ * mt11213b is slightly faster than mt19937
+ */
+typedef std::mersenne_twister_engine<
+                uint32_t,
+                32, 351, 175, 19,
+                0xccab8ee7, 11,
+                0xffffffff, 7,
+                0x31b6ab00, 15,
+                0xffe50000, 17, 1812433253 > mt11213b;
+
 
 /**
  * \brief Sigmoid function
@@ -47,26 +63,6 @@ inline double sigmoid(const double& x)
 inline double logit(const double& x)
 {
     return std::log(x / (1.0 - x));
-}
-
-/**
- * \brief Constructs the QuaternionMatrix for the specified quaternion vetcor
- * \ingroup math
- *
- * \param q_xyzw  Quaternion vector
- *
- * \return Matrix representation of the quaternion vector
- */
-inline Eigen::Matrix<double, 4, 3> QuaternionMatrix(
-        const Eigen::Matrix<double, 4, 1>& q_xyzw)
-{
-    Eigen::Matrix<double, 4, 3> Q;
-    Q <<	q_xyzw(3), q_xyzw(2), -q_xyzw(1),
-            -q_xyzw(2), q_xyzw(3), q_xyzw(0),
-            q_xyzw(1), -q_xyzw(0), q_xyzw(3),
-            -q_xyzw(0), -q_xyzw(1), -q_xyzw(2);
-
-    return 0.5*Q;
 }
 
 /**
@@ -92,6 +88,61 @@ normalize(const std::vector<T>& input, T sum)
 }
 
 /**
+ * \brief Incomplete upper gamma function for positive \c a and \c z
+ * \ingroup math
+ *
+ * This is the unnormalized incomplete upper gamma function implementing the
+ * continued fraction representation \cite press2007numerical .
+ *
+ * \f$ \Gamma(a, z) = \int\limits^\infty_z t^{a-1}e^{-t}dt \f$
+ *
+ * \return \f$ \Gamma(a, z) \f$
+ */
+template <typename RealType> inline RealType igamma(RealType a, RealType z);
+
+/**
+ * \internal
+ */
+template<>
+inline double igamma<double>(const double a, const double z)
+{
+    static constexpr double EPS = std::numeric_limits<double>::epsilon();
+    static constexpr double FPMIN = std::numeric_limits<double>::min()/EPS;;
+
+    int i;
+    double an, b, c, d, del, h;
+    b = z + 1.0 - a;
+
+    c = 1.0 / FPMIN;
+    d = 1.0 / b;
+    h = d;
+    for (i = 1; ; i++)
+    {
+        an = -i * (i - a);
+        b += 2.0;
+        d = an * d + b;
+        if (std::fabs(d) < FPMIN) d = FPMIN;
+        c = b + an / c;
+        if (std::fabs(c) < FPMIN) c = FPMIN;
+        d = 1.0 / d;
+        del = d * c;
+        h *= del;
+        if (std::fabs(del - 1.0) <= EPS) break;
+    }
+
+    return std::exp(-z + a * std::log(z)) * h;
+}
+
+/**
+ * \internal
+ */
+template <>
+inline float igamma<float>(const float a, const float z)
+{
+    return float(igamma<double>(double(a), double(z)));
+}
+
+/**
  * Inverse of the error function.
  * \ingroup math
  *
@@ -99,7 +150,7 @@ normalize(const std::vector<T>& input, T sum)
  *
  * \return evaluates the erfinv at \f$ x \in (-1; 1) \f$
  */
-template <typename RealType> RealType erfinv(RealType x);
+template <typename RealType> inline RealType erfinv(RealType x);
 
 /**
  * Single precision implementation of erfinv according to
@@ -108,7 +159,7 @@ template <typename RealType> RealType erfinv(RealType x);
  *
  * \return evaluates the erfinv at \f$ x \in (-1; 1) \f$
  */
-template <> float erfinv<float>(float x)
+template <> inline float erfinv<float>(float x)
 {
     float w, p;
     w = - std::log((1.0f-x)*(1.0f+x));
@@ -150,7 +201,7 @@ template <> float erfinv<float>(float x)
  *
  * \return evaluates the erfinv at \f$ x \in (-1; 1) \f$
  */
-template <> double erfinv<double>(double x)
+template <> inline  double erfinv<double>(double x)
 {
     double w, p;
 
@@ -229,6 +280,27 @@ template <> double erfinv<double>(double x)
     }
 
     return p*x;
+}
+
+
+/**
+ * \brief Constructs the QuaternionMatrix for the specified quaternion vetcor
+ * \ingroup math
+ *
+ * \param q_xyzw  Quaternion vector
+ *
+ * \return Matrix representation of the quaternion vector
+ */
+inline Eigen::Matrix<double, 4, 3> QuaternionMatrix(
+        const Eigen::Matrix<double, 4, 1>& q_xyzw)
+{
+    Eigen::Matrix<double, 4, 3> Q;
+    Q <<	q_xyzw(3), q_xyzw(2), -q_xyzw(1),
+            -q_xyzw(2), q_xyzw(3), q_xyzw(0),
+            q_xyzw(1), -q_xyzw(0), q_xyzw(3),
+            -q_xyzw(0), -q_xyzw(1), -q_xyzw(2);
+
+    return 0.5*Q;
 }
 
 }
