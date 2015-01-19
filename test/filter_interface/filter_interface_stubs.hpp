@@ -46,7 +46,7 @@
 
 #include <gtest/gtest.h>
 
-#include <memory.h>
+#include <memory>
 
 #include <fl/util/traits.hpp>
 #include <fl/exception/exception.hpp>
