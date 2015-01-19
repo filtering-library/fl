@@ -14,16 +14,47 @@
  */
 
 /**
- * \file random_seed.hpp
+ * \file random.hpp
  * \date 2014
+ * \author Jan Issac (jan.issac@gmail.com)
  * \author Manuel Wuthrich (manuel.wuthrich@gmail.com)
  */
 
-#ifndef FL__UTIL__RANDOM_SEED_HPP
-#define FL__UTIL__RANDOM_SEED_HPP
+#ifndef FL__UTIL__RANDOM_HPP
+#define FL__UTIL__RANDOM_HPP
 
 #include <ctime>
+#include <random>
 
-#define RANDOM_SEED (unsigned) std::time(0) // 1
+/**
+ * \brief global seed
+ *
+ * \ingroup random
+ */
+#ifdef USE_RANDOM_SEED
+    #define RANDOM_SEED (unsigned int) std::time(0)
+#else
+    #define RANDOM_SEED 1
+#endif
+
+namespace fl
+{
+
+/**
+ * Mersenne Twister specialization mt11213b \cite matsumoto1998mersenne
+ * \ingroup random
+ *
+ * mt11213b is slightly faster than mt19937
+ */
+typedef std::mersenne_twister_engine<
+                uint32_t,
+                32, 351, 175, 19,
+                0xccab8ee7, 11,
+                0xffffffff, 7,
+                0x31b6ab00, 15,
+                0xffe50000, 17,
+                1812433253 > mt11213b;
+
+}
 
 #endif
