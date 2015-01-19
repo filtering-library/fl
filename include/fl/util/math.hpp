@@ -38,29 +38,14 @@ namespace fl
  * Euler-Mascheroni Constant
  * \ingroup math
  */
-static constexpr double GAMMA = 0.57721566490153286060651209008240243104215933593992;
-
-
-/**
- * Mersenne Twister specialization mt11213b \cite matsumoto1998mersenne
- * \ingroup math
- *
- * mt11213b is slightly faster than mt19937
- */
-typedef std::mersenne_twister_engine<
-                uint32_t,
-                32, 351, 175, 19,
-                0xccab8ee7, 11,
-                0xffffffff, 7,
-                0x31b6ab00, 15,
-                0xffe50000, 17, 1812433253 > mt11213b;
-
+static constexpr double GAMMA =
+        0.57721566490153286060651209008240243104215933593992;
 
 /**
  * \brief Sigmoid function
  * \ingroup math
  */
-inline double sigmoid(const double& x)
+constexpr double sigmoid(const double& x)
 {
     return 1.0 / (1.0 + std::exp(-x));
 }
@@ -69,7 +54,7 @@ inline double sigmoid(const double& x)
  * \brief log odd
  * \ingroup math
  */
-inline double logit(const double& x)
+constexpr double logit(const double& x)
 {
     return std::log(x / (1.0 - x));
 }
@@ -81,8 +66,8 @@ inline double logit(const double& x)
  * specified \c sum. For instance, any convex combination requires that the
  * weights of the weighted sum sums up to 1.
  */
-template <typename T> std::vector<T>
-normalize(const std::vector<T>& input, T sum)
+template <typename T>
+inline std::vector<T> normalize(const std::vector<T>& input, T sum)
 {
     T old_sum = 0;
     for(size_t i = 0; i < input.size(); i++)
@@ -101,60 +86,6 @@ normalize(const std::vector<T>& input, T sum)
 }
 
 /**
- * \brief This is a deterministic exponential integral approximation
- *        \cite barry2000approximation .
- * \ingroup math
- *
- *
- * The exponential integral \f$E_1(z)\f$ is a special case of the upper
- * incomplete gamma function
- *
- * \f$ \Gamma(a, z) = \int\limits^\infty_z t^{a-1}e^{-t}dt \f$
- *
- * for \f$a = 0\f$ the gamma function is known as the exponential integral
- *
- * \f$ \Gamma(0, z) = \int\limits^\infty_z t^{-1}e^{-t}dt = E_1(z)\f$
- *
- * \return \f$E_1(z) = \Gamma(0, z)\f$
- */
-inline double exponential_integral(double z)
-{
-    static constexpr double G = std::exp(-GAMMA);
-    static constexpr double b = std::sqrt((2. * (1.-G)) / (G * (2. - G)));
-    static constexpr double h_inf = ((1.-G) * (std::pow(G) - 6. * G + 12.))
-                                                    /
-                                     (3. * G * std::pow((2. - G), 2.) * b);
-
-    static constexpr double q_frac = 20. / 47.;
-    static constexpr double q_expx = std::sqrt(31. / 26.);
-
-    const double q = q_frac * std::pow(z, q_expx);
-    const double h = 1. / (1. + z * std::sqrt(z)) + (h_inf * q) / (1. + q);
-
-    double E1 = std::exp(-z) * std::log(1. + G/z - (1.-G) / std::pow(h + b*z));
-    E1 /= (G + (1. - G) * std::exp(-z / (1. - G)));
-
-    return E1;
-}
-
-/**
- * \brief This is a deterministic exponential integral approximation (a special
- * case of the upper incomplete gamma function)
- *
- * \ingroup math
- * \sa exponential_integral(double z)
- *
- *
- * This function is equivanelt to exponential_integral(double)
- *
- * \return \f$E_1(z) = \Gamma(0, z)\f$
- */
-inline double igamma_0_z(double z)
-{
-    return exponential_integral(z);
-}
-
-/**
  * \brief Incomplete upper gamma function for positive \c a and \c z
  * \ingroup math
  *
@@ -170,13 +101,16 @@ inline double igamma(const double a, const double z)
     static constexpr double EPS = std::numeric_limits<double>::epsilon();
     static constexpr double FPMIN = std::numeric_limits<double>::min() / EPS;
 
+    if (z <= 0.) return std::numeric_limits<double>::quiet_NaN();
+
     int i;
     double an, b, c, d, del, h;
-    b = z + 1.0 - a;
 
+    b = z + 1.0 - a;
     c = 1.0 / FPMIN;
     d = 1.0 / b;
     h = d;
+
     for (i = 1; ; i++)
     {
         an = -i * (i - a);
@@ -188,10 +122,51 @@ inline double igamma(const double a, const double z)
         d = 1.0 / d;
         del = d * c;
         h *= del;
+
         if (std::fabs(del - 1.0) <= EPS) break;
     }
 
     return std::exp(-z + a * std::log(z)) * h;
+}
+
+/**
+ * \brief This is a deterministic exponential integral approximation
+ *        \cite barry2000approximation .
+ * \ingroup math
+ *
+ *
+ * The exponential integral \f$E_1(z)\f$ is a special case of the upper
+ * incomplete gamma function
+ *
+ * \f$ \Gamma(a, z) = \int\limits^\infty_z t^{a-1}e^{-t}dt \f$
+ *
+ * for \f$a = 0\f$ the gamma function is known as the exponential integral
+ *
+ * \f$ \Gamma(0, z) = \int\limits^\infty_z t^{-1}e^{-t}dt = E_1(z)\f$
+ *
+ * \return \f$E_1(z) = \Gamma(0, z)\f$
+ * \note For high accuracy please use igamma(0, z)
+ */
+inline double exponential_integral(double z)
+{
+    if (z < 10.) return igamma(0., z);
+
+    static constexpr double G = std::exp(-fl::GAMMA);
+    static constexpr double b = std::sqrt((2. * (1.-G)) / (G * (2. - G)));
+    static constexpr double h_inf = ((1.-G) * (std::pow(G, 2.) - 6. * G + 12.))
+                                     / (3. * G * std::pow((2. - G), 2.) * b);
+
+    static constexpr double q_frac = 20. / 47.;
+    static constexpr double q_expx = std::sqrt(31. / 26.);
+
+    const double q = q_frac * std::pow(z, q_expx);
+    const double h = 1. / (1. + z * std::sqrt(z)) + (h_inf * q) / (1. + q);
+
+    double E1 = std::exp(-z) *
+                std::log(1. + G/z - (1.-G) / std::pow(h + b*z, 2.));
+    E1 /= (G + (1. - G) * std::exp(-z / (1. - G)));
+
+    return E1;
 }
 
 /**
