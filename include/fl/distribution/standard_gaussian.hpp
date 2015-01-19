@@ -12,7 +12,7 @@
 
 #include <random>
 
-#include <fl/util/random_seed.hpp>
+#include <fl/util/random.hpp>
 #include <fl/util/traits.hpp>
 #include <fl/util/math.hpp>
 #include <fl/distribution/interface/sampling.hpp>
@@ -21,45 +21,46 @@
 namespace fl
 {
 
+/// \todo MISSING DOC. MISSING UTESTS
+
 /**
  * \ingroup distributions
  */
-template <typename Vector>
+template <typename NormalVariate>
 class StandardGaussian:
-        public Sampling<Vector>
+        public Sampling<NormalVariate>
 {
 public:
-    explicit StandardGaussian(const int dimension = DimensionOf<Vector>())
-        : dimension_ (dimension),
+    explicit StandardGaussian(size_t dim = DimensionOf<NormalVariate>())
+        : dimension_ (dim),
           generator_(RANDOM_SEED),
-          gaussian_distribution_(0.0, 1.0),
-          gaussian_generator_(std::bind(gaussian_distribution_, generator_))
+          gaussian_distribution_(0.0, 1.0)
     {
     }
 
     virtual ~StandardGaussian() { }
 
-    virtual Vector Sample()
+    virtual NormalVariate sample()
     {
-        Vector gaussian_sample(Dimension());
-        for (int i = 0; i < Dimension(); i++)
+        NormalVariate gaussian_sample(dimension());
+        for (int i = 0; i < dimension(); i++)
         {
-            gaussian_sample(i) = gaussian_generator_();
+            gaussian_sample(i) = gaussian_distribution_(generator_);
         }
 
         return gaussian_sample;
     }
 
-    virtual int Dimension() const
+    virtual int dimension() const
     {
         return dimension_;
     }
 
-    virtual void Dimension(size_t new_dimension)
+    virtual void dimension(size_t new_dimension)
     {
         if (dimension_ == new_dimension) return;
 
-        if (fl::IsFixed<Vector::SizeAtCompileTime>())
+        if (fl::IsFixed<NormalVariate::SizeAtCompileTime>())
         {
             fl_throw(
                 fl::ResizingFixedSizeEntityException(dimension_,
@@ -74,7 +75,6 @@ private:
     int dimension_;
     fl::mt11213b generator_;
     std::normal_distribution<> gaussian_distribution_;
-    std::function<double()> gaussian_generator_;
 };
 
 // specialization for scalar
@@ -84,18 +84,17 @@ class StandardGaussian<double>: public Sampling<double>
 public:
     StandardGaussian()
         : generator_(RANDOM_SEED),
-          gaussian_distribution_(0.0, 1.0),
-          gaussian_generator_(std::bind(gaussian_distribution_, generator_))
+          gaussian_distribution_(0.0, 1.0)
     { }
 
     virtual ~StandardGaussian() { }
 
-    virtual double Sample()
+    virtual double sample()
     {
-        return gaussian_generator_();
+        return gaussian_distribution_(generator_);
     }
 
-    virtual int Dimension() const
+    virtual int dimension() const
     {
         return 1;
     }
@@ -103,7 +102,6 @@ public:
 private:
     fl::mt11213b generator_;
     std::normal_distribution<> gaussian_distribution_;
-    std::function<double()> gaussian_generator_;
 };
 
 }

@@ -188,13 +188,13 @@ public:
                          StateDistribution& predicted_dist)
     {
         auto A = delta_time * process_model_->A();
-        auto Q = delta_time * process_model_->Covariance();
+        auto Q = delta_time * process_model_->covariance();
 
-        predicted_dist.Mean(
-            A * prior_dist.Mean());
+        predicted_dist.mean(
+            A * prior_dist.mean());
 
-        predicted_dist.Covariance(
-            A * prior_dist.Covariance() * A.transpose() + Q);
+        predicted_dist.covariance(
+            A * prior_dist.covariance() * A.transpose() + Q);
     }
 
     /**
@@ -223,16 +223,16 @@ public:
                         StateDistribution& posterior_dist)
     {
         auto&& H = obsrv_model_->H();
-        auto&& R = obsrv_model_->Covariance();
-        auto&& cov_xx = predicted_dist.Covariance();
+        auto&& R = obsrv_model_->covariance();
+        auto&& cov_xx = predicted_dist.covariance();
         auto S = H * cov_xx * H.transpose() + R;
 
         KalmanGain K = cov_xx * H.transpose() * S.inverse();
 
-        posterior_dist.Mean(
-            predicted_dist.Mean() + K * (y - H * predicted_dist.Mean()));
+        posterior_dist.mean(
+            predicted_dist.mean() + K * (y - H * predicted_dist.mean()));
 
-        posterior_dist.Covariance(
+        posterior_dist.covariance(
             cov_xx - K * H * cov_xx);
     }
 

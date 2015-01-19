@@ -37,46 +37,46 @@ namespace fl
  *
  * \brief Distribution evaulation interface
  *
- * \tparam Vector   Random variable type
+ * \tparam Variate  Random variable type
  * \tparam Scalar   Probability & log scalar type
  *
  * Evaluation provides the interface to determine the probability of the
  * underlying distribution at a given sample. Evaluation is a subset of
  * unnormalized distributions.
  */
-template <typename Vector, typename Scalar>
+template <typename Variate, typename Scalar>
 class Evaluation:
-        public UnnormalizedEvaulation<Vector, Scalar>
+        public UnnormalizedEvaluation<Variate, Scalar>
 {
 public:
     /**
+     * \brief Overridable default destructor
+     */
+    virtual ~Evaluation() { }
+
+    /**
      * \return Normalized probability of a given sample
      *
-     * \param vector Sample to evaluate
+     * \param variate Sample to evaluate
      */
-    virtual Scalar Probability(const Vector& vector) const
+    virtual Scalar probability(const Variate& variate) const
     {
-        return std::exp(LogProbability(vector));
+        return std::exp(log_probability(variate));
     }
 
     /**
      * \return Log of normalized probability of a given sample
      */
-    virtual Scalar LogProbability(const Vector& vector) const = 0;
+    virtual Scalar log_probability(const Variate& variate) const = 0;
 
     /**
      * \{UnnormalizedEvaulation
-     *   ::LogUnnormalizedProbability(const Vector&) const\}
+     *   ::log_unnormalized_probability(const Vector&) const\}
      */
-    virtual Scalar LogUnnormalizedProbability(const Vector& vector) const
+    virtual Scalar log_unnormalized_probability(const Variate& variate) const
     {
-        return LogProbability(vector);
+        return log_probability(variate);
     }
-
-    /**
-     * \brief Overridable default destructor
-     */
-    virtual ~Evaluation() { }
 };
 
 }

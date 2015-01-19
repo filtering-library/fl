@@ -50,11 +50,15 @@
 #include <Eigen/Dense>
 
 #include <fl/util/assertions.hpp>
-#include <ff/models/process_models/interfaces/stationary_process_model.hpp>
 #include <fl/distribution/gaussian.hpp>
+#include <fl/model/process/process_model_interface.hpp>
+
+#include <ff/models/process_models/interfaces/stationary_process_model.hpp>
 
 namespace fl
 {
+
+/// \todo MISSING DOC. MISSING UTESTS
 
 // Forward declarations
 template <typename State> class DampedWienerProcessModel;
@@ -76,6 +80,7 @@ struct Traits<DampedWienerProcessModel<State_>>
 
     typedef StationaryProcessModel<State, Input> ProcessModelBase;
     typedef GaussianMap<State, Noise> GaussianMapBase;
+    typedef ProcessModelInterface<State, Noise, Input> ProcessInterfaceBase;
 };
 
 /**
@@ -86,7 +91,8 @@ struct Traits<DampedWienerProcessModel<State_>>
 template <typename State>
 class DampedWienerProcessModel:
         public Traits<DampedWienerProcessModel<State>>::ProcessModelBase,
-        public Traits<DampedWienerProcessModel<State>>::GaussianMapBase
+        public Traits<DampedWienerProcessModel<State>>::GaussianMapBase,
+        public Traits<DampedWienerProcessModel<State>>::ProcessInterfaceBase
 {
 public:
     typedef DampedWienerProcessModel<State> This;
@@ -108,17 +114,17 @@ public:
 
     virtual ~DampedWienerProcessModel() { }
 
-    virtual State MapStandardGaussian(const Noise& sample) const
+    virtual State map_standard_normal(const Noise& sample) const
     {
-        return gaussian_.MapStandardGaussian(sample);
+        return gaussian_.map_standard_normal(sample);
     }
 
-    virtual void Condition(const Scalar&  delta_time,
+    virtual void condition(const Scalar&  delta_time,
                            const State&  state,
                            const Input&   input)
     {
-        gaussian_.Mean(Mean(delta_time, state, input));
-        gaussian_.DiagonalCovariance(Covariance(delta_time));
+        gaussian_.mean(mean(delta_time, state, input));
+        gaussian_.diagonal_covariance(covariance(delta_time));
     }
 
     virtual void Parameters(const Scalar& damping,
@@ -128,13 +134,39 @@ public:
         noise_covariance_ = noise_covariance;
     }
 
-    virtual unsigned Dimension() const
+    virtual unsigned dimension() const
     {
-        return this->NoiseDimension(); // all dimensions are the same
+        return this->variate_dimension(); // all dimensions are the same
+    }
+
+    /* interface API */
+    virtual State predict_state(double delta_time,
+                                const State& state,
+                                const Noise& noise,
+                                const Input& input)
+    {
+        condition(delta_time, state, input);
+
+        return map_standard_normal(noise);
+    }
+
+    virtual size_t state_dimension() const
+    {
+        return this->variate_dimension();
+    }
+
+    virtual size_t noise_dimension() const
+    {
+        return this->variate_dimension();
+    }
+
+    virtual size_t input_dimension() const
+    {
+        return this->variate_dimension();
     }
 
 private:
-    State Mean(const Scalar& delta_time,
+    State mean(const Scalar& delta_time,
                     const State& state,
                     const Input& input)
     {
@@ -151,7 +183,7 @@ private:
         return state_expectation;
     }
 
-    Operator Covariance(const Scalar& delta_time)
+    Operator covariance(const Scalar& delta_time)
     {
         if(damping_ == 0)
             return delta_time * noise_covariance_;
@@ -170,9 +202,6 @@ private:
     // parameters
     Scalar damping_;
     Operator noise_covariance_;
-
-    // euler-mascheroni constant
-    static constexpr Scalar gamma_ = 0.57721566490153286060651209008240243104215933593992;
 };
 
 }

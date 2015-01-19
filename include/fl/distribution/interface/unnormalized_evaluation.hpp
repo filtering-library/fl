@@ -25,8 +25,6 @@
 
 #include <cmath>
 
-#include <fl/util/traits.hpp>
-
 namespace fl
 {
 
@@ -35,28 +33,26 @@ namespace fl
 
  * \interface UnnormalizedEvaulation
  */
-template <typename Vector, typename Scalar>
-class UnnormalizedEvaulation
+template <typename Variate, typename Scalar>
+class UnnormalizedEvaluation
 {
 public:
-    virtual ~UnnormalizedEvaulation() { }
+    virtual ~UnnormalizedEvaluation() { }
 
     /**
-     * \brief UnnormalizedProbability bla
      * \param vector
      * \return bla
      */
-    virtual Scalar UnnormalizedProbability(const Vector& vector) const
+    virtual Scalar unnormalized_probability(const Variate& variate) const
     {
-        std::exp(LogUnnormalizedProbability(vector));
+        std::exp(log_unnormalized_probability(variate));
     }
 
     /**
-     * \brief LogUnnormalizedProbability bla
      * \param vector
      * \return bla
      */
-    virtual Scalar LogUnnormalizedProbability(const Vector& vector) const = 0;
+    virtual Scalar log_unnormalized_probability(const Variate& variate) const = 0;
 };
 
 }

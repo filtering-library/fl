@@ -61,6 +61,8 @@
 namespace fl
 {
 
+/// \todo MISSING DOC. MISSING UTESTS
+
 // Forward declarations
 template <typename Vector> class SumOfDeltas;
 
@@ -81,7 +83,7 @@ struct Traits<SumOfDeltas<Vector>>
     typedef std::vector<Vector> Deltas;
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Weights;
 
-    typedef Moments<Vector, Operator> MomentsBase;
+    typedef CentralMoments<Vector, Operator> MomentsBase;
 };
 
 /**
@@ -129,26 +131,26 @@ public:
         weights = weights_;
     }
 
-    virtual Vector Mean() const
+    virtual Vector mean() const
     {
-        Vector mean(Vector::Zero(Dimension()));
+        Vector mu(Vector::Zero(dimension()));
         for(size_t i = 0; i < deltas_.size(); i++)
-            mean += weights_[i] * deltas_[i];
+            mu += weights_[i] * deltas_[i];
 
-        return mean;
+        return mu;
     }
 
-    virtual Operator Covariance() const
+    virtual Operator covariance() const
     {
-        Vector mean = Mean();
-        Operator covariance(Operator::Zero(Dimension(), Dimension()));
+        Vector mu = mean();
+        Operator cov(Operator::Zero(dimension(), dimension()));
         for(size_t i = 0; i < deltas_.size(); i++)
-            covariance += weights_[i] * (deltas_[i]-mean) * (deltas_[i]-mean).transpose();
+            cov += weights_[i] * (deltas_[i]-mu) * (deltas_[i]-mu).transpose();
 
-        return covariance;
+        return cov;
     }
 
-    virtual int Dimension() const
+    virtual int dimension() const
     {
         return deltas_[0].rows();
     }

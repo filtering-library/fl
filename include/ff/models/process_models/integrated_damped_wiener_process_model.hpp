@@ -45,10 +45,6 @@
 #ifndef FAST_FILTERING_MODELS_PROCESS_MODELS_INTEGRATED_DAMPED_WIENER_PROCESS_MODEL_HPP
 #define FAST_FILTERING_MODELS_PROCESS_MODELS_INTEGRATED_DAMPED_WIENER_PROCESS_MODEL_HPP
 
-// boost
-#include <boost/static_assert.hpp>
-
-
 #include <fl/util/math.hpp>
 #include <fl/util/assertions.hpp>
 #include <fl/distribution/interface/gaussian_map.hpp>
@@ -61,6 +57,8 @@
 
 namespace fl
 {
+
+/// \todo MISSING DOC. MISSING UTESTS
 
 // Forward declarations
 template <typename State> class IntegratedDampedWienerProcessModel;
@@ -130,33 +128,33 @@ public:
     {
         static_assert_base(State, Eigen::Matrix<Scalar, STATE_DIMENSION, 1>);
 
-        BOOST_STATIC_ASSERT_MSG(
+        static_assert(
                 STATE_DIMENSION % 2 == 0 || STATE_DIMENSION == Eigen::Dynamic,
                 "Dimension must be a multitude of 2");
     }
 
     virtual ~IntegratedDampedWienerProcessModel() { }
 
-    virtual State MapStandardGaussian(const Noise& sample) const
+    virtual State map_standard_normal(const Noise& sample) const
     {
         State state(StateDimension());
-        state.topRows(InputDimension())     = position_distribution_.MapStandardGaussian(sample);
-        state.bottomRows(InputDimension())  = velocity_distribution_.MapStandardGaussian(sample);
+        state.topRows(InputDimension())     = position_distribution_.map_standard_normal(sample);
+        state.bottomRows(InputDimension())  = velocity_distribution_.map_standard_normal(sample);
         return state;
     }
 
 
-    virtual void Condition(const Scalar&  delta_time,
+    virtual void condition(const Scalar&  delta_time,
                            const State&  state,
                            const Input&   input)
     {
-        position_distribution_.Mean(Mean(state.topRows(InputDimension()), // position
+        position_distribution_.mean(mean(state.topRows(InputDimension()), // position
                                                 state.bottomRows(InputDimension()), // velocity
                                                 input, // acceleration
                                                 delta_time));
-        position_distribution_.Covariance(Covariance(delta_time));
+        position_distribution_.covariance(covariance(delta_time));
 
-        velocity_distribution_.Condition(delta_time, state.bottomRows(InputDimension()), input);
+        velocity_distribution_.condition(delta_time, state.bottomRows(InputDimension()), input);
     }
 
     virtual void Parameters(
@@ -172,16 +170,16 @@ public:
 
     virtual unsigned InputDimension() const
     {
-        return this->NoiseDimension();
+        return this->variate_dimension();
     }
 
     virtual unsigned StateDimension() const
     {
-        return this->NoiseDimension() * 2;
+        return this->variate_dimension() * 2;
     }
 
 private:
-    Input Mean(const Input& state,
+    Input mean(const Input& state,
                    const Input& velocity,
                    const Input& acceleration,
                    const double& delta_time)
@@ -199,7 +197,7 @@ private:
         return mean;
     }
 
-    Operator Covariance(const Scalar& delta_time)
+    Operator covariance(const Scalar& delta_time)
     {
         // the first argument to the gamma function should be equal to zero, which would not cause
         // the gamma function to diverge as long as the second argument is not zero, which will not
@@ -208,7 +206,7 @@ private:
         Scalar factor =
                (-1.0 + exp(-2.0*damping_*delta_time))/(8.0*pow(damping_, 3)) +
                 (2.0 - exp(-2.0*damping_*delta_time))/(4.0*pow(damping_, 2)) * delta_time +
-                (-1.5 + gamma_ + fl::igamma(0.0, 2.0*damping_*delta_time) +
+                (-1.5 + fl::GAMMA + fl::igamma(0., 2.0*damping_*delta_time) +
                  log(2.0*damping_*delta_time))/(2.0*damping_)*pow(delta_time, 2);
         if(!std::isfinite(factor))
             factor = 1.0/3.0 * pow(delta_time, 3);
@@ -225,9 +223,6 @@ private:
     // parameters
     Scalar damping_;
     Operator acceleration_covariance_;
-
-    // euler-mascheroni constant
-    static constexpr Scalar gamma_ = 0.57721566490153286060651209008240243104215933593992;
 };
 
 }

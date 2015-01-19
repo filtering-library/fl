@@ -47,7 +47,7 @@ namespace fl
  * \c State              | Used State type                    | -
  * \c Input              | Process control input type         | -
  * \c Observation        | Used Observation type              | -
- * \c StateDistribution  | Distribution type over the state   | must implement fl::Moments
+ * \c StateDistribution  | Distribution type over the state   | must implement fl::CentralMoments
  * \c Ptr                | Shared pointer of the derived type | must specialize std::shared_ptr<>
  */
 template <typename Derived>
@@ -92,7 +92,7 @@ public:
      * \brief StateDistribution type uses by the filter specialization.
      *
      * The filter specialization uses a suitable state distribution. By
-     * convension, the StateDistribution must implement the Moments interface
+     * convension, the StateDistribution must implement the CentralMoments interface
      * which provides the first two moments.
      */
     typedef typename Traits<Derived>::StateDistribution StateDistribution;

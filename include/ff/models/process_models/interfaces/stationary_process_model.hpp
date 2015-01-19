@@ -63,7 +63,7 @@ public:
 public:
     virtual ~StationaryProcessModel() { }
 
-    virtual void Condition(const double& delta_time,
+    virtual void condition(const double& delta_time,
                            const State& state,
                            const Input& input = internal::Empty() ) = 0;
 };
@@ -76,7 +76,7 @@ public:
 //public:
 //    virtual ~StationaryProcessModel() { }
 
-//    virtual void Condition(const double& delta_time,
+//    virtual void condition(const double& delta_time,
 //                           const State& state) = 0;
 //};
 

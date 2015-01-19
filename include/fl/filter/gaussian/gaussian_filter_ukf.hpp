@@ -329,8 +329,8 @@ public:
          *
          * given that W is the diagonal matrix
          */
-        predicted_dist.Mean(X_r.mean());
-        predicted_dist.Covariance(X * W.asDiagonal() * X.transpose());
+        predicted_dist.mean(X_r.mean());
+        predicted_dist.covariance(X * W.asDiagonal() * X.transpose());
     }
 
     /**
@@ -362,8 +362,8 @@ public:
 
         const KalmanGain& K = cov_xy * cov_yy.inverse();
 
-        posterior_dist.Mean(X_r.mean() + K * (y - X_y.mean()));
-        posterior_dist.Covariance(cov_xx - K * cov_yy * K.transpose());
+        posterior_dist.mean(X_r.mean() + K * (y - X_y.mean()));
+        posterior_dist.covariance(cov_xx - K * cov_yy * K.transpose());
     }
 
     /**

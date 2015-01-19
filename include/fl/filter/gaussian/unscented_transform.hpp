@@ -68,7 +68,7 @@ public:
     void forward(const Gaussian_& gaussian,
                  PointSet_& point_set) const
     {
-        forward(gaussian, gaussian.Dimension(), 0, point_set);
+        forward(gaussian, gaussian.dimension(), 0, point_set);
     }
 
     /**
@@ -110,10 +110,10 @@ public:
         // will resize of transform size is different from point count.
         point_set.resize(point_count);
 
-        auto&& covariance_sqrt = gaussian.SquareRoot() * gamma_factor(dim);
+        auto&& covariance_sqrt = gaussian.square_root() * gamma_factor(dim);
 
         Point point_shift;
-        const Point& mean = gaussian.Mean();
+        const Point& mean = gaussian.mean();
 
         // set the first point
         point_set.point(0, mean, Weight{weight_mean_0(dim), weight_cov_0(dim)});
@@ -124,7 +124,7 @@ public:
         // use squential loops to enable loop unrolling
         const size_t start_1 = 1;
         const size_t limit_1 = start_1 + dimension_offset;
-        const size_t limit_2 = limit_1 + gaussian.Dimension();
+        const size_t limit_2 = limit_1 + gaussian.dimension();
         const size_t limit_3 = global_dimension;
 
         for (size_t i = start_1; i < limit_1; ++i)

@@ -49,7 +49,6 @@
 
 #include <Eigen/Dense>
 #include <vector>
-#include <boost/static_assert.hpp>
 
 #include <fl/util/traits.hpp>
 #include <fl/distribution/gaussian.hpp>

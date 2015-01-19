@@ -48,9 +48,6 @@
 #define FAST_FILTERING_FILTERS_DETERMINISTIC_KALMAN_FILTER_HPP
 
 #include <fl/util/traits.hpp>
-
-#include <boost/shared_ptr.hpp>
-
 #include <fl/distribution/gaussian.hpp>
 #include <fl/model/process/linear_process_model.hpp>
 #include <fl/model/observation/linear_observation_model.hpp>
@@ -62,8 +59,8 @@ template <typename ProcessModel, typename ObservationModel>
 class KalmanFilter
 {
 public:
-    typedef boost::shared_ptr<ProcessModel> ProcessModelPtr;
-    typedef boost::shared_ptr<ObservationModel> ObservationModelPtr;
+    typedef std::shared_ptr<ProcessModel> ProcessModelPtr;
+    typedef std::shared_ptr<ObservationModel> ObservationModelPtr;
 
     typedef typename ProcessModel::Scalar Scalar;
     typedef typename ProcessModel::State State;
@@ -92,9 +89,9 @@ public:
                  StateDistribution& predicted)
     {
         const DynamicsMatrix& A = process_model_->A();
-        const DynamicsCovariance Q = delta_time * process_model_->Covariance();
-        predicted.Mean(A * prior.Mean());
-        predicted.Covariance(A * prior.Covariance() * A.transpose() + Q);
+        const DynamicsCovariance Q = delta_time * process_model_->covariance();
+        predicted.mean(A * prior.mean());
+        predicted.covariance(A * prior.covariance() * A.transpose() + Q);
     }
 
     void Update(const StateDistribution& predicted,
@@ -112,15 +109,15 @@ public:
                 SMatrix::ColsAtCompileTime> KMatrix;
 
         const SensorMatrix& H = observation_model_->H();
-        const SensorCovariance R = observation_model_->Covariance();
+        const SensorCovariance R = observation_model_->covariance();
 
-        const SMatrix S = H * predicted.Covariance() * H.transpose() + R;
-        const KMatrix K = predicted.Covariance() * H.transpose() * S.inverse();
+        const SMatrix S = H * predicted.covariance() * H.transpose() + R;
+        const KMatrix K = predicted.covariance() * H.transpose() * S.inverse();
 
-        posterior.Mean(
-                    predicted.Mean() + K * (y - H * predicted.Mean()));
-        posterior.Covariance(
-                    predicted.Covariance() - K * H * predicted.Covariance());
+        posterior.mean(
+                    predicted.mean() + K * (y - H * predicted.mean()));
+        posterior.covariance(
+                    predicted.covariance() - K * H * predicted.covariance());
     }
 
 protected:

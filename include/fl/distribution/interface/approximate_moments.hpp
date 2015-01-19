@@ -20,44 +20,44 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__DISTRIBUTION__INTERFACE__APPROXIMATE_MOMENTS_HPP
-#define FL__DISTRIBUTION__INTERFACE__APPROXIMATE_MOMENTS_HPP
+#ifndef FL__DISTRIBUTION__INTERFACE__APPROXIMATE_CENTRAL_MOMENTS_HPP
+#define FL__DISTRIBUTION__INTERFACE__APPROXIMATE_CENTRAL_MOMENTS_HPP
 
 namespace fl
 {
 
 /**
- * \interface ApproximateMoments
+ * \interface ApproximateCentralMoments
  * \ingroup distribution_interfaces
  *
  * \brief ApproximateMoments is the interface providing the first two moments
  *
- * \tparam Vector   Random variable type. This is equivalent to the first moment
- *                  type.
- * \tparam Operator Second moment type
+ * \tparam Variate          Random variable type. This is equivalent to the
+ *                          first moment type.
+ * \tparam SecondMoment     Second moment type (e.g. Variance or the Covariance)
  *
  * The ApproximateMoments interface provides access to a numerical approximation
  * of the first moments of a distribution.
  *
  */
-template <typename Vector, typename Operator>
-class ApproximateMoments
+template <typename Variate, typename SecondMoment>
+class ApproximateCentralMoments
 {
 public:
     /**
+     * \brief Overridable default destructor
+     */
+    virtual ~ApproximateCentralMoments() { }
+
+    /**
      * \return First moment approximation, the mean
      */
-    virtual Vector ApproximateMean() const = 0;
+    virtual Variate approximate_mean() const = 0;
 
     /**
      * \return Second centered moment, the covariance
      */
-    virtual Operator ApproximateCovariance() const = 0;
-
-    /**
-     * \brief Overridable default destructor
-     */
-    virtual ~ApproximateMoments() { }
+    virtual SecondMoment approximate_covariance() const = 0;
 };
 
 }

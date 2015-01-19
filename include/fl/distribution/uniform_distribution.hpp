@@ -31,6 +31,8 @@
 namespace fl
 {
 
+/// \todo MISSING DOC. MISSING UTESTS
+
 class UniformDistribution
         : public Evaluation<double, double>,
           public GaussianMap<double, double>
@@ -48,7 +50,7 @@ public:
 
     virtual ~UniformDistribution() { }
 
-    virtual double Probability(const double& input) const
+    virtual double probability(const double& input) const
     {
         if(input < min_ || input > max_)
             return 0;
@@ -56,7 +58,7 @@ public:
         return density_;
     }
 
-    virtual double LogProbability(const double& input) const
+    virtual double log_probability(const double& input) const
     {
         if(input < min_ || input > max_)
             return -std::numeric_limits<double>::infinity();
@@ -64,7 +66,7 @@ public:
         return log_density_;
     }
 
-    virtual double MapStandardGaussian(const double& gaussian_sample) const
+    virtual double map_standard_normal(const double& gaussian_sample) const
     {
         // map from a gaussian to a uniform distribution
         double standard_uniform_sample =

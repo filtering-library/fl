@@ -33,8 +33,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <string>
 #include <algorithm>
 #include <cmath>
-
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 #include <Eigen/Core>
 
@@ -46,7 +45,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <fl/distribution/gaussian.hpp>
 #include <fl/distribution/interface/gaussian_map.hpp>
 
-#include <pose_tracking/utils/helper_functions.hpp>
 #include <ff/utils/helper_functions.hpp>
 #include <ff/distributions/sum_of_deltas.hpp>
 #include <ff/models/observation_models/interfaces/rao_blackwell_observation_model.hpp>
@@ -54,6 +52,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace fl
 {
+
+/// \todo MISSING DOC. MISSING UTESTS
 
 template<typename ProcessModel, typename ObservationModel>
 class RaoBlackwellCoordinateParticleFilter
@@ -71,8 +71,8 @@ public:
 
 public:
     RaoBlackwellCoordinateParticleFilter(
-            const boost::shared_ptr<ProcessModel> process_model,
-            const boost::shared_ptr<ObservationModel>  observation_model,
+            const std::shared_ptr<ProcessModel> process_model,
+            const std::shared_ptr<ObservationModel>  observation_model,
             const std::vector<std::vector<size_t>>& sampling_blocks,
             const Scalar& max_kl_divergence = 0):
         observation_model_(observation_model),
@@ -104,7 +104,7 @@ public:
         observation_model_->SetObservation(observation, delta_time);
 
         loglikes_ = std::vector<Scalar>(samples_.size(), 0);
-        noises_ = std::vector<Noise>(samples_.size(), Noise::Zero(process_model_->NoiseDimension()));
+        noises_ = std::vector<Noise>(samples_.size(), Noise::Zero(process_model_->variate_dimension()));
         next_samples_ = samples_;
 
         for(size_t block_index = 0; block_index < sampling_blocks_.size(); block_index++)
@@ -113,16 +113,22 @@ public:
             for(size_t particle_index = 0; particle_index < samples_.size(); particle_index++)
             {
                 for(size_t i = 0; i < sampling_blocks_[block_index].size(); i++)
-                    noises_[particle_index](sampling_blocks_[block_index][i]) = unit_gaussian_.Sample()(0);
+                    noises_[particle_index](sampling_blocks_[block_index][i]) = unit_gaussian_.sample()(0);
             }
             MEASURE("sampling");
             for(size_t particle_index = 0; particle_index < samples_.size(); particle_index++)
             {
-                process_model_->Condition(delta_time,
-                                          samples_[particle_index],
-                                          input);
+//                process_model_->condition(delta_time,
+//                                          samples_[particle_index],
+//                                          input);
 
-                next_samples_[particle_index] = process_model_->MapStandardGaussian(noises_[particle_index]);
+//                next_samples_[particle_index] = process_model_->map_standard_normal(noises_[particle_index]);
+
+                next_samples_[particle_index] =
+                        process_model_->predict_state(delta_time,
+                                                      samples_[particle_index],
+                                                      noises_[particle_index],
+                                                      input);
             }
             MEASURE("propagation");
 
@@ -157,7 +163,7 @@ public:
 
         for(size_t i = 0; i < sample_count; i++)
         {
-            size_t index = sampler.Sample();
+            size_t index = sampler.sample();
 
             samples[i]      = samples_[index];
             indices[i]      = indices_[index];
@@ -226,11 +232,11 @@ public:
             for(size_t j = 0; j < sampling_blocks_[i].size(); j++)
                 dimension++;
 
-        if(dimension != process_model_->NoiseDimension())
+        if(dimension != process_model_->variate_dimension())
         {
             std::cout << "the dimension of the sampling blocks is " << dimension
                       << " while the dimension of the noise is "
-                      << process_model_->NoiseDimension() << std::endl;
+                      << process_model_->variate_dimension() << std::endl;
             exit(-1);
         }
     }
@@ -258,10 +264,10 @@ private:
     std::vector<Scalar> loglikes_;
 
     // observation model
-    boost::shared_ptr<ObservationModel> observation_model_;
+    std::shared_ptr<ObservationModel> observation_model_;
 
     // process model
-    boost::shared_ptr<ProcessModel> process_model_;
+    std::shared_ptr<ProcessModel> process_model_;
 
     // parameters
     std::vector<std::vector<size_t>> sampling_blocks_;

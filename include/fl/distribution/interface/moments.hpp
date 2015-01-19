@@ -20,8 +20,8 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__DISTRIBUTION__INTERFACE__MOMENTS_HPP
-#define FL__DISTRIBUTION__INTERFACE__MOMENTS_HPP
+#ifndef FL__DISTRIBUTION__INTERFACE__CENTRAL_MOMENTS_HPP
+#define FL__DISTRIBUTION__INTERFACE__CENTRAL_MOMENTS_HPP
 
 #include <fl/distribution/interface/approximate_moments.hpp>
 
@@ -29,55 +29,54 @@ namespace fl
 {
 
 /**
- * \interface Moments
+ * \interface CentralMoments
  * \ingroup distribution_interfaces
  *
- * \brief Moments is the interface providing the first two moments
+ * \brief CentralMoments is the interface providing the first two moments
  *
- * \tparam Vector   Random variable type. This is equivalent to the first moment
- *                  type.
- * \tparam Operator Second moment type
+ * \tparam Variate        Random variable type. This is equivalent to the first
+ *                        moment type.
+ * \tparam SecondMoment   Second moment type (e.g. Variance or the Covariance)
  *
- * The Moments interface provides access to the exact first moments of
+ * The CentralMoments interface provides access to the exact first moments of
  * a distribution. The moments represent a subset of the approximate moments.
  */
-template <typename Vector, typename Operator>
-class Moments:
-    public ApproximateMoments<Vector, Operator>
+template <typename Variate, typename SecondMoment>
+class CentralMoments:
+    public ApproximateCentralMoments<Variate, SecondMoment>
 {
 public:    
+    /**
+     * \brief Overridable default destructor
+     */
+    virtual ~CentralMoments() { }
 
     /**
      * \return First moment of the underlying distribution, the mean
      */
-    virtual Vector Mean() const = 0;
+    virtual Variate mean() const = 0;
 
     /**
      * \return Second centered moment of the underlying distribution,
      *         the covariance
      */
-    virtual Operator Covariance() const = 0;
+    virtual SecondMoment covariance() const = 0;
 
     /**
-     * \{ApproximateMoments::ApproximateMean() const\}
+     * \{ApproximateCentralMoments::Approximatemean() const\}
      */
-    virtual Vector ApproximateMean() const
+    virtual Variate approximate_mean() const
     {
-        return Mean();
+        return mean();
     }
 
     /**
-     * \{ApproximateMoments::ApproximateCovariance() const\}
+     * \{ApproximateCentralMoments::Approximatecovariance() const\}
      */
-    virtual Operator ApproximateCovariance() const
+    virtual SecondMoment approximate_covariance() const
     {
-        return Covariance();
+        return covariance();
     }
-
-    /**
-     * \brief Overridable default destructor
-     */
-    virtual ~Moments() { }
 };
 
 }

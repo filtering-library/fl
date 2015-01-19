@@ -79,6 +79,13 @@ public:
 
     }
 
+    virtual void condition(const double& delta_time,
+                           const State& state,
+                           const Input& input)
+    {
+
+    }
+
     virtual State predict_state(double delta_time,
                                 const State& state,
                                 const Noise& noise,

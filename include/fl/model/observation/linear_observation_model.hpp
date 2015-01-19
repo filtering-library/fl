@@ -41,7 +41,7 @@ struct Traits<
     typedef Gaussian<Observation_> GaussianBase;
     typedef typename Traits<GaussianBase>::Scalar Scalar;
     typedef typename Traits<GaussianBase>::Operator Operator;
-    typedef typename Traits<GaussianBase>::Noise Noise;
+    typedef typename Traits<GaussianBase>::NormalVariate Noise;
     typedef Eigen::Matrix<Scalar,
                           Observation::SizeAtCompileTime,
                           State::SizeAtCompileTime> SensorMatrix;
@@ -66,9 +66,9 @@ public:
     typedef typename Traits<This>::Operator Operator;
     typedef typename Traits<This>::SensorMatrix SensorMatrix;
 
-    using Traits<This>::GaussianBase::Mean;
-    using Traits<This>::GaussianBase::Covariance;
-    using Traits<This>::GaussianBase::Dimension;
+    using Traits<This>::GaussianBase::mean;
+    using Traits<This>::GaussianBase::covariance;
+    using Traits<This>::GaussianBase::dimension;
 
 public:
     LinearGaussianObservationModel(
@@ -77,16 +77,16 @@ public:
             const size_t state_dimension = State::SizeAtCompileTime):
         Traits<This>::GaussianBase(observation_dimension),
         state_dimension_(state_dimension == Eigen::Dynamic? 0 : state_dimension),
-        H_(SensorMatrix::Zero(Dimension(), StateDimension()))
+        H_(SensorMatrix::Zero(dimension(), StateDimension()))
     {
-        Covariance(noise_covariance);
+        covariance(noise_covariance);
     }
 
     ~LinearGaussianObservationModel() { }
 
-    virtual void Condition(const State& x)
+    virtual void condition(const State& x)
     {
-        Mean(H_ * x);
+        mean(H_ * x);
     }
 
     virtual const SensorMatrix& H() const
@@ -125,7 +125,7 @@ struct Traits<FactorizedLinearGaussianObservationModel<Observation_,
     typedef Gaussian<Observation_> GaussianBase;
     typedef typename Traits<GaussianBase>::Scalar Scalar;
     typedef typename Traits<GaussianBase>::Operator Operator;
-    typedef typename Traits<GaussianBase>::Noise Noise;
+    typedef typename Traits<GaussianBase>::NormalVariate Noise;
     typedef Eigen::Matrix<Scalar,
                           Observation::SizeAtCompileTime,
                           State_a::SizeAtCompileTime> SensorMatrix_a;
@@ -156,9 +156,9 @@ public:
     typedef typename Traits<This>::SensorMatrix_a SensorMatrix_a;
     typedef typename Traits<This>::SensorMatrix_b SensorMatrix_b;
 
-    using Traits<This>::GaussianBase::Mean;
-    using Traits<This>::GaussianBase::Covariance;
-    using Traits<This>::GaussianBase::Dimension;
+    using Traits<This>::GaussianBase::mean;
+    using Traits<This>::GaussianBase::covariance;
+    using Traits<This>::GaussianBase::dimension;
 
 public:
     FactorizedLinearGaussianObservationModel(
@@ -169,25 +169,25 @@ public:
         Traits<This>::GaussianBase(observation_dimension),
         state_a_dimension_(state_a_dimension),
         state_b_dimension_(state_b_dimension),
-        H_a_(SensorMatrix_a::Zero(Dimension(), State_a_Dimension())),
-        H_b_(SensorMatrix_b::Zero(Dimension(), State_b_Dimension()))
+        H_a_(SensorMatrix_a::Zero(dimension(), State_a_dimension())),
+        H_b_(SensorMatrix_b::Zero(dimension(), State_b_dimension()))
     {
-        Covariance(noise_covariance);
+        covariance(noise_covariance);
     }
 
     ~FactorizedLinearGaussianObservationModel() { }
 
     virtual Observation Predict(const Noise& noise) const
     {
-        return MapStandardGaussian(noise);
+        return map_standard_normal(noise);
     }
 
-    virtual void Condition(const State_a& state_a,
+    virtual void condition(const State_a& state_a,
                            const State_b& state_b,
                            size_t state_index,
                            size_t pixel_index)
     {
-        Mean(H_a_ * state_a + H_b_ * state_b);
+        mean(H_a_ * state_a + H_b_ * state_b);
     }
 
     virtual const SensorMatrix_a& H_a() const
@@ -210,12 +210,12 @@ public:
         H_b_ = sensor_matrix_b;
     }
 
-    virtual size_t State_a_Dimension() const
+    virtual size_t State_a_dimension() const
     {
         return state_a_dimension_;
     }
 
-    virtual size_t State_b_Dimension() const
+    virtual size_t State_b_dimension() const
     {
         return state_b_dimension_;
     }
@@ -293,7 +293,7 @@ protected:
 //    using Traits<This>::GaussianBase::Mean;
 //    using Traits<This>::GaussianBase::Covariance;
 //    using Traits<This>::GaussianBase::Dimension;
-//    using Traits<This>::Base::MapStandardGaussian;
+//    using Traits<This>::Base::map_standard_normal;
 //    using Traits<This>::Base::H;
 //    using Traits<This>::Base::StateDimension;
 
@@ -306,23 +306,23 @@ protected:
 //        Traits<This>::GaussianBase(observation_dimension),
 //        state_a_dimension_(State_a::SizeAtCompileTime),
 //        state_b_dimension_(State_b::SizeAtCompileTime),
-//        H_a_(SensorMatrix_a::Zero(Dimension(), State_a_Dimension())),
-//        H_b_(SensorMatrix_b::Zero(Dimension(), State_b_Dimension())),
+//        H_a_(SensorMatrix_a::Zero(dimension(), State_a_dimension())),
+//        H_b_(SensorMatrix_b::Zero(dimension(), State_b_dimension())),
 //        Traits<This>::Base(noise_covariance, )
 //    {
-//        Covariance(noise_covariance);
+//        covariance(noise_covariance);
 //    }
 
 
 //protected:
-//    virtual void Condition(const State_a& state_a,
+//    virtual void condition(const State_a& state_a,
 //                           const State_b& state_b,
 //                           size_t state_index,
 //                           size_t pixel_index)
 //    {
 //        // delta_time_ = delta_time;
 
-//        Mean(H_a_ * state_a + H_b_ * state_b);
+//        mean(H_a_ * state_a + H_b_ * state_b);
 //    }
 
 //    virtual const SensorMatrix_a& H_a() const
@@ -345,12 +345,12 @@ protected:
 //        H_b_ = sensor_matrix_b;
 //    }
 
-//    virtual size_t State_a_Dimension() const
+//    virtual size_t State_a_dimension() const
 //    {
 //        return state_a_dimension_;
 //    }
 
-//    virtual size_t State_b_Dimension() const
+//    virtual size_t State_b_dimension() const
 //    {
 //        return state_b_dimension_;
 //    }

@@ -63,11 +63,11 @@ public:
                             size_t dim_state,
                             typename Model::Operator& cov)
     {
-        EXPECT_EQ(model.Dimension(), dim);
-        EXPECT_EQ(model.NoiseDimension(), dim);
+        EXPECT_EQ(model.dimension(), dim);
+        EXPECT_EQ(model.variate_dimension(), dim);
         EXPECT_EQ(model.StateDimension(), dim_state);
         EXPECT_TRUE(model.H().isZero());
-        EXPECT_TRUE(model.Covariance().isApprox(cov));
+        EXPECT_TRUE(model.covariance().isApprox(cov));
     }
 };
 
@@ -113,11 +113,11 @@ TEST_F(LinearObservationModelTests, predict_fixedsize_with_zero_noise)
     LGModel::Operator cov = LGModel::Operator::Identity(dim, dim) * 5.5465;
     LGModel model(cov);
 
-    EXPECT_TRUE(model.MapStandardGaussian(noise).isZero());
+    EXPECT_TRUE(model.map_standard_normal(noise).isZero());
 
-    EXPECT_FALSE(model.MapStandardGaussian(noise).isApprox(observation));
-    model.Condition(state);
-    EXPECT_FALSE(model.MapStandardGaussian(noise).isApprox(observation));
+    EXPECT_FALSE(model.map_standard_normal(noise).isApprox(observation));
+    model.condition(state);
+    EXPECT_FALSE(model.map_standard_normal(noise).isApprox(observation));
 }
 
 TEST_F(LinearObservationModelTests, predict_dynamic_with_zero_noise)
@@ -134,11 +134,11 @@ TEST_F(LinearObservationModelTests, predict_dynamic_with_zero_noise)
     LGModel::Operator cov = LGModel::Operator::Identity(dim, dim) * 5.5465;
     LGModel model(cov, dim, dim_state);
 
-    EXPECT_TRUE(model.MapStandardGaussian(noise).isZero());
+    EXPECT_TRUE(model.map_standard_normal(noise).isZero());
 
-    EXPECT_FALSE(model.MapStandardGaussian(noise).isApprox(observation));
-    model.Condition(state);
-    EXPECT_FALSE(model.MapStandardGaussian(noise).isApprox(observation));
+    EXPECT_FALSE(model.map_standard_normal(noise).isApprox(observation));
+    model.condition(state);
+    EXPECT_FALSE(model.map_standard_normal(noise).isApprox(observation));
 }
 
 TEST_F(LinearObservationModelTests, sensor_matrix)
@@ -161,17 +161,17 @@ TEST_F(LinearObservationModelTests, sensor_matrix)
 
     observation.topRows(dim_state) = state;
 
-    EXPECT_TRUE(model.MapStandardGaussian(noise).isApprox(noise));
-    EXPECT_FALSE(model.MapStandardGaussian(noise).isApprox(observation));
+    EXPECT_TRUE(model.map_standard_normal(noise).isApprox(noise));
+    EXPECT_FALSE(model.map_standard_normal(noise).isApprox(observation));
 
-    model.Condition(state);
+    model.condition(state);
 
-    EXPECT_TRUE(model.MapStandardGaussian(noise).isApprox(noise));
-    EXPECT_FALSE(model.MapStandardGaussian(noise).isApprox(observation));
+    EXPECT_TRUE(model.map_standard_normal(noise).isApprox(noise));
+    EXPECT_FALSE(model.map_standard_normal(noise).isApprox(observation));
 
     model.H(H);
-    model.Condition(state);
+    model.condition(state);
 
-    EXPECT_TRUE(model.MapStandardGaussian(noise).isApprox(observation + noise));
+    EXPECT_TRUE(model.map_standard_normal(noise).isApprox(observation + noise));
 }
 

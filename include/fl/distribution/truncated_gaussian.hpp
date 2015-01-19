@@ -33,6 +33,8 @@
 namespace fl
 {
 
+/// \todo MISSING DOC. MISSING UTESTS
+
 class TruncatedGaussian:
         public Evaluation<double, double>,
         public GaussianMap<double, double>
@@ -63,7 +65,7 @@ public:
         ComputeAuxiliaryParameters();
     }
 
-    virtual double Probability(const double& input) const
+    virtual double probability(const double& input) const
     {
         if(input < min_ || input > max_)
             return 0;
@@ -72,12 +74,12 @@ public:
                 std::exp(-0.5 * std::pow((input-mean_)/sigma_, 2));
     }
 
-    virtual double LogProbability(const double& input) const
+    virtual double log_probability(const double& input) const
     {
-        return std::log(Probability(input));
+        return std::log(probability(input));
     }
 
-    virtual double MapStandardGaussian(const double& gaussian_sample) const
+    virtual double map_standard_normal(const double& gaussian_sample) const
     {
         // map from a gaussian to a uniform distribution
         double standard_uniform_sample = 0.5 *

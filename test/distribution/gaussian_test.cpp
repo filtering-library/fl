@@ -66,19 +66,19 @@ protected:
     template <typename Gaussian>
     void test_gaussian_dimension(Gaussian& gaussian, size_t dim)
     {
-        EXPECT_EQ(gaussian.Dimension(), dim);
-        EXPECT_EQ(gaussian.NoiseDimension(), dim);
-        EXPECT_EQ(gaussian.Mean().rows(), dim);
-        EXPECT_EQ(gaussian.Covariance().rows(), dim);
-        EXPECT_EQ(gaussian.Covariance().cols(), dim);
-        EXPECT_EQ(gaussian.Precision().rows(), dim);
-        EXPECT_EQ(gaussian.Precision().cols(), dim);
-        EXPECT_EQ(gaussian.SquareRoot().rows(), dim);
-        EXPECT_EQ(gaussian.SquareRoot().cols(), dim);
+        EXPECT_EQ(gaussian.dimension(), dim);
+        EXPECT_EQ(gaussian.variate_dimension(), dim);
+        EXPECT_EQ(gaussian.mean().rows(), dim);
+        EXPECT_EQ(gaussian.covariance().rows(), dim);
+        EXPECT_EQ(gaussian.covariance().cols(), dim);
+        EXPECT_EQ(gaussian.precision().rows(), dim);
+        EXPECT_EQ(gaussian.precision().cols(), dim);
+        EXPECT_EQ(gaussian.square_root().rows(), dim);
+        EXPECT_EQ(gaussian.square_root().cols(), dim);
 
-        typename Gaussian::Noise noise =
-                Gaussian::Noise::Random(gaussian.NoiseDimension(),1);
-        EXPECT_EQ(gaussian.MapStandardGaussian(noise).rows(), dim);
+        typename Gaussian::NormalVariate noise =
+                Gaussian::NormalVariate::Random(gaussian.variate_dimension(),1);
+        EXPECT_EQ(gaussian.map_standard_normal(noise).rows(), dim);
     }
 
     template <typename Gaussian>
@@ -87,8 +87,8 @@ protected:
         typedef typename fl::Traits<Gaussian>::Operator Covariance;
 
         Covariance covariance = Eigen::MatrixXd::Identity(
-                                    gaussian.Dimension(),
-                                    gaussian.Dimension());
+                                    gaussian.dimension(),
+                                    gaussian.dimension());
         Covariance square_root = covariance;
         Covariance precision = covariance;
 
@@ -108,7 +108,7 @@ protected:
             covariance *= covariance.transpose();
             square_root = covariance.llt().matrixL();
             precision = covariance.inverse();
-            gaussian.Covariance(covariance);
+            gaussian.covariance(covariance);
             test_gaussian_attributes(
                         gaussian, covariance, precision, square_root);
         }
@@ -120,7 +120,7 @@ protected:
             square_root.setRandom();
             covariance = square_root * square_root.transpose();
             precision = covariance.inverse();
-            gaussian.SquareRoot(square_root);
+            gaussian.square_root(square_root);
             test_gaussian_attributes(
                         gaussian, covariance, precision, square_root);
         }
@@ -133,7 +133,7 @@ protected:
             precision *= precision.transpose();
             covariance= precision .inverse();
             square_root = covariance.llt().matrixL();
-            gaussian.Precision(precision);
+            gaussian.precision(precision);
             test_gaussian_attributes(
                         gaussian, covariance, precision, square_root);
         }
@@ -145,15 +145,15 @@ protected:
                                   const Covariance& precision,
                                   const Covariance& square_root)
     {
-        EXPECT_GT(gaussian.Dimension(), 0);
+        EXPECT_GT(gaussian.dimension(), 0);
 
-        EXPECT_TRUE(gaussian.Covariance().isApprox(covariance));
-        EXPECT_TRUE(gaussian.Precision().isApprox(precision));
+        EXPECT_TRUE(gaussian.covariance().isApprox(covariance));
+        EXPECT_TRUE(gaussian.precision().isApprox(precision));
         const Covariance temp =
-                gaussian.SquareRoot() * gaussian.SquareRoot().transpose();
+                gaussian.square_root() * gaussian.square_root().transpose();
         const Covariance temp2 = square_root * square_root.transpose();
         //EXPECT_TRUE(temp.isApprox(temp2));
-        EXPECT_TRUE(gaussian.HasFullRank());
+        EXPECT_TRUE(gaussian.has_full_rank());
     }
 };
 
@@ -188,11 +188,11 @@ TEST_F(GaussianTests, fixed_standard_covariance)
 
     Gaussian gaussian;
     Covariance covariance = Eigen::MatrixXd::Identity(
-                                gaussian.Dimension(),
-                                gaussian.Dimension());
+                                gaussian.dimension(),
+                                gaussian.dimension());
 
     test_gaussian_attributes(gaussian, covariance, covariance, covariance);
-    gaussian.SetStandard();
+    gaussian.set_standard();
     test_gaussian_attributes(gaussian, covariance, covariance, covariance);
     // gaussian.SetStandard(10); // causes compile time error as expected
 }
@@ -204,31 +204,31 @@ TEST_F(GaussianTests, dynamic_standard_covariance)
     typedef typename fl::Traits<Gaussian>::Operator Covariance;
 
     Gaussian gaussian(6);
-    Covariance covariance = Eigen::MatrixXd::Identity(gaussian.Dimension(),
-                                                      gaussian.Dimension());
+    Covariance covariance = Eigen::MatrixXd::Identity(gaussian.dimension(),
+                                                      gaussian.dimension());
 
     {
         SCOPED_TRACE("Unchanged");
 
-        EXPECT_EQ(gaussian.Dimension(), 6);
+        EXPECT_EQ(gaussian.dimension(), 6);
         test_gaussian_attributes(gaussian, covariance, covariance, covariance);
     }
 
     {
         SCOPED_TRACE("gaussian.SetStandard()");
 
-        gaussian.SetStandard();
-        EXPECT_EQ(gaussian.Dimension(), 6);
+        gaussian.set_standard();
+        EXPECT_EQ(gaussian.dimension(), 6);
         //test_gaussian_attributes(gaussian, covariance, covariance, covariance);
     }
 
     {
         SCOPED_TRACE("gaussian.SetStandard(10)");
 
-        gaussian.Dimension(10);
-        EXPECT_EQ(gaussian.Dimension(), 10);
-        covariance = Eigen::MatrixXd::Identity(gaussian.Dimension(),
-                                               gaussian.Dimension());
+        gaussian.dimension(10);
+        EXPECT_EQ(gaussian.dimension(), 10);
+        covariance = Eigen::MatrixXd::Identity(gaussian.dimension(),
+                                               gaussian.dimension());
         //test_gaussian_attributes(gaussian, covariance, covariance, covariance);
     }
 }
@@ -251,25 +251,25 @@ TEST_F(GaussianTests, dynamic_gaussian_covariance_constructor_init)
 TEST_F(GaussianTests, dynamic_gaussian_covariance_SetStandard_init)
 {
     fl::Gaussian<DVector> gaussian;
-    gaussian.Dimension(7);
+    gaussian.dimension(7);
     EXPECT_NO_THROW(test_gaussian_covariance(gaussian));
 }
 
 TEST_F(GaussianTests, dynamic_uninitialized_gaussian)
 {
     fl::Gaussian<DVector> gaussian;
-    EXPECT_THROW(gaussian.Covariance(), fl::GaussianUninitializedException);
-    EXPECT_THROW(gaussian.Precision(), fl::GaussianUninitializedException);
-    EXPECT_THROW(gaussian.SquareRoot(), fl::GaussianUninitializedException);
+    EXPECT_THROW(gaussian.covariance(), fl::GaussianUninitializedException);
+    EXPECT_THROW(gaussian.precision(), fl::GaussianUninitializedException);
+    EXPECT_THROW(gaussian.square_root(), fl::GaussianUninitializedException);
 
-    gaussian.Dimension(1);
-    EXPECT_NO_THROW(gaussian.Covariance());
-    EXPECT_NO_THROW(gaussian.Precision());
-    EXPECT_NO_THROW(gaussian.SquareRoot());
+    gaussian.dimension(1);
+    EXPECT_NO_THROW(gaussian.covariance());
+    EXPECT_NO_THROW(gaussian.precision());
+    EXPECT_NO_THROW(gaussian.square_root());
 
-    gaussian.Dimension(0);
-    EXPECT_THROW(gaussian.Covariance(), fl::GaussianUninitializedException);
-    EXPECT_THROW(gaussian.Precision(), fl::GaussianUninitializedException);
-    EXPECT_THROW(gaussian.SquareRoot(), fl::GaussianUninitializedException);
+    gaussian.dimension(0);
+    EXPECT_THROW(gaussian.covariance(), fl::GaussianUninitializedException);
+    EXPECT_THROW(gaussian.precision(), fl::GaussianUninitializedException);
+    EXPECT_THROW(gaussian.square_root(), fl::GaussianUninitializedException);
 }
 

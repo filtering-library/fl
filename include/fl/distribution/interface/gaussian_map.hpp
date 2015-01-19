@@ -37,57 +37,57 @@ namespace fl
 /**
  * \ingroup distribution_interfaces
  */
-template <typename Vector, typename Noise = internal::Empty>
+template <typename Variate, typename NormalVariate = internal::Empty>
 class GaussianMap:
-        public Sampling<Vector>
+        public Sampling<Variate>
 {
 public:
-    explicit GaussianMap(const unsigned& noise_dimension = Noise::SizeAtCompileTime):
+    explicit GaussianMap(const unsigned& noise_dimension = NormalVariate::SizeAtCompileTime):
         standard_gaussian_(noise_dimension)
     { }
 
     virtual ~GaussianMap() { }
 
-    virtual Vector MapStandardGaussian(const Noise& sample) const = 0;
+    virtual Variate map_standard_normal(const NormalVariate& sample) const = 0;
 
-    virtual Vector Sample()
+    virtual Variate sample()
     {
-        return MapStandardGaussian(standard_gaussian_.Sample());
+        return map_standard_normal(standard_gaussian_.sample());
     }
 
-    virtual int NoiseDimension() const
+    virtual int variate_dimension() const
     {
-        return standard_gaussian_.Dimension();
+        return standard_gaussian_.dimension();
     }
 
-    virtual void NoiseDimension(size_t new_noise_dimension)
+    virtual void variate_dimension(size_t new_noise_dimension)
     {
-        standard_gaussian_.Dimension(new_noise_dimension);
+        standard_gaussian_.dimension(new_noise_dimension);
     }
 
 private:
-    StandardGaussian<Noise> standard_gaussian_;
+    StandardGaussian<NormalVariate> standard_gaussian_;
 };
 
 // specialization for scalar noise
 /**
  * \ingroup distribution_interfaces
  */
-template <typename Vector>
-class GaussianMap<Vector, double>:
-        public Sampling<Vector>
+template <typename Variate>
+class GaussianMap<Variate, double>:
+        public Sampling<Variate>
 {
 public:
     virtual ~GaussianMap() { }
 
-    virtual Vector MapStandardGaussian(const double& sample) const = 0;
+    virtual Variate map_standard_normal(const double& sample) const = 0;
 
-    virtual Vector Sample()
+    virtual Variate sample()
     {
-        return MapStandardGaussian(standard_gaussian_.Sample());
+        return map_standard_normal(standard_gaussian_.sample());
     }
 
-    virtual int NoiseDimension() const
+    virtual int variate_dimension() const
     {
         return 1;
     }
@@ -101,21 +101,21 @@ private:
 /**
  * \ingroup distribution_interfaces
  */
-template <typename Vector>
-class GaussianMap<Vector, internal::Empty>:
-        public Sampling<Vector>
+template <typename Variate>
+class GaussianMap<Variate, internal::Empty>:
+        public Sampling<Variate>
 {
 public:
     virtual ~GaussianMap() { }
 
-    virtual Vector MapStandardGaussian() const = 0;
+    virtual Variate map_standard_normal() const = 0;
 
-    virtual Vector Sample()
+    virtual Variate sample()
     {
-        return MapStandardGaussian();
+        return map_standard_normal();
     }
 
-    virtual int NoiseDimension() const
+    virtual int variate_dimension() const
     {
         return 0;
     }

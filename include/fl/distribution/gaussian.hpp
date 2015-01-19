@@ -25,6 +25,7 @@
 
 #include <Eigen/Dense>
 
+#include <cstddef>
 #include <vector>
 #include <string>
 #include <type_traits>
@@ -39,15 +40,15 @@ namespace fl
 {
 
 // Forward declarations
-template <typename Vector> class Gaussian;
+template <typename Variate> class Gaussian;
 
 /**
  * Gaussian distribution traits. This trait definition contains all types used
  * internally within the distribution. Additionally, it provides the types
  * needed externally to use the Gaussian.
  */
-template <typename Vector_>
-struct Traits<Gaussian<Vector_>>
+template <typename Variate_>
+struct Traits<Gaussian<Variate_>>
 {    
     enum
     {
@@ -58,24 +59,24 @@ struct Traits<Gaussian<Vector_>>
          * \c Dimension value is greater zero. Dynamic-size Gaussians have the
          * dymension Eigen::Dynamic.
          */
-        Dimension = Vector_::SizeAtCompileTime
+        Dimension = Variate_::RowsAtCompileTime
     };
 
     /**
      * \brief Gaussian variable type
      */
-    typedef Vector_ Vector;
+    typedef Variate_ Variate;
 
     /**
      * \brief Internal scalar type (e.g. double, float, std::complex)
      */
-    typedef typename Vector::Scalar Scalar;
+    typedef typename Variate::Scalar Scalar;
 
     /**
      * \brief Random variable type. The Noise type is used in mapping of noise
      * samples into the current Gaussian space.
      */
-    typedef Eigen::Matrix<Scalar, Dimension, 1> Noise;
+    typedef Eigen::Matrix<Scalar, Dimension, 1> NormalVariate;
 
     /**
      * \brief Second moment type
@@ -83,19 +84,19 @@ struct Traits<Gaussian<Vector_>>
     typedef Eigen::Matrix<Scalar, Dimension, Dimension> Operator;
 
     /**
-     * \brief Moments interface of a Gaussian
+     * \brief CentralMoments interface of a Gaussian
      */
-    typedef Moments<Vector, Operator> MomentsBase;
+    typedef CentralMoments<Variate, Operator> MomentsBase;
 
     /**
      * \brief Evalluation interface of a Gaussian
      */
-    typedef Evaluation<Vector, Scalar> EvaluationBase;
+    typedef Evaluation<Variate, Scalar> EvaluationBase;
 
     /**
      * \brief GaussianMap interface of a Gaussian
      */
-    typedef GaussianMap<Vector, Noise> GaussianMapBase;
+    typedef GaussianMap<Variate, NormalVariate> GaussianMapBase;
 };
 
 /**
@@ -114,7 +115,7 @@ public:
     GaussianUninitializedException()
         : Exception("Accessing uninitialized dynamic-size distribution. "
                     "Gaussian dimension is 0. "
-                    "Use ::Dimension(dimension) to initialize the "
+                    "Use ::dimension(dimension) to initialize the "
                     "distribution!") { }
 
     /**
@@ -181,21 +182,21 @@ public:
  * minimizes redundant computation and increases efficienty.
  * \endcond
  */
-template <typename Vector_>
+template <typename Variate_>
 class Gaussian
-        : public Traits<Gaussian<Vector_>>::MomentsBase,
-          public Traits<Gaussian<Vector_>>::EvaluationBase,
-          public Traits<Gaussian<Vector_>>::GaussianMapBase
+        : public Traits<Gaussian<Variate_>>::MomentsBase,
+          public Traits<Gaussian<Variate_>>::EvaluationBase,
+          public Traits<Gaussian<Variate_>>::GaussianMapBase
 {
 public:
-    typedef Gaussian<Vector_> This;
+    typedef Gaussian<Variate_> This;
 
-    typedef typename Traits<This>::Vector     Vector;
-    typedef typename Traits<This>::Scalar     Scalar;
-    typedef typename Traits<This>::Operator   Operator;
-    typedef typename Traits<This>::Noise      Noise;
+    typedef typename Traits<This>::Variate          Variate;
+    typedef typename Traits<This>::Scalar           Scalar;
+    typedef typename Traits<This>::Operator         Operator;
+    typedef typename Traits<This>::NormalVariate    NormalVariate;
 
-    using Traits<This>::GaussianMapBase::NoiseDimension;
+    using Traits<This>::GaussianMapBase::variate_dimension;
 
 protected:
     /** \cond INTERNAL */
@@ -230,13 +231,13 @@ public:
      *                  adapted. For dynamic-sized Variable the dimension is
      *                  initialized to 0.
      */
-    explicit Gaussian(const unsigned& dimension = DimensionOf<Vector>()):
-        Traits<This>::GaussianMapBase(dimension),
+    explicit Gaussian(size_t dim = DimensionOf<Variate>()):
+        Traits<This>::GaussianMapBase(dim),
         dirty_(Attributes, true)
     {
-        static_assert(Vector::SizeAtCompileTime != 0,
+        static_assert(Variate::SizeAtCompileTime != 0,
                       "Illegal static dimension");
-        SetStandard();
+        set_standard();
     }
 
     /**
@@ -247,15 +248,15 @@ public:
     /**
      * \return Gaussian dimension
      */
-    virtual int Dimension() const
+    virtual int dimension() const
     {
-        return NoiseDimension();
+        return Traits<This>::GaussianMapBase::variate_dimension();
     }
 
     /**
      * \return Gaussian first moment
      */
-    virtual Vector Mean() const
+    virtual Variate mean() const
     {
         return mean_;
     }
@@ -276,9 +277,9 @@ public:
      *       = {Valid Representations} \f$ \cup \f$ {#CovarianceMatrix}
      * \endcond
      */
-    virtual Operator Covariance() const
+    virtual Operator covariance() const
     {
-        if (Dimension() == 0)
+        if (dimension() == 0)
         {
             fl_throw(GaussianUninitializedException());
         }
@@ -299,7 +300,7 @@ public:
                 break;
 
             case DiagonalSquareRootMatrix:
-                covariance_.setZero(Dimension(), Dimension());
+                covariance_.setZero(dimension(), dimension());
                 for (size_t i = 0; i < square_root_.diagonalSize(); ++i)
                 {
                     covariance_(i, i) = square_root_(i, i) * square_root_(i, i);
@@ -307,7 +308,7 @@ public:
                 break;
 
             case DiagonalPrecisionMatrix:
-                covariance_.setZero(Dimension(), Dimension());
+                covariance_.setZero(dimension(), dimension());
                 for (size_t i = 0; i < precision_.diagonalSize(); ++i)
                 {
                     covariance_(i, i) = 1./precision_(i, i);
@@ -342,16 +343,16 @@ public:
      *       = {Valid Representations} \f$ \cup \f$ {#PrecisionMatrix}
      * \endcond
      */
-    virtual const Operator& Precision() const
+    virtual const Operator& precision() const
     {
-        if (Dimension() == 0)
+        if (dimension() == 0)
         {
             fl_throw(GaussianUninitializedException());
         }
 
         if (is_dirty(PrecisionMatrix) && is_dirty(DiagonalPrecisionMatrix))
         {
-            const Operator& cov = Covariance();
+            const Operator& cov = covariance();
 
             switch (select_first_representation({DiagonalCovarianceMatrix,
                                                  DiagonalSquareRootMatrix,
@@ -360,12 +361,12 @@ public:
             {
             case CovarianceMatrix:
             case SquareRootMatrix:
-                precision_ = Covariance().inverse();
+                precision_ = covariance().inverse();
                 break;
 
             case DiagonalCovarianceMatrix:
             case DiagonalSquareRootMatrix:
-                precision_.setZero(Dimension(), Dimension());
+                precision_.setZero(dimension(), dimension());
                 for (size_t i = 0; i < cov.rows(); ++i)
                 {
                     precision_(i, i) = 1./cov(i, i);
@@ -400,16 +401,16 @@ public:
      *       = {Valid Representations} \f$ \cup \f$ {#SquareRootMatrix}
      * \endcond
      */
-    virtual const Operator& SquareRoot() const
+    virtual const Operator& square_root() const
     {
-        if (Dimension() == 0)
+        if (dimension() == 0)
         {
             fl_throw(GaussianUninitializedException());
         }
 
         if (is_dirty(SquareRootMatrix) && is_dirty(DiagonalSquareRootMatrix))
         {
-            const Operator& cov = Covariance();
+            const Operator& cov = covariance();
 
             switch (select_first_representation({DiagonalCovarianceMatrix,
                                                  DiagonalPrecisionMatrix,
@@ -420,8 +421,8 @@ public:
             case PrecisionMatrix:
             {
                 Eigen::LDLT<Operator> ldlt;
-                ldlt.compute(Covariance());
-                Vector D_sqrt = ldlt.vectorD();
+                ldlt.compute(covariance());
+                Variate D_sqrt = ldlt.vectorD();
                 for(size_t i = 0; i < D_sqrt.rows(); ++i)
                 {
                     D_sqrt(i) = std::sqrt(std::fabs(D_sqrt(i)));
@@ -434,7 +435,7 @@ public:
             case DiagonalCovarianceMatrix:
             case DiagonalPrecisionMatrix:
             {
-                square_root_.setZero(Dimension(), Dimension());
+                square_root_.setZero(dimension(), dimension());
                 for (size_t i = 0; i < square_root_.rows(); ++i)
                 {
                     square_root_(i, i) = std::sqrt(cov(i, i));
@@ -455,7 +456,7 @@ public:
     /**
      * \return True if the covariance matrix has a full rank
      *
-     * \throws see Covariance()
+     * \throws see covariance()
      *
      * \cond INTERNAL
      * \pre |{Valid Representations}| > 0
@@ -463,12 +464,12 @@ public:
      *       = {Valid Representations} \f$ \cup \f$ {#CovarianceMatrix}
      * \endcond
      */
-    virtual bool HasFullRank() const
+    virtual bool has_full_rank() const
     {
         if (is_dirty(Rank))
         {
             full_rank_ =
-               Covariance().colPivHouseholderQr().rank() == Covariance().rows();
+               covariance().colPivHouseholderQr().rank() == covariance().rows();
 
             updated_internally(Rank);
         }
@@ -479,7 +480,7 @@ public:
     /**
      * \return Log normalizing constant
      *
-     * \throws see HasFullRank()
+     * \throws see has_full_rank()
      *
      * \cond INTERNAL
      * \pre |{Valid Representations}| > 0
@@ -487,15 +488,15 @@ public:
      *       = {Valid Representations} \f$ \cup \f$ {#CovarianceMatrix}
      * \endcond
      */
-    virtual Scalar LogNormalizer() const
+    virtual Scalar log_normalizer() const
     {
         if (is_dirty(Normalizer))
         {
-            if (HasFullRank())
+            if (has_full_rank())
             {
                 log_normalizer_ = -0.5
-                        * (log(Covariance().determinant())
-                           + double(Covariance().rows()) * log(2.0 * M_PI));
+                        * (log(covariance().determinant())
+                           + double(covariance().rows()) * log(2.0 * M_PI));
             }
             else
             {
@@ -513,7 +514,7 @@ public:
      *
      * \param vector sample which should be evaluated
      *
-     * \throws see HasFullRank()
+     * \throws see has_full_rank()
      *
      * \cond INTERNAL
      * \pre |{Valid Representations}| > 0
@@ -521,14 +522,14 @@ public:
      *       = {Valid Representations} \f$ \cup \f$ {#PrecisionMatrix}
      * \endcond
      */
-    virtual Scalar LogProbability(const Vector& vector) const
+    virtual Scalar log_probability(const Variate& vector) const
     {
-        if(HasFullRank())
+        if(has_full_rank())
         {
-            return LogNormalizer() - 0.5
-                    * (vector - Mean()).transpose()
-                    * Precision()
-                    * (vector - Mean());
+            return log_normalizer() - 0.5
+                    * (vector - mean()).transpose()
+                    * precision()
+                    * (vector - mean());
         }
 
         return -std::numeric_limits<Scalar>::infinity();
@@ -540,7 +541,7 @@ public:
      *
      * \param sample    Noise Sample
      *
-     * \throws see SquareRoot()
+     * \throws see square_root()
      *
      * \cond INTERNAL
      * \pre |{Valid Representations}| > 0
@@ -548,9 +549,9 @@ public:
      *       = {Valid Representations} \f$ \cup \f$ {#SquareRootMatrix}
      * \endcond
      */
-    virtual Vector MapStandardGaussian(const Noise& sample) const
+    virtual Variate map_standard_normal(const NormalVariate& sample) const
     {
-        return Mean() + SquareRoot() * sample;
+        return mean() + square_root() * sample;
     }
 
     /**
@@ -564,13 +565,13 @@ public:
      *  - {Valid representations} = {#CovarianceMatrix}
      * \endcond
      */
-    virtual void SetStandard()
+    virtual void set_standard()
     {
-        mean_.resize(Dimension());
-        covariance_.resize(Dimension(), Dimension());
+        mean_.resize(dimension());
+        covariance_.resize(dimension(), dimension());
 
-        Mean(Vector::Zero(Dimension()));
-        Covariance(Operator::Identity(Dimension(), Dimension()));
+        mean(Variate::Zero(dimension()));
+        covariance(Operator::Identity(dimension(), dimension()));
 
         full_rank_ = true;
         updated_internally(Rank);
@@ -590,12 +591,12 @@ public:
      * \endcond
      *
      * \throws ResizingFixedSizeEntityException
-     *         see GaussianMap::NoiseDimension(size_t)
+     *         see GaussianMap::variate_dimension(size_t)
      */
-    virtual void Dimension(size_t new_dimension)
+    virtual void dimension(size_t new_dimension)
     {
-        NoiseDimension(new_dimension);
-        SetStandard();
+        variate_dimension(new_dimension);
+        set_standard();
     }
 
     /**
@@ -605,7 +606,7 @@ public:
      *
      * \throws WrongSizeException
      */
-    virtual void Mean(const Vector& mean) noexcept
+    virtual void mean(const Variate& mean) noexcept
     {
         if (mean_.size() != mean.size())
         {
@@ -627,7 +628,7 @@ public:
      *
      * \throws WrongSizeException
      */
-    virtual void Covariance(const Operator& covariance) noexcept
+    virtual void covariance(const Operator& covariance) noexcept
     {
         if (covariance_.size() != covariance.size())
         {
@@ -653,7 +654,7 @@ public:
      *
      * \throws WrongSizeException
      */
-    virtual void SquareRoot(const Operator& square_root) noexcept
+    virtual void square_root(const Operator& square_root) noexcept
     {
         if (square_root_.size() != square_root.size())
         {
@@ -678,7 +679,7 @@ public:
      *
      * \throws WrongSizeException
      */
-    virtual void Precision(const Operator& precision) noexcept
+    virtual void precision(const Operator& precision) noexcept
     {
         if (precision_.size() != precision.size())
         {
@@ -703,7 +704,7 @@ public:
      *
      * \throws WrongSizeException
      */
-    virtual void DiagonalCovariance(const Operator& diag_covariance) noexcept
+    virtual void diagonal_covariance(const Operator& diag_covariance) noexcept
     {
         if (diag_covariance.size() != covariance_.size())
         {
@@ -729,7 +730,7 @@ public:
      *
      * \throws WrongSizeException
      */
-    virtual void DiagonalSquareRoot(const Operator& diag_square_root) noexcept
+    virtual void diagonal_square_root(const Operator& diag_square_root) noexcept
     {
         if (diag_square_root.size() != square_root_.size())
         {
@@ -755,7 +756,7 @@ public:
      *
      * \throws WrongSizeException
      */
-    virtual void DiagonalPrecision(const Operator& diag_precision) noexcept
+    virtual void diagonal_precision(const Operator& diag_precision) noexcept
     {
         if (diag_precision.size() != precision_.size())
         {
@@ -810,13 +811,13 @@ protected:
      * If the last invoked functions were
      *
      * \code
-     * DiagonalCovariance(my_diagonal);
-     * my_covariance = Covariance();
+     * diagonal_covariance(my_diagonal);
+     * my_covariance = covariance();
      * \endcode
      *
      * Now, the representation is set to \c DiagonalCovarianceMatrix and
-     * \c CovarianceMatrix since \c DiagonalCovariance() was used to set the
-     * covariance matrix followed by requesting \c Covariance().
+     * \c CovarianceMatrix since \c diagonal_covariance() was used to set the
+     * covariance matrix followed by requesting \c covariance().
      * The following subsequent call
      *
      * \code
@@ -844,7 +845,7 @@ protected:
 
 protected:    
     /** \cond INTERNAL */
-    Vector mean_;                     /**< \brief first moment vector */
+    Variate mean_;                     /**< \brief first moment vector */
     mutable Operator covariance_;     /**< \brief cov. form */
     mutable Operator precision_;      /**< \brief cov. inverse form */
     mutable Operator square_root_;    /**< \brief cov. square root form */

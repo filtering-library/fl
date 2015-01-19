@@ -22,6 +22,9 @@
 #ifndef FL__MODEL__PROCESS__PROCESS_MODEL_INTERFACE_HPP
 #define FL__MODEL__PROCESS__PROCESS_MODEL_INTERFACE_HPP
 
+#include <cstddef>
+#include <fl/util/traits.hpp>
+
 namespace fl
 {
 
@@ -32,6 +35,10 @@ template <typename State, typename Noise, typename Input>
 class ProcessModelInterface
 {
 public:
+    virtual void condition(const double& delta_time,
+                           const State& state,
+                           const Input& input = internal::Empty()) = 0;
+
     virtual State predict_state(double delta_time,
                                 const State& state,
                                 const Noise& noise,

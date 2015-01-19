@@ -47,12 +47,11 @@
 #ifndef FAST_FILTERING_FILTERS_DETERMINISTIC_FACTORIZED_UNSCENTED_KALMAN_FILTER_HPP
 #define FAST_FILTERING_FILTERS_DETERMINISTIC_FACTORIZED_UNSCENTED_KALMAN_FILTER_HPP
 
-#include <boost/shared_ptr.hpp>
-
 #include <Eigen/Dense>
 
 #include <cmath>
 #include <type_traits>
+#include <memory>
 
 #include <fl/util/assertions.hpp>
 #include <fl/distribution/interface/gaussian_map.hpp>
@@ -102,9 +101,9 @@ public:
                           Eigen::Dynamic,
                           Eigen::Dynamic> SigmaPoints;
 
-    typedef boost::shared_ptr<CohesiveStateProcessModel> CohesiveStateProcessModelPtr;
-    typedef boost::shared_ptr<FactorizedStateProcessModel> FactorizedStateProcessModelPtr;
-    typedef boost::shared_ptr<ObservationModel> ObservationModelPtr;
+    typedef std::shared_ptr<CohesiveStateProcessModel> CohesiveStateProcessModelPtr;
+    typedef std::shared_ptr<FactorizedStateProcessModel> FactorizedStateProcessModelPtr;
+    typedef std::shared_ptr<ObservationModel> ObservationModelPtr;
 
     enum RandomVariableIndex { a = 0, Q_a , b_i, Q_b_i, R_y_i, y_i };
 
@@ -177,7 +176,7 @@ public:
         // FOR ALL X_[a]
         f_a(X_[a], X_[Q_a], delta_time, X_[a]);
 
-        Mean(X_[a], predicted_state.mean_a);
+        mean(X_[a], predicted_state.mean_a);
         predicted_state.mean_a_predicted = predicted_state.mean_a;
         X_a_norm_ = X_[a];
         Normalize(predicted_state.mean_a, X_a_norm_);
@@ -201,8 +200,8 @@ public:
             typename StateDistribution::JointPartitions& predicted_partition =
                     predicted_state.joint_partitions[i];
 
-            Mean(X_[b_i], predicted_partition.mean_b);
-            Mean(Y_, predicted_partition.mean_y);
+            mean(X_[b_i], predicted_partition.mean_b);
+            mean(Y_, predicted_partition.mean_y);
 
             Normalize(predicted_partition.mean_b, X_[b_i]);
             Normalize(predicted_partition.mean_y, Y_);
@@ -475,9 +474,9 @@ public:
 
         for (size_t i = 0; i < prior_X_a.cols(); ++i)
         {
-            f_a_->Condition(delta_time, prior_X_a.col(i), zero_input);
+            f_a_->condition(delta_time, prior_X_a.col(i), zero_input);
             predicted_X_a.col(i)
-                    = f_a_->MapStandardGaussian(noise_X_a.col(i));
+                    = f_a_->map_standard_normal(noise_X_a.col(i));
         }
     }
 
@@ -486,13 +485,13 @@ public:
              const double delta_time,
              SigmaPoints& predicted_X_b_i)
     {
-        Input_b_i zero_input = Input_b_i::Zero(f_b_->NoiseDimension(), 1);
+        Input_b_i zero_input = Input_b_i::Zero(f_b_->variate_dimension(), 1);
 
         for (size_t i = 0; i < prior_X_b_i.cols(); ++i)
         {            
-            f_b_->Condition(delta_time, prior_X_b_i.col(i), zero_input);
+            f_b_->condition(delta_time, prior_X_b_i.col(i), zero_input);
             predicted_X_b_i.col(i)
-                    = f_b_->MapStandardGaussian(noise_X_b_i.col(i));
+                    = f_b_->map_standard_normal(noise_X_b_i.col(i));
         }
     }
 
@@ -506,9 +505,9 @@ public:
 
         for (size_t i = 0; i < prior_X_a.cols(); ++i)
         {
-            h_->Condition(prior_X_a.col(i), prior_X_b_i.col(i), i, index);
+            h_->condition(prior_X_a.col(i), prior_X_b_i.col(i), i, index);
             predicted_X_y_i.col(i)
-                    = h_->MapStandardGaussian(noise_X_y_i.col(i));
+                    = h_->map_standard_normal(noise_X_y_i.col(i));
         }
     }
 
@@ -521,12 +520,12 @@ public:
     {
         switch(var_id)
         {
-        case a:     return f_a_->Dimension();
-        case Q_a:   return f_a_->NoiseDimension();
-        case b_i:   return f_b_->Dimension();
-        case Q_b_i: return f_b_->NoiseDimension();
-        case R_y_i: return h_->NoiseDimension();
-        case y_i:   return h_->Dimension();
+        case a:     return f_a_->dimension();
+        case Q_a:   return f_a_->variate_dimension();
+        case b_i:   return f_b_->dimension();
+        case Q_b_i: return f_b_->variate_dimension();
+        case R_y_i: return h_->variate_dimension();
+        case y_i:   return h_->dimension();
         }
     }
 
@@ -536,7 +535,7 @@ public:
      * @note TESTED
      */
     template <typename MeanVector>
-    void Mean(const SigmaPoints& sigma_points, MeanVector& mean)
+    void mean(const SigmaPoints& sigma_points, MeanVector& mean)
     {
         double w_0;
         double w_i;
@@ -697,7 +696,7 @@ public:
      * @note TESTED
      */
     template <typename RegularMatrix, typename SquareRootMatrix>
-    void SquareRoot(const RegularMatrix& regular_matrix,
+    void square_root(const RegularMatrix& regular_matrix,
                     SquareRootMatrix& square_root)
     {
         square_root = regular_matrix.llt().matrixL();

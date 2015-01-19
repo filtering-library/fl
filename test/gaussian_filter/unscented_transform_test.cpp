@@ -73,8 +73,8 @@ void test_mean_transform(PointSet<Point, Dim>& point_set, int dim)
     Point a = Point::Ones(dim) * 9;
     fl::Gaussian<Point> gaussian;
 
-    gaussian.Dimension(dim);
-    gaussian.Mean(a);
+    gaussian.dimension(dim);
+    gaussian.mean(a);
 
     //EXPECT_FALSE(a.isApprox(point_set.mean()));
     ut.forward(gaussian, point_set);
@@ -128,8 +128,8 @@ TEST(UnscentedTransformTest, mean_recovery_dynamic_fixed_throw)
     Point a = Point::Ones(dim) * 9;
 
     fl::Gaussian<Point> gaussian;
-    gaussian.Dimension(dim);
-    gaussian.Mean(a);
+    gaussian.dimension(dim);
+    gaussian.mean(a);
 
     fl::PointSet<Point, 3> point_set;
 
@@ -168,9 +168,9 @@ void test_covariance_transform(PointSet<Point, Dim>& point_set, int dim)
     Point a = Point::Random(dim);
 
     fl::Gaussian<Point> gaussian;
-    gaussian.Dimension(dim);
-    gaussian.Mean(a);
-    gaussian.Covariance(cov);
+    gaussian.dimension(dim);
+    gaussian.mean(a);
+    gaussian.covariance(cov);
 
     EXPECT_NO_THROW(ut.forward(gaussian, point_set));
 
@@ -225,9 +225,9 @@ TEST(UnscentedTransformTest, covariance_recovery_dynamic_fixed_throw)
     Point a = Point::Random(dim);
 
     fl::Gaussian<Point> gaussian;
-    gaussian.Dimension(dim);
-    gaussian.Mean(a);
-    gaussian.Covariance(cov);
+    gaussian.dimension(dim);
+    gaussian.mean(a);
+    gaussian.covariance(cov);
 
     fl::PointSet<Point, 20> point_set;
 

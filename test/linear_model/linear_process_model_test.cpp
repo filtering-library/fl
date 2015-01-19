@@ -63,10 +63,10 @@ public:
                             size_t dim,
                             typename Model::Operator& cov)
     {
-        EXPECT_EQ(model.Dimension(), dim);
-        EXPECT_EQ(model.NoiseDimension(), dim);
+        EXPECT_EQ(model.dimension(), dim);
+        EXPECT_EQ(model.variate_dimension(), dim);
         EXPECT_TRUE(model.A().isIdentity());
-        EXPECT_TRUE(model.Covariance().isApprox(cov));
+        EXPECT_TRUE(model.covariance().isApprox(cov));
     }
 };
 
@@ -105,11 +105,11 @@ TEST_F(LinearGaussianProcessModelTests, predict_fixedsize_with_zero_noise)
     LGModel::Operator cov = LGModel::Operator::Identity(dim, dim) * 5.5465;
     LGModel model(cov, dim);
 
-    EXPECT_TRUE(model.MapStandardGaussian(sample).isZero());
+    EXPECT_TRUE(model.map_standard_normal(sample).isZero());
 
-    EXPECT_FALSE(model.MapStandardGaussian(sample).isApprox(state));
-    model.Condition(1.0, state);
-    EXPECT_TRUE(model.MapStandardGaussian(sample).isApprox(state));
+    EXPECT_FALSE(model.map_standard_normal(sample).isApprox(state));
+    model.condition(1.0, state);
+    EXPECT_TRUE(model.map_standard_normal(sample).isApprox(state));
 }
 
 TEST_F(LinearGaussianProcessModelTests, predict_dynamic_with_zero_noise)
@@ -123,11 +123,11 @@ TEST_F(LinearGaussianProcessModelTests, predict_dynamic_with_zero_noise)
     LGModel::Operator cov = LGModel::Operator::Identity(dim, dim) * 5.5465;
     LGModel model(cov, dim);
 
-    EXPECT_TRUE(model.MapStandardGaussian(sample).isZero());
+    EXPECT_TRUE(model.map_standard_normal(sample).isZero());
 
-    EXPECT_FALSE(model.MapStandardGaussian(sample).isApprox(state));
-    model.Condition(1.0, state);
-    EXPECT_TRUE(model.MapStandardGaussian(sample).isApprox(state));
+    EXPECT_FALSE(model.map_standard_normal(sample).isApprox(state));
+    model.condition(1.0, state);
+    EXPECT_TRUE(model.map_standard_normal(sample).isApprox(state));
 }
 
 TEST_F(LinearGaussianProcessModelTests, predict_fixedsize_with_noise)
@@ -141,11 +141,11 @@ TEST_F(LinearGaussianProcessModelTests, predict_fixedsize_with_noise)
     LGModel::Operator cov = LGModel::Operator::Identity(dim, dim);
     LGModel model(cov, dim);
 
-    EXPECT_TRUE(model.MapStandardGaussian(noise).isApprox(noise));
+    EXPECT_TRUE(model.map_standard_normal(noise).isApprox(noise));
 
-    EXPECT_FALSE(model.MapStandardGaussian(noise).isApprox(state + noise));
-    model.Condition(1.0, state);
-    EXPECT_TRUE(model.MapStandardGaussian(noise).isApprox(state + noise));
+    EXPECT_FALSE(model.map_standard_normal(noise).isApprox(state + noise));
+    model.condition(1.0, state);
+    EXPECT_TRUE(model.map_standard_normal(noise).isApprox(state + noise));
 }
 
 TEST_F(LinearGaussianProcessModelTests, predict_dynamic_with_noise)
@@ -159,11 +159,11 @@ TEST_F(LinearGaussianProcessModelTests, predict_dynamic_with_noise)
     LGModel::Operator cov = LGModel::Operator::Identity(dim, dim);
     LGModel model(cov, dim);
 
-    EXPECT_TRUE(model.MapStandardGaussian(noise).isApprox(noise));
+    EXPECT_TRUE(model.map_standard_normal(noise).isApprox(noise));
 
-    EXPECT_FALSE(model.MapStandardGaussian(noise).isApprox(state + noise));
-    model.Condition(1.0, state);
-    EXPECT_TRUE(model.MapStandardGaussian(noise).isApprox(state + noise));
+    EXPECT_FALSE(model.map_standard_normal(noise).isApprox(state + noise));
+    model.condition(1.0, state);
+    EXPECT_TRUE(model.map_standard_normal(noise).isApprox(state + noise));
 }
 
 TEST_F(LinearGaussianProcessModelTests, dynamics_matrix)
@@ -183,8 +183,8 @@ TEST_F(LinearGaussianProcessModelTests, dynamics_matrix)
     A(0,0) = 2.;
     model.A(A);
 
-    model.Condition(1.0, state);
+    model.condition(1.0, state);
 
-    EXPECT_FALSE(model.MapStandardGaussian(sample).isApprox(state));
-    EXPECT_TRUE(model.MapStandardGaussian(sample).isApprox(state_expected));
+    EXPECT_FALSE(model.map_standard_normal(sample).isApprox(state));
+    EXPECT_TRUE(model.map_standard_normal(sample).isApprox(state_expected));
 }

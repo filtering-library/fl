@@ -32,21 +32,21 @@ namespace fl
  *
  * \brief Distribution sampling interface
  *
- * \tparam Vector   Sample variable type
+ * \tparam Variate  Variate type of a random variable
  */
-template <typename Vector>
+template <typename Variate>
 class Sampling
 {
 public:    
     /**
-     * @return A random sample of the underlying distribution
-     */
-    virtual Vector Sample() = 0;
-
-    /**
      * \brief Overridable default destructor
      */
     virtual ~Sampling() { }
+
+    /**
+     * @return A random sample of the underlying distribution
+     */
+    virtual Variate sample() = 0;
 };
 
 }

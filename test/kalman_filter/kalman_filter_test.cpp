@@ -85,11 +85,11 @@ TEST(KalmanFilterTests, init_fixed_size_predict)
 
     Filter::StateDistribution state_dist;
 
-    EXPECT_TRUE(state_dist.Mean().isZero());
-    EXPECT_TRUE(state_dist.Covariance().isIdentity());
+    EXPECT_TRUE(state_dist.mean().isZero());
+    EXPECT_TRUE(state_dist.covariance().isIdentity());
     filter->predict(1.0, Input(1), state_dist, state_dist);
-    EXPECT_TRUE(state_dist.Mean().isZero());
-    EXPECT_TRUE(state_dist.Covariance().isApprox(2. * Q));
+    EXPECT_TRUE(state_dist.mean().isZero());
+    EXPECT_TRUE(state_dist.covariance().isApprox(2. * Q));
 
 }
 
@@ -129,14 +129,14 @@ TEST(KalmanFilterTests, init_dynamic_size_predict)
 
     Filter::StateDistribution state_dist(dim_state);
 
-    EXPECT_TRUE(state_dist.Mean().isZero());
-    EXPECT_TRUE(state_dist.Covariance().isIdentity());
+    EXPECT_TRUE(state_dist.mean().isZero());
+    EXPECT_TRUE(state_dist.covariance().isIdentity());
 
-//    std::cout << state_dist.Covariance() << std::endl << std::endl;
+//    std::cout << state_dist.covariance() << std::endl << std::endl;
     filter->predict(1.0, Input(1), state_dist, state_dist);
-    EXPECT_TRUE(state_dist.Mean().isZero());
-    EXPECT_TRUE(state_dist.Covariance().isApprox(2. * Q));
-//    std::cout << state_dist.Covariance() << std::endl << std::endl;
+    EXPECT_TRUE(state_dist.mean().isZero());
+    EXPECT_TRUE(state_dist.covariance().isApprox(2. * Q));
+//    std::cout << state_dist.covariance() << std::endl << std::endl;
     //std::cout <<  Q << std::endl;
 }
 
@@ -177,15 +177,15 @@ TEST(KalmanFilterTests, fixed_size_predict_update)
             std::make_shared<Filter>(process_model, observation_model);
 
     Filter::StateDistribution state_dist;
-    EXPECT_TRUE(state_dist.Covariance().ldlt().isPositive());
+    EXPECT_TRUE(state_dist.covariance().ldlt().isPositive());
 
     for (size_t i = 0; i < 2000; ++i)
     {
         filter->predict(1.0, Input(), state_dist, state_dist);
-        EXPECT_TRUE(state_dist.Covariance().ldlt().isPositive());
+        EXPECT_TRUE(state_dist.covariance().ldlt().isPositive());
         Observation y = Observation::Random();
         filter->update(y, state_dist, state_dist);
-        EXPECT_TRUE(state_dist.Covariance().ldlt().isPositive());
+        EXPECT_TRUE(state_dist.covariance().ldlt().isPositive());
     }
 }
 
@@ -234,14 +234,14 @@ TEST(KalmanFilterTests, dynamic_size_predict_update)
             std::make_shared<Filter>(process_model, observation_model);
 
     Filter::StateDistribution state_dist(dim_state);
-    EXPECT_TRUE(state_dist.Covariance().ldlt().isPositive());
+    EXPECT_TRUE(state_dist.covariance().ldlt().isPositive());
 
     for (size_t i = 0; i < 2000; ++i)
     {
         filter->predict(1.0, Input(1), state_dist, state_dist);
-        EXPECT_TRUE(state_dist.Covariance().ldlt().isPositive());
+        EXPECT_TRUE(state_dist.covariance().ldlt().isPositive());
         Observation y = Observation::Random(dim_observation);
         filter->update(y, state_dist, state_dist);
-        EXPECT_TRUE(state_dist.Covariance().ldlt().isPositive());
+        EXPECT_TRUE(state_dist.covariance().ldlt().isPositive());
     }
 }

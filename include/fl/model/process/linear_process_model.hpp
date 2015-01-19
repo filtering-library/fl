@@ -26,6 +26,8 @@
 
 #include <fl/util/traits.hpp>
 #include <fl/distribution/gaussian.hpp>
+#include <fl/model/process/process_model_interface.hpp>
+
 #include <ff/models/process_models/interfaces/stationary_process_model.hpp>
 
 namespace fl
@@ -34,17 +36,24 @@ namespace fl
 // Forward declarations
 template <typename State, typename Input_> class LinearGaussianProcessModel;
 
+/**
+ * Linear Gaussian process model traits. This trait definition contains all
+ * types used internally within the linear model. Additionally, it provides the
+ * types needed externally to use the model.
+ */
 template <typename State_, typename Input_>
 struct Traits<LinearGaussianProcessModel<State_, Input_>>
 {
     typedef Gaussian<State_> GaussianBase;
-    typedef StationaryProcessModel<State_, Input_> ProcessModelBase;
+    //typedef StationaryProcessModel<State_, Input_> ProcessModelBase;
 
     typedef State_ State;
     typedef Input_ Input;
     typedef typename Traits<GaussianBase>::Scalar Scalar;
     typedef typename Traits<GaussianBase>::Operator Operator;
-    typedef typename Traits<GaussianBase>::Noise Noise;
+    typedef typename Traits<GaussianBase>::NormalVariate Noise;
+
+    typedef ProcessModelInterface<State, Noise, Input> ProcessModelBase;
 
     typedef Eigen::Matrix<Scalar,
                           State::SizeAtCompileTime,
@@ -69,9 +78,10 @@ public:
     typedef typename Traits<This>::Operator Operator;
     typedef typename Traits<This>::DynamicsMatrix DynamicsMatrix;
 
-    using Traits<This>::GaussianBase::Mean;
-    using Traits<This>::GaussianBase::Covariance;
-    using Traits<This>::GaussianBase::Dimension;
+    using Traits<This>::GaussianBase::mean;
+    using Traits<This>::GaussianBase::covariance;
+    using Traits<This>::GaussianBase::dimension;
+    using Traits<This>::GaussianBase::square_root;
 
 public:
     LinearGaussianProcessModel(
@@ -81,23 +91,48 @@ public:
         A_(DynamicsMatrix::Identity(dimension, dimension)),
         delta_time_(1.)
     {
-        Covariance(noise_covariance);
+        covariance(noise_covariance);
     }
 
-    ~LinearGaussianProcessModel() { }
+    ~LinearGaussianProcessModel() { }        
 
-    virtual State MapStandardGaussian(const Noise& sample) const
+    virtual State predict_state(double delta_time,
+                                const State& state,
+                                const Noise& noise,
+                                const Input& input)
     {
-        return Mean() + delta_time_ * this->SquareRoot() * sample;
+        condition(delta_time, state, input);
+
+        return map_standard_normal(noise);
     }
 
-    virtual void Condition(const double& delta_time,
+    virtual size_t state_dimension() const
+    {
+        return Traits<This>::GaussianBase::dimension();
+    }
+
+    virtual size_t noise_dimension() const
+    {
+        return Traits<This>::GaussianBase::dimension();
+    }
+
+    virtual size_t input_dimension() const
+    {
+        return 0;
+    }
+
+    virtual void condition(const double& delta_time,
                            const State& x,
                            const Input& u = Input())
     {
         delta_time_ = delta_time;                
 
-        Mean(A_ * x);
+        mean(A_ * x);
+    }
+
+    virtual State map_standard_normal(const Noise& sample) const
+    {
+        return mean() + delta_time_ * square_root() * sample;
     }
 
     virtual const DynamicsMatrix& A() const
@@ -108,11 +143,6 @@ public:
     virtual void A(const DynamicsMatrix& dynamics_matrix)
     {
         A_ = dynamics_matrix;
-    }
-
-    virtual size_t InputDimension() const
-    {
-        return 0;
     }
 
 protected:

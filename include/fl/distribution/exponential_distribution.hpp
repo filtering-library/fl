@@ -33,6 +33,8 @@
 namespace fl
 {
 
+/// \todo MISSING DOC. MISSING UTESTS
+
 class ExponentialDistribution:
         public Evaluation<double, double>,
         public GaussianMap<double, double>
@@ -50,10 +52,9 @@ public:
         exp_lambda_max_ = std::exp(-lambda_*max);
     }
 
-
     virtual ~ExponentialDistribution() { }
 
-    virtual double Probability(const double& input) const
+    virtual double probability(const double& input) const
     {
         if(input < min_ || input > max_)
             return 0;
@@ -62,12 +63,12 @@ public:
                             (exp_lambda_min_ - exp_lambda_max_);
     }
 
-    virtual double LogProbability(const double& input) const
+    virtual double log_probability(const double& input) const
     {
-        return std::log(Probability(input));
+        return std::log(probability(input));
     }
 
-    virtual double MapStandardGaussian(const double& gaussian_sample) const
+    virtual double map_standard_normal(const double& gaussian_sample) const
     {
         // map from a gaussian to a uniform distribution
         double uniform_sample = 0.5 *
@@ -78,7 +79,7 @@ public:
     }
 
 
-    virtual double MapStandardGaussian(const double& gaussian_sample,
+    virtual double map_standard_normal(const double& gaussian_sample,
                                        const double& max) const
     {
         double exp_lambda_max = std::exp(-lambda_*max);
