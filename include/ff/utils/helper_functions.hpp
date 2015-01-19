@@ -40,7 +40,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <ctime>
 #include <fstream>
 
-#include <fl/util/random_seed.hpp>
+#include <fl/util/random.hpp>
 #include <fl/util/math.hpp>
 
 namespace fl
@@ -57,8 +57,7 @@ class DiscreteDistribution
 public:
     template <typename T> DiscreteDistribution(std::vector<T> log_prob)
         : generator_(RANDOM_SEED),
-          uniform_distribution_(0., 1.),
-          uniform_generator_(std::bind(uniform_distribution_, generator_))
+          uniform_distribution_(0., 1.)
     {
         // substract max to avoid numerical issues
 
@@ -89,20 +88,20 @@ public:
 
     ~DiscreteDistribution() {}
 
-    int Sample()
+    int sample()
     {
-        return MapStandardUniform(uniform_generator_());
+        return map_standard_uniform(uniform_distribution_(generator_));
     }
 
-    int MapStandardGaussian(double gaussian_sample) const
+    int map_standard_normal(double gaussian_sample) const
     {
         double uniform_sample =
                 0.5 * (1.0 + std::erf(gaussian_sample / std::sqrt(2.0)));
 
-        return MapStandardUniform(uniform_sample);
+        return map_standard_uniform(uniform_sample);
     }
 
-    int MapStandardUniform(double uniform_sample) const
+    int map_standard_uniform(double uniform_sample) const
     {
         std::vector<double>::const_iterator iterator =
                                  std::lower_bound(cumulative_prob_.begin(),
@@ -117,7 +116,6 @@ private:
 
     fl::mt11213b generator_;
     std::uniform_real_distribution<double> uniform_distribution_;
-    std::function<double()> uniform_generator_;
 };
 
 }
