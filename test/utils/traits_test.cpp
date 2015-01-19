@@ -23,7 +23,10 @@
 
 #include <Eigen/Dense>
 
+#include <fl/util/math.hpp>
 #include <fl/util/traits.hpp>
+
+#include <cmath>
 
 TEST(TraitsTests, is_dynamic)
 {
