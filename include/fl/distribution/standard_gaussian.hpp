@@ -26,23 +26,23 @@ namespace fl
 /**
  * \ingroup distributions
  */
-template <typename NormalVariate>
+template <typename StandardVariate>
 class StandardGaussian:
-        public Sampling<NormalVariate>
+        public Sampling<StandardVariate>
 {
 public:
-    explicit StandardGaussian(size_t dim = DimensionOf<NormalVariate>())
+    explicit StandardGaussian(size_t dim = DimensionOf<StandardVariate>())
         : dimension_ (dim),
-          generator_(RANDOM_SEED),
+          generator_(fl::seed()),
           gaussian_distribution_(0.0, 1.0)
     {
     }
 
     virtual ~StandardGaussian() { }
 
-    virtual NormalVariate sample()
+    virtual StandardVariate sample()
     {
-        NormalVariate gaussian_sample(dimension());
+        StandardVariate gaussian_sample(dimension());
         for (int i = 0; i < dimension(); i++)
         {
             gaussian_sample(i) = gaussian_distribution_(generator_);
@@ -60,7 +60,7 @@ public:
     {
         if (dimension_ == new_dimension) return;
 
-        if (fl::IsFixed<NormalVariate::SizeAtCompileTime>())
+        if (fl::IsFixed<StandardVariate::SizeAtCompileTime>())
         {
             fl_throw(
                 fl::ResizingFixedSizeEntityException(dimension_,
@@ -83,7 +83,7 @@ class StandardGaussian<double>: public Sampling<double>
 {
 public:
     StandardGaussian()
-        : generator_(RANDOM_SEED),
+        : generator_(fl::seed()),
           gaussian_distribution_(0.0, 1.0)
     { }
 
