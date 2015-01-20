@@ -51,7 +51,7 @@ struct Traits<LinearGaussianProcessModel<State_, Input_>>
     typedef Input_ Input;
     typedef typename Traits<GaussianBase>::Scalar Scalar;
     typedef typename Traits<GaussianBase>::Operator Operator;
-    typedef typename Traits<GaussianBase>::NormalVariate Noise;
+    typedef typename Traits<GaussianBase>::StandardVariate Noise;
 
     typedef ProcessModelInterface<State, Noise, Input> ProcessModelBase;
 

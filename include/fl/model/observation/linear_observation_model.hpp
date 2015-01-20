@@ -41,7 +41,7 @@ struct Traits<
     typedef Gaussian<Observation_> GaussianBase;
     typedef typename Traits<GaussianBase>::Scalar Scalar;
     typedef typename Traits<GaussianBase>::Operator Operator;
-    typedef typename Traits<GaussianBase>::NormalVariate Noise;
+    typedef typename Traits<GaussianBase>::StandardVariate Noise;
     typedef Eigen::Matrix<Scalar,
                           Observation::SizeAtCompileTime,
                           State::SizeAtCompileTime> SensorMatrix;
@@ -125,7 +125,7 @@ struct Traits<FactorizedLinearGaussianObservationModel<Observation_,
     typedef Gaussian<Observation_> GaussianBase;
     typedef typename Traits<GaussianBase>::Scalar Scalar;
     typedef typename Traits<GaussianBase>::Operator Operator;
-    typedef typename Traits<GaussianBase>::NormalVariate Noise;
+    typedef typename Traits<GaussianBase>::StandardVariate Noise;
     typedef Eigen::Matrix<Scalar,
                           Observation::SizeAtCompileTime,
                           State_a::SizeAtCompileTime> SensorMatrix_a;
