@@ -57,7 +57,7 @@
 #include <fl/distribution/interface/standard_gaussian_mapping.hpp>
 #include <ff/distributions/sum_of_deltas.hpp>
 #include <ff/filters/deterministic/composed_state_distribution.hpp>
-#include <ff/models/process_models/interfaces/stationary_process_model.hpp>
+
 #include <fl/util/profiling.hpp>
 
 namespace fl

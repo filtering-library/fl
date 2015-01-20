@@ -28,7 +28,7 @@
 #include <fl/distribution/gaussian.hpp>
 #include <fl/model/process/process_model_interface.hpp>
 
-#include <ff/models/process_models/interfaces/stationary_process_model.hpp>
+
 
 namespace fl
 {

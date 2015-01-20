@@ -48,7 +48,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <ff/utils/helper_functions.hpp>
 #include <ff/distributions/sum_of_deltas.hpp>
 #include <ff/models/observation_models/interfaces/rao_blackwell_observation_model.hpp>
-#include <ff/models/process_models/interfaces/stationary_process_model.hpp>
+
 
 namespace fl
 {
