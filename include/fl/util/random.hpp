@@ -44,6 +44,7 @@ namespace fl
  * Mersenne Twister specialization mt11213b \cite matsumoto1998mersenne
  * \ingroup random
  *
+ *
  * mt11213b is slightly faster than mt19937
  */
 typedef std::mersenne_twister_engine<
@@ -54,6 +55,21 @@ typedef std::mersenne_twister_engine<
                 0x31b6ab00, 15,
                 0xffe50000, 17,
                 1812433253 > mt11213b;
+
+/**
+ * \return A seed. If USE_RANDOM_SEED was set true the seed is set to the
+ * current time, otherwise, the seed will be 1.
+ *
+ * \ingroup random
+ */
+inline unsigned int seed()
+{
+#ifdef USE_RANDOM_SEED
+    return (unsigned int) std::time(0);
+#else
+    return 1;
+#endif
+}
 
 }
 
