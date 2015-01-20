@@ -78,7 +78,6 @@ struct Traits<DampedWienerProcessModel<State_>>
     typedef Gaussian<Noise> GaussianType;
     typedef typename GaussianType::Operator Operator;
 
-    typedef StationaryProcessModel<State, Input> ProcessModelBase;
     typedef StandardGaussianMapping<State, Noise> GaussianMappingBase;
     typedef ProcessModelInterface<State, Noise, Input> ProcessInterfaceBase;
 };
@@ -90,7 +89,6 @@ struct Traits<DampedWienerProcessModel<State_>>
  */
 template <typename State>
 class DampedWienerProcessModel:
-        public Traits<DampedWienerProcessModel<State>>::ProcessModelBase,
         public Traits<DampedWienerProcessModel<State>>::GaussianMappingBase,
         public Traits<DampedWienerProcessModel<State>>::ProcessInterfaceBase
 {

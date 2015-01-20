@@ -45,7 +45,6 @@ template <typename State_, typename Input_>
 struct Traits<LinearGaussianProcessModel<State_, Input_>>
 {
     typedef Gaussian<State_> GaussianBase;
-    //typedef StationaryProcessModel<State_, Input_> ProcessModelBase;
 
     typedef State_ State;
     typedef Input_ Input;

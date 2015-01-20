@@ -31,7 +31,7 @@ namespace fl
 /**
  * \ingroup process_models
  */
-template <typename State, typename Noise, typename Input>
+template <typename State, typename Noise, typename Input = internal::Empty>
 class ProcessModelInterface
 {
 public:

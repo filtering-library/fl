@@ -4,7 +4,6 @@ project(fl)
 ############################
 # Flags                    #
 ############################
-
 # Enable c++11 GCC 4.6 or greater required
 add_definitions(-std=c++0x)
 
@@ -33,7 +32,6 @@ message("# Filtering Library ")
 message("# Version ${FL_MAJOR_VERSION}.${FL_MINOR_VERSION}.${FL_BUILD_VERSION}")
 message("##############################")
 
-
 ############################
 # Dependecies              #
 ############################
@@ -53,7 +51,6 @@ catkin_package(
 ############################
 # Documentation Generation #
 ############################
-
 #
 # How to generate the documentation:
 #
@@ -83,7 +80,6 @@ set(CMAKE_MODULE_PATH ${PROJECT_MODULE_PATH})
 ############################
 # Build                    #
 ############################
-
 include_directories(include ${catkin_INCLUDE_DIRS})
 file(GLOB_RECURSE header_files include/${PROJECT_NAME}/*.hpp
                                include/${PROJECT_NAME}/*.h
@@ -96,5 +92,4 @@ set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
 ############################
 # Tests                    #
 ############################
-
 add_subdirectory(test)

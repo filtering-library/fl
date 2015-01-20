@@ -79,9 +79,9 @@ public:
         process_model_(process_model),
         max_kl_divergence_(max_kl_divergence)
     {
-        static_assert_base(
-            ProcessModel,
-            StationaryProcessModel<State, Input>);
+//        static_assert_base(
+//            ProcessModel,
+//            StationaryProcessModel<State, Input>);
 
         static_assert_base(
             ProcessModel,

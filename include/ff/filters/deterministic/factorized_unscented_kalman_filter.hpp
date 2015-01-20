@@ -124,12 +124,12 @@ public:
                       >::value,
                       "Scalar types of both models must be the same.");
 
-        static_assert_base(CohesiveStateProcessModel,
-                           StationaryProcessModel<State_a, Input_a>);
+//        static_assert_base(CohesiveStateProcessModel,
+//                           StationaryProcessModel<State_a, Input_a>);
         static_assert_base(CohesiveStateProcessModel,
                            StandardGaussianMapping<State_a, Noise_a>);
-        static_assert_base(FactorizedStateProcessModel,
-                           StationaryProcessModel<State_b_i, Input_b_i>);
+//        static_assert_base(FactorizedStateProcessModel,
+//                           StationaryProcessModel<State_b_i, Input_b_i>);
         static_assert_base(FactorizedStateProcessModel,
                            StandardGaussianMapping<State_b_i, Noise_b_i>);
 

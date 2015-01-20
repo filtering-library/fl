@@ -47,8 +47,9 @@
 
 #include <fl/util/math.hpp>
 #include <fl/util/assertions.hpp>
-#include <fl/distribution/interface/standard_gaussian_mapping.hpp>
 #include <fl/distribution/gaussian.hpp>
+#include <fl/distribution/interface/standard_gaussian_mapping.hpp>
+#include <fl/model/process/process_model_interface.hpp>
 #include <ff/models/process_models/damped_wiener_process_model.hpp>
 
 
@@ -81,8 +82,8 @@ struct Traits<IntegratedDampedWienerProcessModel<State_>>
     typedef Eigen::Matrix<Scalar, DEGREE_OF_FREEDOM, 1> Input;
     typedef Eigen::Matrix<Scalar, DEGREE_OF_FREEDOM, 1> Noise;
 
-    typedef StationaryProcessModel<State, Input>    ProcessModelBase;
-    typedef StandardGaussianMapping<State, Noise>     GaussianMappingBase;
+    typedef ProcessModelInterface<State, Noise, Input> ProcessInterfaceBase;
+    typedef StandardGaussianMapping<State, Noise>      GaussianMappingBase;
 
     typedef Eigen::Matrix<Scalar, DEGREE_OF_FREEDOM, 1> WienerProcessState;
     typedef DampedWienerProcessModel<WienerProcessState>     DampedWienerProcessType;
@@ -98,7 +99,7 @@ struct Traits<IntegratedDampedWienerProcessModel<State_>>
  */
 template <typename State_>
 class IntegratedDampedWienerProcessModel:
-        public Traits<IntegratedDampedWienerProcessModel<State_>>::ProcessModelBase,
+        public Traits<IntegratedDampedWienerProcessModel<State_>>::ProcessInterfaceBase,
         public Traits<IntegratedDampedWienerProcessModel<State_>>::GaussianMappingBase
 {
 public:
@@ -155,6 +156,29 @@ public:
         position_distribution_.covariance(covariance(delta_time));
 
         velocity_distribution_.condition(delta_time, state.bottomRows(InputDimension()), input);
+    }
+
+    virtual State predict_state(double delta_time,
+                                const State& state,
+                                const Noise& noise,
+                                const Input& input)
+    {
+
+    }
+
+    virtual size_t state_dimension() const
+    {
+        return this->standard_variate_dimension() * 2;
+    }
+
+    virtual size_t noise_dimension() const
+    {
+        return this->standard_variate_dimension();
+    }
+
+    virtual size_t input_dimension() const
+    {
+        return this->standard_variate_dimension();
     }
 
     virtual void Parameters(
