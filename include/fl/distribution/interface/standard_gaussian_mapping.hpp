@@ -96,33 +96,6 @@ private:
     StandardGaussian<double> standard_gaussian_;
 };
 
-
-
-// specialization for no noise
-/**
- * \ingroup distribution_interfaces
- */
-template <typename Variate>
-class StandardGaussianMapping<Variate, internal::Empty>:
-        public Sampling<Variate>
-{
-public:
-    virtual ~StandardGaussianMapping() { }
-
-    virtual Variate map_standard_normal() const = 0;
-
-    virtual Variate sample()
-    {
-        return map_standard_normal();
-    }
-
-    virtual int standard_variate_dimension() const
-    {
-        return 0;
-    }
-};
-
-
 }
 
 #endif
