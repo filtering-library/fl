@@ -20,17 +20,18 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__DISTRIBUTION__INTERFACE__APPROXIMATE_CENTRAL_MOMENTS_HPP
-#define FL__DISTRIBUTION__INTERFACE__APPROXIMATE_CENTRAL_MOMENTS_HPP
+#ifndef FL__DISTRIBUTION__INTERFACE__APPROXIMATE_MOMENTS_HPP
+#define FL__DISTRIBUTION__INTERFACE__APPROXIMATE_MOMENTS_HPP
 
 namespace fl
 {
 
 /**
- * \interface ApproximateCentralMoments
+ * \interface ApproximateMoments
  * \ingroup distribution_interfaces
  *
- * \brief ApproximateMoments is the interface providing the first two moments
+ * \brief ApproximateMoments is the interface providing the first two
+ *        central moments
  *
  * \tparam Variate          Random variable type. This is equivalent to the
  *                          first moment type.
@@ -41,13 +42,13 @@ namespace fl
  *
  */
 template <typename Variate, typename SecondMoment>
-class ApproximateCentralMoments
+class ApproximateMoments
 {
 public:
     /**
      * \brief Overridable default destructor
      */
-    virtual ~ApproximateCentralMoments() { }
+    virtual ~ApproximateMoments() { }
 
     /**
      * \return First moment approximation, the mean

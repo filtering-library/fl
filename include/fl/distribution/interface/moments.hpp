@@ -20,8 +20,8 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__DISTRIBUTION__INTERFACE__CENTRAL_MOMENTS_HPP
-#define FL__DISTRIBUTION__INTERFACE__CENTRAL_MOMENTS_HPP
+#ifndef FL__DISTRIBUTION__INTERFACE__MOMENTS_HPP
+#define FL__DISTRIBUTION__INTERFACE__MOMENTS_HPP
 
 #include <fl/distribution/interface/approximate_moments.hpp>
 
@@ -29,27 +29,27 @@ namespace fl
 {
 
 /**
- * \interface CentralMoments
+ * \interface Moments
  * \ingroup distribution_interfaces
  *
- * \brief CentralMoments is the interface providing the first two moments
+ * \brief Moments is the interface providing the first two moments
  *
  * \tparam Variate        Random variable type. This is equivalent to the first
  *                        moment type.
  * \tparam SecondMoment   Second moment type (e.g. Variance or the Covariance)
  *
- * The CentralMoments interface provides access to the exact first moments of
+ * The Moments interface provides access to the exact first moments of
  * a distribution. The moments represent a subset of the approximate moments.
  */
 template <typename Variate, typename SecondMoment>
-class CentralMoments:
-    public ApproximateCentralMoments<Variate, SecondMoment>
+class Moments:
+    public ApproximateMoments<Variate, SecondMoment>
 {
 public:    
     /**
      * \brief Overridable default destructor
      */
-    virtual ~CentralMoments() { }
+    virtual ~Moments() { }
 
     /**
      * \return First moment of the underlying distribution, the mean
@@ -63,7 +63,7 @@ public:
     virtual SecondMoment covariance() const = 0;
 
     /**
-     * \{ApproximateCentralMoments::Approximatemean() const\}
+     * \copydoc ApproximateMoments::Approximatemean() const
      */
     virtual Variate approximate_mean() const
     {
@@ -71,7 +71,7 @@ public:
     }
 
     /**
-     * \{ApproximateCentralMoments::Approximatecovariance() const\}
+     * \copydoc ApproximateMoments::Approximatecovariance() const
      */
     virtual SecondMoment approximate_covariance() const
     {

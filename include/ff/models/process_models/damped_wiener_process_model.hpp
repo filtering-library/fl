@@ -79,7 +79,7 @@ struct Traits<DampedWienerProcessModel<State_>>
     typedef typename GaussianType::Operator Operator;
 
     typedef StationaryProcessModel<State, Input> ProcessModelBase;
-    typedef GaussianMap<State, Noise> GaussianMapBase;
+    typedef StandardGaussianMapping<State, Noise> GaussianMappingBase;
     typedef ProcessModelInterface<State, Noise, Input> ProcessInterfaceBase;
 };
 
@@ -91,7 +91,7 @@ struct Traits<DampedWienerProcessModel<State_>>
 template <typename State>
 class DampedWienerProcessModel:
         public Traits<DampedWienerProcessModel<State>>::ProcessModelBase,
-        public Traits<DampedWienerProcessModel<State>>::GaussianMapBase,
+        public Traits<DampedWienerProcessModel<State>>::GaussianMappingBase,
         public Traits<DampedWienerProcessModel<State>>::ProcessInterfaceBase
 {
 public:
@@ -104,12 +104,10 @@ public:
     typedef typename Traits<This>::GaussianType   GaussianType;
 
 public:
-    explicit DampedWienerProcessModel(const unsigned& dimension = State::SizeAtCompileTime):
-        Traits<This>::GaussianMapBase(dimension),
-        gaussian_(dimension)
+    explicit DampedWienerProcessModel(size_t dim = DimensionOf<State>())
+        : Traits<This>::GaussianMappingBase(dim),
+          gaussian_(dim)
     {
-        // check that state is derived from eigen
-        static_assert_base(State, Eigen::Matrix<typename State::Scalar, State::SizeAtCompileTime, 1>);
     }
 
     virtual ~DampedWienerProcessModel() { }
@@ -136,7 +134,7 @@ public:
 
     virtual unsigned dimension() const
     {
-        return this->variate_dimension(); // all dimensions are the same
+        return this->standard_variate_dimension();
     }
 
     /* interface API */
@@ -152,17 +150,17 @@ public:
 
     virtual size_t state_dimension() const
     {
-        return this->variate_dimension();
+        return this->standard_variate_dimension();
     }
 
     virtual size_t noise_dimension() const
     {
-        return this->variate_dimension();
+        return this->standard_variate_dimension();
     }
 
     virtual size_t input_dimension() const
     {
-        return this->variate_dimension();
+        return this->standard_variate_dimension();
     }
 
 private:

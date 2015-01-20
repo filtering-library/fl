@@ -25,16 +25,16 @@
 
 #include <Eigen/Dense>
 
-#include <cstddef>
 #include <vector>
 #include <string>
+#include <cstddef>
 #include <type_traits>
 
 #include <fl/util/traits.hpp>
+#include <fl/exception/exception.hpp>
 #include <fl/distribution/interface/moments.hpp>
 #include <fl/distribution/interface/evaluation.hpp>
-#include <fl/distribution/interface/gaussian_map.hpp>
-#include <fl/exception/exception.hpp>
+#include <fl/distribution/interface/standard_gaussian_mapping.hpp>
 
 namespace fl
 {
@@ -47,8 +47,8 @@ template <typename Variate> class Gaussian;
  * internally within the distribution. Additionally, it provides the types
  * needed externally to use the Gaussian.
  */
-template <typename Variate_>
-struct Traits<Gaussian<Variate_>>
+template <typename Var>
+struct Traits<Gaussian<Var>>
 {    
     enum
     {
@@ -59,13 +59,13 @@ struct Traits<Gaussian<Variate_>>
          * \c Dimension value is greater zero. Dynamic-size Gaussians have the
          * dymension Eigen::Dynamic.
          */
-        Dimension = Variate_::RowsAtCompileTime
+        Dimension = Var::RowsAtCompileTime
     };
 
     /**
      * \brief Gaussian variable type
      */
-    typedef Variate_ Variate;
+    typedef Var Variate;
 
     /**
      * \brief Internal scalar type (e.g. double, float, std::complex)
@@ -76,7 +76,7 @@ struct Traits<Gaussian<Variate_>>
      * \brief Random variable type. The Noise type is used in mapping of noise
      * samples into the current Gaussian space.
      */
-    typedef Eigen::Matrix<Scalar, Dimension, 1> NormalVariate;
+    typedef Eigen::Matrix<Scalar, Dimension, 1> StandardVariate;
 
     /**
      * \brief Second moment type
@@ -84,9 +84,9 @@ struct Traits<Gaussian<Variate_>>
     typedef Eigen::Matrix<Scalar, Dimension, Dimension> Operator;
 
     /**
-     * \brief CentralMoments interface of a Gaussian
+     * \brief Moments interface of a Gaussian
      */
-    typedef CentralMoments<Variate, Operator> MomentsBase;
+    typedef Moments<Variate, Operator> MomentsBase;
 
     /**
      * \brief Evalluation interface of a Gaussian
@@ -96,7 +96,7 @@ struct Traits<Gaussian<Variate_>>
     /**
      * \brief GaussianMap interface of a Gaussian
      */
-    typedef GaussianMap<Variate, NormalVariate> GaussianMapBase;
+    typedef StandardGaussianMapping<Variate, StandardVariate> GaussianMappingBase;
 };
 
 /**
@@ -182,21 +182,20 @@ public:
  * minimizes redundant computation and increases efficienty.
  * \endcond
  */
-template <typename Variate_>
+template <typename Variate>
 class Gaussian
-        : public Traits<Gaussian<Variate_>>::MomentsBase,
-          public Traits<Gaussian<Variate_>>::EvaluationBase,
-          public Traits<Gaussian<Variate_>>::GaussianMapBase
+        : public Traits<Gaussian<Variate>>::MomentsBase,
+          public Traits<Gaussian<Variate>>::EvaluationBase,
+          public Traits<Gaussian<Variate>>::GaussianMappingBase
 {
 public:
-    typedef Gaussian<Variate_> This;
+    typedef Gaussian<Variate> This;
 
-    typedef typename Traits<This>::Variate          Variate;
     typedef typename Traits<This>::Scalar           Scalar;
     typedef typename Traits<This>::Operator         Operator;
-    typedef typename Traits<This>::NormalVariate    NormalVariate;
+    typedef typename Traits<This>::StandardVariate  StandardVariate;
 
-    using Traits<This>::GaussianMapBase::variate_dimension;
+    using Traits<This>::GaussianMappingBase::standard_variate_dimension;
 
 protected:
     /** \cond INTERNAL */
@@ -232,7 +231,7 @@ public:
      *                  initialized to 0.
      */
     explicit Gaussian(size_t dim = DimensionOf<Variate>()):
-        Traits<This>::GaussianMapBase(dim),
+        Traits<This>::GaussianMappingBase(dim),
         dirty_(Attributes, true)
     {
         static_assert(Variate::SizeAtCompileTime != 0,
@@ -248,9 +247,9 @@ public:
     /**
      * \return Gaussian dimension
      */
-    virtual int dimension() const
+    virtual constexpr int dimension() const
     {
-        return Traits<This>::GaussianMapBase::variate_dimension();
+        return standard_variate_dimension();
     }
 
     /**
@@ -549,7 +548,7 @@ public:
      *       = {Valid Representations} \f$ \cup \f$ {#SquareRootMatrix}
      * \endcond
      */
-    virtual Variate map_standard_normal(const NormalVariate& sample) const
+    virtual Variate map_standard_normal(const StandardVariate& sample) const
     {
         return mean() + square_root() * sample;
     }
@@ -591,11 +590,11 @@ public:
      * \endcond
      *
      * \throws ResizingFixedSizeEntityException
-     *         see GaussianMap::variate_dimension(size_t)
+     *         see GaussianMap::standard_variate_dimension(size_t)
      */
     virtual void dimension(size_t new_dimension)
     {
-        variate_dimension(new_dimension);
+        standard_variate_dimension(new_dimension);
         set_standard();
     }
 
@@ -845,7 +844,7 @@ protected:
 
 protected:    
     /** \cond INTERNAL */
-    Variate mean_;                     /**< \brief first moment vector */
+    Variate mean_;                    /**< \brief first moment vector */
     mutable Operator covariance_;     /**< \brief cov. form */
     mutable Operator precision_;      /**< \brief cov. inverse form */
     mutable Operator square_root_;    /**< \brief cov. square root form */

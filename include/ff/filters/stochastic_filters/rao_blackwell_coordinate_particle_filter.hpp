@@ -43,7 +43,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <fl/util/assertions.hpp>
 
 #include <fl/distribution/gaussian.hpp>
-#include <fl/distribution/interface/gaussian_map.hpp>
+#include <fl/distribution/interface/standard_gaussian_mapping.hpp>
 
 #include <ff/utils/helper_functions.hpp>
 #include <ff/distributions/sum_of_deltas.hpp>
@@ -85,7 +85,7 @@ public:
 
         static_assert_base(
             ProcessModel,
-            GaussianMap<State, Noise>);
+            StandardGaussianMapping<State, Noise>);
 
         static_assert_base(
             ObservationModel,
@@ -104,7 +104,7 @@ public:
         observation_model_->SetObservation(observation, delta_time);
 
         loglikes_ = std::vector<Scalar>(samples_.size(), 0);
-        noises_ = std::vector<Noise>(samples_.size(), Noise::Zero(process_model_->variate_dimension()));
+        noises_ = std::vector<Noise>(samples_.size(), Noise::Zero(process_model_->standard_variate_dimension()));
         next_samples_ = samples_;
 
         for(size_t block_index = 0; block_index < sampling_blocks_.size(); block_index++)
@@ -232,11 +232,11 @@ public:
             for(size_t j = 0; j < sampling_blocks_[i].size(); j++)
                 dimension++;
 
-        if(dimension != process_model_->variate_dimension())
+        if(dimension != process_model_->standard_variate_dimension())
         {
             std::cout << "the dimension of the sampling blocks is " << dimension
                       << " while the dimension of the noise is "
-                      << process_model_->variate_dimension() << std::endl;
+                      << process_model_->standard_variate_dimension() << std::endl;
             exit(-1);
         }
     }

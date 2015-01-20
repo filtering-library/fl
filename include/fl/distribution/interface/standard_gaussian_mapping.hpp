@@ -14,7 +14,7 @@
  */
 
 /**
- * \file gaussian_map.hpp
+ * \file standard_gaussian_mapping.hpp
  * \date May 2014
  * \author Manuel Wuthrich (manuel.wuthrich@gmail.com)
  * \author Jan Issac (jan.issac@gmail.com)
@@ -37,36 +37,37 @@ namespace fl
 /**
  * \ingroup distribution_interfaces
  */
-template <typename Variate, typename NormalVariate = internal::Empty>
-class GaussianMap:
-        public Sampling<Variate>
+template <typename Variate, typename StandardVariate = internal::Empty>
+class StandardGaussianMapping
+        : public Sampling<Variate>
 {
 public:
-    explicit GaussianMap(const unsigned& noise_dimension = NormalVariate::SizeAtCompileTime):
-        standard_gaussian_(noise_dimension)
+    explicit StandardGaussianMapping(
+            size_t snv_dimension = DimensionOf<StandardVariate>())
+        : standard_gaussian_(snv_dimension)
     { }
 
-    virtual ~GaussianMap() { }
+    virtual ~StandardGaussianMapping() { }
 
-    virtual Variate map_standard_normal(const NormalVariate& sample) const = 0;
+    virtual Variate map_standard_normal(const StandardVariate& sample) const = 0;
 
     virtual Variate sample()
     {
         return map_standard_normal(standard_gaussian_.sample());
     }
 
-    virtual int variate_dimension() const
+    virtual int standard_variate_dimension() const
     {
         return standard_gaussian_.dimension();
     }
 
-    virtual void variate_dimension(size_t new_noise_dimension)
+    virtual void standard_variate_dimension(size_t snv_dimension)
     {
-        standard_gaussian_.dimension(new_noise_dimension);
+        standard_gaussian_.dimension(snv_dimension);
     }
 
 private:
-    StandardGaussian<NormalVariate> standard_gaussian_;
+    StandardGaussian<StandardVariate> standard_gaussian_;
 };
 
 // specialization for scalar noise
@@ -74,11 +75,11 @@ private:
  * \ingroup distribution_interfaces
  */
 template <typename Variate>
-class GaussianMap<Variate, double>:
+class StandardGaussianMapping<Variate, double>:
         public Sampling<Variate>
 {
 public:
-    virtual ~GaussianMap() { }
+    virtual ~StandardGaussianMapping() { }
 
     virtual Variate map_standard_normal(const double& sample) const = 0;
 
@@ -87,7 +88,7 @@ public:
         return map_standard_normal(standard_gaussian_.sample());
     }
 
-    virtual int variate_dimension() const
+    virtual int standard_variate_dimension() const
     {
         return 1;
     }
@@ -102,11 +103,11 @@ private:
  * \ingroup distribution_interfaces
  */
 template <typename Variate>
-class GaussianMap<Variate, internal::Empty>:
+class StandardGaussianMapping<Variate, internal::Empty>:
         public Sampling<Variate>
 {
 public:
-    virtual ~GaussianMap() { }
+    virtual ~StandardGaussianMapping() { }
 
     virtual Variate map_standard_normal() const = 0;
 
@@ -115,7 +116,7 @@ public:
         return map_standard_normal();
     }
 
-    virtual int variate_dimension() const
+    virtual int standard_variate_dimension() const
     {
         return 0;
     }

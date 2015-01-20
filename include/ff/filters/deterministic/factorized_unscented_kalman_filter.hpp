@@ -54,7 +54,7 @@
 #include <memory>
 
 #include <fl/util/assertions.hpp>
-#include <fl/distribution/interface/gaussian_map.hpp>
+#include <fl/distribution/interface/standard_gaussian_mapping.hpp>
 #include <ff/distributions/sum_of_deltas.hpp>
 #include <ff/filters/deterministic/composed_state_distribution.hpp>
 #include <ff/models/process_models/interfaces/stationary_process_model.hpp>
@@ -127,11 +127,11 @@ public:
         static_assert_base(CohesiveStateProcessModel,
                            StationaryProcessModel<State_a, Input_a>);
         static_assert_base(CohesiveStateProcessModel,
-                           GaussianMap<State_a, Noise_a>);
+                           StandardGaussianMapping<State_a, Noise_a>);
         static_assert_base(FactorizedStateProcessModel,
                            StationaryProcessModel<State_b_i, Input_b_i>);
         static_assert_base(FactorizedStateProcessModel,
-                           GaussianMap<State_b_i, Noise_b_i>);
+                           StandardGaussianMapping<State_b_i, Noise_b_i>);
 
         alpha_ = 1.6;
         beta_ = 2.;
@@ -485,7 +485,7 @@ public:
              const double delta_time,
              SigmaPoints& predicted_X_b_i)
     {
-        Input_b_i zero_input = Input_b_i::Zero(f_b_->variate_dimension(), 1);
+        Input_b_i zero_input = Input_b_i::Zero(f_b_->standard_variate_dimension(), 1);
 
         for (size_t i = 0; i < prior_X_b_i.cols(); ++i)
         {            
@@ -521,10 +521,10 @@ public:
         switch(var_id)
         {
         case a:     return f_a_->dimension();
-        case Q_a:   return f_a_->variate_dimension();
+        case Q_a:   return f_a_->standard_variate_dimension();
         case b_i:   return f_b_->dimension();
-        case Q_b_i: return f_b_->variate_dimension();
-        case R_y_i: return h_->variate_dimension();
+        case Q_b_i: return f_b_->standard_variate_dimension();
+        case R_y_i: return h_->standard_variate_dimension();
         case y_i:   return h_->dimension();
         }
     }

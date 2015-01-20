@@ -47,7 +47,7 @@
 
 #include <fl/util/math.hpp>
 #include <fl/util/assertions.hpp>
-#include <fl/distribution/interface/gaussian_map.hpp>
+#include <fl/distribution/interface/standard_gaussian_mapping.hpp>
 #include <fl/distribution/gaussian.hpp>
 #include <ff/models/process_models/damped_wiener_process_model.hpp>
 
@@ -82,7 +82,7 @@ struct Traits<IntegratedDampedWienerProcessModel<State_>>
     typedef Eigen::Matrix<Scalar, DEGREE_OF_FREEDOM, 1> Noise;
 
     typedef StationaryProcessModel<State, Input>    ProcessModelBase;
-    typedef GaussianMap<State, Noise>     GaussianMapBase;
+    typedef StandardGaussianMapping<State, Noise>     GaussianMappingBase;
 
     typedef Eigen::Matrix<Scalar, DEGREE_OF_FREEDOM, 1> WienerProcessState;
     typedef DampedWienerProcessModel<WienerProcessState>     DampedWienerProcessType;
@@ -99,7 +99,7 @@ struct Traits<IntegratedDampedWienerProcessModel<State_>>
 template <typename State_>
 class IntegratedDampedWienerProcessModel:
         public Traits<IntegratedDampedWienerProcessModel<State_>>::ProcessModelBase,
-        public Traits<IntegratedDampedWienerProcessModel<State_>>::GaussianMapBase
+        public Traits<IntegratedDampedWienerProcessModel<State_>>::GaussianMappingBase
 {
 public:
     typedef IntegratedDampedWienerProcessModel<State_> This;
@@ -122,7 +122,7 @@ public:
 public:
     IntegratedDampedWienerProcessModel(
             const unsigned& degree_of_freedom = DEGREE_OF_FREEDOM):
-        Traits<This>::GaussianMapBase(degree_of_freedom),
+        Traits<This>::GaussianMappingBase(degree_of_freedom),
         velocity_distribution_(degree_of_freedom),
         position_distribution_(degree_of_freedom)
     {
@@ -170,12 +170,12 @@ public:
 
     virtual unsigned InputDimension() const
     {
-        return this->variate_dimension();
+        return this->standard_variate_dimension();
     }
 
     virtual unsigned StateDimension() const
     {
-        return this->variate_dimension() * 2;
+        return this->standard_variate_dimension() * 2;
     }
 
 private:

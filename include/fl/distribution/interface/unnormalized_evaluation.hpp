@@ -29,9 +29,8 @@ namespace fl
 {
 
 /**
-  \ingroup distribution_interfaces
-
- * \interface UnnormalizedEvaulation
+ * \interface UnnormalizedEvaluation
+ * \ingroup distribution_interfaces
  */
 template <typename Variate, typename Scalar>
 class UnnormalizedEvaluation

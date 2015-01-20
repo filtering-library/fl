@@ -83,7 +83,7 @@ struct Traits<SumOfDeltas<Vector>>
     typedef std::vector<Vector> Deltas;
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Weights;
 
-    typedef CentralMoments<Vector, Operator> MomentsBase;
+    typedef Moments<Vector, Operator> MomentsBase;
 };
 
 /**

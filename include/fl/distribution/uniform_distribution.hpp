@@ -26,7 +26,7 @@
 #include <cmath>
 
 #include <fl/distribution/interface/evaluation.hpp>
-#include <fl/distribution/interface/gaussian_map.hpp>
+#include <fl/distribution/interface/standard_gaussian_mapping.hpp>
 
 namespace fl
 {
@@ -35,7 +35,7 @@ namespace fl
 
 class UniformDistribution
         : public Evaluation<double, double>,
-          public GaussianMap<double, double>
+          public StandardGaussianMapping<double, double>
 {
 
 public:

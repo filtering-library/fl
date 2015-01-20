@@ -64,7 +64,7 @@ public:
                             typename Model::Operator& cov)
     {
         EXPECT_EQ(model.dimension(), dim);
-        EXPECT_EQ(model.variate_dimension(), dim);
+        EXPECT_EQ(model.standard_variate_dimension(), dim);
         EXPECT_TRUE(model.A().isIdentity());
         EXPECT_TRUE(model.covariance().isApprox(cov));
     }

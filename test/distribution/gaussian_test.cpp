@@ -67,7 +67,7 @@ protected:
     void test_gaussian_dimension(Gaussian& gaussian, size_t dim)
     {
         EXPECT_EQ(gaussian.dimension(), dim);
-        EXPECT_EQ(gaussian.variate_dimension(), dim);
+        EXPECT_EQ(gaussian.standard_variate_dimension(), dim);
         EXPECT_EQ(gaussian.mean().rows(), dim);
         EXPECT_EQ(gaussian.covariance().rows(), dim);
         EXPECT_EQ(gaussian.covariance().cols(), dim);
@@ -76,8 +76,8 @@ protected:
         EXPECT_EQ(gaussian.square_root().rows(), dim);
         EXPECT_EQ(gaussian.square_root().cols(), dim);
 
-        typename Gaussian::NormalVariate noise =
-                Gaussian::NormalVariate::Random(gaussian.variate_dimension(),1);
+        typename Gaussian::StandardVariate noise =
+                Gaussian::StandardVariate::Random(gaussian.standard_variate_dimension(),1);
         EXPECT_EQ(gaussian.map_standard_normal(noise).rows(), dim);
     }
 
