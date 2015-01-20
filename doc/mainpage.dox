@@ -50,7 +50,6 @@ base is generic and based on templates.
 
 The library dependencies are 
 
-  - Boost ([Boost 1.48 or higher](http://www.boost.org/doc/libs/1_48_0/)) (requires testing)
   - Eigen3 ([Eigen 3.1.2 or higher](http://eigen.tuxfamily.org/)) (requires testing)
 
 To be able to compile your code with FL you need to enable the C++11 or C++0x
