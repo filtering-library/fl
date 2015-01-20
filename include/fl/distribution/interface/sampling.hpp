@@ -44,7 +44,7 @@ public:
     virtual ~Sampling() { }
 
     /**
-     * @return A random sample of the underlying distribution
+     * \return A random sample of the underlying distribution
      */
     virtual Variate sample() = 0;
 };
