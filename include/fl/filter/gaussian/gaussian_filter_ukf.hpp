@@ -136,7 +136,7 @@ class GaussianFilter<ProcessModel, ObservationModel, PointSetTransform>
     :
     /* Implement the conceptual filter interface */
     public FilterInterface<
-               GaussianFilter<ProcessModel, ObservationModel, PointSetTransform>>
+              GaussianFilter<ProcessModel, ObservationModel, PointSetTransform>>
 
 {
 protected:

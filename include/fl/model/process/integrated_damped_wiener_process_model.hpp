@@ -1,49 +1,28 @@
 /*
- * Software License Agreement (BSD License)
+ * This is part of the FL library, a C++ Bayesian filtering library
+ * (https://github.com/filtering-library)
  *
- *  Copyright (c) 2014 Max-Planck-Institute for Intelligent Systems,
- *                     University of Southern California
- *    Manuel Wuthrich (manuel.wuthrich@gmail.com)
+ * Copyright (c) 2014 Jan Issac (jan.issac@gmail.com)
+ * Copyright (c) 2014 Manuel Wuthrich (manuel.wuthrich@gmail.com)
  *
+ * Max-Planck Institute for Intelligent Systems, AMD Lab
+ * University of Southern California, CLMC Lab
  *
- *
- *  Redistribution and use in source and binary forms, with or without
- *  modification, are permitted provided that the following conditions
- *  are met:
- *
- *   * Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above
- *     copyright notice, this list of conditions and the following
- *     disclaimer in the documentation and/or other materials provided
- *     with the distribution.
- *   * Neither the name of Willow Garage, Inc. nor the names of its
- *     contributors may be used to endorse or promote products derived
- *     from this software without specific prior written permission.
- *
- *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- *  POSSIBILITY OF SUCH DAMAGE.
- *
+ * This Source Code Form is subject to the terms of the MIT License (MIT).
+ * A copy of the license can be found in the LICENSE file distributed with this
+ * source code.
  */
+
 
 /**
- * @date 05/25/2014
- * @author Manuel Wuthrich (manuel.wuthrich@gmail.com)
- * Max-Planck-Institute for Intelligent Systems, University of Southern California
+ * \file integrated_damped_wiener_process_model.hpp
+ * \date 05/25/2014
+ * \author Manuel Wuthrich (manuel.wuthrich@gmail.com)
+ * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FAST_FILTERING_MODELS_PROCESS_MODELS_INTEGRATED_DAMPED_WIENER_PROCESS_MODEL_HPP
-#define FAST_FILTERING_MODELS_PROCESS_MODELS_INTEGRATED_DAMPED_WIENER_PROCESS_MODEL_HPP
+#ifndef FL__MODEL__PROCESS__INTEGRATED_DAMPED_WIENER_PROCESS_MODEL_HPP
+#define FL__MODEL__PROCESS__INTEGRATED_DAMPED_WIENER_PROCESS_MODEL_HPP
 
 #include <fl/util/math.hpp>
 #include <fl/util/assertions.hpp>
@@ -52,112 +31,167 @@
 #include <fl/model/process/process_model_interface.hpp>
 #include <ff/models/process_models/damped_wiener_process_model.hpp>
 
-
-//TODO: THIS IS A LINEAR GAUSSIAN PROCESS, THIS CLASS SHOULD DISAPPEAR
-
-
 namespace fl
 {
 
-/// \todo MISSING DOC. MISSING UTESTS
+/// \todo MISSING UTESTS
 
 // Forward declarations
 template <typename State> class IntegratedDampedWienerProcessModel;
 
 /**
- * IntegratedDampedWienerProcess distribution traits specialization
- * \internal
+ * Linear IntegratedDampedWienerProcess process model traits. This trait
+ * definition contains all types used internally within the linear model.
+ * Additionally, it provides the types needed externally to use the model.
  */
 template <typename State_>
 struct Traits<IntegratedDampedWienerProcessModel<State_>>
 {
     enum
     {
-        STATE_DIMENSION = State_::SizeAtCompileTime,
-        DEGREE_OF_FREEDOM = STATE_DIMENSION != -1 ? STATE_DIMENSION/2 : -1
+        /**
+         * \brief Degree-of-freedom represents the number of position
+         * components, e.g. xyz-coordinates. Hence, this is the dimension
+         * of the accelaration vectors.
+         */
+        DegreeOfFreedom = IsFixed<State_::RowsAtCompileTime>()
+                             ? State_::RowsAtCompileTime/2
+                             : Eigen::Dynamic
     };
 
-    typedef State_                                      State;
-    typedef typename State::Scalar                      Scalar;
-    typedef Eigen::Matrix<Scalar, DEGREE_OF_FREEDOM, 1> Input;
-    typedef Eigen::Matrix<Scalar, DEGREE_OF_FREEDOM, 1> Noise;
+    /*
+     * Required types
+     *
+     * - Scalar
+     * - State
+     * - Input
+     * - Noise
+     */
+    typedef typename State_::Scalar Scalar;
+    typedef State_ State;
+    typedef Eigen::Matrix<Scalar, DegreeOfFreedom, 1> Input;
+    typedef Eigen::Matrix<Scalar, DegreeOfFreedom, 1> Noise;
 
+    /**
+     * \brief Process model interface type using the State, Noise and Input
+     *        types
+     */
     typedef ProcessModelInterface<State, Noise, Input> ProcessInterfaceBase;
-    typedef StandardGaussianMapping<State, Noise>      GaussianMappingBase;
 
-    typedef Eigen::Matrix<Scalar, DEGREE_OF_FREEDOM, 1> WienerProcessState;
-    typedef DampedWienerProcessModel<WienerProcessState>     DampedWienerProcessType;
-    typedef Gaussian<Noise>                             GaussianType;
+    /**
+     * \brief Interface definition used to map standard normal noise variates
+     *        onto a state variate
+     */
+    typedef StandardGaussianMapping<State, Noise> GaussianMappingBase;
 
-    typedef typename GaussianType::SecondMoment      SecondMoment;
+
+    /** \cond INTERNAL */
+    typedef Eigen::Matrix<Scalar, DegreeOfFreedom, 1> WienerProcessState;
+    typedef DampedWienerProcessModel<WienerProcessState> DampedWienerProcess;
+
+    typedef Gaussian<Noise> NoiseGaussian;
+    typedef typename NoiseGaussian::SecondMoment SecondMoment;
+    /** \endcond */
 };
 
 /**
- * \class IntegratedDampedWienerProcess
- *
+ * \brief Represents ...
  * \ingroup process_models
+ *
+ *
+ * \details
  */
-template <typename State_>
-class IntegratedDampedWienerProcessModel:
-        public Traits<IntegratedDampedWienerProcessModel<State_>>::ProcessInterfaceBase,
-        public Traits<IntegratedDampedWienerProcessModel<State_>>::GaussianMappingBase
+template <typename State>
+class IntegratedDampedWienerProcessModel
+        : public Traits<IntegratedDampedWienerProcessModel<State>>::ProcessInterfaceBase,
+          public Traits<IntegratedDampedWienerProcessModel<State>>::GaussianMappingBase
 {
-public:
-    typedef IntegratedDampedWienerProcessModel<State_> This;
-
-    typedef typename Traits<This>::Scalar     Scalar;
-    typedef typename Traits<This>::State      State;
-    typedef typename Traits<This>::Input      Input;
-    typedef typename Traits<This>::SecondMoment   SecondMoment;
-    typedef typename Traits<This>::Noise      Noise;
-
-    typedef typename Traits<This>::GaussianType GaussianType;
-    typedef typename Traits<This>::DampedWienerProcessType DampedWienerProcessType;
-
-    enum
-    {
-        STATE_DIMENSION = Traits<This>::STATE_DIMENSION,
-        DEGREE_OF_FREEDOM = Traits<This>::DEGREE_OF_FREEDOM
-    };
+protected:
+    /** \cond INTERNAL */
+    typedef IntegratedDampedWienerProcessModel<State> This;
+    typedef typename Traits<This>::SecondMoment SecondMoment;
+    typedef typename Traits<This>::NoiseGaussian NoiseGaussian;
+    typedef typename Traits<This>::DampedWienerProcess DampedWienerProcess;
+    /** \endcond */
 
 public:
-    IntegratedDampedWienerProcessModel(
-            const unsigned& degree_of_freedom = DEGREE_OF_FREEDOM):
-        Traits<This>::GaussianMappingBase(degree_of_freedom),
-        velocity_distribution_(degree_of_freedom),
-        position_distribution_(degree_of_freedom)
-    {
-        static_assert_base(State, Eigen::Matrix<Scalar, STATE_DIMENSION, 1>);
+    /* public conceptual interface types */
+    typedef typename Traits<This>::Scalar Scalar;
+    typedef typename Traits<This>::Input  Input;
+    typedef typename Traits<This>::Noise  Noise;
 
-        static_assert(
-                STATE_DIMENSION % 2 == 0 || STATE_DIMENSION == Eigen::Dynamic,
-                "Dimension must be a multitude of 2");
+public:
+    /**
+     * Constructor of a fixed-size and dynamic-size IntegratedDampedWiener
+     * process model.
+     *
+     * \param dof   Degree-of-freedom which is dim(State)/2 which must be
+     *              specified for dynamic-size states. If the state has a
+     *              compile-time fix size, the \c dof argument is deduced
+     *              automatically
+     */
+    IntegratedDampedWienerProcessModel(int dof = Traits<This>::DegreeOfFreedom)
+        : Traits<This>::GaussianMappingBase(dof),
+          velocity_distribution_(dof),
+          position_distribution_(dof)
+    {
+        static_assert(DimensionOf<State>() > 0,
+                      "Static state dimension must be greater than zero.");
+
+        static_assert(DimensionOf<State>() % 2 == 0,
+                      "Dimension must be a multitude of 2 or dynamic-size");
     }
 
+    /**
+     * \brief  Overridable default destructor
+     */
     virtual ~IntegratedDampedWienerProcessModel() { }
 
+    /**
+     * Mapps the specified noise sample onto the a state variate. The noise
+     * sample is used to determine the new position and the velocity components.
+     *
+     * \param sample    Noise variate
+     *
+     * \return A state variate given the noise sample
+     */
     virtual State map_standard_normal(const Noise& sample) const
     {
-        State state(StateDimension());
-        state.topRows(InputDimension())     = position_distribution_.map_standard_normal(sample);
-        state.bottomRows(InputDimension())  = velocity_distribution_.map_standard_normal(sample);
+        State state(state_dimension());
+
+        state.topRows(position_distribution_.dimension()) =
+            position_distribution_.map_standard_normal(sample);
+
+        state.bottomRows(velocity_distribution_.dimension()) =
+            velocity_distribution_.map_standard_normal(sample);
+
         return state;
     }
 
-
-    virtual void condition(const Scalar&  delta_time,
-                           const State&  state,
-                           const Input&   input)
+    /**
+     * \copydoc ProcessModelInterface::condition
+     */
+    virtual void condition(const Scalar& delta_time,
+                           const State& state,
+                           const Input& input)
     {
-        position_distribution_.mean(mean(state.topRows(InputDimension()), // position
-                                                state.bottomRows(InputDimension()), // velocity
-                                                input, // acceleration
-                                                delta_time));
+        position_distribution_.mean(
+            mean(state.topRows(position_distribution_.dimension()),
+                 state.bottomRows(velocity_distribution_.dimension()),
+                 input,
+                 delta_time));
+
         position_distribution_.covariance(covariance(delta_time));
 
-        velocity_distribution_.condition(delta_time, state.bottomRows(InputDimension()), input);
+        velocity_distribution_.condition(
+            delta_time,
+            state.bottomRows(velocity_distribution_.dimension()),
+            input);
     }
 
+    /**
+     * \copydoc ProcessModelInterface::condition
+     */
     virtual State predict_state(double delta_time,
                                 const State& state,
                                 const Noise& noise,
@@ -166,16 +200,33 @@ public:
 
     }
 
+    /**
+     * \copydoc ProcessModelInterface::state_dimension
+     *
+     * The state is composed of a positional and a velocity segments
+     * \f$x = [ x_p\ x_v ]^T\f$ with \f$\dim(x_p) = \dim(x_v)\f$. Hence, the
+     * state dimension is \f$2 * \dim(x_p)\f$
+     */
     virtual size_t state_dimension() const
     {
         return this->standard_variate_dimension() * 2;
     }
 
+    /**
+     * \copydoc ProcessModelInterface::noise_dimension
+     *
+     * The noise dimension is equal to \f$\dim(x_p)\f$.
+     */
     virtual size_t noise_dimension() const
     {
         return this->standard_variate_dimension();
     }
 
+    /**
+     * \copydoc ProcessModelInterface::input_dimension
+     *
+     * The input dimension is equal to \f$\dim(x_p)\f$.
+     */
     virtual size_t input_dimension() const
     {
         return this->standard_variate_dimension();
@@ -191,60 +242,100 @@ public:
         velocity_distribution_.Parameters(damping, acceleration_covariance);
     }
 
-
-    virtual unsigned InputDimension() const
-    {
-        return this->standard_variate_dimension();
-    }
-
-    virtual unsigned StateDimension() const
-    {
-        return this->standard_variate_dimension() * 2;
-    }
-
-private:
-    Input mean(const Input& state,
-                   const Input& velocity,
-                   const Input& acceleration,
-                   const double& delta_time)
+protected:
+    /**
+     * \param position      \f$x\f$
+     * \param velocity      \f$\dot{x}\f$
+     * \param acceleration  \f$\ddot{x}\f$
+     * \param delta_time    \f$\Delta t\f$
+     *
+     * \return
+     * \f[
+     * \mu = x
+     *       + \frac{1-e^{-\Delta t d}}{d} \dot{x}
+     *       + \frac{e^{-\Delta t d}}{d^2} \ddot{x}
+     * \f]
+     *
+     * with damping constant \f$d\f$.
+     */
+    Input mean(const Input& position,
+               const Input& velocity,
+               const Input& acceleration,
+               const double& delta_time)
     {
         Input mean;
-        mean = state +
-                (exp(-damping_ * delta_time) + damping_*delta_time  - 1.0)/pow(damping_, 2)
-                * acceleration + (1.0 - exp(-damping_*delta_time))/damping_  * velocity;
+
+        // for readability ... the compiler optimizes this out
+        const double dt = delta_time;
+        const Scalar d = damping_;
+        const double exp_ddt = std::exp(-d * dt);
+
+        mean = position
+                + (exp_ddt + d * dt - 1.0) / std::pow(d, 2) * acceleration
+                + (1.0 - exp_ddt) / d  * velocity;
 
         if(!std::isfinite(mean.norm()))
-            mean = state +
-                    0.5*delta_time*delta_time*acceleration +
-                    delta_time*velocity;
+        {
+            mean = position
+                    + 0.5 * std::pow(dt, 2) * acceleration
+                    + dt * velocity;
+        }
 
         return mean;
     }
 
+    /**
+     * \param delta_time    \f$\Delta t\f$
+     *
+     * \return
+     * \f[
+     * \Sigma = f \Sigma_{\ddot{x}}
+     * \f]
+     *
+     * with
+     *
+     * accelaration covariance matrix \f$\Sigma_{\ddot{x}}\f$ and the factor
+     * \f[
+     * f =  \frac{\gamma
+     *            + \int\limits^\infty_{2d\Delta t} \frac{1}{\tau e^{\tau}}d\tau
+     *            + \ln(2d\Delta t) + \frac{3}{2}}
+     *           {2d} \Delta t^2
+     *      + \frac{2-e^{-2d\Delta t}}{4d^2}\Delta t
+     *      + \frac{e^{-2d\Delta t}-1}{8d^3}
+     * \f]
+     * while
+     *
+     * \f$\gamma\f$ being the Euler-Mascheroni constant, \f$d\f$ the damping
+     * constant.
+     */
     SecondMoment covariance(const Scalar& delta_time)
     {
-        // the first argument to the gamma function should be equal to zero, which would not cause
-        // the gamma function to diverge as long as the second argument is not zero, which will not
-        // be the case. boost however does not accept zero therefore we set it to a very small
-        // value, which does not make a bit difference for any realistic delta_time
+        // for readability ... the compiler optimizes this out
+        const double dt = delta_time;
+        const Scalar d = damping_;
+
+        /*
+         * the first argument to the gamma function should be equal to zero,
+         * which would not cause the gamma function to diverge as long as the
+         * second argument is not zero, which will not be the case.
+         */
         Scalar factor =
-               (-1.0 + exp(-2.0*damping_*delta_time))/(8.0*pow(damping_, 3)) +
-                (2.0 - exp(-2.0*damping_*delta_time))/(4.0*pow(damping_, 2)) * delta_time +
-                (-1.5 + fl::GAMMA + fl::igamma(0., 2.0*damping_*delta_time) +
-                 log(2.0*damping_*delta_time))/(2.0*damping_)*pow(delta_time, 2);
-        if(!std::isfinite(factor))
-            factor = 1.0/3.0 * pow(delta_time, 3);
+              (-1.0 + exp(-2.0 * d * dt)) / (8.0 * std::pow(d, 3))
+            + ( 2.0 - exp(-2.0 * d * dt)) / (4.0 * std::pow(d, 2)) * dt
+            + (-1.5 + fl::GAMMA + fl::igamma(0., 2.0 * d * dt)
+            + log(2.0 * d * dt)) / (2.0 * d) * std::pow(dt, 2);
+
+
+        if(!std::isfinite(factor)) factor = 1.0/3.0 * std::pow(dt, 3);
 
         return factor * acceleration_covariance_;
     }
 
 private:
-    DampedWienerProcessType velocity_distribution_;
+    DampedWienerProcess velocity_distribution_;
+    NoiseGaussian position_distribution_;
 
-    // conditionals
-    GaussianType position_distribution_;
-
-    // parameters
+    // model parameters
     Scalar damping_;
     SecondMoment acceleration_covariance_;
 };
