@@ -42,7 +42,8 @@ namespace fl
  *
  * Evaluation provides the interface to determine the probability of the
  * underlying distribution at a given sample. Evaluation is a subset of
- * unnormalized distributions.
+ * unnormalized distributions. Normalized in this context means
+ * \f[ \int\limits_{-\infty}^{\infty} p(x) dx = 1. \f]
  */
 template <typename Variate, typename Scalar>
 class Evaluation:
@@ -55,9 +56,11 @@ public:
     virtual ~Evaluation() { }
 
     /**
-     * \return Normalized probability of a given sample
+     * Determines the probability for the specified variate.
      *
-     * \param variate Sample to evaluate
+     * \param variate Sample \f$x\f$ to evaluate
+     *
+     * \return \f$p(x)\f$
      */
     virtual Scalar probability(const Variate& variate) const
     {
@@ -65,13 +68,16 @@ public:
     }
 
     /**
-     * \return Log of normalized probability of a given sample
+     * Determines the probability log for the specified variate.
+     *
+     * \param variate Sample \f$x\f$ to evaluate
+     *
+     * \return \f$\ln(p(x))\f$
      */
     virtual Scalar log_probability(const Variate& variate) const = 0;
 
     /**
-     * \{UnnormalizedEvaulation
-     *   ::log_unnormalized_probability(const Vector&) const\}
+     * \copydoc UnnormalizedEvaluation::log_unnormalized_probability
      */
     virtual Scalar log_unnormalized_probability(const Variate& variate) const
     {
