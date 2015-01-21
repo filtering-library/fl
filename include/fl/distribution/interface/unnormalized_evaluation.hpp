@@ -31,6 +31,15 @@ namespace fl
 /**
  * \interface UnnormalizedEvaluation
  * \ingroup distribution_interfaces
+ *
+ * UnnormalizedEvaluation represents the part of a distribution interface
+ * which evaluates the unnormalized probability \f$\tilde{p}(x)\f$ of a sample
+ * \f$x\f$ according to the implemented distribution. Unnormalized in this
+ * context means the integral
+ *
+ * \f[ \int\limits_{-\infty}^{\infty} \tilde{p}(x) dx \in (-\infty; \infty) \f]
+ *
+ * does not necessarliy integrate to 1.
  */
 template <typename Variate, typename Scalar>
 class UnnormalizedEvaluation
@@ -39,8 +48,12 @@ public:
     virtual ~UnnormalizedEvaluation() { }
 
     /**
-     * \param vector
-     * \return bla
+     * Determines the normalized or unnormalized probability for the specified
+     * variate.
+     *
+     * \param variate  The sample \f$x\f$ to evaluate
+     *
+     * \return \f$\tilde{p}(x)\f$
      */
     virtual Scalar unnormalized_probability(const Variate& variate) const
     {
@@ -48,8 +61,11 @@ public:
     }
 
     /**
-     * \param vector
-     * \return bla
+     * The log of the unnormalized probability of the specified variate
+     *
+     * \param variate  The sample \f$x\f$ to evaluate
+     *
+     * \return \f$\ln(\tilde{p}(x))\f$
      */
     virtual Scalar log_unnormalized_probability(const Variate& variate) const = 0;
 };
