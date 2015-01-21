@@ -36,64 +36,134 @@ namespace fl
 
 /**
  * \ingroup distribution_interfaces
+ *
+ * \brief StandardGaussianMapping is the interface which provides a mapping
+ *        from a standard normal variate onto the underlying distribution which
+ *        implements this interface
+ *
+ * \tparam Variate          The Distribution variate type. This is the type
+ *                          which is being returned by the mapping or sampling,
+ *                          respectively.
+ * \tparam StandardVariate  Type of the source variate type which is the
+ *                          standard normal variate \f$x_{SNV}\sim{\cal N}(0, I)\f$
  */
 template <typename Variate, typename StandardVariate = internal::Empty>
 class StandardGaussianMapping
         : public Sampling<Variate>
 {
 public:
+    /**
+     * StandardGaussianMapping constructor. It initializes the mapper
+     *
+     * \param snv_dimension     Dimension of the standard normal variate
+     */
     explicit StandardGaussianMapping(
             size_t snv_dimension = DimensionOf<StandardVariate>())
         : standard_gaussian_(snv_dimension)
     { }
 
+    /**
+     * \brief Overridable default destructor
+     */
     virtual ~StandardGaussianMapping() { }
 
+    /**
+     * \brief Mapps a standard normal variate onto a sample of the underlying
+     *        distribution which implements this mapper
+     *
+     * \param sample  SNV sample which will be mapped onto a variate sampe
+     *
+     * \return A variate according to the underlying distribution
+     */
     virtual Variate map_standard_normal(const StandardVariate& sample) const = 0;
 
-    virtual Variate sample()
+    /**
+     * \return A variate according to the underlying distribution
+     */
+    virtual Variate sample() const
     {
         return map_standard_normal(standard_gaussian_.sample());
     }
 
+    /**
+     * \return Dimension of the standard normal variate used for mapping
+     */
     virtual int standard_variate_dimension() const
     {
         return standard_gaussian_.dimension();
     }
 
+    /**
+     * \brief Sets the dimension of the standard normal variate
+     *
+     * \param snv_dimension The new dimension of the SNV
+     */
     virtual void standard_variate_dimension(size_t snv_dimension)
     {
         standard_gaussian_.dimension(snv_dimension);
     }
 
 private:
-    StandardGaussian<StandardVariate> standard_gaussian_;
+    /**
+     * \brief SNV generator
+     */
+    mutable StandardGaussian<StandardVariate> standard_gaussian_;
 };
 
-// specialization for scalar noise
 /**
  * \ingroup distribution_interfaces
+ *
+ * \brief StandardGaussianMapping is the interface which provides a mapping
+ *        from a scalar standard normal variate onto the underlying distribution
+ *        which implements this interface.
+ *
+ * \tparam Variate          The Distribution variate type. This is the type
+ *                          which is being returned by the mapping or sampling,
+ *                          respectively.
+ * \tparam StandardVariate  Type of the source variate type which is the
+ *                          standard normal variate
  */
 template <typename Variate>
 class StandardGaussianMapping<Variate, double>:
         public Sampling<Variate>
 {
 public:
+    /**
+     * \brief Overridable default destructor
+     */
     virtual ~StandardGaussianMapping() { }
 
+    /**
+     * \brief Mapps a one dimensional standard normal variate onto a sample of
+     *        the underlying distribution which implements this mapper
+     *
+     * \param sample SNV sample which will be mapped onto a variate sampe
+     *
+     * \return A variate according to the underlying distribution
+     */
     virtual Variate map_standard_normal(const double& sample) const = 0;
 
-    virtual Variate sample()
+    /**
+     * \return A variate according to the underlying distribution
+     */
+    virtual Variate sample() const
     {
         return map_standard_normal(standard_gaussian_.sample());
     }
 
+    /**
+     * \return Dimension of the standard normal variate used for mapping
+     */
     virtual int standard_variate_dimension() const
     {
         return 1;
     }
+
 private:
-    StandardGaussian<double> standard_gaussian_;
+    /**
+     * \brief One dimensional SNV generator
+     */
+    mutable StandardGaussian<double> standard_gaussian_;
 };
 
 }
