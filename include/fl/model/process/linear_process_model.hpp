@@ -49,7 +49,7 @@ struct Traits<LinearGaussianProcessModel<State_, Input_>>
     typedef State_ State;
     typedef Input_ Input;
     typedef typename Traits<GaussianBase>::Scalar Scalar;
-    typedef typename Traits<GaussianBase>::Operator Operator;
+    typedef typename Traits<GaussianBase>::SecondMoment SecondMoment;
     typedef typename Traits<GaussianBase>::StandardVariate Noise;
 
     typedef ProcessModelInterface<State, Noise, Input> ProcessModelBase;
@@ -74,7 +74,7 @@ public:
     typedef typename Traits<This>::Input Input;
     typedef typename Traits<This>::Noise Noise;
     typedef typename Traits<This>::Scalar Scalar;
-    typedef typename Traits<This>::Operator Operator;
+    typedef typename Traits<This>::SecondMoment SecondMoment;
     typedef typename Traits<This>::DynamicsMatrix DynamicsMatrix;
 
     using Traits<This>::GaussianBase::mean;
@@ -84,7 +84,7 @@ public:
 
 public:
     LinearGaussianProcessModel(
-            const Operator& noise_covariance,
+            const SecondMoment& noise_covariance,
             const size_t dimension = DimensionOf<State>()):
         Traits<This>::GaussianBase(dimension),
         A_(DynamicsMatrix::Identity(dimension, dimension)),

@@ -72,8 +72,8 @@ TEST(KalmanFilterTests, init_fixed_size_predict)
     typedef typename fl::Traits<Filter>::ProcessModel ProcessModel;
     typedef typename fl::Traits<Filter>::ObservationModel ObservationModel;
 
-    ProcessModel::Operator Q = ProcessModel::Operator::Identity();
-    ObservationModel::Operator R = ObservationModel::Operator::Identity();
+    ProcessModel::SecondMoment Q = ProcessModel::SecondMoment::Identity();
+    ObservationModel::SecondMoment R = ObservationModel::SecondMoment::Identity();
 
     std::shared_ptr<ProcessModel> process_model =
             std::make_shared<ProcessModel>(Q);
@@ -112,11 +112,11 @@ TEST(KalmanFilterTests, init_dynamic_size_predict)
     typedef typename fl::Traits<Filter>::ProcessModel ProcessModel;
     typedef typename fl::Traits<Filter>::ObservationModel ObservationModel;
 
-    ProcessModel::Operator Q =
-            ProcessModel::Operator::Identity(dim_state,
+    ProcessModel::SecondMoment Q =
+            ProcessModel::SecondMoment::Identity(dim_state,
                                              dim_state);
-    ObservationModel::Operator R =
-            ObservationModel::Operator::Identity(dim_observation,
+    ObservationModel::SecondMoment R =
+            ObservationModel::SecondMoment::Identity(dim_observation,
                                                  dim_observation);
 
     std::shared_ptr<ProcessModel> process_model =
@@ -156,8 +156,8 @@ TEST(KalmanFilterTests, fixed_size_predict_update)
     typedef typename fl::Traits<Filter>::ProcessModel ProcessModel;
     typedef typename fl::Traits<Filter>::ObservationModel ObservationModel;
 
-    ProcessModel::Operator Q = ProcessModel::Operator::Random() * 1.5;
-    ObservationModel::Operator R = ObservationModel::Operator::Random();
+    ProcessModel::SecondMoment Q = ProcessModel::SecondMoment::Random() * 1.5;
+    ObservationModel::SecondMoment R = ObservationModel::SecondMoment::Random();
 
     Q *= Q.transpose();
     R *= R.transpose();
@@ -208,15 +208,15 @@ TEST(KalmanFilterTests, dynamic_size_predict_update)
     typedef typename fl::Traits<Filter>::ProcessModel ProcessModel;
     typedef typename fl::Traits<Filter>::ObservationModel ObservationModel;
 
-    ProcessModel::Operator Q =
-            ProcessModel::Operator::Random(dim_state, dim_state)*1.5;
+    ProcessModel::SecondMoment Q =
+            ProcessModel::SecondMoment::Random(dim_state, dim_state)*1.5;
     Q *= Q.transpose();
 
     ProcessModel::DynamicsMatrix A =
             ProcessModel::DynamicsMatrix::Random(dim_state, dim_state);
 
-    ObservationModel::Operator R =
-            ObservationModel::Operator::Random(dim_observation, dim_observation);
+    ObservationModel::SecondMoment R =
+            ObservationModel::SecondMoment::Random(dim_observation, dim_observation);
     R *= R.transpose();
 
     ObservationModel::SensorMatrix H =

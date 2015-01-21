@@ -78,12 +78,12 @@ struct Traits<SumOfDeltas<Vector>>
                 Scalar,
                 Vector::SizeAtCompileTime,
                 Vector::SizeAtCompileTime
-            > Operator;
+            > SecondMoment;
 
     typedef std::vector<Vector> Deltas;
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Weights;
 
-    typedef Moments<Vector, Operator> MomentsBase;
+    typedef Moments<Vector, SecondMoment> MomentsBase;
 };
 
 /**
@@ -98,7 +98,7 @@ public:
     typedef SumOfDeltas<Vector> This;
 
     typedef typename Traits<This>::Scalar     Scalar;
-    typedef typename Traits<This>::Operator   Operator;
+    typedef typename Traits<This>::SecondMoment   SecondMoment;
     typedef typename Traits<This>::Deltas     Deltas;
     typedef typename Traits<This>::Weights    Weights;
 
@@ -140,10 +140,10 @@ public:
         return mu;
     }
 
-    virtual Operator covariance() const
+    virtual SecondMoment covariance() const
     {
         Vector mu = mean();
-        Operator cov(Operator::Zero(dimension(), dimension()));
+        SecondMoment cov(SecondMoment::Zero(dimension(), dimension()));
         for(size_t i = 0; i < deltas_.size(); i++)
             cov += weights_[i] * (deltas_[i]-mu) * (deltas_[i]-mu).transpose();
 

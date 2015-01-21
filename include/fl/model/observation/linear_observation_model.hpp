@@ -40,7 +40,7 @@ struct Traits<
     typedef Observation_ Observation;
     typedef Gaussian<Observation_> GaussianBase;
     typedef typename Traits<GaussianBase>::Scalar Scalar;
-    typedef typename Traits<GaussianBase>::Operator Operator;
+    typedef typename Traits<GaussianBase>::SecondMoment SecondMoment;
     typedef typename Traits<GaussianBase>::StandardVariate Noise;
     typedef Eigen::Matrix<Scalar,
                           Observation::SizeAtCompileTime,
@@ -63,7 +63,7 @@ public:
     typedef typename Traits<This>::Observation Observation;
     typedef typename Traits<This>::Noise Noise;
     typedef typename Traits<This>::Scalar Scalar;
-    typedef typename Traits<This>::Operator Operator;
+    typedef typename Traits<This>::SecondMoment SecondMoment;
     typedef typename Traits<This>::SensorMatrix SensorMatrix;
 
     using Traits<This>::GaussianBase::mean;
@@ -72,7 +72,7 @@ public:
 
 public:
     LinearGaussianObservationModel(
-            const Operator& noise_covariance,
+            const SecondMoment& noise_covariance,
             const size_t observation_dimension = Observation::SizeAtCompileTime,
             const size_t state_dimension = State::SizeAtCompileTime):
         Traits<This>::GaussianBase(observation_dimension),
@@ -124,7 +124,7 @@ struct Traits<FactorizedLinearGaussianObservationModel<Observation_,
     typedef State_b_ State_b;
     typedef Gaussian<Observation_> GaussianBase;
     typedef typename Traits<GaussianBase>::Scalar Scalar;
-    typedef typename Traits<GaussianBase>::Operator Operator;
+    typedef typename Traits<GaussianBase>::SecondMoment SecondMoment;
     typedef typename Traits<GaussianBase>::StandardVariate Noise;
     typedef Eigen::Matrix<Scalar,
                           Observation::SizeAtCompileTime,
@@ -149,7 +149,7 @@ public:
 
     typedef typename Traits<This>::Noise Noise;
     typedef typename Traits<This>::Scalar Scalar;
-    typedef typename Traits<This>::Operator Operator;
+    typedef typename Traits<This>::SecondMoment SecondMoment;
     typedef typename Traits<This>::Observation Observation;
     typedef typename Traits<This>::State_a State_a;
     typedef typename Traits<This>::State_b State_b;
@@ -162,7 +162,7 @@ public:
 
 public:
     FactorizedLinearGaussianObservationModel(
-            const Operator& noise_covariance,
+            const SecondMoment& noise_covariance,
             const size_t observation_dimension = Observation::SizeAtCompileTime,
             const size_t state_a_dimension = State_a::SizeAtCompileTime,
             const size_t state_b_dimension = State_b::SizeAtCompileTime):
@@ -244,7 +244,7 @@ protected:
 
 //    typedef Gaussian<Observation_> GaussianBase;
 //    typedef typename Traits<GaussianBase>::Scalar Scalar;
-//    typedef typename Traits<GaussianBase>::Operator Operator;
+//    typedef typename Traits<GaussianBase>::SecondMoment SecondMoment;
 //    typedef typename Traits<GaussianBase>::Noise Noise;
 
 //    typedef State_a_ State_a;
@@ -286,7 +286,7 @@ protected:
 //    typedef typename Traits<This>::Observation Observation;
 //    typedef typename Traits<This>::Noise Noise;
 //    typedef typename Traits<This>::Scalar Scalar;
-//    typedef typename Traits<This>::Operator Operator;
+//    typedef typename Traits<This>::SecondMoment SecondMoment;
 //    typedef typename Traits<This>::SensorMatrix_a SensorMatrix_a;
 //    typedef typename Traits<This>::SensorMatrix_b SensorMatrix_b;
 
@@ -299,7 +299,7 @@ protected:
 
 //public:
 //    FactorizedLinearGaussianOservationModel2(
-//            const Operator& noise_covariance,
+//            const SecondMoment& noise_covariance,
 //            const size_t observation_dimension = Observation::SizeAtCompileTime,
 //            const size_t state_a_dimension = State_a::SizeAtCompileTime,
 //            const size_t state_b_dimension = State_b::SizeAtCompileTime):

@@ -81,12 +81,12 @@ struct Traits<Gaussian<Var>>
     /**
      * \brief Second moment type
      */
-    typedef Eigen::Matrix<Scalar, Dimension, Dimension> Operator;
+    typedef Eigen::Matrix<Scalar, Dimension, Dimension> SecondMoment;
 
     /**
      * \brief Moments interface of a Gaussian
      */
-    typedef Moments<Variate, Operator> MomentsBase;
+    typedef Moments<Variate, SecondMoment> MomentsBase;
 
     /**
      * \brief Evalluation interface of a Gaussian
@@ -158,14 +158,15 @@ public:
  * \ingroup distributions
  * \{
  *
- * The Gaussian is a general purpose distribution. It can be used in various
+ * The Gaussian is a general purpose distribution representing a multi-variate
+ * \f${\cal N}(x; \mu, \Sigma)\f$. It can be used in various
  * ways while maintaining efficienty at the same time. This is due to it's
  * multi-representation structure. The distribution can be represented either by
  *
- *  - the covariance matrix,
- *  - the precision matrix,
- *  - the covariance square root matrix (Cholesky decomposition or LDLT),
- *  - or the diagonal form of the previous three options.
+ *  - the covariance matrix \f$\Sigma\f$,
+ *  - the precision matrix \f$\Sigma^{-1} = \Lambda\f$,
+ *  - the covariance square root matrix (Cholesky decomposition or LDLT) \f$\sqrt{\Sigma} = L\sqrt{D}\f$,
+ *  - or the diagonal form of the previous three options \f$diag(\sigma_1, \ldots, \sigma_n)\f$.
  *
  * A change in one representation results in change of all other
  * representations.
@@ -192,7 +193,7 @@ public:
     typedef Gaussian<Variate> This;
 
     typedef typename Traits<This>::Scalar           Scalar;
-    typedef typename Traits<This>::Operator         Operator;
+    typedef typename Traits<This>::SecondMoment     SecondMoment;
     typedef typename Traits<This>::StandardVariate  StandardVariate;
 
     using Traits<This>::GaussianMappingBase::standard_variate_dimension;
@@ -276,7 +277,7 @@ public:
      *       = {Valid Representations} \f$ \cup \f$ {#CovarianceMatrix}
      * \endcond
      */
-    virtual Operator covariance() const
+    virtual SecondMoment covariance() const
     {
         if (dimension() == 0)
         {
@@ -342,7 +343,7 @@ public:
      *       = {Valid Representations} \f$ \cup \f$ {#PrecisionMatrix}
      * \endcond
      */
-    virtual const Operator& precision() const
+    virtual const SecondMoment& precision() const
     {
         if (dimension() == 0)
         {
@@ -351,7 +352,7 @@ public:
 
         if (is_dirty(PrecisionMatrix) && is_dirty(DiagonalPrecisionMatrix))
         {
-            const Operator& cov = covariance();
+            const SecondMoment& cov = covariance();
 
             switch (select_first_representation({DiagonalCovarianceMatrix,
                                                  DiagonalSquareRootMatrix,
@@ -400,7 +401,7 @@ public:
      *       = {Valid Representations} \f$ \cup \f$ {#SquareRootMatrix}
      * \endcond
      */
-    virtual const Operator& square_root() const
+    virtual const SecondMoment& square_root() const
     {
         if (dimension() == 0)
         {
@@ -409,7 +410,7 @@ public:
 
         if (is_dirty(SquareRootMatrix) && is_dirty(DiagonalSquareRootMatrix))
         {
-            const Operator& cov = covariance();
+            const SecondMoment& cov = covariance();
 
             switch (select_first_representation({DiagonalCovarianceMatrix,
                                                  DiagonalPrecisionMatrix,
@@ -419,7 +420,7 @@ public:
             case CovarianceMatrix:
             case PrecisionMatrix:
             {
-                Eigen::LDLT<Operator> ldlt;
+                Eigen::LDLT<SecondMoment> ldlt;
                 ldlt.compute(covariance());
                 Variate D_sqrt = ldlt.vectorD();
                 for(size_t i = 0; i < D_sqrt.rows(); ++i)
@@ -427,7 +428,7 @@ public:
                     D_sqrt(i) = std::sqrt(std::fabs(D_sqrt(i)));
                 }
                 square_root_ = ldlt.transpositionsP().transpose()
-                                * (Operator)ldlt.matrixL()
+                                * (SecondMoment)ldlt.matrixL()
                                 * D_sqrt.asDiagonal();
             } break;
 
@@ -570,7 +571,7 @@ public:
         covariance_.resize(dimension(), dimension());
 
         mean(Variate::Zero(dimension()));
-        covariance(Operator::Identity(dimension(), dimension()));
+        covariance(SecondMoment::Identity(dimension(), dimension()));
 
         full_rank_ = true;
         updated_internally(Rank);
@@ -627,7 +628,7 @@ public:
      *
      * \throws WrongSizeException
      */
-    virtual void covariance(const Operator& covariance) noexcept
+    virtual void covariance(const SecondMoment& covariance) noexcept
     {
         if (covariance_.size() != covariance.size())
         {
@@ -653,7 +654,7 @@ public:
      *
      * \throws WrongSizeException
      */
-    virtual void square_root(const Operator& square_root) noexcept
+    virtual void square_root(const SecondMoment& square_root) noexcept
     {
         if (square_root_.size() != square_root.size())
         {
@@ -678,7 +679,7 @@ public:
      *
      * \throws WrongSizeException
      */
-    virtual void precision(const Operator& precision) noexcept
+    virtual void precision(const SecondMoment& precision) noexcept
     {
         if (precision_.size() != precision.size())
         {
@@ -703,7 +704,7 @@ public:
      *
      * \throws WrongSizeException
      */
-    virtual void diagonal_covariance(const Operator& diag_covariance) noexcept
+    virtual void diagonal_covariance(const SecondMoment& diag_covariance) noexcept
     {
         if (diag_covariance.size() != covariance_.size())
         {
@@ -729,7 +730,7 @@ public:
      *
      * \throws WrongSizeException
      */
-    virtual void diagonal_square_root(const Operator& diag_square_root) noexcept
+    virtual void diagonal_square_root(const SecondMoment& diag_square_root) noexcept
     {
         if (diag_square_root.size() != square_root_.size())
         {
@@ -755,7 +756,7 @@ public:
      *
      * \throws WrongSizeException
      */
-    virtual void diagonal_precision(const Operator& diag_precision) noexcept
+    virtual void diagonal_precision(const SecondMoment& diag_precision) noexcept
     {
         if (diag_precision.size() != precision_.size())
         {
@@ -845,9 +846,9 @@ protected:
 protected:    
     /** \cond INTERNAL */
     Variate mean_;                    /**< \brief first moment vector */
-    mutable Operator covariance_;     /**< \brief cov. form */
-    mutable Operator precision_;      /**< \brief cov. inverse form */
-    mutable Operator square_root_;    /**< \brief cov. square root form */
+    mutable SecondMoment covariance_;     /**< \brief cov. form */
+    mutable SecondMoment precision_;      /**< \brief cov. inverse form */
+    mutable SecondMoment square_root_;    /**< \brief cov. square root form */
     mutable bool full_rank_;          /**< \brief full rank flag */
     mutable Scalar log_normalizer_;   /**< \brief log normalizing constant */
     mutable std::vector<bool> dirty_; /**< \brief data validity flags */

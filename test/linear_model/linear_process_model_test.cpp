@@ -61,7 +61,7 @@ public:
     template <typename Model>
     void InitDimensionTests(Model& model,
                             size_t dim,
-                            typename Model::Operator& cov)
+                            typename Model::SecondMoment& cov)
     {
         EXPECT_EQ(model.dimension(), dim);
         EXPECT_EQ(model.standard_variate_dimension(), dim);
@@ -76,7 +76,7 @@ TEST_F(LinearGaussianProcessModelTests, init_fixedsize_dimension)
     const size_t dim = State::SizeAtCompileTime;
     typedef fl::LinearGaussianProcessModel<State> LGModel;
 
-    LGModel::Operator cov = LGModel::Operator::Identity() * 5.5465;
+    LGModel::SecondMoment cov = LGModel::SecondMoment::Identity() * 5.5465;
     LGModel model(cov);
 
     InitDimensionTests(model, 10, cov);
@@ -88,7 +88,7 @@ TEST_F(LinearGaussianProcessModelTests, init_dynamicsize_dimension)
     typedef Eigen::VectorXd State;
     typedef fl::LinearGaussianProcessModel<State> LGModel;
 
-    LGModel::Operator cov = LGModel::Operator::Identity(dim, dim) * 5.5465;
+    LGModel::SecondMoment cov = LGModel::SecondMoment::Identity(dim, dim) * 5.5465;
     LGModel model(cov, dim);
 
     InitDimensionTests(model, dim, cov);
@@ -102,7 +102,7 @@ TEST_F(LinearGaussianProcessModelTests, predict_fixedsize_with_zero_noise)
 
     State state = State::Random(dim, 1);
     LGModel::Noise sample = LGModel::Noise::Zero(dim, 1);
-    LGModel::Operator cov = LGModel::Operator::Identity(dim, dim) * 5.5465;
+    LGModel::SecondMoment cov = LGModel::SecondMoment::Identity(dim, dim) * 5.5465;
     LGModel model(cov, dim);
 
     EXPECT_TRUE(model.map_standard_normal(sample).isZero());
@@ -120,7 +120,7 @@ TEST_F(LinearGaussianProcessModelTests, predict_dynamic_with_zero_noise)
 
     State state = State::Random(dim, 1);
     LGModel::Noise sample = LGModel::Noise::Zero(dim, 1);
-    LGModel::Operator cov = LGModel::Operator::Identity(dim, dim) * 5.5465;
+    LGModel::SecondMoment cov = LGModel::SecondMoment::Identity(dim, dim) * 5.5465;
     LGModel model(cov, dim);
 
     EXPECT_TRUE(model.map_standard_normal(sample).isZero());
@@ -138,7 +138,7 @@ TEST_F(LinearGaussianProcessModelTests, predict_fixedsize_with_noise)
 
     State state = State::Random(dim, 1);
     LGModel::Noise noise = LGModel::Noise::Random(dim, 1);
-    LGModel::Operator cov = LGModel::Operator::Identity(dim, dim);
+    LGModel::SecondMoment cov = LGModel::SecondMoment::Identity(dim, dim);
     LGModel model(cov, dim);
 
     EXPECT_TRUE(model.map_standard_normal(noise).isApprox(noise));
@@ -156,7 +156,7 @@ TEST_F(LinearGaussianProcessModelTests, predict_dynamic_with_noise)
 
     State state = State::Random(dim, 1);
     LGModel::Noise noise = LGModel::Noise::Random(dim, 1);
-    LGModel::Operator cov = LGModel::Operator::Identity(dim, dim);
+    LGModel::SecondMoment cov = LGModel::SecondMoment::Identity(dim, dim);
     LGModel model(cov, dim);
 
     EXPECT_TRUE(model.map_standard_normal(noise).isApprox(noise));
@@ -174,7 +174,7 @@ TEST_F(LinearGaussianProcessModelTests, dynamics_matrix)
 
     State state = State::Random(dim, 1);
     LGModel::Noise sample = LGModel::Noise::Zero(dim, 1);
-    LGModel::Operator cov = LGModel::Operator::Identity(dim, dim) * 5.5465;
+    LGModel::SecondMoment cov = LGModel::SecondMoment::Identity(dim, dim) * 5.5465;
     LGModel model(cov, dim);
     LGModel::DynamicsMatrix A = LGModel::DynamicsMatrix::Identity(dim, dim);
 

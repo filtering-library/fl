@@ -76,7 +76,7 @@ struct Traits<DampedWienerProcessModel<State_>>
     typedef Eigen::Matrix<Scalar, State::SizeAtCompileTime, 1>  Noise;
 
     typedef Gaussian<Noise> GaussianType;
-    typedef typename GaussianType::Operator Operator;
+    typedef typename GaussianType::SecondMoment SecondMoment;
 
     typedef StandardGaussianMapping<State, Noise> GaussianMappingBase;
     typedef ProcessModelInterface<State, Noise, Input> ProcessInterfaceBase;
@@ -96,7 +96,7 @@ public:
     typedef DampedWienerProcessModel<State> This;
 
     typedef typename Traits<This>::Scalar         Scalar;
-    typedef typename Traits<This>::Operator       Operator;
+    typedef typename Traits<This>::SecondMoment       SecondMoment;
     typedef typename Traits<This>::Input          Input;
     typedef typename Traits<This>::Noise          Noise;
     typedef typename Traits<This>::GaussianType   GaussianType;
@@ -124,7 +124,7 @@ public:
     }
 
     virtual void Parameters(const Scalar& damping,
-                            const Operator& noise_covariance)
+                            const SecondMoment& noise_covariance)
     {
         damping_ = damping;
         noise_covariance_ = noise_covariance;
@@ -179,7 +179,7 @@ private:
         return state_expectation;
     }
 
-    Operator covariance(const Scalar& delta_time)
+    SecondMoment covariance(const Scalar& delta_time)
     {
         if(damping_ == 0)
             return delta_time * noise_covariance_;
@@ -197,7 +197,7 @@ private:
 
     // parameters
     Scalar damping_;
-    Operator noise_covariance_;
+    SecondMoment noise_covariance_;
 };
 
 }

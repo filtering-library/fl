@@ -61,7 +61,7 @@ public:
     void InitDimensionTests(Model& model,
                             size_t dim,
                             size_t dim_state,
-                            typename Model::Operator& cov)
+                            typename Model::SecondMoment& cov)
     {
         EXPECT_EQ(model.dimension(), dim);
         EXPECT_EQ(model.standard_variate_dimension(), dim);
@@ -79,7 +79,7 @@ TEST_F(LinearObservationModelTests, init_fixedsize_dimension)
     const size_t dim_state = State::SizeAtCompileTime;
     typedef fl::LinearGaussianObservationModel<Observation, State> LGModel;
 
-    LGModel::Operator cov = LGModel::Operator::Identity() * 5.5465;
+    LGModel::SecondMoment cov = LGModel::SecondMoment::Identity() * 5.5465;
     LGModel model(cov);
 
     InitDimensionTests(model, dim, dim_state, cov);
@@ -93,7 +93,7 @@ TEST_F(LinearObservationModelTests, init_dynamicsize_dimension)
     typedef Eigen::VectorXd Observation;
     typedef fl::LinearGaussianObservationModel<Observation, State> LGModel;
 
-    LGModel::Operator cov = LGModel::Operator::Identity(dim, dim) * 5.5465;
+    LGModel::SecondMoment cov = LGModel::SecondMoment::Identity(dim, dim) * 5.5465;
     LGModel model(cov, dim, dim_state);
 
     InitDimensionTests(model, dim, dim_state, cov);
@@ -110,7 +110,7 @@ TEST_F(LinearObservationModelTests, predict_fixedsize_with_zero_noise)
     State state = State::Random(dim_state, 1);
     Observation observation = Observation::Random(dim, 1);
     LGModel::Noise noise = LGModel::Noise::Zero(dim, 1);
-    LGModel::Operator cov = LGModel::Operator::Identity(dim, dim) * 5.5465;
+    LGModel::SecondMoment cov = LGModel::SecondMoment::Identity(dim, dim) * 5.5465;
     LGModel model(cov);
 
     EXPECT_TRUE(model.map_standard_normal(noise).isZero());
@@ -131,7 +131,7 @@ TEST_F(LinearObservationModelTests, predict_dynamic_with_zero_noise)
     State state = State::Random(dim_state, 1);
     Observation observation = Observation::Random(dim, 1);
     LGModel::Noise noise = LGModel::Noise::Zero(dim, 1);
-    LGModel::Operator cov = LGModel::Operator::Identity(dim, dim) * 5.5465;
+    LGModel::SecondMoment cov = LGModel::SecondMoment::Identity(dim, dim) * 5.5465;
     LGModel model(cov, dim, dim_state);
 
     EXPECT_TRUE(model.map_standard_normal(noise).isZero());
@@ -152,8 +152,8 @@ TEST_F(LinearObservationModelTests, sensor_matrix)
     State state = State::Random(dim_state, 1);
     Observation observation = Observation::Zero(dim, 1);
     LGModel::Noise noise = LGModel::Noise::Random(dim, 1);
-    LGModel::Operator cov = LGModel::Operator::Identity(dim, dim);
-    LGModel::SensorMatrix H = LGModel::Operator::Zero(dim, dim_state);
+    LGModel::SecondMoment cov = LGModel::SecondMoment::Identity(dim, dim);
+    LGModel::SensorMatrix H = LGModel::SecondMoment::Zero(dim, dim_state);
     LGModel model(cov, dim, dim_state);
 
     H.block(0, 0, dim_state, dim_state)

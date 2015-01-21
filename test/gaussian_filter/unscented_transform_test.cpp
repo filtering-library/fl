@@ -161,7 +161,7 @@ void test_covariance_transform(PointSet<Point, Dim>& point_set, int dim)
 {
     fl::UnscentedTransform ut;
 
-    typename fl::Traits<fl::Gaussian<Point>>::Operator cov;
+    typename fl::Traits<fl::Gaussian<Point>>::SecondMoment cov;
     cov.setRandom(dim, dim);
     cov *= cov.transpose();
 
@@ -218,7 +218,7 @@ TEST(UnscentedTransformTest, covariance_recovery_dynamic_fixed_throw)
 
     fl::UnscentedTransform ut;
 
-    typename fl::Traits<fl::Gaussian<Point>>::Operator cov;
+    typename fl::Traits<fl::Gaussian<Point>>::SecondMoment cov;
     cov.setRandom(dim, dim);
     cov *= cov.transpose();
 

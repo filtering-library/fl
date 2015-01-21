@@ -84,7 +84,7 @@ protected:
     template <typename Gaussian>
     void test_gaussian_covariance(Gaussian& gaussian)
     {
-        typedef typename fl::Traits<Gaussian>::Operator Covariance;
+        typedef typename fl::Traits<Gaussian>::SecondMoment Covariance;
 
         Covariance covariance = Eigen::MatrixXd::Identity(
                                     gaussian.dimension(),
@@ -184,7 +184,7 @@ TEST_F(GaussianTests, dynamic_dimension)
 TEST_F(GaussianTests, fixed_standard_covariance)
 {
     typedef fl::Gaussian<FVector> Gaussian;
-    typedef typename fl::Traits<Gaussian>::Operator Covariance;
+    typedef typename fl::Traits<Gaussian>::SecondMoment Covariance;
 
     Gaussian gaussian;
     Covariance covariance = Eigen::MatrixXd::Identity(
@@ -201,7 +201,7 @@ TEST_F(GaussianTests, fixed_standard_covariance)
 TEST_F(GaussianTests, dynamic_standard_covariance)
 {
     typedef fl::Gaussian<DVector> Gaussian;
-    typedef typename fl::Traits<Gaussian>::Operator Covariance;
+    typedef typename fl::Traits<Gaussian>::SecondMoment Covariance;
 
     Gaussian gaussian(6);
     Covariance covariance = Eigen::MatrixXd::Identity(gaussian.dimension(),

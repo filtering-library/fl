@@ -89,7 +89,7 @@ struct Traits<IntegratedDampedWienerProcessModel<State_>>
     typedef DampedWienerProcessModel<WienerProcessState>     DampedWienerProcessType;
     typedef Gaussian<Noise>                             GaussianType;
 
-    typedef typename GaussianType::Operator      Operator;
+    typedef typename GaussianType::SecondMoment      SecondMoment;
 };
 
 /**
@@ -108,7 +108,7 @@ public:
     typedef typename Traits<This>::Scalar     Scalar;
     typedef typename Traits<This>::State      State;
     typedef typename Traits<This>::Input      Input;
-    typedef typename Traits<This>::Operator   Operator;
+    typedef typename Traits<This>::SecondMoment   SecondMoment;
     typedef typename Traits<This>::Noise      Noise;
 
     typedef typename Traits<This>::GaussianType GaussianType;
@@ -183,7 +183,7 @@ public:
 
     virtual void Parameters(
             const double& damping,
-            const Operator& acceleration_covariance)
+            const SecondMoment& acceleration_covariance)
     {
         damping_ = damping;
         acceleration_covariance_ = acceleration_covariance;
@@ -221,7 +221,7 @@ private:
         return mean;
     }
 
-    Operator covariance(const Scalar& delta_time)
+    SecondMoment covariance(const Scalar& delta_time)
     {
         // the first argument to the gamma function should be equal to zero, which would not cause
         // the gamma function to diverge as long as the second argument is not zero, which will not
@@ -246,7 +246,7 @@ private:
 
     // parameters
     Scalar damping_;
-    Operator acceleration_covariance_;
+    SecondMoment acceleration_covariance_;
 };
 
 }
