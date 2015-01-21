@@ -36,7 +36,12 @@ namespace fl
  *
  * \tparam Variate        Random variable type. This is equivalent to the first
  *                        moment type.
- * \tparam SecondMoment   Second moment type (e.g. Variance or the Covariance)
+ * \tparam SecondMoment   Second moment type. The second moment is either
+ *                        the second uncentered moment \f$Var(X) + X^2\f$ or
+ *                        simply the second central moment, the variance or
+ *                        covariance \f$Var(X) = Cov(X, X)\f$. Both have the
+ *                        same type \c SecondMoment.
+ *
  *
  * The Moments interface provides access to the exact first moments of
  * a distribution. The moments represent a subset of the approximate moments.
@@ -53,17 +58,22 @@ public:
 
     /**
      * \return First moment of the underlying distribution, the mean
+     *
+     * \f$ \mu = \sum\limits_i x_i p(x_i)\f$
      */
     virtual Variate mean() const = 0;
 
     /**
      * \return Second centered moment of the underlying distribution,
      *         the covariance
+     *
+     * \f$ \Sigma =
+     *     \sum\limits_i (x_i - \mu)(x_i - \mu)^T \f$
      */
     virtual SecondMoment covariance() const = 0;
 
     /**
-     * \copydoc ApproximateMoments::Approximatemean() const
+     * \copydoc ApproximateMoments::approximate_mean
      */
     virtual Variate approximate_mean() const
     {
@@ -71,7 +81,7 @@ public:
     }
 
     /**
-     * \copydoc ApproximateMoments::Approximatecovariance() const
+     * \copydoc ApproximateMoments::approximate_covariance
      */
     virtual SecondMoment approximate_covariance() const
     {
