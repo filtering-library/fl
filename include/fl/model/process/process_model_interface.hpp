@@ -29,24 +29,65 @@ namespace fl
 {
 
 /**
- * \ingroup process_models
+ * \interface ProcessModelInterface
+ * \ingroup model_interfaces
+ *
+ * \brief This reprersents the common process model interface of the form
+ *        \f$p(x\mid x_t, u_t, v_t)\f$
+ *
+ * \tparam State    Type of the state variable \f$x_t\f$
+ * \tparam Noise    Type of the noise term \f$v_t\f$
+ * \tparam Input    Type of the control input \f$u_t\f$
  */
 template <typename State, typename Noise, typename Input = internal::Empty>
 class ProcessModelInterface
 {
 public:
+    /**
+     * Sets the conditional arguments \f$x_t, u_t\f$ of \f$p(x\mid x_t, u_t)\f$
+     *
+     * \param delta_time    Prediction duration \f$\Delta t\f$
+     * \param state         Previous state \f$x_{t}\f$
+     * \param input         Control input \f$u_t\f$
+     *
+     * Once the conditional have been set, may either sample from this model
+     * since it also represents a conditional distribution or you may map
+     * a SNV noise term \f$v_t\f$ onto the distribution using
+     * \c map_standard_variate(\f$v_t\f$) if implemented.
+     */
     virtual void condition(const double& delta_time,
                            const State& state,
                            const Input& input = internal::Empty()) = 0;
 
+    /**
+     * Predicts the state conditioned on the previous state and input.
+     *
+     * \param delta_time    Prediction duration \f$\Delta t\f$
+     * \param state         Previous state \f$x_{t}\f$
+     * \param noise         Additive or non-Additive noise \f$v_t\f$
+     * \param input         Control input \f$u_t\f$
+     *
+     * \return State \f$x_{t+1}\sim p(x\mid x_t, u_t)\f$
+     */
     virtual State predict_state(double delta_time,
                                 const State& state,
                                 const Noise& noise,
                                 const Input& input) = 0;
 
-    virtual size_t state_dimension() const = 0;   
-    virtual size_t noise_dimension() const = 0;         
-    virtual size_t input_dimension() const = 0;
+    /**
+     * \return \f$\dim(x_t)\f$, dimension of the state
+     */
+    virtual constexpr size_t state_dimension() const = 0;
+
+    /**
+     * \return \f$\dim(v_t)\f$, dimension of the noise
+     */
+    virtual constexpr size_t noise_dimension() const = 0;
+
+    /**
+     * \return \f$\dim(u_t)\f$, dimension of the control input
+     */
+    virtual constexpr size_t input_dimension() const = 0;
 };
 
 }
