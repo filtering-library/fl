@@ -40,7 +40,7 @@ public:
 
     virtual ~StandardGaussian() { }
 
-    virtual StandardVariate sample()
+    virtual StandardVariate sample() const
     {
         StandardVariate gaussian_sample(dimension());
         for (int i = 0; i < dimension(); i++)
@@ -73,13 +73,14 @@ public:
 
 private:
     int dimension_;
-    fl::mt11213b generator_;
-    std::normal_distribution<> gaussian_distribution_;
+    mutable fl::mt11213b generator_;
+    mutable std::normal_distribution<> gaussian_distribution_;
 };
 
 // specialization for scalar
 template<>
-class StandardGaussian<double>: public Sampling<double>
+class StandardGaussian<double>
+        : public Sampling<double>
 {
 public:
     StandardGaussian()
@@ -89,7 +90,7 @@ public:
 
     virtual ~StandardGaussian() { }
 
-    virtual double sample()
+    virtual double sample() const
     {
         return gaussian_distribution_(generator_);
     }
@@ -100,8 +101,8 @@ public:
     }
 
 private:
-    fl::mt11213b generator_;
-    std::normal_distribution<> gaussian_distribution_;
+    mutable fl::mt11213b generator_;
+    mutable std::normal_distribution<> gaussian_distribution_;
 };
 
 }

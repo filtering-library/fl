@@ -32,7 +32,7 @@ namespace fl
  *
  * \brief Distribution sampling interface
  *
- * \tparam Variate  Variate type of a random variable
+ * \tparam Variate  Variate type of the random variable
  */
 template <typename Variate>
 class Sampling
@@ -44,9 +44,9 @@ public:
     virtual ~Sampling() { }
 
     /**
-     * \return A random sample of the underlying distribution
+     * \return A random sample of the underlying distribution \f[x \sim p(x)\f]
      */
-    virtual Variate sample() = 0;
+    virtual Variate sample() const = 0;
 };
 
 }
