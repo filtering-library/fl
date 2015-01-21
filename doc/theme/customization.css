@@ -34,6 +34,11 @@ table.doxtable td, table.example td, table.manual td, table.manual-vl td {
   border-color: #cccccc;
 }
 
+table.tparams td
+{
+    vertical-align:top;
+}
+
 
 h2 {
   margin-top:2em;
