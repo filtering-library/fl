@@ -130,6 +130,7 @@ template <> struct IsFixed<Eigen::Dynamic>
  * Examples
  *
  * static_assert(DimensionOf<MyEigenMatrixType>() > 0, "Dim must be greater 0");
+ *
  * static_assert(DimensionOf<MyEigenMatrixType>::value > 0, "Dim must be .. 0");
  *
  * Eigen::VectorXd vector(DimensionOf<MyEigenMatrixType>());
