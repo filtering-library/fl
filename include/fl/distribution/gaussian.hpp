@@ -68,7 +68,7 @@ struct Traits<Gaussian<Var>>
     typedef Var Variate;
 
     /**
-     * \brief Internal scalar type (e.g. double, float, std::complex)
+     * \brief Internal scalar type (e.g. double, float, std::complex, etc)
      */
     typedef typename Variate::Scalar Scalar;
 
@@ -845,13 +845,13 @@ protected:
 
 protected:    
     /** \cond INTERNAL */
-    Variate mean_;                    /**< \brief first moment vector */
-    mutable SecondMoment covariance_;     /**< \brief cov. form */
-    mutable SecondMoment precision_;      /**< \brief cov. inverse form */
-    mutable SecondMoment square_root_;    /**< \brief cov. square root form */
-    mutable bool full_rank_;          /**< \brief full rank flag */
-    mutable Scalar log_normalizer_;   /**< \brief log normalizing constant */
-    mutable std::vector<bool> dirty_; /**< \brief data validity flags */
+    Variate mean_;                     /**< \brief first moment vector */
+    mutable SecondMoment covariance_;  /**< \brief cov. form */
+    mutable SecondMoment precision_;   /**< \brief cov. inverse form */
+    mutable SecondMoment square_root_; /**< \brief cov. square root form */
+    mutable bool full_rank_;           /**< \brief full rank flag */
+    mutable Scalar log_normalizer_;    /**< \brief log normalizing constant */
+    mutable std::vector<bool> dirty_;  /**< \brief data validity flags */
     /** \endcond */
 };
 
