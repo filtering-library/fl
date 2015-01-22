@@ -29,7 +29,7 @@
 #include <fl/distribution/gaussian.hpp>
 #include <fl/distribution/interface/standard_gaussian_mapping.hpp>
 #include <fl/model/process/process_model_interface.hpp>
-#include <ff/models/process_models/damped_wiener_process_model.hpp>
+#include <fl/model/process/damped_wiener_process_model.hpp>
 
 namespace fl
 {
