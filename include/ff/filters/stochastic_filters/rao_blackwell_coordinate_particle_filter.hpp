@@ -39,8 +39,8 @@
 #include <fl/util/assertions.hpp>
 #include <fl/util/discrete_distribution.hpp>
 
-#include <fl/distribution/gaussian.hpp>
 #include <fl/distribution/sum_of_deltas.hpp>
+#include <fl/distribution/standard_gaussian.hpp>
 #include <fl/distribution/interface/standard_gaussian_mapping.hpp>
 #include <fl/model/process/process_model_interface.hpp>
 
@@ -181,7 +181,7 @@ public:
             for(size_t particle_index = 0; particle_index < samples_.size(); particle_index++)
             {
                 for(size_t i = 0; i < sampling_blocks_[block_index].size(); i++)
-                    noises_[particle_index](sampling_blocks_[block_index][i]) = unit_gaussian_.sample()(0);
+                    noises_[particle_index](sampling_blocks_[block_index][i]) = unit_gaussian_.sample();
 
                 next_samples_[particle_index] =
                         process_model_->predict_state(delta_time,
@@ -328,7 +328,8 @@ private:
     Scalar max_kl_divergence_;
 
     // distribution for sampling
-    Gaussian<Eigen::Matrix<Scalar,1,1>> unit_gaussian_;
+    //Gaussian<Eigen::Matrix<Scalar,1,1>> unit_gaussian_;
+    StandardGaussian<Scalar> unit_gaussian_;
 };
 
 }
