@@ -15,10 +15,9 @@
 
 
 /**
- * \file integrated_damped_wiener_process_model.hpp
+ * \file rao_blackwell_coordinate_particle_filter.hpp
  * \date 05/25/2014
  * \author Manuel Wuthrich (manuel.wuthrich@gmail.com)
- * \author Jan Issac (jan.issac@gmail.com)
  */
 
 
@@ -38,13 +37,13 @@
 #include <fl/util/traits.hpp>
 #include <fl/util/profiling.hpp>
 #include <fl/util/assertions.hpp>
+#include <fl/util/discrete_distribution.hpp>
 
 #include <fl/distribution/gaussian.hpp>
 #include <fl/distribution/sum_of_deltas.hpp>
 #include <fl/distribution/interface/standard_gaussian_mapping.hpp>
 #include <fl/model/process/process_model_interface.hpp>
 
-#include <ff/utils/helper_functions.hpp>
 #include <ff/models/observation_models/interfaces/rao_blackwell_observation_model.hpp>
 
 namespace fl
