@@ -102,7 +102,35 @@ public:
 
 private:
     mutable fl::mt11213b generator_;
-    mutable std::normal_distribution<> gaussian_distribution_;
+    mutable std::normal_distribution<double> gaussian_distribution_;
+};
+
+
+template<>
+class StandardGaussian<float>
+        : public Sampling<float>
+{
+public:
+    StandardGaussian()
+        : generator_(fl::seed()),
+          gaussian_distribution_(0.0f, 1.0f)
+    { }
+
+    virtual ~StandardGaussian() { }
+
+    virtual float sample() const
+    {
+        return gaussian_distribution_(generator_);
+    }
+
+    virtual int dimension() const
+    {
+        return 1;
+    }
+
+private:
+    mutable fl::mt11213b generator_;
+    mutable std::normal_distribution<float> gaussian_distribution_;
 };
 
 }
