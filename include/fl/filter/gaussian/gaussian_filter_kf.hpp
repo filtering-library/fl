@@ -98,7 +98,7 @@ struct Traits<
      * case of the Kalman filter, the distribution is a simple Gaussian with
      * the dimension of the \c State
      */
-    typedef fl::Gaussian<State> StateDistribution;
+    typedef Gaussian<State> StateDistribution;
 
     /** \cond INTERNAL */
     /**

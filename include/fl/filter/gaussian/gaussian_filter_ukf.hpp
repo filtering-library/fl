@@ -47,7 +47,11 @@ template <typename ProcessModel,
           typename PointSetTransform>
 struct Traits<GaussianFilter<ProcessModel, ObservationModel, PointSetTransform>>
 {
-    typedef GaussianFilter<ProcessModel, ObservationModel, PointSetTransform> Filter;
+    typedef GaussianFilter<
+                ProcessModel,
+                ObservationModel,
+                PointSetTransform
+            > Filter;
 
     /*
      * Required concept (interface) types
@@ -68,7 +72,7 @@ struct Traits<GaussianFilter<ProcessModel, ObservationModel, PointSetTransform>>
      * case of a Point Based Kalman filter, the distribution is a simple
      * Gaussian with the dimension of the \c State.
      */
-    typedef fl::Gaussian<State> StateDistribution;
+    typedef Gaussian<State> StateDistribution;
 
     /** \cond INTERNAL */
     typedef typename Traits<ProcessModel>::Noise StateNoise;
@@ -217,7 +221,7 @@ public:
          * and the dimension offset dim(P) as parameters.
          */
         point_set_transform_->forward(
-            fl::Gaussian<StateNoise>(process_model_->noise_dimension()),
+            Gaussian<StateNoise>(process_model_->noise_dimension()),
             global_dimension_,
             process_model_->state_dimension(),
             X_Q);
@@ -240,7 +244,7 @@ public:
          * and the dimension offset dim(P) + dim(Q) as parameters.
          */
         point_set_transform_->forward(
-            fl::Gaussian<ObsrvNoise>(obsrv_model_->noise_dimension()),
+            Gaussian<ObsrvNoise>(obsrv_model_->noise_dimension()),
             global_dimension_,
             process_model_->state_dimension()
             + process_model_->noise_dimension(),

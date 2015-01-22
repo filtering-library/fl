@@ -70,7 +70,7 @@ public:
          *   void forward(const Gaussian& src, PointSet& dest) const
          * \endcode
          */
-        derived->forward(fl::Gaussian<Point>(), point_set);
+        derived->forward(Gaussian<Point>(), point_set);
 
         /**
          * - Asserts the existens of the forward function with the required
@@ -81,7 +81,7 @@ public:
          *                PointSet& dest) const
          * \endcode
          */
-        derived->forward(fl::Gaussian<Point>(), 1, 0, point_set);
+        derived->forward(Gaussian<Point>(), 1, 0, point_set);
 
         /** \endcond */
     }

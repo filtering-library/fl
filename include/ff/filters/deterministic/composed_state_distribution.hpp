@@ -61,7 +61,7 @@ namespace fl
 //class FactorizedGaussian
 //{
 //public:
-//    typedef fl::Gaussian<VectorPartition> PartitionGaussian;
+//    typedef Gaussian<VectorPartition> PartitionGaussian;
 
 //    virtual const PartitionGaussian& Gaussian(size_t i)
 //    {
@@ -83,7 +83,7 @@ namespace fl
 //        public FactorizedGaussian<VectorPartition>
 //{
 //public:
-//    typedef fl::Gaussian<VectorPartition0> HeadGaussianPartition;
+//    typedef Gaussian<VectorPartition0> HeadGaussianPartition;
 //    using PartitionGaussian;
 //    using Gaussian;
 //    using operator[];
