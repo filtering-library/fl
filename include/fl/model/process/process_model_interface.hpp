@@ -30,7 +30,7 @@ namespace fl
 
 /**
  * \interface ProcessModelInterface
- * \ingroup model_interfaces
+ * \ingroup process_models
  *
  * \brief This reprersents the common process model interface of the form
  *        \f$p(x\mid x_t, u_t, v_t)\f$
