@@ -1,29 +1,26 @@
-/*************************************************************************
-This software allows for filtering in high-dimensional observation and
-state spaces, as described in
+/*
+ * This is part of the FL library, a C++ Bayesian filtering library
+ * (https://github.com/filtering-library)
+ *
+ * Copyright (c) 2014 Jan Issac (jan.issac@gmail.com)
+ * Copyright (c) 2014 Manuel Wuthrich (manuel.wuthrich@gmail.com)
+ *
+ * Max-Planck Institute for Intelligent Systems, AMD Lab
+ * University of Southern California, CLMC Lab
+ *
+ * This Source Code Form is subject to the terms of the MIT License (MIT).
+ * A copy of the license can be found in the LICENSE file distributed with this
+ * source code.
+ */
 
-M. Wuthrich, P. Pastor, M. Kalakrishnan, J. Bohg, and S. Schaal.
-Probabilistic Object Tracking using a Range Camera
-IEEE/RSJ Intl Conf on Intelligent Robots and Systems, 2013
 
-In a publication based on this software pleace cite the above reference.
+/**
+ * \file integrated_damped_wiener_process_model.hpp
+ * \date 05/25/2014
+ * \author Manuel Wuthrich (manuel.wuthrich@gmail.com)
+ * \author Jan Issac (jan.issac@gmail.com)
+ */
 
-
-Copyright (C) 2014  Manuel Wuthrich
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*************************************************************************/
 
 #ifndef FAST_FILTERING_FILTERS_STOCHASTIC_RAO_BLACKWELL_COORDINATE_PARTICLE_FILTER_HPP
 #define FAST_FILTERING_FILTERS_STOCHASTIC_RAO_BLACKWELL_COORDINATE_PARTICLE_FILTER_HPP
@@ -43,12 +40,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <fl/util/assertions.hpp>
 
 #include <fl/distribution/gaussian.hpp>
+#include <fl/distribution/sum_of_deltas.hpp>
 #include <fl/distribution/interface/standard_gaussian_mapping.hpp>
+#include <fl/model/process/process_model_interface.hpp>
 
 #include <ff/utils/helper_functions.hpp>
-#include <ff/distributions/sum_of_deltas.hpp>
 #include <ff/models/observation_models/interfaces/rao_blackwell_observation_model.hpp>
-
 
 namespace fl
 {
@@ -79,9 +76,9 @@ public:
         process_model_(process_model),
         max_kl_divergence_(max_kl_divergence)
     {
-//        static_assert_base(
-//            ProcessModel,
-//            StationaryProcessModel<State, Input>);
+        static_assert_base(
+            ProcessModel,
+            ProcessModelInterface<State, Noise, Input>);
 
         static_assert_base(
             ProcessModel,
@@ -104,25 +101,15 @@ public:
         observation_model_->SetObservation(observation, delta_time);
 
         loglikes_ = std::vector<Scalar>(samples_.size(), 0);
-        noises_ = std::vector<Noise>(samples_.size(), Noise::Zero(process_model_->standard_variate_dimension()));
+        noises_ = std::vector<Noise>(samples_.size(), Noise::Zero(process_model_->noise_dimension()));
         next_samples_ = samples_;
 
         for(size_t block_index = 0; block_index < sampling_blocks_.size(); block_index++)
         {
-            INIT_PROFILING;
             for(size_t particle_index = 0; particle_index < samples_.size(); particle_index++)
             {
                 for(size_t i = 0; i < sampling_blocks_[block_index].size(); i++)
                     noises_[particle_index](sampling_blocks_[block_index][i]) = unit_gaussian_.sample()(0);
-            }
-            MEASURE("sampling");
-            for(size_t particle_index = 0; particle_index < samples_.size(); particle_index++)
-            {
-//                process_model_->condition(delta_time,
-//                                          samples_[particle_index],
-//                                          input);
-
-//                next_samples_[particle_index] = process_model_->map_standard_normal(noises_[particle_index]);
 
                 next_samples_[particle_index] =
                         process_model_->predict_state(delta_time,
@@ -130,25 +117,20 @@ public:
                                                       noises_[particle_index],
                                                       input);
             }
-            MEASURE("propagation");
 
             bool update_occlusions = (block_index == sampling_blocks_.size()-1);
             std::vector<Scalar> new_loglikes = observation_model_->Loglikes(next_samples_,
                                                                            indices_,
                                                                            update_occlusions);
-            MEASURE("evaluation");
             std::vector<Scalar> delta_loglikes(new_loglikes.size());
             for(size_t i = 0; i < delta_loglikes.size(); i++)
                 delta_loglikes[i] = new_loglikes[i] - loglikes_[i];
             loglikes_ = new_loglikes;
             UpdateWeights(delta_loglikes);
-            MEASURE("updating weights");
-
         }
 
         samples_ = next_samples_;
         state_distribution_.SetDeltas(samples_); // not sure whether this is the right place
-
     }
 
     void Resample(const size_t& sample_count)
