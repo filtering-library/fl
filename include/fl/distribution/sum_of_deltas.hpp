@@ -1,58 +1,32 @@
 /*
- * Software License Agreement (BSD License)
+ * This is part of the FL library, a C++ Bayesian filtering library
+ * (https://github.com/filtering-library)
  *
- *  Copyright (c) 2014 Max-Planck-Institute for Intelligent Systems,
- *                     University of Southern California
- *    Manuel Wuthrich (manuel.wuthrich@gmail.com)
- *    Jan Issac (jan.issac@gmail.com)
+ * Copyright (c) 2014 Jan Issac (jan.issac@gmail.com)
+ * Copyright (c) 2014 Manuel Wuthrich (manuel.wuthrich@gmail.com)
  *
+ * Max-Planck Institute for Intelligent Systems, AMD Lab
+ * University of Southern California, CLMC Lab
  *
- *
- *  Redistribution and use in source and binary forms, with or without
- *  modification, are permitted provided that the following conditions
- *  are met:
- *
- *   * Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above
- *     copyright notice, this list of conditions and the following
- *     disclaimer in the documentation and/or other materials provided
- *     with the distribution.
- *   * Neither the name of Willow Garage, Inc. nor the names of its
- *     contributors may be used to endorse or promote products derived
- *     from this software without specific prior written permission.
- *
- *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- *  POSSIBILITY OF SUCH DAMAGE.
- *
+ * This Source Code Form is subject to the terms of the MIT License (MIT).
+ * A copy of the license can be found in the LICENSE file distributed with this
+ * source code.
  */
 
 /**
- * @date 05/25/2014
- * @author Manuel Wuthrich (manuel.wuthrich@gmail.com)
- * Max-Planck-Institute for Intelligent Systems,
- * University of Southern California
+ * \file sum_of_deltas.hpp
+ * \date 05/25/2014
+ * \author Manuel Wuthrich (manuel.wuthrich@gmail.com)
+ * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FAST_FILTERING_DISTRIBUTIONS_SUM_OF_DELTAS_HPP
-#define FAST_FILTERING_DISTRIBUTIONS_SUM_OF_DELTAS_HPP
-
+#ifndef FL__DISTRIBUTION__SUM_OF_DELTAS_HPP
+#define FL__DISTRIBUTION__SUM_OF_DELTAS_HPP
 
 #include <Eigen/Dense>
 
 // std
 #include <vector>
-
 
 #include <fl/util/assertions.hpp>
 #include <fl/util/traits.hpp>
@@ -61,88 +35,162 @@
 namespace fl
 {
 
-/// \todo MISSING DOC. MISSING UTESTS
-
 // Forward declarations
-template <typename Vector> class SumOfDeltas;
+template <typename Variate> class SumOfDeltas;
 
 /**
- * SumOfDeltas distribution traits specialization
- * \internal
+ * SumOfDeltas distribution traits. This trait definition contains all types
+ * used internally within the distribution. Additionally, it provides the types
+ * needed externally to use the SumOfDeltas.
  */
-template <typename Vector>
-struct Traits<SumOfDeltas<Vector>>
+template <typename Var>
+struct Traits<SumOfDeltas<Var>>
 {
-    typedef typename Vector::Scalar Scalar;
+    enum
+    {
+        /**
+         * \brief Gaussian dimension
+         *
+         * For fixed-size Point type and hence a fixed-size distrobution, the
+         * \c Dimension value is greater zero. Dynamic-size distrobutions have
+         * the dimension Eigen::Dynamic.
+         */
+        Dimension = Var::RowsAtCompileTime
+    };
+
+    /**
+     * \brief Distribution variate type
+     */
+    typedef Var Variate;
+
+    /**
+     * \brief Internal scalar type (e.g. double, float, std::complex, etc)
+     */
+    typedef typename Variate::Scalar Scalar;
+
+    /**
+     * \brief Distribution second moment type
+     */
     typedef Eigen::Matrix<
                 Scalar,
-                Vector::SizeAtCompileTime,
-                Vector::SizeAtCompileTime
+                Var::RowsAtCompileTime,
+                Var::RowsAtCompileTime
             > SecondMoment;
 
-    typedef std::vector<Vector> Deltas;
+    /**
+     * \brief Deltas container (Sample container representing this
+     * non-parametric distribution)
+     */
+    typedef std::vector<Var> Deltas;
+
+    /**
+     * \brief Weight vector associated with the deltas
+     */
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Weights;
 
-    typedef Moments<Vector, SecondMoment> MomentsBase;
+    /**
+     * \brief Moments interface of the SumOfDeltas distribution
+     */
+    typedef Moments<Var, SecondMoment> MomentsBase;
 };
 
 /**
- * \class SumOfDeltas
+ * \todo missing unit tests
  * \ingroup distributions
+ *
+ * SumOfDeltas represents a non-parametric distribution. The distribution is
+ * described by a set of deltas each assiciated with a weight.
  */
-template <typename Vector>
-class SumOfDeltas:
-        public Traits<SumOfDeltas<Vector>>::MomentsBase
+template <typename Variate>
+class SumOfDeltas
+        : public Traits<SumOfDeltas<Variate>>::MomentsBase
 {
 public:
-    typedef SumOfDeltas<Vector> This;
+    typedef SumOfDeltas<Variate> This;
 
-    typedef typename Traits<This>::Scalar     Scalar;
-    typedef typename Traits<This>::SecondMoment   SecondMoment;
-    typedef typename Traits<This>::Deltas     Deltas;
-    typedef typename Traits<This>::Weights    Weights;
+    typedef typename Traits<This>::Scalar       Scalar;
+    typedef typename Traits<This>::SecondMoment SecondMoment;
+    typedef typename Traits<This>::Deltas       Deltas;
+    typedef typename Traits<This>::Weights      Weights;
 
 public:
-    explicit SumOfDeltas(const unsigned& dimension = Vector::SizeAtCompileTime)
+    /**
+     * Creates a dynamic or fixed-size SumOfDeltas.
+     *
+     * \param dimension Dimension of the Variate. The default is defined by the
+     *                  dimension of the variable type \em Vector. If the size
+     *                  of the Vector at compile time is fixed, this will be
+     *                  adapted. For dynamic-sized Variable the dimension is
+     *                  initialized to 0.
+     */
+    explicit
+    SumOfDeltas(size_t dim = DimensionOf<Variate>())
     {
-        static_assert_base(Vector, Eigen::Matrix<Scalar, Vector::SizeAtCompileTime, 1>);
-
-        deltas_ = Deltas(1, Vector::Zero(dimension == Eigen::Dynamic ? 0 : dimension));
+        deltas_ = Deltas(1, Variate::Zero(dim));
         weights_ = Weights::Ones(1);
     }
 
+    /**
+     * \brief Overridable default constructor
+     */
     virtual ~SumOfDeltas() { }
 
+    /**
+     * Sets the distribution deltas and their weights. This overrides the entire
+     * distribution.
+     *
+     * \param [in] deltas    The new set of deltas
+     * \param [in] weights   THe weights of deltas
+     */
     virtual void SetDeltas(const Deltas& deltas, const Weights& weights)
     {
         deltas_ = deltas;
         weights_ = weights.normalized();
     }
 
+    /**
+     * Sets the distribution deltas. All weights are set to
+     * \f$\frac{1}{N}\f$, where \f$N\f$ is the number of deltas
+     *
+     * \param [in] deltas    The new set of deltas
+     */
     virtual void SetDeltas(const Deltas& deltas)
     {
         deltas_ = deltas;
         weights_ = Weights::Ones(deltas_.size())/Scalar(deltas_.size());
     }
 
+    /**
+     * Accesses the deltas and their weights
+     *
+     * \param [out] deltas
+     * \param [out] weights
+     */
     virtual void GetDeltas(Deltas& deltas, Weights& weights) const
     {
         deltas = deltas_;
         weights = weights_;
     }
 
-    virtual Vector mean() const
+    /**
+     * @return The weighted mean of the deltas, or simply the first moment of
+     *         the distribution.
+     */
+    virtual Variate mean() const
     {
-        Vector mu(Vector::Zero(dimension()));
+        Variate mu(Variate::Zero(dimension()));
         for(size_t i = 0; i < deltas_.size(); i++)
             mu += weights_[i] * deltas_[i];
 
         return mu;
     }
 
+    /**
+     * @return The covariance or the second central moment of the distribution
+     */
     virtual SecondMoment covariance() const
     {
-        Vector mu = mean();
+        Variate mu = mean();
         SecondMoment cov(SecondMoment::Zero(dimension(), dimension()));
         for(size_t i = 0; i < deltas_.size(); i++)
             cov += weights_[i] * (deltas_[i]-mu) * (deltas_[i]-mu).transpose();
@@ -150,6 +198,9 @@ public:
         return cov;
     }
 
+    /**
+     * @return Dimension of the distribution variate
+     */
     virtual int dimension() const
     {
         return deltas_[0].rows();
