@@ -34,7 +34,9 @@ namespace fl
 {
 
 /// \todo MISSING DOC. MISSING UTESTS
-
+/**
+ * \ingroup distributions
+ */
 class TruncatedGaussian
         : public Evaluation<double, double>,
           public StandardGaussianMapping<double, double>

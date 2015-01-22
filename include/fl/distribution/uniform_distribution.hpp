@@ -33,6 +33,9 @@ namespace fl
 
 /// \todo MISSING DOC. MISSING UTESTS
 
+/**
+ * \ingroup distributions
+ */
 class UniformDistribution
         : public Evaluation<double, double>,
           public StandardGaussianMapping<double, double>
