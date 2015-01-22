@@ -34,15 +34,13 @@
 namespace fl
 {
 
-/// \todo MISSING UTESTS
-
 // Forward declarations
 template <typename State> class IntegratedDampedWienerProcessModel;
 
 /**
- * Linear IntegratedDampedWienerProcess process model traits. This trait
- * definition contains all types used internally within the linear model.
- * Additionally, it provides the types needed externally to use the model.
+ * IntegratedDampedWienerProcess process model traits. This trait definition
+ * contains all types used internally within the linear model. Additionally,
+ * it provides the types needed externally to use the model.
  */
 template <typename State_>
 struct Traits<IntegratedDampedWienerProcessModel<State_>>
@@ -51,8 +49,7 @@ struct Traits<IntegratedDampedWienerProcessModel<State_>>
     {
         /**
          * \brief Degree-of-freedom represents the number of position
-         * components, e.g. xyz-coordinates. Hence, this is the dimension
-         * of the accelaration vectors.
+         * components, e.g. xyz-coordinates
          */
         DegreeOfFreedom = IsFixed<State_::RowsAtCompileTime>()
                              ? State_::RowsAtCompileTime/2
@@ -66,15 +63,16 @@ struct Traits<IntegratedDampedWienerProcessModel<State_>>
      * - State
      * - Input
      * - Noise
-     */
-    typedef typename State_::Scalar Scalar;
+     */    
     typedef State_ State;
+    typedef typename State::Scalar Scalar;
     typedef Eigen::Matrix<Scalar, DegreeOfFreedom, 1> Input;
     typedef Eigen::Matrix<Scalar, DegreeOfFreedom, 1> Noise;
 
+    /* Model interfaces*/
     /**
-     * \brief Process model interface type using the State, Noise and Input
-     *        types
+     * \brief Basic process model interface type defined using the State, Noise
+     *        and Input types of this process
      */
     typedef ProcessModelInterface<State, Noise, Input> ProcessInterfaceBase;
 
@@ -95,16 +93,24 @@ struct Traits<IntegratedDampedWienerProcessModel<State_>>
 };
 
 /**
- * \brief Represents ...
  * \ingroup process_models
+ *
+ * \todo What does IntegratedDampedWienerProcessModel represent?
+ * \todo missing unit tests
+ * \brief Represents ...
  *
  *
  * \details
  */
 template <typename State>
 class IntegratedDampedWienerProcessModel
-        : public Traits<IntegratedDampedWienerProcessModel<State>>::ProcessInterfaceBase,
-          public Traits<IntegratedDampedWienerProcessModel<State>>::GaussianMappingBase
+        : public Traits<
+                    IntegratedDampedWienerProcessModel<State>
+                 >::ProcessInterfaceBase,
+
+          public Traits<
+                    IntegratedDampedWienerProcessModel<State>
+                 >::GaussianMappingBase
 {
 protected:
     /** \cond INTERNAL */
@@ -130,12 +136,14 @@ public:
      *              compile-time fix size, the \c dof argument is deduced
      *              automatically
      */
+    explicit
     IntegratedDampedWienerProcessModel(int dof = Traits<This>::DegreeOfFreedom)
         : Traits<This>::GaussianMappingBase(dof),
           velocity_distribution_(dof),
           position_distribution_(dof)
     {
-        static_assert(DimensionOf<State>() > 0,
+        static_assert(IsDynamic<State::SizeAtCompileTime>() ||
+                      DimensionOf<State>() > 0,
                       "Static state dimension must be greater than zero.");
 
         static_assert(DimensionOf<State>() % 2 == 0,
@@ -197,7 +205,9 @@ public:
                                 const Noise& noise,
                                 const Input& input)
     {
+        condition(delta_time, state, input);
 
+        return map_standard_normal(noise);
     }
 
     /**
@@ -232,14 +242,14 @@ public:
         return this->standard_variate_dimension();
     }
 
-    virtual void Parameters(
+    virtual void parameters(
             const double& damping,
             const SecondMoment& acceleration_covariance)
     {
         damping_ = damping;
         acceleration_covariance_ = acceleration_covariance;
 
-        velocity_distribution_.Parameters(damping, acceleration_covariance);
+        velocity_distribution_.parameters(damping, acceleration_covariance);
     }
 
 protected:
