@@ -49,31 +49,96 @@
 namespace fl
 {
 
-/// \todo MISSING DOC. MISSING UTESTS
+// Forward declarations
+template <
+    typename ProcessModel,
+    typename ObservationModel
+> class RaoBlackwellCoordinateParticleFilter;
 
+/**
+ * RaoBlackwellCoordinateParticleFilter Traits
+ */
+template <
+    typename ProcessModel,
+    typename ObservationModel
+>
+struct Traits<
+           RaoBlackwellCoordinateParticleFilter<ProcessModel, ObservationModel>
+       >
+{
+    typedef RaoBlackwellCoordinateParticleFilter<
+                ProcessModel,
+                ObservationModel
+            > Filter;
+
+    /*
+     * Required concept (interface) types
+     *
+     * - Ptr
+     * - State
+     * - Input
+     * - Observation
+     * - StateDistribution
+     */
+    typedef std::shared_ptr<Filter> Ptr;
+    typedef typename Traits<ProcessModel>::State State;
+    typedef typename Traits<ProcessModel>::Input Input;
+    typedef typename Traits<ProcessModel>::Noise Noise;
+    typedef typename ObservationModel::Observation Observation; //!< \todo traits missing
+
+    /**
+     * Represents the underlying distribution of the estimated state.
+     */
+    typedef SumOfDeltas<State> StateDistribution;
+
+    /** \cond INTERNAL */
+    typedef typename StateDistribution::Scalar Scalar;
+    /** \endcond */
+};
+
+
+/**
+ *
+ *
+ * \todo MISSING DOC. MISSING UTESTS
+ */
 template<typename ProcessModel, typename ObservationModel>
 class RaoBlackwellCoordinateParticleFilter
 {
-public:
-    typedef typename Traits<ProcessModel>::Scalar Scalar;
-    typedef typename Traits<ProcessModel>::State  State;
-    typedef typename Traits<ProcessModel>::Input  Input;
-    typedef typename Traits<ProcessModel>::Noise  Noise;
-
-    typedef typename ObservationModel::Observation Observation;
-
-    // state distribution
-    typedef SumOfDeltas<State> StateDistributionType;
+protected:
+    /** \cond INTERNAL */
+    typedef RaoBlackwellCoordinateParticleFilter<
+                ProcessModel,
+                ObservationModel
+            > This;
+    /** \endcond */
 
 public:
+    /* public concept interface types */
+    typedef typename Traits<This>::Scalar            Scalar;
+    typedef typename Traits<This>::State             State;
+    typedef typename Traits<This>::Input             Input;
+    typedef typename Traits<This>::Noise             Noise;
+    typedef typename Traits<This>::Observation       Observation;
+    typedef typename Traits<This>::StateDistribution StateDistribution;
+
+public:
+    /**
+     * Creates a RaoBlackwellCoordinateParticleFilter
+     *
+     * \param process_model         Process model instance
+     * \param observation_model     Obsrv model instance
+     * \param sampling_blocks
+     * \param max_kl_divergence
+     */
     RaoBlackwellCoordinateParticleFilter(
             const std::shared_ptr<ProcessModel> process_model,
             const std::shared_ptr<ObservationModel>  observation_model,
             const std::vector<std::vector<size_t>>& sampling_blocks,
-            const Scalar& max_kl_divergence = 0):
-        observation_model_(observation_model),
-        process_model_(process_model),
-        max_kl_divergence_(max_kl_divergence)
+            const Scalar& max_kl_divergence = 0)
+        : observation_model_(observation_model),
+          process_model_(process_model),
+          max_kl_divergence_(max_kl_divergence)
     {
         static_assert_base(
             ProcessModel,
@@ -90,9 +155,17 @@ public:
         SamplingBlocks(sampling_blocks);
     }
 
+    /**
+     * \brief Overridable default constructor
+     */
     virtual ~RaoBlackwellCoordinateParticleFilter() { }
 
 public:
+    /**
+     * \param observation
+     * \param delta_time
+     * \param input
+     */
     void Filter(const Observation&  observation,
                 const Scalar&       delta_time,
                 const Input&        input)
@@ -132,6 +205,9 @@ public:
         state_distribution_.SetDeltas(samples_); // not sure whether this is the right place
     }
 
+    /**
+     * \param sample_count
+     */
     void Resample(const size_t& sample_count)
     {
         std::vector<State> samples(sample_count);
@@ -228,14 +304,14 @@ public:
         return samples_;
     }
 
-    StateDistributionType& StateDistribution()
+    StateDistribution& state_distribution()
     {
         return state_distribution_;
     }
 
 private:
     // internal state TODO: THIS COULD BE MADE MORE COMPACT!!
-    StateDistributionType state_distribution_;
+    StateDistribution state_distribution_;
 
     std::vector<State > samples_;
     std::vector<size_t> indices_;
@@ -244,10 +320,7 @@ private:
     std::vector<State> next_samples_;
     std::vector<Scalar> loglikes_;
 
-    // observation model
     std::shared_ptr<ObservationModel> observation_model_;
-
-    // process model
     std::shared_ptr<ProcessModel> process_model_;
 
     // parameters
