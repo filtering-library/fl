@@ -11,6 +11,7 @@
 #include <Eigen/Dense>
 
 #include <random>
+#include <type_traits>
 
 #include <fl/util/random.hpp>
 #include <fl/util/traits.hpp>
@@ -77,60 +78,91 @@ private:
     mutable std::normal_distribution<> gaussian_distribution_;
 };
 
-// specialization for scalar
-template<>
-class StandardGaussian<double>
-        : public Sampling<double>
+
+/** \cond IMPL_DETAILS */
+/**
+ * Floating point implementation for Scalar types float, double and long double
+ */
+template <typename Scalar>
+class StandardGaussianFloatingPointScalarImpl
 {
+    static_assert(
+        std::is_floating_point<Scalar>::value,
+        "Scalar must be a floating point (float, double, long double)");
+
 public:
-    StandardGaussian()
+    StandardGaussianFloatingPointScalarImpl()
         : generator_(fl::seed()),
-          gaussian_distribution_(0.0, 1.0)
+          gaussian_distribution_(Scalar(0.), Scalar(1.))
     { }
 
-    virtual ~StandardGaussian() { }
-
-    virtual double sample() const
+    Scalar sample_impl() const
     {
         return gaussian_distribution_(generator_);
     }
 
-    virtual int dimension() const
-    {
-        return 1;
-    }
-
-private:
+protected:
     mutable fl::mt11213b generator_;
-    mutable std::normal_distribution<double> gaussian_distribution_;
+    mutable std::normal_distribution<Scalar> gaussian_distribution_;
 };
+/** \endcond */
 
 
-template<>
+/**
+ * Float floating point StandardGaussian specialization
+ * \ingroup distributions
+ */
+template <>
 class StandardGaussian<float>
-        : public Sampling<float>
+        : public Sampling<float>,
+          public StandardGaussianFloatingPointScalarImpl<float>
 {
 public:
-    StandardGaussian()
-        : generator_(fl::seed()),
-          gaussian_distribution_(0.0f, 1.0f)
-    { }
-
-    virtual ~StandardGaussian() { }
-
+    /**
+     * \copydoc Sampling::sample
+     */
     virtual float sample() const
     {
-        return gaussian_distribution_(generator_);
+        return this->sample_impl();
     }
+};
 
-    virtual int dimension() const
+/**
+ * Double floating point StandardGaussian specialization
+ * \ingroup distributions
+ */
+template <>
+class StandardGaussian<double>
+        : public Sampling<double>,
+          public StandardGaussianFloatingPointScalarImpl<double>
+{
+public:
+    /**
+     * \copydoc Sampling::sample
+     */
+    virtual double sample() const
     {
-        return 1;
+        return this->sample_impl();
     }
+};
 
-private:
-    mutable fl::mt11213b generator_;
-    mutable std::normal_distribution<float> gaussian_distribution_;
+/**
+ * Long double floating point StandardGaussian specialization
+ * \ingroup distributions
+ */
+template <>
+class StandardGaussian<long double>
+        : public Sampling<long double>,
+          public StandardGaussianFloatingPointScalarImpl<long double>
+{
+public:
+    /**
+     * \copydoc Sampling::sample
+     */
+    virtual long double sample() const
+    {
+        return this->sample_impl();
+    }
 };
 
 }
