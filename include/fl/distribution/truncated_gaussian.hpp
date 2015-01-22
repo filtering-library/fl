@@ -54,7 +54,7 @@ public:
 
     virtual ~TruncatedGaussian() { }
 
-    virtual void SetParameters(double mean, double sigma, double min, double max)
+    virtual void parameters(double mean, double sigma, double min, double max)
     {
         mean_ =  mean;
         sigma_ = sigma;
