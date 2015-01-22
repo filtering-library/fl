@@ -1,51 +1,28 @@
 /*
- * Software License Agreement (BSD License)
+ * This is part of the FL library, a C++ Bayesian filtering library
+ * (https://github.com/filtering-library)
  *
- *  Copyright (c) 2014 Max-Planck-Institute for Intelligent Systems,
- *                     University of Southern California
- *    Manuel Wuthrich (manuel.wuthrich@gmail.com)
+ * Copyright (c) 2014 Jan Issac (jan.issac@gmail.com)
+ * Copyright (c) 2014 Manuel Wuthrich (manuel.wuthrich@gmail.com)
  *
+ * Max-Planck Institute for Intelligent Systems, AMD Lab
+ * University of Southern California, CLMC Lab
  *
- *
- *  Redistribution and use in source and binary forms, with or without
- *  modification, are permitted provided that the following conditions
- *  are met:
- *
- *   * Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above
- *     copyright notice, this list of conditions and the following
- *     disclaimer in the documentation and/or other materials provided
- *     with the distribution.
- *   * Neither the name of Willow Garage, Inc. nor the names of its
- *     contributors may be used to endorse or promote products derived
- *     from this software without specific prior written permission.
- *
- *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- *  POSSIBILITY OF SUCH DAMAGE.
- *
+ * This Source Code Form is subject to the terms of the MIT License (MIT).
+ * A copy of the license can be found in the LICENSE file distributed with this
+ * source code.
  */
+
 
 /**
- * @date 05/25/2014
- * @author Manuel Wuthrich (manuel.wuthrich@gmail.com)
- * Max-Planck-Institute for Intelligent Systems, University of Southern California
+ * \file damped_wiener_process_model.hpp
+ * \date 05/25/2014
+ * \author Manuel Wuthrich (manuel.wuthrich@gmail.com)
+ * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FAST_FILTERING_MODELS_PROCESS_MODELS_DAMPED_WIENER_PROCESS_MODEL_HPP
-#define FAST_FILTERING_MODELS_PROCESS_MODELS_DAMPED_WIENER_PROCESS_MODEL_HPP
-
-//TODO: THIS IS A LINEAR GAUSSIAN PROCESS, THIS CLASS SHOULD DISAPPEAR
+#ifndef FL__MODEL__PROCESS__DAMPED_WIENER_PROCESS_MODEL_HPP
+#define FL__MODEL__PROCESS__DAMPED_WIENER_PROCESS_MODEL_HPP
 
 #include <Eigen/Dense>
 
@@ -53,68 +30,116 @@
 #include <fl/distribution/gaussian.hpp>
 #include <fl/model/process/process_model_interface.hpp>
 
-
-
 namespace fl
 {
-
-/// \todo MISSING DOC. MISSING UTESTS
 
 // Forward declarations
 template <typename State> class DampedWienerProcessModel;
 
 /**
- * DampedWienerProcess distribution traits specialization
- * \internal
+ * DampedWienerProcess process model traits. This trait definition contains
+ * all types used internally within the linear model. Additionally, it provides
+ * the types needed externally to use the model.
  */
 template <typename State_>
 struct Traits<DampedWienerProcessModel<State_>>
 {
-    typedef State_                                              State;
-    typedef typename State::Scalar                              Scalar;
+    /*
+     * Required types
+     *
+     * - Scalar
+     * - State
+     * - Input
+     * - Noise
+     */
+    typedef State_ State;
+    typedef typename State::Scalar Scalar;
     typedef Eigen::Matrix<Scalar, State::SizeAtCompileTime, 1>  Input;
     typedef Eigen::Matrix<Scalar, State::SizeAtCompileTime, 1>  Noise;
 
-    typedef Gaussian<Noise> GaussianType;
-    typedef typename GaussianType::SecondMoment SecondMoment;
-
-    typedef StandardGaussianMapping<State, Noise> GaussianMappingBase;
+    /* Model interfaces*/
+    /**
+     * \brief Basic process model interface type defined using the State, Noise
+     *        and Input types of this process
+     */
     typedef ProcessModelInterface<State, Noise, Input> ProcessInterfaceBase;
+
+    /**
+     * \brief Interface definition used to map standard normal noise variates
+     *        onto a state variate
+     */
+    typedef StandardGaussianMapping<State, Noise> GaussianMappingBase;
+
+    /** \cond INTERNAL */
+    typedef Gaussian<Noise> NoiseGaussian;
+    typedef typename NoiseGaussian::SecondMoment SecondMoment;
+    /** \endcond */
 };
 
 /**
- * \class DampedWienerProcess
- *
  * \ingroup process_models
+ * \sa Traits<DampedWienerProcessModel<State>>
+ * \todo What does IntegratedDampedWienerProcessModel represent?
+ * \todo missing unit tests
+ *
+ * \brief Represents ...
+ *
+ * \details
  */
 template <typename State>
-class DampedWienerProcessModel:
-        public Traits<DampedWienerProcessModel<State>>::GaussianMappingBase,
-        public Traits<DampedWienerProcessModel<State>>::ProcessInterfaceBase
+class DampedWienerProcessModel
+        : public Traits<DampedWienerProcessModel<State>>::GaussianMappingBase,
+          public Traits<DampedWienerProcessModel<State>>::ProcessInterfaceBase
 {
 public:
     typedef DampedWienerProcessModel<State> This;
 
     typedef typename Traits<This>::Scalar         Scalar;
-    typedef typename Traits<This>::SecondMoment       SecondMoment;
+    typedef typename Traits<This>::SecondMoment   SecondMoment;
     typedef typename Traits<This>::Input          Input;
     typedef typename Traits<This>::Noise          Noise;
-    typedef typename Traits<This>::GaussianType   GaussianType;
+    typedef typename Traits<This>::NoiseGaussian   NoiseGaussian;
 
 public:
-    explicit DampedWienerProcessModel(size_t dim = DimensionOf<State>())
+
+    /**
+     * Constructor of a fixed-size and dynamic-size DampedWiener
+     * process model.
+     *
+     * \param dim   State dimension which must be specified for dynamic-size
+     *              states. If the state has a compile-time fix size, the \c dim
+     *              argument is deduced automatically
+     */
+    explicit
+    DampedWienerProcessModel(size_t dim = DimensionOf<State>())
         : Traits<This>::GaussianMappingBase(dim),
           gaussian_(dim)
     {
+        static_assert(IsDynamic<State::SizeAtCompileTime>() ||
+                      DimensionOf<State>() > 0,
+                      "Static state dimension must be greater than zero.");
     }
 
+    /**
+     * \brief  Overridable default destructor
+     */
     virtual ~DampedWienerProcessModel() { }
 
+    /**
+     * Mapps the specified noise sample onto the a state variate.
+     *
+     * \param sample    Noise variate
+     *
+     * \return A state variate given the noise sample
+     */
     virtual State map_standard_normal(const Noise& sample) const
     {
         return gaussian_.map_standard_normal(sample);
     }
 
+    /**
+     * \copydoc ProcessModelInterface::condition
+     */
     virtual void condition(const Scalar&  delta_time,
                            const State&  state,
                            const Input&   input)
@@ -123,19 +148,11 @@ public:
         gaussian_.diagonal_covariance(covariance(delta_time));
     }
 
-    virtual void Parameters(const Scalar& damping,
-                            const SecondMoment& noise_covariance)
-    {
-        damping_ = damping;
-        noise_covariance_ = noise_covariance;
-    }
-
-    virtual unsigned dimension() const
-    {
-        return this->standard_variate_dimension();
-    }
 
     /* interface API */
+    /**
+     * \copydoc ProcessModelInterface::condition
+     */
     virtual State predict_state(double delta_time,
                                 const State& state,
                                 const Noise& noise,
@@ -146,54 +163,119 @@ public:
         return map_standard_normal(noise);
     }
 
+    virtual void parameters(const Scalar& damping,
+                            const SecondMoment& noise_covariance)
+    {
+        damping_ = damping;
+        noise_covariance_ = noise_covariance;
+    }
+
+    /**
+     * This is the same as the state dimension since the state represents the
+     * process distribution variate.
+     *
+     * \return dimension of the state or the process variate
+     */
+    virtual size_t dimension() const
+    {
+        return state_dimension();
+    }
+
+    /**
+     * \copydoc ProcessModelInterface::state_dimension
+     */
     virtual size_t state_dimension() const
     {
         return this->standard_variate_dimension();
     }
 
+    /**
+     * \copydoc ProcessModelInterface::noise_dimension
+     */
     virtual size_t noise_dimension() const
     {
         return this->standard_variate_dimension();
     }
 
+    /**
+     * \copydoc ProcessModelInterface::input_dimension
+     */
     virtual size_t input_dimension() const
     {
         return this->standard_variate_dimension();
     }
 
-private:
+protected:
+    /**
+     * \param delta_time    \f$\Delta t\f$
+     * \param state         \f$x\f$
+     * \param input         \f$u\f$
+     *
+     * \return
+     * \f[
+     * \mu = e^{-\Delta t d} x + \frac{1-e^{-\Delta t d}}{d}u
+     * \f]
+     */
     State mean(const Scalar& delta_time,
-                    const State& state,
-                    const Input& input)
+               const State& state,
+               const Input& input)
     {
-        if(damping_ == 0)
-            return state + delta_time * input;
+        // for readability ... the compiler optimizes this out
+        const double dt = delta_time;
+        const Scalar d = damping_;
+        const double exp_ddt = std::exp(-d * dt);
 
-        State state_expectation = (1.0 - exp(-damping_*delta_time)) / damping_ * input +
-                                              exp(-damping_*delta_time)  * state;
+        if(d == 0) return state + delta_time * input;
 
-        // if the damping_ is too small, the result might be nan, we thus return the limit for damping_ -> 0
+        State state_expectation = (1.0 - exp_ddt) / d * input + exp_ddt * state;
+
+        /*
+         * if the damping_ is too small, the result might be nan, we thus return
+         * the limit for damping_ -> 0
+         */
         if(!std::isfinite(state_expectation.norm()))
-            state_expectation = state + delta_time * input;
+        {
+            state_expectation = state + d * input;
+        }
 
         return state_expectation;
     }
 
+    /**
+     * \param delta_time    \f$\Delta t\f$
+     *
+     * \return
+     * \f[
+     * \Sigma = f \Sigma_{v}
+     * \f]
+     *
+     * with
+     *
+     * noise covariance matrix \f$\Sigma_{v}\f$ and the factor
+     * \f[
+     * f = \frac{1 - e^{-2 \Delta t d}}{2 d}
+     * \f]
+     * while
+     * \f$d\f$ being the damping constant.
+     */
     SecondMoment covariance(const Scalar& delta_time)
     {
-        if(damping_ == 0)
-            return delta_time * noise_covariance_;
+        // for readability ... the compiler optimizes this out
+        const double dt = delta_time;
+        const Scalar d = damping_;
 
-        Scalar factor = (1.0 - exp(-2.0*damping_*delta_time))/(2.0*damping_);
-        if(!std::isfinite(factor))
-            factor = delta_time;
+        if(d == 0) return dt * noise_covariance_;
+
+        Scalar factor = (1.0 - std::exp(-2.0 * d * dt)) / (2.0 * d);
+
+        if(!std::isfinite(factor)) factor = dt;
 
         return factor * noise_covariance_;
     }
 
 private:
     // conditional
-    GaussianType gaussian_;
+    NoiseGaussian gaussian_;
 
     // parameters
     Scalar damping_;
