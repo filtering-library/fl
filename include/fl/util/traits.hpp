@@ -49,8 +49,10 @@ template <typename> struct Traits { };
  *
  * if (IsDynamic<MyEigenMatrixType::SizeAtCompileTime>::value) ...
  */
-template <int> struct IsDynamic
+template <int Size> struct IsDynamic
 {
+    static_assert(Size > Eigen::Dynamic, "Invalid static size");
+
     static constexpr bool value = false;
     constexpr operator bool () { return value; }
 };
@@ -91,8 +93,10 @@ template <> struct IsDynamic<Eigen::Dynamic>
  * // overloaded operator bool ()
  * if (IsFixed<MyEigenMatrixType::SizeAtCompileTime>()) ...
  */
-template <int> struct IsFixed
+template <int Size> struct IsFixed
 {
+    static_assert(Size > Eigen::Dynamic, "Invalid static size");
+
     static constexpr bool value = true;
     constexpr operator bool () { return value; }
 };
@@ -151,6 +155,17 @@ template <typename Matrix> struct DimensionOf
 template <int A, int B> struct MaxOf
 {
     static constexpr int value = (A > B) ? A : B;
+    constexpr operator int () { return value; }
+};
+
+/**
+ * \ingroup traits
+ *
+ * \brief Returns simple the min integer of A and B
+ */
+template <int A, int B> struct MinOf
+{
+    static constexpr int value = (A < B) ? A : B;
     constexpr operator int () { return value; }
 };
 
