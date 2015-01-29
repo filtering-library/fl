@@ -65,7 +65,7 @@ public:
     typedef Eigen::Matrix<double, 3, 1> State;
     typedef Eigen::Matrix<double, 5, 1> Observation;
 
-    typedef ff::FactorizedUnscentedKalmanFilter<
+    typedef fl::FactorizedUnscentedKalmanFilter<
                     ProcessModelDummy<State>,
                     ProcessModelDummy<State>,
                     ObservationModelDummy<State, Observation>> Filter;

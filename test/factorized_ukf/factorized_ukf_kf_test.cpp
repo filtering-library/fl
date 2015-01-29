@@ -59,7 +59,6 @@
 #include <boost/make_shared.hpp>
 
 #include <fl/util/traits.hpp>
-#include <ff/filters/deterministic/kalman_filter.hpp>
 #include <fl/model/process/linear_process_model.hpp>
 #include <fl/model/observation/linear_observation_model.hpp>
 #include <ff/filters/deterministic/composed_state_distribution.hpp>
@@ -90,8 +89,8 @@ template <typename V1, typename V2> bool areSimilar(V1 v1, V2 v2)
 }
 
 template <typename D1, typename D2> void step_prints(D1& kf_state_dist,
-                                                    D2& fukf_state_dist,
-                                                    std::string step,
+                                                     D2& fukf_state_dist,
+                                                     std::string step,
                                                      size_t i)
 {
     if (!VERBOSE) return;

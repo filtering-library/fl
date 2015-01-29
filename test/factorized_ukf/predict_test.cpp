@@ -72,7 +72,7 @@ public:
 
     typedef typename ObservationModel_y_i::Observation Measurement_y_i;
 
-    typedef ff::FactorizedUnscentedKalmanFilter<
+    typedef fl::FactorizedUnscentedKalmanFilter<
                     ProcessModel_a,
                     ProcessModel_b_i,
                     ObservationModel_y_i> Filter;

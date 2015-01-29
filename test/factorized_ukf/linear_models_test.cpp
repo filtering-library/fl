@@ -53,9 +53,9 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
 
-#include <fast_filtering/models/process_models/linear_process_model.hpp>
-#include <fast_filtering/models/observation_models/linear_observation_model.hpp>
-#include <fast_filtering/filters/deterministic/factorized_unscented_kalman_filter.hpp>
+#include <fl/model/process/linear_process_model.hpp>
+#include <fl/model/observation/linear_observation_model.hpp>
+#include <ff/filters/deterministic/factorized_unscented_kalman_filter.hpp>
 
 TEST(FUKFAndLinearModels, init_fixedsize_predict)
 {
@@ -64,14 +64,14 @@ TEST(FUKFAndLinearModels, init_fixedsize_predict)
     typedef Eigen::Matrix<Scalar, 1, 1> State_b;
     typedef Eigen::Matrix<Scalar, 20, 1> Observation;
 
-    typedef ff::LinearGaussianProcessModel<State_a> ProcessModel_a;
-    typedef ff::LinearGaussianProcessModel<State_b> ProcessModel_b;
-    typedef ff::FactorizedLinearGaussianObservationModel<
+    typedef fl::LinearGaussianProcessModel<State_a> ProcessModel_a;
+    typedef fl::LinearGaussianProcessModel<State_b> ProcessModel_b;
+    typedef fl::FactorizedLinearGaussianObservationModel<
                     Observation,
                     State_a,
                     State_b> ObservationModel;
 
-    typedef ff::FactorizedUnscentedKalmanFilter<ProcessModel_a,
+    typedef fl::FactorizedUnscentedKalmanFilter<ProcessModel_a,
                                                 ProcessModel_b,
                                                 ObservationModel> Filter;
 
@@ -118,14 +118,14 @@ TEST(FUKFAndLinearModels, init_dynamicsize_predict)
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> State_b;
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Observation;
 
-    typedef ff::LinearGaussianProcessModel<State_a> ProcessModel_a;
-    typedef ff::LinearGaussianProcessModel<State_b> ProcessModel_b;
-    typedef ff::FactorizedLinearGaussianObservationModel<
+    typedef fl::LinearGaussianProcessModel<State_a> ProcessModel_a;
+    typedef fl::LinearGaussianProcessModel<State_b> ProcessModel_b;
+    typedef fl::FactorizedLinearGaussianObservationModel<
                     Observation,
                     State_a,
                     State_b> ObservationModel;
 
-    typedef ff::FactorizedUnscentedKalmanFilter<ProcessModel_a,
+    typedef fl::FactorizedUnscentedKalmanFilter<ProcessModel_a,
                                                 ProcessModel_b,
                                                 ObservationModel> Filter;
 
@@ -181,14 +181,14 @@ TEST(FUKFAndLinearModels, fixedsize_predict_update)
             2 * Observation::RowsAtCompileTime,
             1> JointObservation;
 
-    typedef ff::LinearGaussianProcessModel<State_a> ProcessModel_a;
-    typedef ff::LinearGaussianProcessModel<State_b> ProcessModel_b;
-    typedef ff::FactorizedLinearGaussianObservationModel<
+    typedef fl::LinearGaussianProcessModel<State_a> ProcessModel_a;
+    typedef fl::LinearGaussianProcessModel<State_b> ProcessModel_b;
+    typedef fl::FactorizedLinearGaussianObservationModel<
                     Observation,
                     State_a,
                     State_b> ObservationModel;
 
-    typedef ff::FactorizedUnscentedKalmanFilter<ProcessModel_a,
+    typedef fl::FactorizedUnscentedKalmanFilter<ProcessModel_a,
                                                 ProcessModel_b,
                                                 ObservationModel> Filter;
 
@@ -280,14 +280,14 @@ TEST(FUKFAndLinearModels, dynamicsize_predict_update)
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> State_b;
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Observation;
 
-    typedef ff::LinearGaussianProcessModel<State_a> ProcessModel_a;
-    typedef ff::LinearGaussianProcessModel<State_b> ProcessModel_b;
-    typedef ff::FactorizedLinearGaussianObservationModel<
+    typedef fl::LinearGaussianProcessModel<State_a> ProcessModel_a;
+    typedef fl::LinearGaussianProcessModel<State_b> ProcessModel_b;
+    typedef fl::FactorizedLinearGaussianObservationModel<
                     Observation,
                     State_a,
                     State_b> ObservationModel;
 
-    typedef ff::FactorizedUnscentedKalmanFilter<ProcessModel_a,
+    typedef fl::FactorizedUnscentedKalmanFilter<ProcessModel_a,
                                                 ProcessModel_b,
                                                 ObservationModel> Filter;
 

@@ -51,10 +51,7 @@
 #include <iostream>
 #include <vector>
 #include <ctime>
-
-#include <boost/iterator/zip_iterator.hpp>
-#include <boost/range.hpp>
-#include <boost/make_shared.hpp>
+#include <memory>
 
 #include "factorized_ukf_dummies.hpp"
 
@@ -72,15 +69,15 @@ public:
     typedef ProcessModelDummy<State> ProcessModel;
     typedef ObservationModelDummy<State, Observation> ObservationModel;
 
-    typedef ff::FactorizedUnscentedKalmanFilter<
+    typedef fl::FactorizedUnscentedKalmanFilter<
                     ProcessModel,
                     ProcessModel,
                     ObservationModel > Filter;
 
     PartitionedUnscentedTransformTest():
-        filter(Filter(boost::make_shared<ProcessModel>(),
-                      boost::make_shared<ProcessModel>(),
-                      boost::make_shared<ObservationModel>()))
+        filter(Filter(std::make_shared<ProcessModel>(),
+                      std::make_shared<ProcessModel>(),
+                      std::make_shared<ObservationModel>()))
     {
 
     }

@@ -48,22 +48,22 @@
 
 #include <Eigen/Dense>
 
-#include <fast_filtering/distributions/interfaces/gaussian_map.hpp>
-#include <fast_filtering/models/process_models/interfaces/stationary_process_model.hpp>
-#include <fast_filtering/filters/deterministic/factorized_unscented_kalman_filter.hpp>
+#include <fl/distributions/interfaces/gaussian_map.hpp>
+#include <fl/models/process_models/interfaces/stationary_process_model.hpp>
+#include <fl/filters/deterministic/factorized_unscented_kalman_filter.hpp>
 
 
 
 template <typename State_>
 class ProcessModelStub:
-        public ff::StationaryProcessModel<State_>,
-        public ff::GaussianMap<State_, State_>
+        public fl::StationaryProcessModel<State_>,
+        public fl::GaussianMap<State_, State_>
 {
 public:
     typedef State_ State;
     typedef State_ Noise;
     typedef typename State::Scalar Scalar;
-    typedef typename ff::StationaryProcessModel<State_>::Input Input;
+    typedef typename fl::StationaryProcessModel<State_>::Input Input;
 
     virtual void Condition(const double& delta_time,
                            const State& state,
@@ -98,7 +98,7 @@ protected:
 
 template <typename State_a, typename State_b_i>
 class ObservationModelStub:
-        public ff::GaussianMap<Eigen::Matrix<double, 1, 1>, Eigen::Matrix<double, 1, 1>>
+        public fl::GaussianMap<Eigen::Matrix<double, 1, 1>, Eigen::Matrix<double, 1, 1>>
 {
 public:
     typedef Eigen::Matrix<double, 1, 1> Observation;
