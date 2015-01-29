@@ -38,9 +38,9 @@
  */
 
 /**
- * @date 2014
- * @author Jan Issac (jan.issac@gmail.com)
- * @author Manuel Wuthrich (manuel.wuthrich@gmail.com)
+ * \date 2014
+ * \author Jan Issac (jan.issac@gmail.com)
+ * \author Manuel Wuthrich (manuel.wuthrich@gmail.com)
  * Max-Planck-Institute for Intelligent Systems, University of Southern California
  */
 
@@ -78,13 +78,13 @@ template<typename CohesiveStateProcessModel,
 class FactorizedUnscentedKalmanFilter
 {
 public:
-    typedef typename CohesiveStateProcessModel::State State_a;
-    typedef typename CohesiveStateProcessModel::Noise Noise_a;
-    typedef typename CohesiveStateProcessModel::Input Input_a;
+    typedef typename Traits<CohesiveStateProcessModel>::State State_a;
+    typedef typename Traits<CohesiveStateProcessModel>::Noise Noise_a;
+    typedef typename Traits<CohesiveStateProcessModel>::Input Input_a;
 
-    typedef typename FactorizedStateProcessModel::State State_b_i;
-    typedef typename FactorizedStateProcessModel::Noise Noise_b_i;
-    typedef typename FactorizedStateProcessModel::Input Input_b_i;
+    typedef typename Traits<FactorizedStateProcessModel>::State State_b_i;
+    typedef typename Traits<FactorizedStateProcessModel>::Noise Noise_b_i;
+    typedef typename Traits<FactorizedStateProcessModel>::Input Input_b_i;
         
     typedef typename ObservationModel::Observation Observation;
 
@@ -119,8 +119,8 @@ public:
         kappa_(kappa)
     {
         static_assert(std::is_same<
-                          typename CohesiveStateProcessModel::Scalar,
-                          typename FactorizedStateProcessModel::Scalar
+                          typename Traits<CohesiveStateProcessModel>::Scalar,
+                          typename Traits<FactorizedStateProcessModel>::Scalar
                       >::value,
                       "Scalar types of both models must be the same.");
 
@@ -143,10 +143,10 @@ public:
     /**
      * Predicts the state for the next time step
      *
-     * @param [in]  prior_state         State prior distribution
-     * @param [out] predicted_state     Predicted state posterior distribution
+     * \param [in]  prior_state         State prior distribution
+     * \param [out] predicted_state     Predicted state posterior distribution
      *
-     * @note TESTED
+     * \note TESTED
      */
     void Predict(const StateDistribution& prior_state,
                  double delta_time,
@@ -220,11 +220,11 @@ public:
      * The update step involves updating the cohesive state followed by the
      * update of the factorized part
      *
-     * @param [in]  predicted_state     Propagated state
-     * @param [in]  y                   Measurement
-     * @param [out] posterior_state     Updated posterior state
+     * \param [in]  predicted_state     Propagated state
+     * \param [in]  y                   Measurement
+     * \param [out] posterior_state     Updated posterior state
      *
-     * @attention NEEDS TO BE TESTED
+     * \attention NEEDS TO BE TESTED
      */
     void Update(const StateDistribution& predicted_state,
                 const Eigen::MatrixXd& y,
@@ -239,11 +239,11 @@ public:
      * Update the cohesive predicted_state part a assuming a multi-dimensoinal
      * measurements for each factor
      *
-     * @param [in]  predicted_state     Propagated state
-     * @param [in]  y                   Measurement
-     * @param [out] posterior_state     Updated posterior state
+     * \param [in]  predicted_state     Propagated state
+     * \param [in]  y                   Measurement
+     * \param [out] posterior_state     Updated posterior state
      *
-     * @attention NEEDS TO BE TESTED
+     * \attention NEEDS TO BE TESTED
      */
     template <typename RT = void>
     typename std::enable_if<Observation::SizeAtCompileTime != 1, RT>::type
@@ -310,11 +310,11 @@ public:
      * Update the cohesive predicted_state part a assuming a one-dimensoinal
      * measurements for each factor
      *
-     * @param [in]  predicted_state     Propagated state
-     * @param [in]  y                   Measurement
-     * @param [out] posterior_state     Updated posterior state
+     * \param [in]  predicted_state     Propagated state
+     * \param [in]  y                   Measurement
+     * \param [out] posterior_state     Updated posterior state
      *
-     * @attention NEEDS TO BE TESTED
+     * \attention NEEDS TO BE TESTED
      */
     template <typename RT = void>
     typename std::enable_if<Observation::SizeAtCompileTime == 1, RT>::type
@@ -372,7 +372,7 @@ public:
 
         A = A * cov_aa_inv;
 
-        InvertDiagonalAsVector(cov_yy_given_a_inv, cov_yy_given_a_inv);
+        invert_diagonal_Vector(cov_yy_given_a_inv, cov_yy_given_a_inv);
         Eigen::MatrixXd AT_Cov_yy_given_a =
                 A.transpose() * cov_yy_given_a_inv.asDiagonal();
 
@@ -387,11 +387,11 @@ public:
      * Update the factorized predicted_state part b given the updated cohesive
      * part a.
      *
-     * @param [in]  predicted_state     Propagated state
-     * @param [in]  y                   Measurement
-     * @param [out] posterior_state     Updated posterior state
+     * \param [in]  predicted_state     Propagated state
+     * \param [in]  y                   Measurement
+     * \param [out] posterior_state     Updated posterior state
      *
-     * @attention NEEDS TO BE TESTED
+     * \attention NEEDS TO BE TESTED
      */
     void Update_b(const StateDistribution& predicted_state,
                   const Eigen::MatrixXd& y,
@@ -435,7 +435,7 @@ public:
             const Cov_bb& cov_bb = partition.cov_bb;
             const Cov_yy& cov_yy = partition.cov_yy;
 
-            SMWInversion(cov_aa_inv, cov_ay, cov_ay.transpose(), cov_yy,
+            smw_inverse(cov_aa_inv, cov_ay, cov_ay.transpose(), cov_yy,
                          L_aa, L_ay, L_ya, L_yy,
                          L);
 
@@ -512,9 +512,9 @@ public:
     }
 
     /**
-     * @brief Dim Returns the dimension of the specified random variable ID
+     * \brief Dim Returns the dimension of the specified random variable ID
      *
-     * @param var_id    ID of the requested random variable
+     * \param var_id    ID of the requested random variable
      */
     size_t Dim(RandomVariableIndex var_id)
     {
@@ -532,7 +532,7 @@ public:
     /**
      * Computes the weighted mean of the given sigma points
      *
-     * @note TESTED
+     * \note TESTED
      */
     template <typename MeanVector>
     void mean(const SigmaPoints& sigma_points, MeanVector& mean)
@@ -552,12 +552,12 @@ public:
     /**
      * Normalizes the given sigma point such that they represent zero mean
      * weighted points.
-     * @param [in]  mean          Mean of the sigma points
-     * @param [in]  w             Weights of the points used to determine the
+     * \param [in]  mean          Mean of the sigma points
+     * \param [in]  w             Weights of the points used to determine the
      *                            covariance
-     * @param [out] sigma_points  The sigma point collection
+     * \param [out] sigma_points  The sigma point collection
      *
-     * @note TESTED
+     * \note TESTED
      */
     template <typename MeanVector>    
     void Normalize(const MeanVector& mean, SigmaPoints& sigma_points)
@@ -583,11 +583,11 @@ public:
      * Computes the Unscented Transform weights according to the specified
      * sigmapoints
      *
-     * @param [in]  number_of_sigma_points
-     * @param [out] w_0_sqrt    The weight for the first sigma point
-     * @param [out] w_i_sqrt    The weight for the remaining sigma points
+     * \param [in]  number_of_sigma_points
+     * \param [out] w_0_sqrt    The weight for the first sigma point
+     * \param [out] w_i_sqrt    The weight for the remaining sigma points
      *
-     * @note TESTED
+     * \note TESTED
      */
     void ComputeWeights(size_t number_of_sigma_points,
                         double& w_0,
@@ -604,13 +604,13 @@ public:
     /**
      * Computes the sigma point partitions for all specified moment pairs
      *
-     * @param moments_list              Moment pair of each partition.
+     * \param moments_list              Moment pair of each partition.
      *                                  For a place holder, the first moment
      *                                  (the mean) must have the required number
      *                                  of rows and 0 columns.
-     * @param sigma_point_partitions    sigma point partitions
+     * \param sigma_point_partitions    sigma point partitions
      *
-     * @note TESTED
+     * \note TESTED
      */
     void ComputeSigmaPointPartitions(
             const std::vector<std::pair<Eigen::MatrixXd,
@@ -647,13 +647,13 @@ public:
      * points in Xb is 2*dim([Xa  Xb  Xc])+1. In so doing, the sigma points of X
      * can be computed partition wise, and ultimately augmented together.
      *
-     * @param [in]  mean          First moment
-     * @param [in]  covariance    Second centered moment
-     * @param [in]  offset        Offset dimension if this transform is a
+     * \param [in]  mean          First moment
+     * \param [in]  covariance    Second centered moment
+     * \param [in]  offset        Offset dimension if this transform is a
      *                            partition of a larger one
-     * @param [out] sigma_points  Selected sigma points
+     * \param [out] sigma_points  Selected sigma points
      *
-     * @note TESTED
+     * \note TESTED
      */
     template <typename MeanVector, typename CovarianceMatrix>
     void ComputeSigmaPoints(const MeanVector& mean,
@@ -692,173 +692,6 @@ public:
         }
     }
 
-    /**
-     * @note TESTED
-     */
-    template <typename RegularMatrix, typename SquareRootMatrix>
-    void square_root(const RegularMatrix& regular_matrix,
-                    SquareRootMatrix& square_root)
-    {
-        square_root = regular_matrix.llt().matrixL();
-    }
-
-    /**
-     * @note TESTED
-     */
-    template <typename RegularMatrix>
-    void SquareRootDiagonal(const RegularMatrix& regular_matrix,
-                            RegularMatrix& square_root)
-    {
-        square_root = regular_matrix;
-        for (size_t i = 0; i < square_root.rows(); ++i)
-        {
-            square_root(i, i) = std::sqrt(square_root(i, i));
-        }
-    }
-
-    /**
-     * @note TESTED
-     */
-    template <typename RegularMatrix, typename SquareRootVector>
-    void SquareRootDiagonalAsVector(const RegularMatrix& regular_matrix,
-                                  SquareRootVector& square_root)
-    {
-        square_root = regular_matrix;
-        for (size_t i = 0; i < square_root.rows(); ++i)
-        {
-            square_root(i, 0) = std::sqrt(square_root(i, 0));
-        }
-    }
-
-    template <typename DiagonalMatrix>
-    void InvertDiagonalAsVector(const DiagonalMatrix& diagonal,
-                                DiagonalMatrix& diagonal_inverse)
-    {
-        diagonal_inverse.resize(diagonal.rows(), 1);
-
-        for (size_t i = 0; i < diagonal.rows(); ++i)
-        {
-            diagonal_inverse(i, 0) = 1./diagonal(i, 0);
-        }
-    }
-
-    /**
-     * Blockweise matrix inversion using the Sherman-Morrision-Woodbury
-     * indentity given that \f$\Sigma^{-1}_{aa}\f$ of
-     *
-     * \f$
-     *  \begin{pmatrix} \Sigma_{aa} & \Sigma_{ab} \\
-     *                  \Sigma_{ba} & \Sigma_{bb} \end{pmatrix}^{-1}
-     * \f$
-     *
-     * is already available.
-     *
-     * \f$
-     *  \begin{pmatrix} \Sigma_{aa} & \Sigma_{ab} \\
-     *                  \Sigma_{ba} & \Sigma_{bb} \end{pmatrix}^{-1} =
-     * \begin{pmatrix} \Lambda_{aa} & \Lambda_{ab} \\
-     *                 \Lambda_{ba} & \Lambda_{bb} \end{pmatrix} = \Lambda
-     * \f$
-     *
-     * @param [in]  A_inv   \f$ \Sigma^{-1}_{aa} \f$
-     * @param [in]  B       \f$ \Sigma_{ab} \f$
-     * @param [in]  C       \f$ \Sigma_{ba} \f$
-     * @param [in]  D       \f$ \Sigma_{bb} \f$
-     * @param [out] L_A     \f$ \Lambda_{aa} \f$
-     * @param [out] L_B     \f$ \Lambda_{ab} \f$
-     * @param [out] L_C     \f$ \Lambda_{ba} \f$
-     * @param [out] L_D     \f$ \Lambda_{bb} \f$
-     * @param [out] L       \f$ \Lambda \f$
-     *
-     * @note TESTED
-     */
-    template <typename MatrixAInv,
-              typename MatrixB,
-              typename MatrixC,
-              typename MatrixD,
-              typename MatrixLA,
-              typename MatrixLB,
-              typename MatrixLC,
-              typename MatrixLD>
-    void SMWInversion(const MatrixAInv& A_inv,
-                      const MatrixB& B,
-                      const MatrixC& C,
-                      const MatrixD& D,
-                      MatrixLA& L_A,
-                      MatrixLB& L_B,
-                      MatrixLC& L_C,
-                      MatrixLD& L_D)
-    {
-        Eigen::MatrixXd CAinv = C * A_inv;
-        Eigen::MatrixXd AinvB = A_inv * B;
-
-        L_D = (D - C * AinvB).inverse();
-
-        Eigen::MatrixXd L_D_CAinv = L_D * CAinv;
-
-        L_A = A_inv + AinvB * L_D_CAinv;
-        L_B = -(AinvB * L_D);
-        L_C = -L_D_CAinv;
-    }
-
-    /**
-     * Blockweise matrix inversion using the Sherman-Morrision-Woodbury
-     * indentity given that \f$\Sigma^{-1}_{aa}\f$ of
-     *
-     * \f$
-     *  \begin{pmatrix} \Sigma_{aa} & \Sigma_{ab} \\
-     *                  \Sigma_{ba} & \Sigma_{bb} \end{pmatrix}^{-1}
-     * \f$
-     *
-     * is already available.
-     *
-     * \f$
-     *  \begin{pmatrix} \Sigma_{aa} & \Sigma_{ab} \\
-     *                  \Sigma_{ba} & \Sigma_{bb} \end{pmatrix}^{-1} =
-     * \begin{pmatrix} \Lambda_{aa} & \Lambda_{ab} \\
-     *                 \Lambda_{ba} & \Lambda_{bb} \end{pmatrix} = \Lambda
-     * \f$
-     *
-     * @param [in]  A_inv   \f$ \Sigma^{-1}_{aa} \f$
-     * @param [in]  B       \f$ \Sigma_{ab} \f$
-     * @param [in]  C       \f$ \Sigma_{ba} \f$
-     * @param [in]  D       \f$ \Sigma_{bb} \f$
-     * @param [out] L_A     \f$ \Lambda_{aa} \f$
-     * @param [out] L_B     \f$ \Lambda_{ab} \f$
-     * @param [out] L_C     \f$ \Lambda_{ba} \f$
-     * @param [out] L_D     \f$ \Lambda_{bb} \f$
-     * @param [out] L       \f$ \Lambda \f$
-     *
-     *  @note TESTED
-     */
-    template <typename MatrixAInv,
-              typename MatrixB,
-              typename MatrixC,
-              typename MatrixD,
-              typename MatrixLA,
-              typename MatrixLB,
-              typename MatrixLC,
-              typename MatrixLD,
-              typename ResultMatrix>
-    void SMWInversion(const MatrixAInv& A_inv,
-                      const MatrixB& B,
-                      const MatrixC& C,
-                      const MatrixD& D,
-                      MatrixLA& L_A,
-                      MatrixLB& L_B,
-                      MatrixLC& L_C,
-                      MatrixLD& L_D,
-                      ResultMatrix& L)
-    {
-        SMWInversion(A_inv, B, C, D, L_A, L_B, L_C, L_D);
-
-        L.resize(L_A.rows() + L_C.rows(), L_A.cols() + L_B.cols());
-
-        L.block(0,          0,          L_A.rows(), L_A.cols()) = L_A;
-        L.block(0,          L_A.cols(), L_B.rows(), L_B.cols()) = L_B;
-        L.block(L_A.rows(), 0,          L_C.rows(), L_C.cols()) = L_C;
-        L.block(L_A.rows(), L_A.cols(), L_D.rows(), L_D.cols()) = L_D;
-    }
 
 public:
     CohesiveStateProcessModelPtr f_a_;
