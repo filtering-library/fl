@@ -328,7 +328,6 @@ private:
     Scalar max_kl_divergence_;
 
     // distribution for sampling
-    //Gaussian<Eigen::Matrix<Scalar,1,1>> unit_gaussian_;
     StandardGaussian<Scalar> unit_gaussian_;
 };
 
