@@ -353,7 +353,8 @@ public:
         for (size_t i = 0; i < point_count; ++i)
         {
             X_y.point(i, obsrv_model_->predict_observation(X_r.point(i),
-                                                           X_R.point(i)));
+                                                           X_R.point(i),
+                                                           0 /* delta time */));
         }
 
         auto W = X_r.covariance_weights_vector();
