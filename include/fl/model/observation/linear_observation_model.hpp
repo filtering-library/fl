@@ -19,48 +19,73 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__MODELS_PROCESS_MODELS_LINEAR_GAUSSIAN_OBSERVATION_MODEL_HPP
-#define FL__MODELS_PROCESS_MODELS_LINEAR_GAUSSIAN_OBSERVATION_MODEL_HPP
+#ifndef FL__MODEL__OBSERVATION__LINEAR_OBSERVATION_MODEL_HPP
+#define FL__MODEL__OBSERVATION__LINEAR_OBSERVATION_MODEL_HPP
 
 #include <fl/util/traits.hpp>
 #include <fl/distribution/gaussian.hpp>
+#include <fl/model/observation/observation_model_interface.hpp>
 
 namespace fl
 {
 
 // Forward declarations
-template <typename Obsrv, typename State> class LinearGaussianObservationModel;
+template <
+    typename Observation,
+    typename State
+>
+class LinearGaussianObservationModel;
 
-template <typename Observation_,
-          typename State_>
+
+/**
+ * Linear Gaussian observation model traits. This trait definition contains all
+ * types used internally within the model. Additionally, it provides the types
+ * needed externally to use the linear Gaussian model.
+ */
+template <
+    typename Observation_,
+    typename State_
+>
 struct Traits<
-           LinearGaussianObservationModel<Observation_, State_>>
+           LinearGaussianObservationModel<Observation_, State_>
+       >
 {    
     typedef State_ State;
     typedef Observation_ Observation;
-    typedef Gaussian<Observation_> GaussianBase;
+
+    typedef Gaussian<Observation> GaussianBase;
     typedef typename Traits<GaussianBase>::Scalar Scalar;
     typedef typename Traits<GaussianBase>::SecondMoment SecondMoment;
     typedef typename Traits<GaussianBase>::StandardVariate Noise;
-    typedef Eigen::Matrix<Scalar,
-                          Observation::SizeAtCompileTime,
-                          State::SizeAtCompileTime> SensorMatrix;
+
+    typedef Eigen::Matrix<
+                Scalar,
+                Observation::SizeAtCompileTime,
+                State::SizeAtCompileTime
+            > SensorMatrix;
+
+    typedef ObservationModelInterface<
+                Observation,
+                State,
+                Noise
+            > ObservationModelBase;
 };
 
 /**
  * \ingroup observation_models
  */
-template <typename Observation_,typename State_>
+template <typename Observation,typename State>
 class LinearGaussianObservationModel
     : public Traits<
-                 LinearGaussianObservationModel<Observation_, State_>
+                 LinearGaussianObservationModel<Observation, State>
+             >::ObservationModelBase,
+      public Traits<
+                 LinearGaussianObservationModel<Observation, State>
              >::GaussianBase
 {
 public:
-    typedef LinearGaussianObservationModel<Observation_, State_> This;
+    typedef LinearGaussianObservationModel<Observation, State> This;
 
-    typedef typename Traits<This>::State State;
-    typedef typename Traits<This>::Observation Observation;
     typedef typename Traits<This>::Noise Noise;
     typedef typename Traits<This>::Scalar Scalar;
     typedef typename Traits<This>::SecondMoment SecondMoment;
@@ -73,11 +98,12 @@ public:
 public:
     LinearGaussianObservationModel(
             const SecondMoment& noise_covariance,
-            const size_t observation_dimension = Observation::SizeAtCompileTime,
-            const size_t state_dimension = State::SizeAtCompileTime):
-        Traits<This>::GaussianBase(observation_dimension),
-        state_dimension_(state_dimension == Eigen::Dynamic? 0 : state_dimension),
-        H_(SensorMatrix::Zero(dimension(), StateDimension()))
+            const size_t observation_dim = DimensionOf<Observation>(),
+            const size_t state_dim = DimensionOf<State>())
+        : Traits<This>::GaussianBase(observation_dim),
+          state_dimension_(state_dim),
+          H_(SensorMatrix::Zero(observation_dimension(),
+                                state_dimension()))
     {
         covariance(noise_covariance);
     }
@@ -99,10 +125,29 @@ public:
         H_ = sensor_matrix;
     }
 
-    virtual size_t StateDimension() const
+    virtual Observation predict_observation(const State& state,
+                                            const Noise& noise,
+                                            double delta_time)
+    {
+        condition(state);
+        return Traits<This>::GaussianBase::map_standard_normal(noise);
+    }
+
+    virtual size_t observation_dimension() const
+    {
+        return Traits<This>::GaussianBase::dimension();
+    }
+
+    virtual size_t noise_dimension() const
+    {
+        return Traits<This>::GaussianBase::standard_variate_dimension();
+    }
+
+    virtual size_t state_dimension() const
     {
         return state_dimension_;
     }
+
 
 protected:
     size_t state_dimension_;
@@ -110,122 +155,122 @@ protected:
 };
 
 
-// Forward declarations
-template <typename Observation_, typename State_a_, typename State_b_>
-class FactorizedLinearGaussianObservationModel;
+//// Forward declarations
+//template <typename Observation_, typename State_a_, typename State_b_>
+//class FactorizedLinearGaussianObservationModel;
 
-template <typename Observation_, typename State_a_, typename State_b_>
-struct Traits<FactorizedLinearGaussianObservationModel<Observation_,
-                                                      State_a_,
-                                                      State_b_>>
-{
-    typedef Observation_ Observation;
-    typedef State_a_ State_a;
-    typedef State_b_ State_b;
-    typedef Gaussian<Observation_> GaussianBase;
-    typedef typename Traits<GaussianBase>::Scalar Scalar;
-    typedef typename Traits<GaussianBase>::SecondMoment SecondMoment;
-    typedef typename Traits<GaussianBase>::StandardVariate Noise;
-    typedef Eigen::Matrix<Scalar,
-                          Observation::SizeAtCompileTime,
-                          State_a::SizeAtCompileTime> SensorMatrix_a;
-    typedef Eigen::Matrix<Scalar,
-                          Observation::SizeAtCompileTime,
-                          State_b::SizeAtCompileTime> SensorMatrix_b;
-};
+//template <typename Observation_, typename State_a_, typename State_b_>
+//struct Traits<FactorizedLinearGaussianObservationModel<Observation_,
+//                                                      State_a_,
+//                                                      State_b_>>
+//{
+//    typedef Observation_ Observation;
+//    typedef State_a_ State_a;
+//    typedef State_b_ State_b;
+//    typedef Gaussian<Observation_> GaussianBase;
+//    typedef typename Traits<GaussianBase>::Scalar Scalar;
+//    typedef typename Traits<GaussianBase>::SecondMoment SecondMoment;
+//    typedef typename Traits<GaussianBase>::StandardVariate Noise;
+//    typedef Eigen::Matrix<Scalar,
+//                          Observation::SizeAtCompileTime,
+//                          State_a::SizeAtCompileTime> SensorMatrix_a;
+//    typedef Eigen::Matrix<Scalar,
+//                          Observation::SizeAtCompileTime,
+//                          State_b::SizeAtCompileTime> SensorMatrix_b;
+//};
 
-template <typename Observation_,typename State_a_, typename State_b_>
-class FactorizedLinearGaussianObservationModel:
-    public Traits<
-               FactorizedLinearGaussianObservationModel<
-                   Observation_, State_a_, State_b_>>::GaussianBase
-{
-public:
-    typedef FactorizedLinearGaussianObservationModel<
-                Observation_,
-                State_a_,
-                State_b_
-            > This;
+//template <typename Observation_,typename State_a_, typename State_b_>
+//class FactorizedLinearGaussianObservationModel:
+//    public Traits<
+//               FactorizedLinearGaussianObservationModel<
+//                   Observation_, State_a_, State_b_>>::GaussianBase
+//{
+//public:
+//    typedef FactorizedLinearGaussianObservationModel<
+//                Observation_,
+//                State_a_,
+//                State_b_
+//            > This;
 
-    typedef typename Traits<This>::Noise Noise;
-    typedef typename Traits<This>::Scalar Scalar;
-    typedef typename Traits<This>::SecondMoment SecondMoment;
-    typedef typename Traits<This>::Observation Observation;
-    typedef typename Traits<This>::State_a State_a;
-    typedef typename Traits<This>::State_b State_b;
-    typedef typename Traits<This>::SensorMatrix_a SensorMatrix_a;
-    typedef typename Traits<This>::SensorMatrix_b SensorMatrix_b;
+//    typedef typename Traits<This>::Noise Noise;
+//    typedef typename Traits<This>::Scalar Scalar;
+//    typedef typename Traits<This>::SecondMoment SecondMoment;
+//    typedef typename Traits<This>::Observation Observation;
+//    typedef typename Traits<This>::State_a State_a;
+//    typedef typename Traits<This>::State_b State_b;
+//    typedef typename Traits<This>::SensorMatrix_a SensorMatrix_a;
+//    typedef typename Traits<This>::SensorMatrix_b SensorMatrix_b;
 
-    using Traits<This>::GaussianBase::mean;
-    using Traits<This>::GaussianBase::covariance;
-    using Traits<This>::GaussianBase::dimension;
+//    using Traits<This>::GaussianBase::mean;
+//    using Traits<This>::GaussianBase::covariance;
+//    using Traits<This>::GaussianBase::dimension;
 
-public:
-    FactorizedLinearGaussianObservationModel(
-            const SecondMoment& noise_covariance,
-            const size_t observation_dimension = Observation::SizeAtCompileTime,
-            const size_t state_a_dimension = State_a::SizeAtCompileTime,
-            const size_t state_b_dimension = State_b::SizeAtCompileTime):
-        Traits<This>::GaussianBase(observation_dimension),
-        state_a_dimension_(state_a_dimension),
-        state_b_dimension_(state_b_dimension),
-        H_a_(SensorMatrix_a::Zero(dimension(), State_a_dimension())),
-        H_b_(SensorMatrix_b::Zero(dimension(), State_b_dimension()))
-    {
-        covariance(noise_covariance);
-    }
+//public:
+//    FactorizedLinearGaussianObservationModel(
+//            const SecondMoment& noise_covariance,
+//            const size_t observation_dimension = Observation::SizeAtCompileTime,
+//            const size_t state_a_dimension = State_a::SizeAtCompileTime,
+//            const size_t state_b_dimension = State_b::SizeAtCompileTime):
+//        Traits<This>::GaussianBase(observation_dimension),
+//        state_a_dimension_(state_a_dimension),
+//        state_b_dimension_(state_b_dimension),
+//        H_a_(SensorMatrix_a::Zero(dimension(), State_a_dimension())),
+//        H_b_(SensorMatrix_b::Zero(dimension(), State_b_dimension()))
+//    {
+//        covariance(noise_covariance);
+//    }
 
-    ~FactorizedLinearGaussianObservationModel() { }
+//    ~FactorizedLinearGaussianObservationModel() { }
 
-    virtual Observation Predict(const Noise& noise) const
-    {
-        return map_standard_normal(noise);
-    }
+//    virtual Observation Predict(const Noise& noise) const
+//    {
+//        return map_standard_normal(noise);
+//    }
 
-    virtual void condition(const State_a& state_a,
-                           const State_b& state_b,
-                           size_t state_index,
-                           size_t pixel_index)
-    {
-        mean(H_a_ * state_a + H_b_ * state_b);
-    }
+//    virtual void condition(const State_a& state_a,
+//                           const State_b& state_b,
+//                           size_t state_index,
+//                           size_t pixel_index)
+//    {
+//        mean(H_a_ * state_a + H_b_ * state_b);
+//    }
 
-    virtual const SensorMatrix_a& H_a() const
-    {
-        return H_a_;
-    }
+//    virtual const SensorMatrix_a& H_a() const
+//    {
+//        return H_a_;
+//    }
 
-    virtual const SensorMatrix_b& H_b() const
-    {
-        return H_b_;
-    }
+//    virtual const SensorMatrix_b& H_b() const
+//    {
+//        return H_b_;
+//    }
 
-    virtual void H_a(const SensorMatrix_a& sensor_matrix_a)
-    {
-        H_a_ = sensor_matrix_a;
-    }
+//    virtual void H_a(const SensorMatrix_a& sensor_matrix_a)
+//    {
+//        H_a_ = sensor_matrix_a;
+//    }
 
-    virtual void H_b(const SensorMatrix_b& sensor_matrix_b)
-    {
-        H_b_ = sensor_matrix_b;
-    }
+//    virtual void H_b(const SensorMatrix_b& sensor_matrix_b)
+//    {
+//        H_b_ = sensor_matrix_b;
+//    }
 
-    virtual size_t State_a_dimension() const
-    {
-        return state_a_dimension_;
-    }
+//    virtual size_t State_a_dimension() const
+//    {
+//        return state_a_dimension_;
+//    }
 
-    virtual size_t State_b_dimension() const
-    {
-        return state_b_dimension_;
-    }
+//    virtual size_t State_b_dimension() const
+//    {
+//        return state_b_dimension_;
+//    }
 
-protected:
-    size_t state_a_dimension_;
-    size_t state_b_dimension_;
-    SensorMatrix_a H_a_;
-    SensorMatrix_b H_b_;
-};
+//protected:
+//    size_t state_a_dimension_;
+//    size_t state_b_dimension_;
+//    SensorMatrix_a H_a_;
+//    SensorMatrix_b H_b_;
+//};
 
 
 
