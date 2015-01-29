@@ -124,10 +124,10 @@ class ObservationModelStub
 {
 public:
     ObservationModelStub(size_t state_dimension = fl::DimensionOf<State>(),
-                         size_t obsrv_dimension = fl::DimensionOf<Obsrv>(),
+                         size_t observation_dimension = fl::DimensionOf<Obsrv>(),
                          size_t noise_dimension = fl::DimensionOf<Noise>())
         : state_dimension_(state_dimension),
-          obsrv_dimension_(obsrv_dimension),
+          observation_dimension_(observation_dimension),
           noise_dimension_(noise_dimension)
     {
 
@@ -135,17 +135,17 @@ public:
 
 
     virtual Obsrv predict_observation(const State& state,
-                                      const Noise& noise)
+                                      const Noise& noise,
+                                      double delta_time)
     {
 
     }
 
     size_t state_dimension() const { return state_dimension_; }
-    size_t obsrv_dimension() const { return obsrv_dimension_; }
+    size_t observation_dimension() const { return observation_dimension_; }
     size_t noise_dimension() const { return noise_dimension_; }
-
 protected:
     size_t state_dimension_;
-    size_t obsrv_dimension_;
+    size_t observation_dimension_;
     size_t noise_dimension_;
 };
