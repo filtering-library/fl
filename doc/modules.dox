@@ -10,9 +10,23 @@ namespace fl
  \defgroup observation_models Observation Models
  \defgroup process_models Process Models
  \defgroup traits Traits
- \defgroup meta Meta
+ \defgroup meta Meta 
  \defgroup math Math
  \defgroup exceptions Exceptions
 */
 
+/**
+ * \defgroup special_functions Special Functions
+ * \ingroup math
+ */
+ 
+/**
+ * \defgroup general_functions General Functions
+ * \ingroup math
+ */
+ 
+ /**
+ * \defgroup linear_algebra Linear Algebra
+ * \ingroup math
+ */
 }
