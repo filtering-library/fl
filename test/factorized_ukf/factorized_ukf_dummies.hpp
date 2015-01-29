@@ -48,78 +48,132 @@
 
 #include <Eigen/Dense>
 
-#include <fast_filtering/utils/traits.hpp>
-#include <fast_filtering/distributions/interfaces/gaussian_map.hpp>
-#include <fast_filtering/models/process_models/interfaces/stationary_process_model.hpp>
-#include <fast_filtering/filters/deterministic/factorized_unscented_kalman_filter.hpp>
+#include <fl/util/traits.hpp>
+#include <fl/distribution/interface/standard_gaussian_mapping.hpp>
+#include <fl/model/process/process_model_interface.hpp>
+#include <fl/model/observation/observation_model_interface.hpp>
+#include <ff/filters/deterministic/factorized_unscented_kalman_filter.hpp>
 
-template <typename State_> class ProcessModelDummy;
+template <typename State> class ProcessModelDummy;
 
-namespace ff
+namespace fl
 {
 
 template <typename State_> struct Traits<ProcessModelDummy<State_>>
 {
     typedef State_ State;
     typedef State_ Noise;
-    typedef typename State::Scalar Scalar;
-    typedef typename StationaryProcessModel<State_>::Input Input;
+    typedef State_ Input;
+    typedef typename State::Scalar Scalar;    
 
-    typedef StationaryProcessModel<State_> ProcessModelBase;
-    typedef GaussianMap<State_, State_> GaussianMapBase;
+    typedef ProcessModelInterface<State, Noise, Input> ProcessModelBase;
+    typedef StandardGaussianMapping<State_, State_> GaussianMappingBase;
 };
 }
 
-template <typename State_>
+template <typename State>
 class ProcessModelDummy:
-        public ff::Traits<ProcessModelDummy<State_>>::ProcessModelBase,
-        public ff::Traits<ProcessModelDummy<State_>>::GaussianMapBase
+        public fl::Traits<ProcessModelDummy<State>>::ProcessModelBase,
+        public fl::Traits<ProcessModelDummy<State>>::GaussianMappingBase
 {
 public:
-    typedef ProcessModelDummy<State_> This;
+    typedef ProcessModelDummy<State> This;
 
-    typedef typename ff::Traits<This>::Scalar Scalar;
-    typedef typename ff::Traits<This>::State  State;
-    typedef typename ff::Traits<This>::Noise  Noise;
-    typedef typename ff::Traits<This>::Input  Input;
+    typedef typename fl::Traits<This>::Scalar Scalar;
+    typedef typename fl::Traits<This>::Noise  Noise;
+    typedef typename fl::Traits<This>::Input  Input;
 
-    virtual void Condition(const double& delta_time,
+    virtual State predict_state(double delta_time,
+                                const State& state,
+                                const Noise& noise,
+                                const Input& input = Input())
+    {
+
+    }
+
+    virtual void condition(const double& delta_time,
                            const State& state,
                            const Input& input)
     {
 
     }
 
-    virtual State MapStandardGaussian(const Noise& sample) const
+    virtual State map_standard_normal(const Noise& sample) const
     {
-
+        return State();
     }
 
-    virtual size_t Dimension() const
+    virtual size_t state_dimension() const
     {
         return State::SizeAtCompileTime;
     }
 
-    virtual size_t InputDimension() const
+    virtual size_t input_dimension() const
     {
-        return 0;
+        return state_dimension();
+    }
+
+    virtual size_t noise_dimension() const
+    {
+        return state_dimension();
     }
 };
 
-template <typename State, typename Observation_>
+
+
+template <typename State, typename Observation> class ObservationModelDummy;
+
+namespace fl
+{
+
+template <typename State_, typename Observation_>
+struct Traits<ObservationModelDummy<State_, Observation_>>
+{
+    typedef State_ State;
+    typedef State_ Noise;
+    typedef Observation_ Observation;
+    typedef typename State::Scalar Scalar;
+
+    typedef ObservationModelInterface<State, Observation, Noise> ObservationModelBase;
+};
+}
+
+template <typename State, typename Obsrv>
 class ObservationModelDummy
+        : public fl::Traits<
+                     ObservationModelDummy<State, Obsrv>
+                 >::ObservationModelBase
+
 {
 public:
-    //typedef Eigen::Matrix<double, 1, 1> Observation;
-    typedef Observation_ Observation;
+    typedef ObservationModelDummy<State, Obsrv> This;
 
-    virtual void predict(const State& state)
+    typedef typename fl::Traits<This>::Scalar Scalar;
+    typedef typename fl::Traits<This>::Noise  Noise;
+    typedef typename fl::Traits<This>::Observation Observation;
+
+    virtual Observation predict_observation(const State& state,
+                                            const Noise& noise,
+                                            double delta_time)
     {
-        // foo
+
     }
 
-    virtual size_t Dimension() { return 1; }
-    virtual size_t NoiseDimension() { return 1; }
+    virtual size_t observation_dimension() const
+    {
+        return Observation::RowsAtCompileTime;
+    }
+
+    virtual size_t state_dimension() const
+    {
+        return observation_dimension();
+    }
+
+    virtual size_t noise_dimension() const
+    {
+        return observation_dimension();
+    }
 };
 
 #endif
+
