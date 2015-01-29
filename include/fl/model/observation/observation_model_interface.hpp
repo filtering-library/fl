@@ -22,22 +22,33 @@
 #ifndef FL__MODEL__OBSERVATION__OBSERVATION_MODEL_INTERFACE_HPP
 #define FL__MODEL__OBSERVATION__OBSERVATION_MODEL_INTERFACE_HPP
 
+#include <cstdlib>
+
 namespace fl
 {
 
 /**
  * \ingroup observation_models
  */
-template <typename State, typename Observation, typename Noise>
+template <typename Observation, typename State, typename Noise>
 class ObservationModelInterface
 {
 public:
+    /**
+     *
+     * \param state
+     * \param noise
+     * \param time_step_parity - Time step parity flag
+     *
+     * \return
+     */
     virtual Observation predict_observation(const State& state,
-                                            const Noise& noise) = 0;
+                                            const Noise& noise,
+                                            double delta_time) = 0;
 
-    virtual size_t state_dimension() const = 0;
-    virtual size_t obsrv_dimension() const = 0;
+    virtual size_t state_dimension() const = 0;    
     virtual size_t noise_dimension() const = 0;
+    virtual size_t observation_dimension() const = 0;
 };
 
 }
