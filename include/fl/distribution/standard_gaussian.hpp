@@ -1,8 +1,8 @@
 /**
  * \file standard_gaussian.hpp
  * \date May 2014
- * @author Manuel Wuthrich (manuel.wuthrich@gmail.com)
- * @author Jan Issac (jan.issac@gmail.com)
+ * \author Jan Issac (jan.issac@gmail.com)
+ * \author Manuel Wuthrich (manuel.wuthrich@gmail.com)
  */
 
 #ifndef FL__DISTRIBUTION__STANDARD_GAUSSIAN_HPP
@@ -21,8 +21,6 @@
 
 namespace fl
 {
-
-/// \todo MISSING DOC. MISSING UTESTS
 
 /**
  * \ingroup distributions
