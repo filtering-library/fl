@@ -53,21 +53,12 @@
 #include <vector>
 #include <ctime>
 
-#include <boost/iterator/zip_iterator.hpp>
-#include <boost/range.hpp>
-#include <boost/make_shared.hpp>
-
-#include "factorized_ukf_dummies.hpp"
+#include <fl/util/math.hpp>
 
 const double EPSILON = 1.0e-12;
 
 typedef Eigen::Matrix<double, 3, 1> State;
 typedef Eigen::Matrix<double, 1, 1> Observation;
-
-typedef ff::FactorizedUnscentedKalmanFilter<
-                ProcessModelDummy<State>,
-                ProcessModelDummy<State>,
-                ObservationModelDummy<State, Observation>> Filter;
 
 const size_t DIMENSION = 10;
 
@@ -77,10 +68,7 @@ TEST(SquareRootTests, dense)
     Eigen::MatrixXd cov = Eigen::MatrixXd::Random(DIMENSION, DIMENSION);
     cov = cov * cov.transpose();
 
-    Filter filter(boost::make_shared<ProcessModelDummy<State>>(),
-                  boost::make_shared<ProcessModelDummy<State>>(),
-                  boost::make_shared<ObservationModelDummy<State, Observation>>());
-    filter.SquareRoot(cov, cov_sqrt);
+    fl::square_root(cov, cov_sqrt);
 
     EXPECT_EQ(cov.rows(), cov_sqrt.rows());
     EXPECT_EQ(cov.cols(), cov_sqrt.cols());
@@ -92,10 +80,7 @@ TEST(SquareRootTests, diagonal)
     Eigen::MatrixXd cov_sqrt;
     Eigen::MatrixXd cov = Eigen::MatrixXd::Identity(DIMENSION, DIMENSION) * 1.3224;
 
-    Filter filter(boost::make_shared<ProcessModelDummy<State>>(),
-                  boost::make_shared<ProcessModelDummy<State>>(),
-                  boost::make_shared<ObservationModelDummy<State, Observation>>());
-    filter.SquareRootDiagonal(cov, cov_sqrt);
+    fl::sqrt_diagonal(cov, cov_sqrt);
 
     EXPECT_EQ(cov.rows(), cov_sqrt.rows());
     EXPECT_EQ(cov.cols(), cov_sqrt.cols());
@@ -107,10 +92,7 @@ TEST(SquareRootTests, diagonalAsVector)
     Eigen::MatrixXd cov_sqrt;
     Eigen::MatrixXd cov = Eigen::MatrixXd::Ones(DIMENSION, 1) * 1.3224;
 
-    Filter filter(boost::make_shared<ProcessModelDummy<State>>(),
-                  boost::make_shared<ProcessModelDummy<State>>(),
-                  boost::make_shared<ObservationModelDummy<State, Observation>>());
-    filter.SquareRootDiagonalAsVector(cov, cov_sqrt);
+    fl::sqrt_diagonal_vector(cov, cov_sqrt);
 
     EXPECT_EQ(cov.rows(), cov_sqrt.rows());
     EXPECT_EQ(1, cov_sqrt.cols());

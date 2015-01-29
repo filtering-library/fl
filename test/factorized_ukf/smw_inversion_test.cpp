@@ -53,19 +53,10 @@
 #include <vector>
 #include <ctime>
 
-#include <boost/iterator/zip_iterator.hpp>
-#include <boost/range.hpp>
-#include <boost/make_shared.hpp>
-
-#include "factorized_ukf_dummies.hpp"
+#include <fl/util/math.hpp>
 
 typedef Eigen::Matrix<double, 3, 1> State;
 typedef Eigen::Matrix<double, 1, 1> Observation;
-
-typedef ff::FactorizedUnscentedKalmanFilter<
-                ProcessModelDummy<State>,
-                ProcessModelDummy<State>,
-                ObservationModelDummy<State, Observation>> Filter;
 
 const size_t INV_DIMENSION = 14;
 const size_t SUBSAMPLING_FACTOR = 8;
@@ -74,10 +65,6 @@ const size_t INVERSION_ITERATIONS = OBSERVATION_DIMENSION * 30;
 
 TEST(InversionTests, SMWInversion)
 {
-    Filter filter(boost::make_shared<ProcessModelDummy<State>>(),
-                  boost::make_shared<ProcessModelDummy<State>>(),
-                  boost::make_shared<ObservationModelDummy<State, Observation>>());
-
     Eigen::MatrixXd cov = Eigen::MatrixXd::Random(15, 15);
     cov = cov * cov.transpose();
 
@@ -95,10 +82,31 @@ TEST(InversionTests, SMWInversion)
     Eigen::MatrixXd cov_smw_inv;
 
     Eigen::MatrixXd A_inv = A.inverse();
-    filter.SMWInversion(A_inv, B, C, D, L_A, L_B, L_C, L_D, cov_smw_inv);
+    fl::smw_inverse(A_inv, B, C, D, L_A, L_B, L_C, L_D, cov_smw_inv);
 
     EXPECT_TRUE(cov_smw_inv.isApprox(cov_inv));
 }
+
+
+TEST(InversionTests, SMWInversion_no_Lx)
+{
+    Eigen::MatrixXd cov = Eigen::MatrixXd::Random(15, 15);
+    cov = cov * cov.transpose();
+
+    Eigen::MatrixXd A = cov.block(0,   0, 14, 14);
+    Eigen::MatrixXd B = cov.block(0,  14, 14,  1);
+    Eigen::MatrixXd C = cov.block(14,  0, 1,  14);
+    Eigen::MatrixXd D = cov.block(14, 14, 1,   1);
+
+    Eigen::MatrixXd cov_inv = cov.inverse();
+    Eigen::MatrixXd cov_smw_inv;
+
+    Eigen::MatrixXd A_inv = A.inverse();
+    fl::smw_inverse(A_inv, B, C, D, cov_smw_inv);
+
+    EXPECT_TRUE(cov_smw_inv.isApprox(cov_inv));
+}
+
 
 TEST(InversionTests, fullMatrixInversionSpeed)
 {
@@ -124,10 +132,6 @@ TEST(InversionTests, fullMatrixInversionSpeed)
 
 TEST(InversionTests, SMWMatrixInversionSpeed)
 {
-    Filter filter(boost::make_shared<ProcessModelDummy<State>>(),
-                  boost::make_shared<ProcessModelDummy<State>>(),
-                  boost::make_shared<ObservationModelDummy<State, Observation>>());
-
     Eigen::MatrixXd cov = Eigen::MatrixXd::Random(INV_DIMENSION, INV_DIMENSION);
     cov = cov * cov.transpose();
 
@@ -147,7 +151,7 @@ TEST(InversionTests, SMWMatrixInversionSpeed)
     size_t number_of_inversions = 0;
     while ( ((std::clock() - start) / (double) CLOCKS_PER_SEC) < 1.0 )
     {
-        filter.SMWInversion(A_inv, B, C, D, L_A, L_B, L_C, L_D, cov_smw_inv);
+        fl::smw_inverse(A_inv, B, C, D, L_A, L_B, L_C, L_D, cov_smw_inv);
         number_of_inversions++;
     }
 
@@ -159,10 +163,6 @@ TEST(InversionTests, SMWMatrixInversionSpeed)
 
 TEST(InversionTests, SMWBlockMatrixInversionSpeed)
 {
-    Filter filter(boost::make_shared<ProcessModelDummy<State>>(),
-                  boost::make_shared<ProcessModelDummy<State>>(),
-                  boost::make_shared<ObservationModelDummy<State, Observation>>());
-
     Eigen::MatrixXd cov = Eigen::MatrixXd::Random(INV_DIMENSION, INV_DIMENSION);
     cov = cov * cov.transpose();
 
@@ -181,7 +181,7 @@ TEST(InversionTests, SMWBlockMatrixInversionSpeed)
     size_t number_of_inversions = 0;
     while ( (( std::clock() - start ) / (double) CLOCKS_PER_SEC) < 1.0 )
     {
-        filter.SMWInversion(A_inv, B, C, D, L_A, L_B, L_C, L_D);
+        fl::smw_inverse(A_inv, B, C, D, L_A, L_B, L_C, L_D);
         number_of_inversions++;
     }
 
