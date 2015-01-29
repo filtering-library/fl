@@ -1,16 +1,23 @@
 
-# some quick tests ##
+## some quick tests ##
 catkin_add_gtest(some_tests
                  utils/some_tests.cpp
                  gtest_main.cpp)
 target_link_libraries(some_tests
                       ${catkin_LIBRARIES})
 
-# trait tests ##
+## trait tests ##
 catkin_add_gtest(traits_tests
                  utils/traits_test.cpp
                  gtest_main.cpp)
 target_link_libraries(traits_tests
+                      ${catkin_LIBRARIES})
+
+## meta tests##
+catkin_add_gtest(meta_tests
+                 utils/meta_test.cpp
+                 gtest_main.cpp)
+target_link_libraries(meta_tests
                       ${catkin_LIBRARIES})
 
  # filter interface tests ##
@@ -21,13 +28,13 @@ target_link_libraries(traits_tests
  target_link_libraries(filter_interface_tests
                        ${catkin_LIBRARIES})
 
- ## Gaussian filter tests ##
- catkin_add_gtest(gaussian_filter_tests
-                  gaussian_filter/gaussian_filter_test.cpp
-                  gaussian_filter/gaussian_filter_stubs.hpp
-                  gtest_main.cpp)
- target_link_libraries(gaussian_filter_tests
-                       ${catkin_LIBRARIES})
+# ## Gaussian filter tests ##
+# catkin_add_gtest(gaussian_filter_tests
+#                  gaussian_filter/gaussian_filter_test.cpp
+#                  gaussian_filter/gaussian_filter_stubs.hpp
+#                  gtest_main.cpp)
+# target_link_libraries(gaussian_filter_tests
+#                       ${catkin_LIBRARIES})
 
  ## point_set_tests tests ##
  catkin_add_gtest(point_set_tests
@@ -65,32 +72,32 @@ target_link_libraries(traits_tests
                        ${catkin_LIBRARIES})
 
  ## linear models tests ##
- catkin_add_gtest(linear_models_tests
-                  linear_model/linear_process_model_test.cpp
-                  linear_model/linear_observation_model_test.cpp
+ catkin_add_gtest(models_tests
+                  model/linear_process_model_test.cpp
+                  model/linear_observation_model_test.cpp
+                  model/factorized_iid_observation_model_test.cpp
                   gtest_main.cpp)
- target_link_libraries(linear_models_tests
+ target_link_libraries(models_tests
                        ${catkin_LIBRARIES})
 
-## Factorized UKF vs. Kalman filter tests ##
+### Factorized UKF vs. Kalman filter tests ##
 # catkin_add_gtest(factorized_ukf_kf_tests
 #                  factorized_ukf/factorized_ukf_kf_test.cpp
 #                  gtest_main.cpp)
 # target_link_libraries(factorized_ukf_kf_tests
 #                       ${catkin_LIBRARIES})
-#
-# ## Factorized UKF tests ##
+##
+## ## Factorized UKF tests ##
 # catkin_add_gtest(factorized_ukf_tests
-#                  factorized_ukf/linear_models_test.cpp
+##                  factorized_ukf/linear_models_test.cpp
 #                  factorized_ukf/partitioned_ut_test.cpp
 #                  factorized_ukf/smw_inversion_test.cpp
 #                  factorized_ukf/square_root_test.cpp
-#                  factorized_ukf/llt_diagonal_test.cpp
+##                  factorized_ukf/llt_diagonal_test.cpp
 #                  factorized_ukf/factorized_ukf_unscented_transform_test.cpp
-#                  factorized_ukf/predict_test.cpp
+##                  factorized_ukf/predict_test.cpp
 #                  factorized_ukf/factorized_ukf_dummies.hpp
 #                  factorized_ukf/factorized_ukf_stubs.hpp
-#                  factorized_ukf/continuous_kinect_pixel_observation_model_test.cpp
 #                  gtest_main.cpp)
 # target_link_libraries(factorized_ukf_tests
 #                       ${PROJECT_NAME_TRACKING_INTERFACE}
