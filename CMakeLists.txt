@@ -10,9 +10,6 @@ add_definitions(-std=c++0x)
 add_definitions(-DPROFILING_ON=1) #print profiling output
 add_definitions(-DUSE_RANDOM_SEED=1)
 
-set(CMAKE_BUILD_TYPE Release)
-#set(CMAKE_BUILD_TYPE Debug)
-
 ############################
 # Library Version          #
 ############################
