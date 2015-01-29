@@ -29,7 +29,6 @@ namespace fl
 {
 
 /**
- * \struct JoinSizes
  * \ingroup meta
  *
  * \tparam Sizes    Variadic argument containing a list of sizes. Each size
@@ -58,7 +57,7 @@ template <int Head, int... Sizes> struct JoinSizes<Head, Sizes...>
 {
     enum
     {
-        Size = IsFixed<Head>()
+        Size = IsFixed<Head>() && IsFixed<JoinSizes<Sizes...>::Size>()
                    ? Head + JoinSizes<Sizes...>::Size
                    : Eigen::Dynamic
     };
@@ -73,6 +72,31 @@ template <int Head, int... Sizes> struct JoinSizes<Head, Sizes...>
  * Recursion termination
  */
 template <> struct JoinSizes<> { enum { Size = 0 }; } ;
+
+
+/**
+ * \ingroup meta
+ *
+ * \tparam LocalSize    Size of the a single fixed or dynamic size factor
+ * \tparam Factor       Number of factors
+ *
+ *
+ * Computes the product of LocalSize times Factor. If one of the parameters is
+ * set to Eigen::Dynamic, the factor size will collapse to Eigen::Dynbamic as
+ * well.
+ */
+template <int LocalSize, int Factors> struct FactorSize
+{
+    enum
+    {
+        Size = IsDynamic<MinOf<LocalSize, Factors>::value>()
+                   ? Eigen::Dynamic
+                   : LocalSize * Factors
+    };
+};
+
+
+
 
 }
 
