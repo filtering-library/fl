@@ -51,6 +51,32 @@ public:
     virtual size_t observation_dimension() const = 0;
 };
 
+/**
+ * \ingroup observation_models
+ *
+ * Additive noise Observation model interface
+ */
+template <typename Observation, typename State, typename Noise>
+class ANObservationModelInterface
+{
+public:
+    /**
+     *
+     * \param state
+     * \param time_step_parity - Time step parity flag
+     *
+     * \return
+     */
+    virtual Observation predict_observation(const State& state,
+                                            double delta_time) = 0;
+
+    virtual Noise noise_covariance_vector() const = 0;
+
+    virtual size_t state_dimension() const = 0;
+    virtual size_t noise_dimension() const = 0;
+    virtual size_t observation_dimension() const = 0;
+};
+
 }
 
 #endif
