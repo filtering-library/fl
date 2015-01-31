@@ -30,7 +30,6 @@
 #include <fl/util/meta.hpp>
 #include <fl/distribution/gaussian.hpp>
 
-#include <fl/model/state_mapping_policy.hpp>
 #include <fl/model/observation/observation_model_interface.hpp>
 
 namespace fl
