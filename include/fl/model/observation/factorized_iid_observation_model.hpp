@@ -30,6 +30,7 @@
 #include <fl/util/meta.hpp>
 #include <fl/distribution/gaussian.hpp>
 
+#include <fl/model/state_mapping_policy.hpp>
 #include <fl/model/observation/observation_model_interface.hpp>
 
 namespace fl
@@ -45,7 +46,7 @@ class FactorizedIIDObservationModel;
 /**
  * Traits of FactorizedIIDObservationModel
  */
-template <
+template <    
     typename ObservationModel,
     int Factors
 >
@@ -53,31 +54,28 @@ struct Traits<
            FactorizedIIDObservationModel<ObservationModel, Factors>
         >
 {
-    enum
-    {
-        IIDFactors = Factors
-    };
+    static constexpr int IIDFactors = Factors;
 
     typedef ObservationModel LocalObservationModel;
     typedef typename Traits<ObservationModel>::Scalar Scalar;
-    typedef typename Traits<ObservationModel>::State FactorState;
-    typedef typename Traits<ObservationModel>::Observation FactorObservation;
+    typedef typename Traits<ObservationModel>::State LocalState;
+    typedef typename Traits<ObservationModel>::Observation LocalObservation;
 
     typedef Eigen::Matrix<
                 Scalar,
-                FactorSize<FactorObservation::RowsAtCompileTime, Factors>::Size,
+                FactorSize<LocalObservation::RowsAtCompileTime, Factors>::Size,
                 1
             > Observation;
 
     typedef Eigen::Matrix<
                 Scalar,
-                FactorSize<FactorObservation::RowsAtCompileTime, Factors>::Size,
+                FactorSize<LocalObservation::RowsAtCompileTime, Factors>::Size,
                 1
             > Noise;
 
     typedef Eigen::Matrix<
                 Scalar,
-                FactorSize<FactorState::RowsAtCompileTime, Factors>::Size,
+                FactorSize<LocalState::RowsAtCompileTime, Factors>::Size,
                 1
             > State;
 
@@ -92,29 +90,32 @@ struct Traits<
  * \ingroup observation_models
  */
 template <
-    typename ObsrvModel,
+    typename LocalObservationModel,
     int Factors
 >
 class FactorizedIIDObservationModel
     : public Traits<
-                 FactorizedIIDObservationModel<ObsrvModel, Factors>
+                 FactorizedIIDObservationModel<LocalObservationModel, Factors>
              >::ObservationModelBase
 {
 public:
-    typedef FactorizedIIDObservationModel<ObsrvModel, Factors> This;
+    typedef FactorizedIIDObservationModel<LocalObservationModel, Factors> This;
 
-    typedef typename Traits<This>::Noise Noise;
     typedef typename Traits<This>::State State;
     typedef typename Traits<This>::Observation Observation;
-    typedef typename Traits<This>::LocalObservationModel LocalObservationModel;
+    typedef typename Traits<This>::Noise Noise;    
 
 public:
     FactorizedIIDObservationModel(
-            const std::shared_ptr<LocalObservationModel>& factor_obsrv_model,
+            const std::shared_ptr<LocalObservationModel>& local_obsrv_model,
             int factors = Factors)
-        : factor_obsrv_model_(factor_obsrv_model),
+        : local_obsrv_model_(local_obsrv_model),
           factors_(factors)
-    { }
+    {
+        auto H = local_obsrv_model_->H();
+        H.setIdentity();
+        local_obsrv_model_->H(H);
+    }
 
     ~FactorizedIIDObservationModel() { }
 
@@ -124,14 +125,14 @@ public:
     {
         Observation y = Observation::Zero(observation_dimension(), 1);
 
-        int obsrv_dim = factor_obsrv_model_->observation_dimension();
-        int noise_dim = factor_obsrv_model_->noise_dimension();
-        int state_dim = factor_obsrv_model_->state_dimension();
+        int obsrv_dim = local_obsrv_model_->observation_dimension();
+        int noise_dim = local_obsrv_model_->noise_dimension();
+        int state_dim = local_obsrv_model_->state_dimension();
 
         for (int i = 0; i < factors_; ++i)
         {
             y.middleRows(i * obsrv_dim, obsrv_dim) =
-                factor_obsrv_model_->predict_observation(
+                local_obsrv_model_->predict_observation(
                     state.middleRows(i * state_dim, state_dim),
                     noise.middleRows(i * noise_dim, noise_dim),
                     delta_time);
@@ -142,27 +143,26 @@ public:
 
     virtual size_t observation_dimension() const
     {
-        return factor_obsrv_model_->observation_dimension() * factors_;
+        return local_obsrv_model_->observation_dimension() * factors_;
     }
 
     virtual size_t state_dimension() const
     {
-        return factor_obsrv_model_->state_dimension() * factors_;
+        return local_obsrv_model_->state_dimension() * factors_;
     }
 
     virtual size_t noise_dimension() const
     {
-        return factor_obsrv_model_->noise_dimension() * factors_;
+        return local_obsrv_model_->noise_dimension() * factors_;
     }
 
     const std::shared_ptr<LocalObservationModel>& local_observation_model()
     {
-        return factor_obsrv_model_;
+        return local_obsrv_model_;
     }
 
-
 protected:
-    std::shared_ptr<LocalObservationModel> factor_obsrv_model_;
+    std::shared_ptr<LocalObservationModel> local_obsrv_model_;
     size_t factors_;
 };
 
