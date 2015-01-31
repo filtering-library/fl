@@ -113,91 +113,94 @@ public:
 
 TEST_F(FactorizedIIDObservationModelTests, predict_F)
 {
-    ObservationModel_F model(
-        std::make_shared<LocalObsrvModel_F>(
-            LocalCov_F::Identity() * sigma*sigma));
+    auto model = ObservationModel_F(
+                    std::make_shared<LocalObsrvModel_F>(
+                        LocalCov_F::Identity() * sigma*sigma));
 
-    SensorMatrix_F H = model.local_observation_model()->H();
+    auto H = model.local_observation_model()->H();
     H.setIdentity();
     model.local_observation_model()->H(H);
 
-    State_F x = State_F::Ones();
-    Noise_F w = Noise_F::Ones();
+    auto x = State_F::Ones();
+    auto w = Noise_F::Ones();
 
-    Observation_F y = model.predict_observation(x, w, 1.);
+    auto y = model.predict_observation(x, w, 1.);
     EXPECT_TRUE(y.isApprox(Noise_F::Ones() + sigma*Noise_F::Ones()));
 }
 
 TEST_F(FactorizedIIDObservationModelTests, predict_F_using_dynamic_interface)
 {
-    ObservationModel_F model(
-        std::make_shared<LocalObsrvModel_F>(
-            LocalCov_F::Identity(ObsrvDimension, ObsrvDimension) * sigma*sigma,
-            ObsrvDimension,
-            StateDimension),
-        Factors);
+    auto model = ObservationModel_F(
+                    std::make_shared<LocalObsrvModel_F>(
+                        LocalCov_F::Identity(ObsrvDimension,
+                                             ObsrvDimension) * sigma*sigma,
+                        ObsrvDimension,
+                        StateDimension),
+                    Factors);
 
-    SensorMatrix_F H = model.local_observation_model()->H();
+    auto H = model.local_observation_model()->H();
     H.setIdentity();
     model.local_observation_model()->H(H);
 
-    State_F x = State_F::Ones(model.state_dimension(), 1);
-    Noise_F w = Noise_F::Ones(model.noise_dimension(), 1);
+    auto x = State_F::Ones(model.state_dimension(), 1);
+    auto w = Noise_F::Ones(model.noise_dimension(), 1);
 
-    Observation_F y = model.predict_observation(x, w, 1.);
+    auto y = model.predict_observation(x, w, 1.);
     EXPECT_TRUE(y.isApprox(Noise_F::Ones() + sigma*Noise_F::Ones()));
 }
 
 
 TEST_F(FactorizedIIDObservationModelTests, predict_D)
 {
-    ObservationModel_D model(
-        std::make_shared<LocalObsrvModel_D>(
-            LocalCov_F::Identity(ObsrvDimension, ObsrvDimension) * sigma*sigma,
-            ObsrvDimension,
-            StateDimension),
-        Factors);
+    auto model = ObservationModel_D(
+                     std::make_shared<LocalObsrvModel_D>(
+                         LocalCov_D::Identity(ObsrvDimension,
+                                              ObsrvDimension) * sigma*sigma,
+                         ObsrvDimension,
+                         StateDimension),
+                     Factors);
 
-    SensorMatrix_D H = model.local_observation_model()->H();
+    auto H = model.local_observation_model()->H();
     H.setIdentity();
     model.local_observation_model()->H(H);
 
-    State_D x = State_D::Ones(model.state_dimension(), 1);
-    Noise_D w = Noise_D::Ones(model.noise_dimension(), 1);
+    auto x = State_D::Ones(model.state_dimension(), 1);
+    auto w = Noise_D::Ones(model.noise_dimension(), 1);
 
-    Observation_F y = model.predict_observation(x, w, 1.);
+    auto y = model.predict_observation(x, w, 1.);
     EXPECT_TRUE(y.isApprox(Noise_F::Ones() + sigma*Noise_F::Ones()));
 }
 
 TEST_F(FactorizedIIDObservationModelTests, predict_F_vs_D)
 {
-    ObservationModel_D model_D(
-        std::make_shared<LocalObsrvModel_D>(
-            LocalCov_F::Identity(ObsrvDimension, ObsrvDimension) * sigma*sigma,
-            ObsrvDimension,
-            StateDimension),
-        Factors);
+    auto model_D = ObservationModel_D(
+                        std::make_shared<LocalObsrvModel_D>(
+                           LocalCov_D::Identity(ObsrvDimension,
+                                                ObsrvDimension) * sigma*sigma,
+                           ObsrvDimension,
+                           StateDimension),
+                       Factors);
 
-    ObservationModel_F model_F(
-        std::make_shared<LocalObsrvModel_F>(
-            LocalCov_F::Identity() * sigma*sigma));
+    auto model_F = ObservationModel_F(
+                       std::make_shared<LocalObsrvModel_F>(
+                            LocalCov_F::Identity() * sigma*sigma));
 
-    SensorMatrix_D H_D = model_D.local_observation_model()->H();
+    auto H_D = model_D.local_observation_model()->H();
     H_D.setIdentity();
     model_D.local_observation_model()->H(H_D);
 
-    SensorMatrix_F H_F = model_F.local_observation_model()->H();
+    auto H_F = model_F.local_observation_model()->H();
     H_F.setIdentity();
     model_F.local_observation_model()->H(H_D);
 
-    State_D x_D = State_D::Ones(model_D.state_dimension(), 1);
-    Noise_D w_D = Noise_D::Ones(model_D.noise_dimension(), 1);
+    auto x_D = State_D::Ones(model_D.state_dimension(), 1);
+    auto w_D = Noise_D::Ones(model_D.noise_dimension(), 1);
 
-    State_F x_F = State_F::Ones();
-    Noise_F w_F = Noise_F::Ones();
+    auto x_F = State_F::Ones();
+    auto w_F = Noise_F::Ones();
 
-    Observation_D y_D = model_D.predict_observation(x_D, w_D, 1.);
-    Observation_F y_F = model_F.predict_observation(x_F, w_F, 1.);
+    auto y_D = model_D.predict_observation(x_D, w_D, 1.);
+    auto y_F = model_F.predict_observation(x_F, w_F, 1.);
 
     EXPECT_TRUE(y_D.isApprox(y_F));
 
@@ -205,36 +208,38 @@ TEST_F(FactorizedIIDObservationModelTests, predict_F_vs_D)
 
 TEST_F(FactorizedIIDObservationModelTests, predict_F_vs_D_using_dynamic_interface)
 {
-    ObservationModel_D model_D(
-        std::make_shared<LocalObsrvModel_D>(
-            LocalCov_F::Identity(ObsrvDimension, ObsrvDimension) * sigma*sigma,
-            ObsrvDimension,
-            StateDimension),
-        Factors);
+    auto model_D = ObservationModel_D(
+                        std::make_shared<LocalObsrvModel_D>(
+                            LocalCov_D::Identity(ObsrvDimension,
+                                                 ObsrvDimension) * sigma*sigma,
+                            ObsrvDimension,
+                            StateDimension),
+                        Factors);
 
-    ObservationModel_F model_F(
-        std::make_shared<LocalObsrvModel_F>(
-            LocalCov_F::Identity(ObsrvDimension, ObsrvDimension) * sigma*sigma,
-            ObsrvDimension,
-            StateDimension),
-        Factors);
+    auto model_F = ObservationModel_F(
+                        std::make_shared<LocalObsrvModel_F>(
+                            LocalCov_F::Identity(ObsrvDimension,
+                                                 ObsrvDimension) * sigma*sigma,
+                            ObsrvDimension,
+                            StateDimension),
+                        Factors);
 
-    SensorMatrix_D H_D = model_D.local_observation_model()->H();
+    auto H_D = model_D.local_observation_model()->H();
     H_D.setIdentity();
     model_D.local_observation_model()->H(H_D);
 
-    SensorMatrix_F H_F = model_F.local_observation_model()->H();
+    auto H_F = model_F.local_observation_model()->H();
     H_F.setIdentity();
     model_F.local_observation_model()->H(H_D);
 
-    State_D x_D = State_D::Ones(model_D.state_dimension(), 1);
-    Noise_D w_D = Noise_D::Ones(model_D.noise_dimension(), 1);
+    auto x_D = State_D::Ones(model_D.state_dimension(), 1);
+    auto w_D = Noise_D::Ones(model_D.noise_dimension(), 1);
 
-    State_F x_F = State_F::Ones(model_F.state_dimension(), 1);
-    Noise_F w_F = Noise_F::Ones(model_F.state_dimension(), 1);
+    auto x_F = State_F::Ones(model_F.state_dimension(), 1);
+    auto w_F = Noise_F::Ones(model_F.state_dimension(), 1);
 
-    Observation_D y_D = model_D.predict_observation(x_D, w_D, 1.);
-    Observation_F y_F = model_F.predict_observation(x_F, w_F, 1.);
+    auto y_D = model_D.predict_observation(x_D, w_D, 1.);
+    auto y_F = model_F.predict_observation(x_F, w_F, 1.);
 
     EXPECT_TRUE(y_D.isApprox(y_F));
 
