@@ -284,9 +284,9 @@ void sqrt_diagonal_vector(const RegularMatrix& regular_matrix,
  * \ingroup linear_algebra
  *
  */
-template <typename DiagonalMatrix>
-void invert_diagonal_Vector(const DiagonalMatrix& diagonal,
-                            DiagonalMatrix& diagonal_inverse)
+template <typename SrcDiagonalMatrix, typename DestDiagonalMatrix>
+void invert_diagonal_Vector(const SrcDiagonalMatrix& diagonal,
+                            DestDiagonalMatrix& diagonal_inverse)
 {
     diagonal_inverse.resize(diagonal.rows(), 1);
 
