@@ -154,7 +154,7 @@ public:
      */
     static constexpr size_t number_of_points(int dimension)
     {
-        return (dimension != Eigen::Dynamic) ? 2 * dimension + 1 : 0;
+        return (dimension != Eigen::Dynamic) ? 2 * dimension + 1 : -1;
     }
 
 public:
