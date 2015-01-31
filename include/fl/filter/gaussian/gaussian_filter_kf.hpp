@@ -38,7 +38,6 @@
 namespace fl
 {
 
-// Forward declarations
 template <typename...> class GaussianFilter;
 
 /**
