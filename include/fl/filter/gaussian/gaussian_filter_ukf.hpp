@@ -36,7 +36,6 @@
 namespace fl
 {
 
-// Forward declarations
 template <typename...> class GaussianFilter;
 
 /**
@@ -45,7 +44,11 @@ template <typename...> class GaussianFilter;
 template <typename ProcessModel,
           typename ObservationModel,
           typename PointSetTransform>
-struct Traits<GaussianFilter<ProcessModel, ObservationModel, PointSetTransform>>
+struct Traits<
+           GaussianFilter<
+               ProcessModel,
+               ObservationModel,
+               PointSetTransform>>
 {
     typedef GaussianFilter<
                 ProcessModel,
@@ -78,31 +81,28 @@ struct Traits<GaussianFilter<ProcessModel, ObservationModel, PointSetTransform>>
     typedef typename Traits<ProcessModel>::Noise StateNoise;
     typedef typename Traits<ObservationModel>::Noise ObsrvNoise;
 
-    enum
-    {
-        /**
-         * Represents the total number of points required by the point set
-         * transform.
-         *
-         * The number of points is a function of the joint Gaussian of which we
-         * compute the transform. In this case the joint Gaussian consists of
-         * the Gaussian of the state, the state noise Gaussian and the
-         * observation noise Gaussian. The latter two are needed since we assume
-         * models with non-additive noise.
-         *
-         * The resulting number of points determined by the employed transform
-         * passed via \c PointSetTransform. If on or more of the marginal
-         * Gaussian sizes is dynamic, the number of points is dynamic as well.
-         * That is, the number of points cannot be known at compile time and
-         * will be allocated dynamically on run time.
-         */
-        NumberOfPoints = PointSetTransform::number_of_points(
-                            JoinSizes<
-                                State::RowsAtCompileTime,
-                                StateNoise::RowsAtCompileTime,
-                                ObsrvNoise::RowsAtCompileTime
-                            >::Size)
-    };
+    /**
+     * Represents the total number of points required by the point set
+     * transform.
+     *
+     * The number of points is a function of the joint Gaussian of which we
+     * compute the transform. In this case the joint Gaussian consists of
+     * the Gaussian of the state, the state noise Gaussian and the
+     * observation noise Gaussian. The latter two are needed since we assume
+     * models with non-additive noise.
+     *
+     * The resulting number of points determined by the employed transform
+     * passed via \c PointSetTransform. If on or more of the marginal
+     * Gaussian sizes is dynamic, the number of points is dynamic as well.
+     * That is, the number of points cannot be known at compile time and
+     * will be allocated dynamically on run time.
+     */
+    static constexpr int NumberOfPoints = PointSetTransform::number_of_points(
+                        JoinSizes<
+                            State::RowsAtCompileTime,
+                            StateNoise::RowsAtCompileTime,
+                            ObsrvNoise::RowsAtCompileTime
+                        >::Size);
 
     typedef PointSet<State, NumberOfPoints> StatePointSet;
     typedef PointSet<Observation, NumberOfPoints> ObsrvPointSet;
@@ -167,15 +167,15 @@ public:
      * Creates a Gaussian filter
      *
      * \param process_model         Process model instance
-     * \param Obsrv_model           Obsrv model instance
+     * \param obsrv_model           Obsrv model instance
      * \param point_set_transform   Point set tranfrom such as the unscented
      *                              transform
      */
     GaussianFilter(const std::shared_ptr<ProcessModel>& process_model,
-                   const std::shared_ptr<ObservationModel>& Obsrv_model,
+                   const std::shared_ptr<ObservationModel>& obsrv_model,
                    const std::shared_ptr<PointSetTransform>& point_set_transform)
         : process_model_(process_model),
-          obsrv_model_(Obsrv_model),
+          obsrv_model_(obsrv_model),
           point_set_transform_(point_set_transform),
           /*
            * Set the augmented Gaussian dimension.
@@ -255,8 +255,15 @@ public:
          */
         const size_t point_count =
                 PointSetTransform::number_of_points(global_dimension_);
+
         X_y.resize(point_count);
-        X_y.dimension(obsrv_model_->obsrv_dimension());
+        X_y.dimension(obsrv_model_->observation_dimension());
+
+        /*
+         * Setup the point set of the state predictions
+         */
+        X_r.resize(point_count);
+        X_r.dimension(process_model_->state_dimension());
     }
 
     /**
@@ -362,10 +369,20 @@ public:
         auto Y = X_y.centered_points();
 
         auto cov_xx = X * W.asDiagonal() * X.transpose();
-        auto cov_yy = Y * W.asDiagonal() * Y.transpose();
+        Eigen::MatrixXd cov_yy = Y * W.asDiagonal() * Y.transpose();
         auto cov_xy = X * W.asDiagonal() * Y.transpose();
 
-        const KalmanGain& K = cov_xy * cov_yy.inverse();
+
+        for (int i = 0; i < y.rows(); ++i)
+        {
+            if (y(i, 0) == 0 || X_y.mean()(i, 0) == 0 || std::abs(y(i, 0) - X_y.mean()(i, 0)) > 0.005 )
+            {
+                cov_yy(i, i) += 100000000.;
+            }
+        }
+
+        //const KalmanGain& K = cov_xy * cov_yy.inverse();
+        Eigen::MatrixXd K = cov_xy * cov_yy.inverse();
 
         posterior_dist.mean(X_r.mean() + K * (y - X_y.mean()));
         posterior_dist.covariance(cov_xx - K * cov_yy * K.transpose());
@@ -382,6 +399,21 @@ public:
     {
         predict(delta_time, input, prior_dist, posterior_dist);
         update(observation, posterior_dist, posterior_dist);
+    }
+
+    const std::shared_ptr<ProcessModel>& process_model()
+    {
+        return process_model_;
+    }
+
+    const std::shared_ptr<ObservationModel>& observation_model()
+    {
+        return obsrv_model_;
+    }
+
+    const std::shared_ptr<ProcessModel>& point_set_transform()
+    {
+        return point_set_transform_;
     }
 
 protected:
