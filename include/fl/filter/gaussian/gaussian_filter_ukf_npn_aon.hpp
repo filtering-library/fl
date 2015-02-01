@@ -436,7 +436,7 @@ protected:
     StateNoisePointSet X_Q;
     /** \endcond */
 
-private:
+public:
     /** \cond INTERNAL */
     /* Dungeon - keep put! */
     decltype(X_y.mean()) prediction;

@@ -318,7 +318,7 @@ public:
          *
          * mu_r = Sum w_mean[i] X_r[i]
          */
-        auto&& X = X_r.centered_points();
+        X = X_r.centered_points();
 
         /*
          * Obtain the weights of point as a vector
@@ -327,7 +327,7 @@ public:
          *
          * Note that the covariance weights are used.
          */
-        auto&& W = X_r.covariance_weights_vector();
+        W = X_r.covariance_weights_vector();
 
         /*
          * Compute and set the moments
@@ -356,35 +356,63 @@ public:
                                       0,
                                       X_r);
 
+//        std::cout << "point_set_transform_" << std::endl;
+
         const size_t point_count = X_r.count_points();
+
+//        std::cout << "X_r.count_points() " << X_r.count_points() << std::endl;
+//        std::cout << "X_R.count_points() " << X_R.count_points() << std::endl;
+//        std::cout << "X_y.count_points() " << X_y.count_points() << std::endl;
+
+//        std::cout << "X_r.dimension() " << X_r.dimension() << std::endl;
+//        std::cout << "X_R.dimension() " << X_R.dimension() << std::endl;
+//        std::cout << "X_y.dimension() " << X_y.dimension() << std::endl;
+
         for (size_t i = 0; i < point_count; ++i)
         {
+//            std::cout << "X_r.point(i) " << X_r.point(i).transpose() << std::endl;
+//            std::cout << "X_R.point(i) " << X_R.point(i).transpose() << std::endl;
+
             X_y.point(i, obsrv_model_->predict_observation(X_r.point(i),
                                                            X_R.point(i),
-                                                           0 /* delta time */));
+                                                           0 /* delta time */));            
+
+//            std::cout << "X_y.point(i) " << X_y.point(i).transpose() << std::endl;
         }
 
-        auto W = X_r.covariance_weights_vector();
-        auto X = X_r.centered_points();
-        auto Y = X_y.centered_points();
+//        std::cout << "predict_observation" << std::endl;
+
+        W = X_r.covariance_weights_vector();
+        X = X_r.centered_points();
+        Y = X_y.centered_points();
+
+        prediction = X_y.mean();
+        innovation = (y - prediction);
+
+//        std::cout << "innovation" << std::endl;
 
         auto cov_xx = X * W.asDiagonal() * X.transpose();
-        Eigen::MatrixXd cov_yy = Y * W.asDiagonal() * Y.transpose();
-        auto cov_xy = X * W.asDiagonal() * Y.transpose();
+        auto cov_yy = (Y * W.asDiagonal() * Y.transpose()).eval();
+        auto cov_xy = (X * W.asDiagonal() * Y.transpose()).eval();
 
+//        std::cout << "cov_xy" << std::endl;
 
         for (int i = 0; i < y.rows(); ++i)
         {
-            if (y(i, 0) == 0 || X_y.mean()(i, 0) == 0 || std::abs(y(i, 0) - X_y.mean()(i, 0)) > 0.005 )
+            if (std::abs(innovation(i, 0)) > threshold)
             {
-                cov_yy(i, i) += 100000000.;
+                cov_yy(i, i) += inv_sigma;
             }
         }
+
+//        std::cout << "cov_xx" << cov_xx << std::endl;
+//        std::cout << "cov_yy" << cov_yy << std::endl;
+//        std::cout << "cov_xy" << cov_xy << std::endl;
 
         //const KalmanGain& K = cov_xy * cov_yy.inverse();
         Eigen::MatrixXd K = cov_xy * cov_yy.inverse();
 
-        posterior_dist.mean(X_r.mean() + K * (y - X_y.mean()));
+        posterior_dist.mean(X_r.mean() + K * innovation);
         posterior_dist.covariance(cov_xx - K * cov_yy * K.transpose());
     }
 
@@ -415,6 +443,10 @@ public:
     {
         return point_set_transform_;
     }
+
+public:
+    double threshold;
+    double inv_sigma;
 
 protected:
     std::shared_ptr<ProcessModel> process_model_;
@@ -452,6 +484,17 @@ protected:
      * augmented Gaussian with the dimension #global_dimension_
      */
     ObsrvNoisePointSet X_R;
+    /** \endcond */
+
+public:
+    /** \cond INTERNAL */
+    /* Dungeon - keep put! */
+    decltype(X_y.mean()) prediction;
+    decltype(prediction) innovation;
+
+    decltype(X_r.centered_points()) X;
+    decltype(X_y.centered_points()) Y;
+    decltype(X_r.covariance_weights_vector()) W;
     /** \endcond */
 };
 
