@@ -59,6 +59,7 @@ struct Traits<
     typedef typename Traits<ObservationModel>::Scalar Scalar;
     typedef typename Traits<ObservationModel>::State LocalState;
     typedef typename Traits<ObservationModel>::Observation LocalObservation;
+    typedef typename Traits<ObservationModel>::Noise LocalNoise;
 
     typedef Eigen::Matrix<
                 Scalar,
@@ -68,7 +69,7 @@ struct Traits<
 
     typedef Eigen::Matrix<
                 Scalar,
-                FactorSize<LocalObservation::RowsAtCompileTime, Factors>::Size,
+                FactorSize<LocalNoise::RowsAtCompileTime, Factors>::Size,
                 1
             > Noise;
 
@@ -111,9 +112,7 @@ public:
         : local_obsrv_model_(local_obsrv_model),
           factors_(factors)
     {
-        auto H = local_obsrv_model_->H();
-        H.setIdentity();
-        local_obsrv_model_->H(H);
+
     }
 
     ~FactorizedIIDObservationModel() { }
