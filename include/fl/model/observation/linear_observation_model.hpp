@@ -32,8 +32,7 @@ namespace fl
 // Forward declarations
 template <
     typename Observation,
-    typename State
->
+    typename State>
 class LinearGaussianObservationModel;
 
 
@@ -44,11 +43,9 @@ class LinearGaussianObservationModel;
  */
 template <
     typename Observation_,
-    typename State_
->
+    typename State_>
 struct Traits<
-           LinearGaussianObservationModel<Observation_, State_>
-       >
+           LinearGaussianObservationModel<Observation_, State_>>
 {    
     typedef State_ State;
     typedef Observation_ Observation;
@@ -102,8 +99,8 @@ public:
             const size_t state_dim = DimensionOf<State>())
         : Traits<This>::GaussianBase(observation_dim),
           state_dimension_(state_dim),
-          H_(SensorMatrix::Zero(observation_dimension(),
-                                state_dimension()))
+          H_(SensorMatrix::Identity(observation_dimension(),
+                                    state_dimension()))
     {
         covariance(noise_covariance);
     }
