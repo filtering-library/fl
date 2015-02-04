@@ -57,7 +57,7 @@ public:
      */
     virtual void condition(const double& delta_time,
                            const State& state,
-                           const Input& input = internal::Empty()) = 0;
+                           const Input& input = internal::Empty()) { }
 
     /**
      * Predicts the state conditioned on the previous state and input.
