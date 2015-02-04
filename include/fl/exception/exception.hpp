@@ -26,7 +26,7 @@
 #include <string>
 #include <exception>
 
-#ifndef NDEBUG
+//#ifndef NDEBUG
     #if defined(__GNUC__)
         #define fl_current_function __PRETTY_FUNCTION__
     #elif defined(__FUNCSIG__)
@@ -42,9 +42,9 @@
                                        fl_current_function, \
                                        __FILE__, \
                                        __LINE__);
-#else
-    #define fl_throw(excep) throw excep;
-#endif
+//#else
+//    #define fl_throw(excep) throw excep;
+//#endif
 
 #if defined(__GNUC__)
     #define fl_attribute_noreturn __attribute__((noreturn))
