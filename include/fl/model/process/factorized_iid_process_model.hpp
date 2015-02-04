@@ -91,7 +91,7 @@ struct Traits<
  */
 template <
     typename LocalProcessModel,
-    int Factors
+    int Factors = Eigen::Dynamic
 >
 class FactorizedIIDProcessModel
     : public Traits<
@@ -112,7 +112,7 @@ public:
         : local_process_model_(local_process_model),
           factors_(factors)
     {
-        static_assert(factors_ > 0, "Invalid static number of factors.");
+        assert(factors_ > 0);
     }
 
     ~FactorizedIIDProcessModel() { }
