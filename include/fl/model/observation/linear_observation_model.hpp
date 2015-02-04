@@ -99,7 +99,7 @@ public:
             const size_t state_dim = DimensionOf<State>())
         : Traits<This>::GaussianBase(observation_dim),
           state_dimension_(state_dim),
-          H_(SensorMatrix::Identity(observation_dimension(),
+          H_(SensorMatrix::Ones(observation_dimension(),
                                     state_dimension()))
     {
         covariance(noise_covariance);
