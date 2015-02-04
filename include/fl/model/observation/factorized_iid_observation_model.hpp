@@ -91,8 +91,7 @@ struct Traits<
  */
 template <
     typename LocalObservationModel,
-    int Factors
->
+    int Factors = Eigen::Dynamic>
 class FactorizedIIDObservationModel
     : public Traits<
                  FactorizedIIDObservationModel<LocalObservationModel, Factors>
@@ -111,9 +110,7 @@ public:
             int factors = Factors)
         : local_obsrv_model_(local_obsrv_model),
           factors_(factors)
-    {
-
-    }
+    { }
 
     ~FactorizedIIDObservationModel() { }
 
@@ -127,7 +124,8 @@ public:
         int noise_dim = local_obsrv_model_->noise_dimension();
         int state_dim = local_obsrv_model_->state_dimension();
 
-        for (int i = 0; i < factors_; ++i)
+        const size_t factors = factors_;
+        for (int i = 0; i < factors; ++i)
         {
             y.middleRows(i * obsrv_dim, obsrv_dim) =
                 local_obsrv_model_->predict_observation(
