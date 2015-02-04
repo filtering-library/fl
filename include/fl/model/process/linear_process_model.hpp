@@ -61,8 +61,10 @@ struct Traits<LinearGaussianProcessModel<State_, Input_>>
 
 /**
  * \ingroup process_models
+ * \warning correct input parameter
+ * \todo correct input parameter
  */
-template <typename State_, typename Input_ = internal::Empty>
+template <typename State_, typename Input_ = Eigen::Matrix<double, 1, 1>>
 class LinearGaussianProcessModel:
     public Traits<LinearGaussianProcessModel<State_, Input_>>::ProcessModelBase,
     public Traits<LinearGaussianProcessModel<State_, Input_>>::GaussianBase
