@@ -14,13 +14,13 @@
  */
 
 /**
- * \file unscented_transform.hpp
+ * \file monte_carlo_transform.hpp
  * \date October 2014
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__FILTER__GAUSSIAN__RANDOM_SHITTY_TRANSFORM_HPP
-#define FL__FILTER__GAUSSIAN__RANDOM_SHITTY_TRANSFORM_HPP
+#ifndef FL__FILTER__GAUSSIAN__MONTE_CARLO_TRANSFORM_HPP
+#define FL__FILTER__GAUSSIAN__MONTE_CARLO_TRANSFORM_HPP
 
 #include <fl/util/traits.hpp>
 #include <fl/distribution/gaussian.hpp>
@@ -29,28 +29,62 @@
 namespace fl
 {
 
+template <size_t NumberOfPoints>
+struct ConstantNumberOfPointsPolicy
+{
+    static constexpr size_t number_of_points(int dimension)
+    {
+        return NumberOfPoints;
+    }
+};
+
+template <size_t Factor = 1, size_t Min = 0>
+struct LinearNumberOfPointsPolicy
+{
+    static constexpr size_t number_of_points(int dimension)
+    {
+        return (dimension != Eigen::Dynamic)
+                    ? Factor * dimension + Min
+                    : Eigen::Dynamic;
+    }
+};
+
+template <size_t Factor = 1, size_t Min = 0>
+struct QuadraticNumberOfPointsPolicy
+{
+    static constexpr size_t number_of_points(int dimension)
+    {
+        return (dimension != Eigen::Dynamic)
+                    ? Factor * dimension * dimension + Min
+                    : Eigen::Dynamic;
+    }
+};
+
+
 /**
  * \ingroup sigma_point_kalman_filters
- * \ingroup unscented_kalman_filter
+ * \ingroup point_set_transform
  *
  * This is the Unscented Transform used in the Unscented Kalman Filter
  * \cite wan2000unscented . It implememnts the PointSetTransform interface.
  *
  * \copydetails PointSetTransform
  */
-class RandomTransform
-        : public PointSetTransform<RandomTransform>
+template <
+    typename NumberOfPointsPolicy = LinearNumberOfPointsPolicy<>
+>
+class MonteCarloTransform
+        : public PointSetTransform<MonteCarloTransform<NumberOfPointsPolicy>>
 {
 public:
     /**
-     * Creates a RandomTransform
+     * Creates a MonteCarloTransform
      *
      * \param eta       Factor determining the number of point by
      *                  \f$\eta dim(X)\f$ where \f$X\f$ is the Gaussian variate
      */
-    RandomTransform(double eta = 1.0)
-        : PointSetTransform<RandomTransform>(this),
-          eta_(eta)
+    MonteCarloTransform()
+        : PointSetTransform<MonteCarloTransform<NumberOfPointsPolicy>>(this)
     { }
 
 
@@ -83,12 +117,8 @@ public:
                  size_t dimension_offset,
                  PointSet_& point_set) const
     {
-        typedef typename Traits<PointSet_>::Point  Point;
-        typedef typename Traits<PointSet_>::Weight Weight;
-
-        const double dim = double(global_dimension);
-        const size_t point_count = number_of_points(dim);
-        const double w = 1./point_count;
+        const size_t point_count = number_of_points(global_dimension);
+        const double w = 1./double(point_count);
 
         for (int i = 0; i < point_count; ++i)
         {
@@ -103,13 +133,8 @@ public:
      */
     static constexpr size_t number_of_points(int dimension)
     {
-        return (dimension != Eigen::Dynamic) ? 140  : -1;
+        return NumberOfPointsPolicy::number_of_points(dimension);
     }
-
-protected:
-    /** \cond INTERNAL */
-    double eta_;
-    /** \endcond */
 };
 
 }
