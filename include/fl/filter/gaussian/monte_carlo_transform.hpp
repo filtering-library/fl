@@ -29,62 +29,119 @@
 namespace fl
 {
 
+/**
+ * \ingroup point_count_polices
+ *
+ * The \c MonomialPointCountPolicy determines the number of points as a function
+ * of the dimension. The monimial function is of the form
+ *
+ * \f$ f(d) = a d^p + b\f$
+ *
+ * where \f$a\f$ is the parameter \c Factor, \f$p\f$ the parameter \c Power,
+ * and \f$b\f$ the parameter \c Min.
+ *
+ * Strictly speaking the function \f$f(x)\f$ is a polynomial of the form
+ * \f$g(d) = a d^p + b d^0\f$. However, for simplicity reasons, in most cases
+ * the parameter \c Min is 0.
+ */
+template <size_t Power, size_t Factor = 1, size_t Min = 0>
+class MonomialPointCountPolicy
+{
+public:
+    static constexpr size_t number_of_points(int dimension)
+    {
+        return (dimension != Eigen::Dynamic)
+                    ? monomial(dimension, Power, Factor, Min)
+                    : Eigen::Dynamic;
+    }
+
+protected:
+    static constexpr size_t monomial(size_t x, size_t p, size_t a, size_t b)
+    {
+        return (p > 1) ? a * x * monomial(x, p - 1, 1, 0) + b : x;
+    }
+};
+
+/**
+ * \ingroup point_count_polices
+ *
+ * \c ConstantPointCountPolicy represents the policy for constant number of
+ * points regardless the dimension
+ *
+ * \f$f(d) = b\f$
+ *
+ * where \f$b\f$ is the parameter \c NumberOfPoints.
+ *
+ * The policy is a special case of the
+ * \c MonomialPointCountPolicy for the parameters
+ *
+ * \c MonomialPointCountPolicy<1, 0, \c NumberOfPoints>
+ */
 template <size_t NumberOfPoints>
-struct ConstantNumberOfPointsPolicy
-{
-    static constexpr size_t number_of_points(int dimension)
-    {
-        return NumberOfPoints;
-    }
-};
-
-template <size_t Factor = 1, size_t Min = 0>
-struct LinearNumberOfPointsPolicy
+struct ConstantPointCountPolicy
 {
     static constexpr size_t number_of_points(int dimension)
     {
         return (dimension != Eigen::Dynamic)
-                    ? Factor * dimension + Min
-                    : Eigen::Dynamic;
+                   ? MonomialPointCountPolicy<1, 0, NumberOfPoints>
+                       ::number_of_points(dimension)
+                   : Eigen::Dynamic;
     }
 };
 
+/**
+ * \ingroup point_count_polices
+ *
+ * \c LinearPointCountPolicy represents the policy for a linear increase of
+ * number of points w.r.t the dimension
+ *
+ * \f$ f(d) = a d + b\f$
+ *
+ * where \f$a\f$ is the parameter \c Factor and \f$b\f$ the parameter \c Min.
+ *
+ * The policy is a special case of the \c MonomialPointCountPolicy for the
+ * parameters.
+ *
+ * \c MonomialPointCountPolicy<1, Factor, \c Min>
+ */
 template <size_t Factor = 1, size_t Min = 0>
-struct QuadraticNumberOfPointsPolicy
+struct LinearPointCountPolicy
 {
     static constexpr size_t number_of_points(int dimension)
     {
         return (dimension != Eigen::Dynamic)
-                    ? Factor * dimension * dimension + Min
-                    : Eigen::Dynamic;
+                   ? MonomialPointCountPolicy<1, Factor, Min>
+                       ::number_of_points(dimension)
+                   : Eigen::Dynamic;
     }
 };
 
 
 /**
- * \ingroup sigma_point_kalman_filters
  * \ingroup point_set_transform
  *
- * This is the Unscented Transform used in the Unscented Kalman Filter
- * \cite wan2000unscented . It implememnts the PointSetTransform interface.
- *
- * \copydetails PointSetTransform
+ * This is the Monte Carlo Transform (MCT) used in the Gaussian Filter, the
+ * Sigma Point Kalman Filter, in the same sense as using the Unscented Transform
+ * within the Unscented Kalman Filter. With a sufficient number of points, the
+ * MCT is in practice able to capture relatively high order precision w.r.t the
+ * Taylor series expansion. The
+ * number of points is determined by the specified PointCountPolicy. The three
+ * basic pre-implemented policies are \c MonomialPointCountPolicy,
+ * \c ConstantPointCountPolicy, and \c LinearPointCountPolicy. The latter two
+ * are a special case of the \c MonomialPointCountPolicy.
  */
 template <
-    typename NumberOfPointsPolicy = LinearNumberOfPointsPolicy<>
+    typename PointCountPolicy = LinearPointCountPolicy<>
 >
 class MonteCarloTransform
-        : public PointSetTransform<MonteCarloTransform<NumberOfPointsPolicy>>
+        : public PointSetTransform<MonteCarloTransform<PointCountPolicy>>
 {
 public:
     /**
      * Creates a MonteCarloTransform
-     *
-     * \param eta       Factor determining the number of point by
-     *                  \f$\eta dim(X)\f$ where \f$X\f$ is the Gaussian variate
      */
     MonteCarloTransform()
-        : PointSetTransform<MonteCarloTransform<NumberOfPointsPolicy>>(this)
+        : PointSetTransform<MonteCarloTransform<PointCountPolicy>>(this)
     { }
 
 
@@ -133,7 +190,7 @@ public:
      */
     static constexpr size_t number_of_points(int dimension)
     {
-        return NumberOfPointsPolicy::number_of_points(dimension);
+        return PointCountPolicy::number_of_points(dimension);
     }
 };
 
