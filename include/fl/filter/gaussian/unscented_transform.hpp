@@ -30,13 +30,10 @@ namespace fl
 {
 
 /**
- * \ingroup sigma_point_kalman_filters
  * \ingroup point_set_transform
  *
  * This is the Unscented Transform used in the Unscented Kalman Filter
  * \cite wan2000unscented . It implememnts the PointSetTransform interface.
- *
- * \copydetails PointSetTransform
  */
 class UnscentedTransform
         : public PointSetTransform<UnscentedTransform>

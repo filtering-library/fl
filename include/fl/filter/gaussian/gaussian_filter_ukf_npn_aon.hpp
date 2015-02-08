@@ -134,6 +134,7 @@ struct Traits<
  *
  * \ingroup filters
  * \ingroup sigma_point_kalman_filters
+ * \ingroup unscented_kalman_filter
  */
 template<
     typename ProcessModel,

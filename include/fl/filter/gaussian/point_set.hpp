@@ -150,7 +150,7 @@ struct Traits<PointSet<Point_, Points_>>
  *
  * PointSet represents a container of fixed-size or dynamic-size points each
  * paired with a set of weights. PointSet has two degree-of-freedoms. The first
- * is the dimension of the points. The second os the number of points within the
+ * is the dimension of the points. The second is the number of points within the
  * set. Each of the parameter can either be fixed at compile time or left
  * unspecified. That is, the parameter is set to Eigen::Dynamic.
  *

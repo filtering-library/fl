@@ -4,8 +4,7 @@ namespace fl
 
 /**
  \defgroup filter Filter Algorithms
- \defgroup sigma_point_kalman_filter Sigma Point Kalman Filters
- \defgroup unscented_kalman_filter Unscented Kalman Filter
+ \defgroup sigma_point_kalman_filters Sigma Point Kalman Filters       
  \defgroup distributions Distributions
  \defgroup observation_models Observation Models
  \defgroup process_models Process Models
@@ -25,8 +24,24 @@ namespace fl
  * \ingroup math
  */
  
- /**
+/**
  * \defgroup linear_algebra Linear Algebra
  * \ingroup math
+ */
+ 
+/**
+ * \defgroup unscented_kalman_filter Unscented Kalman Filter
+ * \ingroup sigma_point_kalman_filters 
+ */
+ 
+ 
+/**
+ * \defgroup point_set_transform Point Set Transform
+ * \ingroup sigma_point_kalman_filters
+ */
+ 
+/**
+ * \defgroup point_count_polices Point Count Policies
+ * \ingroup point_set_transform
  */
 }
