@@ -55,7 +55,7 @@ template <int... Sizes> struct JoinSizes;
  */
 template <int Head, int... Sizes> struct JoinSizes<Head, Sizes...>
 {
-    enum
+    enum: signed int
     {
         Size = IsFixed<Head>() && IsFixed<JoinSizes<Sizes...>::Size>()
                    ? Head + JoinSizes<Sizes...>::Size
@@ -71,7 +71,7 @@ template <int Head, int... Sizes> struct JoinSizes<Head, Sizes...>
  *
  * Recursion termination
  */
-template <> struct JoinSizes<> { enum { Size = 0 }; } ;
+template <> struct JoinSizes<> { enum: signed int { Size = 0 }; } ;
 
 
 /**
@@ -87,16 +87,29 @@ template <> struct JoinSizes<> { enum { Size = 0 }; } ;
  */
 template <int LocalSize, int Factors> struct FactorSize
 {
-    enum
+    enum: signed int
     {
-        Size = IsDynamic<MinOf<LocalSize, Factors>::value>()
+        Size = IsDynamic<MinOf<LocalSize, Factors>::Size>()
                    ? Eigen::Dynamic
                    : LocalSize * Factors
     };
 };
 
 
+template <int ... Sizes> struct FactorSizes;
 
+template <int Head, int... Sizes> struct FactorSizes<Head, Sizes...>
+{
+    enum: signed int
+    {
+        Size = IsFixed<Head>() && IsFixed<FactorSizes<Sizes...>::Size>()
+                   ? Head * FactorSizes<Sizes...>::Size
+                   : Eigen::Dynamic
+    };
+
+};
+
+template <> struct FactorSizes<> { enum: signed int { Size = 1 }; } ;
 
 }
 
