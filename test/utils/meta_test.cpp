@@ -29,17 +29,17 @@
 
 #include <cmath>
 
-TEST(MetaTests, FactorSize)
+TEST(MetaTests, FactorSizes)
 {
-    EXPECT_EQ((fl::FactorSize<-1, 10>::Size), -1);
-    EXPECT_EQ((fl::FactorSize<10, -1>::Size), -1);
-    EXPECT_EQ((fl::FactorSize<-1, -1>::Size), -1);
+    EXPECT_EQ((fl::FactorSizes<-1, 10>::Size), -1);
+    EXPECT_EQ((fl::FactorSizes<10, -1>::Size), -1);
+    EXPECT_EQ((fl::FactorSizes<-1, -1>::Size), -1);
 
-    EXPECT_EQ((fl::FactorSize<1, 1>::Size), 1);
-    EXPECT_EQ((fl::FactorSize<1, 10>::Size), 10);
+    EXPECT_EQ((fl::FactorSizes<1, 1>::Size), 1);
+    EXPECT_EQ((fl::FactorSizes<1, 10>::Size), 10);
 
-    EXPECT_EQ((fl::FactorSize<2, 10>::Size), 20);
-    EXPECT_EQ((fl::FactorSize<3, 5>::Size), 15);
+    EXPECT_EQ((fl::FactorSizes<2, 10>::Size), 20);
+    EXPECT_EQ((fl::FactorSizes<3, 5>::Size), 15);
 }
 
 

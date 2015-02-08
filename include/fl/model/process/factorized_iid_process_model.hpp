@@ -63,19 +63,19 @@ struct Traits<
 
     typedef Eigen::Matrix<
                 Scalar,
-                FactorSize<LocalState::RowsAtCompileTime, Factors>::Size,
+                FactorSizes<LocalState::RowsAtCompileTime, Factors>::Size,
                 1
             > State;
 
     typedef Eigen::Matrix<
                 Scalar,
-                FactorSize<LocalNoise::RowsAtCompileTime, Factors>::Size,
+                FactorSizes<LocalNoise::RowsAtCompileTime, Factors>::Size,
                 1
             > Noise;
 
     typedef Eigen::Matrix<
                 Scalar,
-                FactorSize<LocalInput::RowsAtCompileTime, Factors>::Size,
+                FactorSizes<LocalInput::RowsAtCompileTime, Factors>::Size,
                 1
             > Input;
 
