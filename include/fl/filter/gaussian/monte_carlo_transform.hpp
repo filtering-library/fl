@@ -58,7 +58,7 @@ public:
 protected:
     static constexpr size_t monomial(size_t x, size_t p, size_t a, size_t b)
     {
-        return (p > 1) ? a * x * monomial(x, p - 1, 1, 0) + b : x;
+        return (p > 0) ? a * x * monomial(x, p - 1, 1, 0) + b : 1;
     }
 };
 
@@ -174,12 +174,41 @@ public:
                  size_t dimension_offset,
                  PointSet_& point_set) const
     {
+//        typedef typename Traits<Gaussian_>::Variate NormalVariate;
+//        typedef typename NormalVariate::Scalar Scalar;
+
+//        static bool create_lookup_table = true;
+//        static constexpr size_t table_size = 10000;
+//        static StandardGaussian<NormalVariate> mvnd;
+//        static Eigen::Matrix<
+//                   Scalar,
+//                   NormalVariate::RowsAtCompileTime,
+//                   table_size
+//               > lt;
+
+//        if (create_lookup_table)
+//        {
+//            mvnd.dimension(gaussian.dimension());
+//            lt.resize(gaussian.dimension(), table_size);
+
+//            for (size_t i = 0; i < table_size; ++i)
+//            {
+//                lt.col(i) = mvnd.sample();
+//            }
+
+//            create_lookup_table = false;
+//        }
+
+//        auto&& cov_sqrt = gaussian.square_root();
+
         const size_t point_count = number_of_points(global_dimension);
-        const double w = 1./double(point_count);
+        const double w = 1./double(point_count);        
 
         for (int i = 0; i < point_count; ++i)
         {
             point_set.point(i, gaussian.sample(), w);
+
+            //point_set.point(i, cov_sqrt * lt.col(rand() % table_size), w);
         }
     }
 
