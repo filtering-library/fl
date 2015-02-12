@@ -198,7 +198,7 @@ public:
     }
 
     /**
-     * \copydoc ProcessModelInterface::condition
+     * \copydoc ProcessModelInterface::predict_state
      */
     virtual State predict_state(double delta_time,
                                 const State& state,

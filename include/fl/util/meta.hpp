@@ -65,14 +65,21 @@ template <int Head, int... Sizes> struct JoinSizes<Head, Sizes...>
 
 /**
  * \internal
- *
  * \ingroup meta
- * \sa JoinSizes
  *
- * Recursion termination
+ * Terminal specialization of JoinSizes<...>
  */
 template <> struct JoinSizes<> { enum: signed int { Size = 0 }; } ;
 
+/**
+ * \ingroup meta
+ *
+ * Function form of JoinSizes for two sizes
+ */
+inline constexpr int join_sizes(int a, int b)
+{
+    return (a > Eigen::Dynamic && b > Eigen::Dynamic) ? a + b : Eigen::Dynamic;
+}
 
 /**
  * \ingroup meta
@@ -85,19 +92,12 @@ template <> struct JoinSizes<> { enum: signed int { Size = 0 }; } ;
  * set to Eigen::Dynamic, the factor size will collapse to Eigen::Dynbamic as
  * well.
  */
-template <int LocalSize, int Factors> struct FactorSize
-{
-    enum: signed int
-    {
-        Size = IsDynamic<MinOf<LocalSize, Factors>::Size>()
-                   ? Eigen::Dynamic
-                   : LocalSize * Factors
-    };
-};
-
-
 template <int ... Sizes> struct FactorSizes;
 
+/**
+ * \internal
+ * \ingroup meta
+ */
 template <int Head, int... Sizes> struct FactorSizes<Head, Sizes...>
 {
     enum: signed int
@@ -109,7 +109,63 @@ template <int Head, int... Sizes> struct FactorSizes<Head, Sizes...>
 
 };
 
+/**
+ * \internal
+ * \ingroup meta
+ *
+ * Terminal specialization of FactorSizes<...>
+ */
 template <> struct FactorSizes<> { enum: signed int { Size = 1 }; } ;
+
+
+/**
+ * \ingroup meta
+ *
+ * Provides access to the the first type element in the specified variadic list
+ */
+template <typename...T> struct FirstTypeIn;
+
+/**
+ * \internal
+ * \ingroup meta
+ *
+ * Implementation of FirstTypeIn
+ */
+template <typename First, typename...T> struct FirstTypeIn<First, T...>
+{
+    typedef First Type;
+};
+
+/**
+ * \ingroup meta
+ *
+ * Represents a sequence of indices IndexSequence<0, 1, 2, 3, ...>
+ *
+ * This is particularly useful to expand tuples
+ *
+ * \tparam Indices  List of indices starting from 0
+ */
+template <int ... Indices> struct IndexSequence {  };
+
+
+/**
+ * \ingroup meta
+ *
+ * Creates an IndexSequence<0, 1, 2, ...> for a specified size.
+ */
+template <int Size, int ... Indices>
+struct CreateIndexSequence
+    : CreateIndexSequence<Size - 1, Size - 1, Indices...>
+{ };
+
+/**
+ * \ingroup meta
+ * \internal
+ *
+ * Terminal specialization CreateIndexSequence
+ */
+template <int ... Indices>
+struct CreateIndexSequence<0, Indices...> : IndexSequence<Indices...> { };
 
 }
 
