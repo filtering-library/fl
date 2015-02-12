@@ -87,7 +87,7 @@ struct Traits<
 };
 
 /**
- * \ingroup observation_models
+ * \ingroup process_models
  */
 template <
     typename LocalProcessModel,
@@ -124,8 +124,8 @@ public:
     {
         State x = State::Zero(state_dimension(), 1);
 
-        int noise_dim = local_process_model_->noise_dimension();
         int state_dim = local_process_model_->state_dimension();
+        int noise_dim = local_process_model_->noise_dimension();        
         int input_dim = local_process_model_->input_dimension();
 
         for (int i = 0; i < factors_; ++i)
