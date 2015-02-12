@@ -92,6 +92,8 @@ public:
         A_(DynamicsMatrix::Identity(dimension, dimension)),
         delta_time_(1.)
     {
+        assert(dimension > 0);
+
         covariance(noise_covariance);
     }
 
@@ -119,7 +121,7 @@ public:
 
     virtual size_t input_dimension() const
     {
-        return 0;
+        return DimensionOf<Input>();
     }
 
     virtual void condition(const double& delta_time,
