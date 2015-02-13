@@ -43,10 +43,9 @@ namespace fl
  */
 template <int... Sizes> struct JoinSizes;
 
-/**
+/** 
  * \internal
- * \ingroup meta
- * \sa JoinSizes
+ * \ingroup meta 
  * \copydoc JoinSizes
  *
  * \tparam Head     Head of the \c Sizes list of the previous recursive call
@@ -74,7 +73,7 @@ template <> struct JoinSizes<> { enum: signed int { Size = 0 }; } ;
 /**
  * \ingroup meta
  *
- * Function form of JoinSizes for two sizes
+ * \brief Function form of JoinSizes for two sizes
  */
 inline constexpr int join_sizes(int a, int b)
 {
@@ -102,7 +101,6 @@ template <int Head, int... Sizes> struct FactorSizes<Head, Sizes...>
                    ? Head * FactorSizes<Sizes...>::Size
                    : Eigen::Dynamic
     };
-
 };
 
 /**
@@ -157,8 +155,8 @@ struct CreateIndexSequence
 { };
 
 /**
- * \ingroup meta
  * \internal
+ * \ingroup meta 
  *
  * Terminal specialization CreateIndexSequence
  */
@@ -179,8 +177,8 @@ struct TypeSequence
 };
 
 /**
- * \ingroup meta
  * \internal
+ * \ingroup meta
  *
  * Empty TypeSequence
  */
@@ -201,8 +199,8 @@ struct CreateTypeSequence
 { };
 
 /**
- * \ingroup meta
  * \internal
+ * \ingroup meta
  *
  * Terminal type of CreateTypeSequence
  */
@@ -233,8 +231,8 @@ struct Multiply
 { };
 
 /**
- * \ingroup meta
  * \internal
+ * \ingroup meta
  *
  * Creates an empty TypeSequence for dynamic count
  */
