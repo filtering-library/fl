@@ -73,9 +73,9 @@ protected:
     typedef typename fl::Traits<DModelB>::SecondMoment DBCov;
     typedef typename fl::Traits<DModelC>::SecondMoment DCCov;
 
-    typedef fl::FactorizedIDProcessModel<FModelA, FModelB, FModelC> FixedModel;
-    typedef fl::FactorizedIDProcessModel<DModelA, DModelB, DModelC> DynamicModel;
-    typedef fl::FactorizedIDProcessModel<FModelA, DModelB, FModelC> DynamicFallbackModel;
+    typedef fl::JointProcessModel<FModelA, FModelB, FModelC> FixedModel;
+    typedef fl::JointProcessModel<DModelA, DModelB, DModelC> DynamicModel;
+    typedef fl::JointProcessModel<FModelA, DModelB, FModelC> DynamicFallbackModel;
 
 };
 
@@ -152,7 +152,7 @@ TEST_F(FactorizedIDProcessModelTests, predict_fixed)
 
     auto prediction = my_model.predict_state(1., state, noise, input);
 
-    Eigen::Matrix<double, 15, 1> expected = Eigen::Matrix<double, 15, 1>::Ones();
+    auto expected = Eigen::Matrix<double, 15, 1>::Ones().eval();
     expected.topRows(3) = expected.topRows(3) * 3;
     expected.middleRows(3, 5) = expected.middleRows(3, 5) * 5;
     expected.bottomRows(7) = expected.bottomRows(7) * 7;
@@ -181,7 +181,7 @@ TEST_F(FactorizedIDProcessModelTests, predict_dynamic)
 
     auto prediction = my_model.predict_state(1., state, noise, input);
 
-    Eigen::Matrix<double, 15, 1> expected = Eigen::Matrix<double, 15, 1>::Ones();
+    auto expected = Eigen::Matrix<double, 15, 1>::Ones().eval();
     expected.topRows(3) = expected.topRows(3) * 3;
     expected.middleRows(3, 5) = expected.middleRows(3, 5) * 5;
     expected.bottomRows(7) = expected.bottomRows(7) * 7;
@@ -210,7 +210,7 @@ TEST_F(FactorizedIDProcessModelTests, predict_dynamic_fallback)
 
     auto prediction = my_model.predict_state(1., state, noise, input);
 
-    Eigen::Matrix<double, 15, 1> expected = Eigen::Matrix<double, 15, 1>::Ones();
+    auto expected = Eigen::Matrix<double, 15, 1>::Ones().eval();
     expected.topRows(3) = expected.topRows(3) * 3;
     expected.middleRows(3, 5) = expected.middleRows(3, 5) * 5;
     expected.bottomRows(7) = expected.bottomRows(7) * 7;
