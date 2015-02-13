@@ -19,8 +19,8 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__MODEL__PROCESS__FACTORIZED_ID_PROCESS_MODEL_HPP
-#define FL__MODEL__PROCESS__FACTORIZED_ID_PROCESS_MODEL_HPP
+#ifndef FL__MODEL__PROCESS__JOINT_PROCESS_MODEL_ID_HPP
+#define FL__MODEL__PROCESS__JOINT_PROCESS_MODEL_ID_HPP
 
 #include <Eigen/Dense>
 
@@ -37,14 +37,14 @@ namespace fl
 {
 
 // Forward declarations
-template <typename...Models> class FactorizedIDProcessModel;
+template <typename...Models> class JointProcessModel;
 
 /**
  * Traits of FactorizedIDProcessModel
  */
 template <typename...Models>
 struct Traits<
-           FactorizedIDProcessModel<Models...>
+           JointProcessModel<Models...>
         >
 {        
     enum : signed int
@@ -72,13 +72,13 @@ struct Traits<
  * \ingroup process_models
  */
 template <typename ... Models>
-class FactorizedIDProcessModel
+class JointProcessModel
     : public Traits<
-                 FactorizedIDProcessModel<Models...>
+                 JointProcessModel<Models...>
              >::ProcessModelBase
 {
 public:
-    typedef FactorizedIDProcessModel<Models...> This;
+    typedef JointProcessModel<Models...> This;
 
     typedef typename Traits<This>::State State;    
     typedef typename Traits<This>::Noise Noise;
@@ -92,7 +92,7 @@ public:
      * \param models    Variadic list of shared pointers of the models
      */
     explicit
-    FactorizedIDProcessModel(std::shared_ptr<Models>...models)
+    JointProcessModel(std::shared_ptr<Models>...models)
         : models_(models...)
     { }
 
@@ -120,7 +120,7 @@ public:
     /**
      * \brief Overridable default destructor
      */
-    ~FactorizedIDProcessModel() { }
+    ~JointProcessModel() { }
 
     /**
      * \copydoc ProcessModelInterface::state_dimension
@@ -129,8 +129,11 @@ public:
      */
     virtual constexpr size_t state_dimension() const
     {
+        /*
         return VariadicExpansion<sizeof...(Models)>().state_dimension(models_);
-        //return expand_state_dimension(CreateIndexSequence<sizeof...(Models)>());
+        */
+
+        return expand_state_dimension(CreateIndexSequence<sizeof...(Models)>());
     }
 
     /**
@@ -140,8 +143,11 @@ public:
      */
     virtual constexpr size_t noise_dimension() const
     {
+        /*
         return VariadicExpansion<sizeof...(Models)>().noise_dimension(models_);
-        //return expand_noise_dimension(CreateIndexSequence<sizeof...(Models)>());
+        */
+
+        return expand_noise_dimension(CreateIndexSequence<sizeof...(Models)>());
     }
 
     /**
@@ -151,8 +157,11 @@ public:
      */
     virtual constexpr size_t input_dimension() const
     {
+        /*
         return VariadicExpansion<sizeof...(Models)>().input_dimension(models_);
-        //return expand_input_dimension(CreateIndexSequence<sizeof...(Models)>());
+        */
+
+        return expand_input_dimension(CreateIndexSequence<sizeof...(Models)>());
     }
 
 protected:
@@ -165,42 +174,41 @@ protected:
 
 private:
     /** \cond INTERNAL */
+    template <int...Indices>
+    constexpr size_t expand_state_dimension(IndexSequence<Indices...>) const
+    {
+        int joint_dim = 0;
 
-//    template <int...Indices>
-//    constexpr size_t expand_state_dimension(IndexSequence<Indices...>) const
-//    {
-//        int joint_dim = 0;
+        auto&& dims = { std::get<Indices>(models_)->state_dimension()... };
 
-//        auto&& dims = { std::get<Indices>(models_)->state_dimension()... };
+        for (auto dim : dims) { joint_dim += dim; }
 
-//        for (auto dim : dims) { joint_dim += dim; }
+        return joint_dim;
+    }
 
-//        return joint_dim;
-//    }
+    template <int...Indices>
+    constexpr size_t expand_noise_dimension(IndexSequence<Indices...>) const
+    {
+        int joint_dim = 0;
 
-//    template <int...Indices>
-//    constexpr size_t expand_noise_dimension(IndexSequence<Indices...>) const
-//    {
-//        int joint_dim = 0;
+        auto&& dims = { std::get<Indices>(models_)->noise_dimension()... };
 
-//        auto&& dims = { std::get<Indices>(models_)->noise_dimension()... };
+        for (auto dim : dims) { joint_dim += dim; }
 
-//        for (auto dim : dims) { joint_dim += dim; }
+        return joint_dim;
+    }
 
-//        return joint_dim;
-//    }
+    template <int...Indices>
+    constexpr size_t expand_input_dimension(IndexSequence<Indices...>) const
+    {
+        int joint_dim = 0;
 
-//    template <int...Indices>
-//    constexpr size_t expand_input_dimension(IndexSequence<Indices...>) const
-//    {
-//        int joint_dim = 0;
+        auto&& dims = { std::get<Indices>(models_)->input_dimension()... };
 
-//        auto&& dims = { std::get<Indices>(models_)->input_dimension()... };
+        for (auto dim : dims) { joint_dim += dim; }
 
-//        for (auto dim : dims) { joint_dim += dim; }
-
-//        return joint_dim;
-//    }
+        return joint_dim;
+    }
 
     /**
      * Represents expansion of model function calls on the variadic model list

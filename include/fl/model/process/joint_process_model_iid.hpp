@@ -19,8 +19,8 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__MODEL__PROCESS__FACTORIZED_IID_PROCESS_MODEL_HPP
-#define FL__MODEL__PROCESS__FACTORIZED_IID_PROCESS_MODEL_HPP
+#ifndef FL__MODEL__PROCESS__JOINT_PROCESS_MODEL_IID_HPP
+#define FL__MODEL__PROCESS__JOINT_PROCESS_MODEL_IID_HPP
 
 #include <Eigen/Dense>
 
@@ -35,25 +35,23 @@
 namespace fl
 {
 
+
+
 // Forward declarations
-template <    
-    typename ProcessModel,
-    int Factors
->
-class FactorizedIIDProcessModel;
+template <typename ... Models> class JointProcessModel;
 
 /**
- * Traits of FactorizedIIDProcessModel
+ * Traits of JointProcessModel<Multiply<ProcessModel, Count>>
  */
-template <    
+template <
     typename ProcessModel,
-    int Factors
+    int Count
 >
 struct Traits<
-           FactorizedIIDProcessModel<ProcessModel, Factors>
+           JointProcessModel<Multiply<ProcessModel, Count>>
         >
 {
-    static constexpr int IIDFactors = Factors;
+    enum : signed int { ModelCount = Count };
 
     typedef ProcessModel LocalProcessModel;
     typedef typename Traits<ProcessModel>::Scalar Scalar;
@@ -61,23 +59,16 @@ struct Traits<
     typedef typename Traits<ProcessModel>::Input LocalInput;
     typedef typename Traits<ProcessModel>::Noise LocalNoise;
 
-    typedef Eigen::Matrix<
-                Scalar,
-                FactorSizes<LocalState::RowsAtCompileTime, Factors>::Size,
-                1
-            > State;
+    enum : signed int
+    {
+        StateDim = FactorSizes<LocalState::SizeAtCompileTime, Count>::Size,
+        NoiseDim = FactorSizes<LocalNoise::SizeAtCompileTime, Count>::Size,
+        InputDim = FactorSizes<LocalInput::SizeAtCompileTime, Count>::Size
+    };
 
-    typedef Eigen::Matrix<
-                Scalar,
-                FactorSizes<LocalNoise::RowsAtCompileTime, Factors>::Size,
-                1
-            > Noise;
-
-    typedef Eigen::Matrix<
-                Scalar,
-                FactorSizes<LocalInput::RowsAtCompileTime, Factors>::Size,
-                1
-            > Input;
+    typedef Eigen::Matrix<Scalar, StateDim, 1> State;
+    typedef Eigen::Matrix<Scalar, NoiseDim, 1> Noise;
+    typedef Eigen::Matrix<Scalar, InputDim, 1> Input;
 
     typedef ProcessModelInterface<
                 State,
@@ -91,31 +82,31 @@ struct Traits<
  */
 template <
     typename LocalProcessModel,
-    int Factors = Eigen::Dynamic
+    int Count
 >
-class FactorizedIIDProcessModel
+class JointProcessModel<Multiply<LocalProcessModel, Count>>
     : public Traits<
-                 FactorizedIIDProcessModel<LocalProcessModel, Factors>
+                 JointProcessModel<Multiply<LocalProcessModel, Count>>
              >::ProcessModelBase
 {
 public:
-    typedef FactorizedIIDProcessModel<LocalProcessModel, Factors> This;
+    typedef JointProcessModel<Multiply<LocalProcessModel, Count>> This;
 
-    typedef typename Traits<This>::State State;    
+    typedef typename Traits<This>::State State;
     typedef typename Traits<This>::Noise Noise;
-typedef typename Traits<This>::Input Input;
+    typedef typename Traits<This>::Input Input;
 
 public:
-    FactorizedIIDProcessModel(
+    JointProcessModel(
             const std::shared_ptr<LocalProcessModel>& local_process_model,
-            int factors = Factors)
+            int count = Count)
         : local_process_model_(local_process_model),
-          factors_(factors)
+          count_(count)
     {
-        assert(factors_ > 0);
+        assert(count_ > 0);
     }
 
-    ~FactorizedIIDProcessModel() { }
+    ~JointProcessModel() { }
 
     virtual State predict_state(double delta_time,
                                 const State& state,
@@ -125,10 +116,10 @@ public:
         State x = State::Zero(state_dimension(), 1);
 
         int state_dim = local_process_model_->state_dimension();
-        int noise_dim = local_process_model_->noise_dimension();        
+        int noise_dim = local_process_model_->noise_dimension();
         int input_dim = local_process_model_->input_dimension();
 
-        for (int i = 0; i < factors_; ++i)
+        for (int i = 0; i < count_; ++i)
         {
             x.middleRows(i * state_dim, state_dim) =
                 local_process_model_->predict_state(
@@ -139,21 +130,21 @@ public:
         }
 
         return x;
-    }    
+    }
 
     virtual size_t state_dimension() const
     {
-        return local_process_model_->state_dimension() * factors_;
+        return local_process_model_->state_dimension() * count_;
     }
 
     virtual size_t noise_dimension() const
     {
-        return local_process_model_->noise_dimension() * factors_;
+        return local_process_model_->noise_dimension() * count_;
     }
 
     virtual size_t input_dimension() const
     {
-        return local_process_model_->input_dimension() * factors_;
+        return local_process_model_->input_dimension() * count_;
     }
 
     const std::shared_ptr<LocalProcessModel>& local_process_model()
@@ -163,7 +154,7 @@ public:
 
 protected:
     std::shared_ptr<LocalProcessModel> local_process_model_;
-    size_t factors_;
+    size_t count_;
 };
 
 }

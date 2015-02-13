@@ -22,7 +22,7 @@
 #ifndef FL__MODEL__PROCESS__JOINT_PROCESS_MODEL_HPP
 #define FL__MODEL__PROCESS__JOINT_PROCESS_MODEL_HPP
 
-#include <fl/model/process/factorized_id_process_model.hpp>
-#include <fl/model/process/factorized_iid_process_model.hpp>
+#include <fl/model/process/joint_process_model_id.hpp>
+#include <fl/model/process/joint_process_model_iid.hpp>
 
 #endif

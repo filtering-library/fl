@@ -51,7 +51,7 @@
 #include <iostream>
 
 #include <fl/model/process/linear_process_model.hpp>
-#include <fl/model/process/factorized_id_process_model.hpp>
+#include <fl/model/process/joint_process_model.hpp>
 
 
 class FactorizedIDProcessModelTests
