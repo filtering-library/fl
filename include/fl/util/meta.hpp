@@ -84,10 +84,6 @@ inline constexpr int join_sizes(int a, int b)
 /**
  * \ingroup meta
  *
- * \tparam LocalSize    Size of the a single fixed or dynamic size factor
- * \tparam Factor       Number of factors
- *
- *
  * Computes the product of LocalSize times Factor. If one of the parameters is
  * set to Eigen::Dynamic, the factor size will collapse to Eigen::Dynbamic as
  * well.
@@ -117,7 +113,6 @@ template <int Head, int... Sizes> struct FactorSizes<Head, Sizes...>
  */
 template <> struct FactorSizes<> { enum: signed int { Size = 1 }; } ;
 
-
 /**
  * \ingroup meta
  *
@@ -145,7 +140,10 @@ template <typename First, typename...T> struct FirstTypeIn<First, T...>
  *
  * \tparam Indices  List of indices starting from 0
  */
-template <int ... Indices> struct IndexSequence {  };
+template <int ... Indices> struct IndexSequence
+{
+    enum { Size = sizeof...(Indices) };
+};
 
 
 /**
@@ -165,7 +163,85 @@ struct CreateIndexSequence
  * Terminal specialization CreateIndexSequence
  */
 template <int ... Indices>
-struct CreateIndexSequence<0, Indices...> : IndexSequence<Indices...> { };
+struct CreateIndexSequence<0, Indices...>
+    : IndexSequence<Indices...>
+{ };
+
+/**
+ * \ingroup meta
+ *
+ * Meta type defined in terms of a sequence of types
+ */
+template <typename ... T>
+struct TypeSequence
+{
+    enum : signed int { Size = sizeof...(T) };
+};
+
+/**
+ * \ingroup meta
+ * \internal
+ *
+ * Empty TypeSequence
+ */
+template <> struct TypeSequence<>
+{
+    enum : signed int { Size = Eigen::Dynamic };
+};
+
+/**
+ * \ingroup meta
+ *
+ * Creates a \c TypeSequence<T...> by expanding the specified \c Type \c Count
+ * times.
+ */
+template <int Count, typename Type, typename...T>
+struct CreateTypeSequence
+    : CreateTypeSequence<Count - 1, Type, Type, T...>
+{ };
+
+/**
+ * \ingroup meta
+ * \internal
+ *
+ * Terminal type of CreateTypeSequence
+ */
+template <typename Type, typename...T>
+struct CreateTypeSequence<1, Type, T...>
+    : TypeSequence<Type, T...>
+{ };
+
+/**
+ * \ingroup meta
+ *
+ * Creates an empty \c TypeSequence<> for a \c Count = Eigen::Dynamic
+ */
+template <typename Type>
+struct CreateTypeSequence<Eigen::Dynamic, Type>
+  : TypeSequence<>
+{ };
+
+/**
+ * \ingroup meta
+ *
+ * Same as CreateTypeSequence, however with a reversed parameter order. This is
+ * an attempt to make the use of \c CreateTypeSequence more natural.
+ */
+template <typename Type, int Count>
+struct Multiply
+    : CreateTypeSequence<Count, Type>
+{ };
+
+/**
+ * \ingroup meta
+ * \internal
+ *
+ * Creates an empty TypeSequence for dynamic count
+ */
+template <typename Type>
+struct Multiply<Type, -1>
+    : CreateTypeSequence<-1, Type>
+{ };
 
 }
 
