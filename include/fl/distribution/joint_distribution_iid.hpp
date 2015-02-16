@@ -47,7 +47,7 @@ struct Traits<
 
     enum : signed int
     {
-        MarginalCount = sizeof...(Distribution),
+        MarginalCount = Count,
         Dimension = FactorSizes<MarginalVariate::SizeAtCompileTime, Count>::Size
     };
 
@@ -79,13 +79,18 @@ public:
     typedef typename Traits<This>::MarginalDistributions MarginalDistributions;
 
 public:
-    JointDistribution(MarginalDistributions distributions)
-        : distributions_(distributions)
+    JointDistribution(MarginalDistribution marginal,
+                      int count = ToDimension<Count>::Value)
+        : distributions_(MarginalDistributions(count, 1))
     {
+        assert(count > 0);
+
         for (int i = 0; i < distributions_.rows(); ++i)
         {
-            dimension_ += distributions_(i).dimension();
+            distributions_(i) = marginal;
         }
+
+        dimension_ = marginal.dimension() * count;
     }
 
     /**
@@ -100,7 +105,7 @@ public:
         int offset = 0;
         for (int i = 0; i < Traits<This>::MarginalCount; ++i)
         {
-            MarginalDistribution& marginal = distributions_(i);
+            const MarginalDistribution& marginal = distributions_(i);
             int dim =  marginal.dimension();
 
             mu.middleRows(offset, dim) = marginal.mean();
@@ -118,7 +123,7 @@ public:
         int offset = 0;
         for (int i = 0; i < distributions_.rows(); ++i)
         {
-            MarginalDistribution& marginal = distributions_(i);
+            const MarginalDistribution& marginal = distributions_(i);
             int dim =  marginal.dimension();
 
             cov.block(offset, offset, dim, dim) = marginal.covariance();
@@ -145,3 +150,5 @@ protected:
 };
 
 }
+
+#endif
