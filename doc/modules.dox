@@ -3,8 +3,7 @@ namespace fl
 {
 
 /**
- \defgroup filter Filter Algorithms
- \defgroup sigma_point_kalman_filters Sigma Point Kalman Filters       
+ \defgroup filters Filter Algorithms
  \defgroup distributions Distributions
  \defgroup observation_models Observation Models
  \defgroup process_models Process Models
@@ -30,18 +29,18 @@ namespace fl
  */
  
 /**
+ * \defgroup sigma_point_kalman_filters Sigma Point Kalman Filters       
+ * \ingroup filters
+ */
+ 
+/**
  * \defgroup unscented_kalman_filter Unscented Kalman Filter
  * \ingroup sigma_point_kalman_filters 
  */
- 
- 
+  
 /**
  * \defgroup point_set_transform Point Set Transform
  * \ingroup sigma_point_kalman_filters
  */
- 
-/**
- * \defgroup point_count_polices Point Count Policies
- * \ingroup point_set_transform
- */
+
 }
