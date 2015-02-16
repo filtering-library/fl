@@ -38,7 +38,7 @@ namespace fl
 
 template <typename...> class GaussianFilter;
 
-enum AdditiveObservationNoise { };
+enum class AdditiveObservationNoise : bool { };
 
 /**
  * GaussianFilter Traits
