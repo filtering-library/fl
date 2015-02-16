@@ -30,25 +30,45 @@ namespace fl
 {
 
 /**
- * \ingroup point_count_polices
+ * \defgroup monte_carlo_transform Monte Carlo Transform
+ * \ingroup point_set_transform
+ *
+ * \copydoc MonteCarloTransform
+ */
+
+/**
+ * \defgroup point_count_policy Point Count Policy
+ * \ingroup monte_carlo_transform
+ * \brief Transform policy which determines the number of samples drawn during
+ *        transformation.
+ *
+ * \details
+ * The policy is evaluable at compile time. That is, given the dimension, the
+ * number of points is determined at compile time. However, for dynamic sizes
+ * or dimensions (Eigen::Dynamic), the number of points falls back to dynamic
+ * as well
+ */
+
+/**
+ * \ingroup point_count_policy
  *
  * The \c MonomialPointCountPolicy determines the number of points as a function
  * of the dimension. The monimial function is of the form
  *
- * \f$ f(d) = a d^p + b\f$
+ * \f$ f(x) = a x^p + b\f$
  *
  * where \f$a\f$ is the parameter \c Factor, \f$p\f$ the parameter \c Power,
  * and \f$b\f$ the parameter \c Min.
  *
  * Strictly speaking the function \f$f(x)\f$ is a polynomial of the form
- * \f$g(d) = a d^p + b d^0\f$. However, for simplicity reasons, in most cases
+ * \f$g(x) = a x^p + b x^0\f$. However, for simplicity reasons, in most cases
  * the parameter \c Min is 0.
  */
 template <size_t Power, size_t Factor = 1, size_t Min = 0>
 class MonomialPointCountPolicy
 {
 public:
-    static constexpr size_t number_of_points(int dimension)
+    static constexpr int number_of_points(int dimension)
     {
         return (dimension != Eigen::Dynamic)
                     ? monomial(dimension, Power, Factor, Min)
@@ -56,46 +76,19 @@ public:
     }
 
 protected:
-    static constexpr size_t monomial(size_t x, size_t p, size_t a, size_t b)
+    static constexpr int monomial(size_t x, size_t p, size_t a, size_t b)
     {
         return (p > 0) ? a * x * monomial(x, p - 1, 1, 0) + b : 1;
     }
 };
 
 /**
- * \ingroup point_count_polices
- *
- * \c ConstantPointCountPolicy represents the policy for constant number of
- * points regardless the dimension
- *
- * \f$f(d) = b\f$
- *
- * where \f$b\f$ is the parameter \c NumberOfPoints.
- *
- * The policy is a special case of the
- * \c MonomialPointCountPolicy for the parameters
- *
- * \c MonomialPointCountPolicy<1, 0, \c NumberOfPoints>
- */
-template <size_t NumberOfPoints>
-struct ConstantPointCountPolicy
-{
-    static constexpr size_t number_of_points(int dimension)
-    {
-        return (dimension != Eigen::Dynamic)
-                   ? MonomialPointCountPolicy<1, 0, NumberOfPoints>
-                       ::number_of_points(dimension)
-                   : Eigen::Dynamic;
-    }
-};
-
-/**
- * \ingroup point_count_polices
+ * \ingroup point_count_policy
  *
  * \c LinearPointCountPolicy represents the policy for a linear increase of
  * number of points w.r.t the dimension
  *
- * \f$ f(d) = a d + b\f$
+ * \f$ f(x) = a x + b\f$
  *
  * where \f$a\f$ is the parameter \c Factor and \f$b\f$ the parameter \c Min.
  *
@@ -107,7 +100,7 @@ struct ConstantPointCountPolicy
 template <size_t Factor = 1, size_t Min = 0>
 struct LinearPointCountPolicy
 {
-    static constexpr size_t number_of_points(int dimension)
+    static constexpr int number_of_points(int dimension)
     {
         return (dimension != Eigen::Dynamic)
                    ? MonomialPointCountPolicy<1, Factor, Min>
@@ -116,9 +109,36 @@ struct LinearPointCountPolicy
     }
 };
 
+/**
+ * \ingroup point_count_policy
+ *
+ * \c ConstantPointCountPolicy represents the policy for constant number of
+ * points regardless the dimension
+ *
+ * \f$f(x) = b\f$
+ *
+ * where \f$b\f$ is the parameter \c NumberOfPoints.
+ *
+ * The policy is a special case of the
+ * \c MonomialPointCountPolicy for the parameters
+ *
+ * \c MonomialPointCountPolicy<1, 0, \c NumberOfPoints>
+ */
+template <size_t NumberOfPoints>
+struct ConstantPointCountPolicy
+{
+    static constexpr int number_of_points(int dimension)
+    {
+        return (dimension != Eigen::Dynamic)
+                   ? MonomialPointCountPolicy<1, 0, NumberOfPoints>
+                       ::number_of_points(dimension)
+                   : Eigen::Dynamic;
+    }
+};
+
 
 /**
- * \ingroup point_set_transform
+ * \ingroup monte_carlo_transform
  *
  * This is the Monte Carlo Transform (MCT) used in the Gaussian Filter, the
  * Sigma Point Kalman Filter, in the same sense as using the Unscented Transform
@@ -129,6 +149,9 @@ struct LinearPointCountPolicy
  * basic pre-implemented policies are \c MonomialPointCountPolicy,
  * \c ConstantPointCountPolicy, and \c LinearPointCountPolicy. The latter two
  * are a special case of the \c MonomialPointCountPolicy.
+ *
+ * \tparam PointCountPolicy     The number of points policy. Default is a linear
+ *                              policy LinearPointCountPolicy<>
  */
 template <
     typename PointCountPolicy = LinearPointCountPolicy<>
@@ -217,7 +240,7 @@ public:
      *
      * \param dimension Dimension of the Gaussian
      */
-    static constexpr size_t number_of_points(int dimension)
+    static constexpr int number_of_points(int dimension)
     {
         return PointCountPolicy::number_of_points(dimension);
     }

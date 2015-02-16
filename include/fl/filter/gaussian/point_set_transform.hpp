@@ -31,6 +31,7 @@ namespace fl
 {
 
 /**
+ * \interface PointSetTransform
  * \ingroup point_set_transform
  *
  * \brief The PointSetTransform is the interface of any transform that
