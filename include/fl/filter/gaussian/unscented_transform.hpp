@@ -149,7 +149,7 @@ public:
      *
      * \param dimension Dimension of the Gaussian
      */
-    static constexpr size_t number_of_points(int dimension)
+    static constexpr int number_of_points(int dimension)
     {
         return (dimension != Eigen::Dynamic) ? 2 * dimension + 1 : -1;
     }
