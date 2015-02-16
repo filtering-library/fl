@@ -147,6 +147,13 @@ template <typename Matrix> struct DimensionOf
     constexpr operator size_t () { return value; }
 };
 
+template <int Dimension> struct ToDimension
+{
+    enum : signed int { Value = Dimension == Eigen::Dynamic ? 0 : Dimension };
+
+    constexpr operator int () { return Value; }
+};
+
 /**
  * \ingroup traits
  *
