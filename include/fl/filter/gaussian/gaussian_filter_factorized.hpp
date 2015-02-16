@@ -37,21 +37,11 @@
 namespace fl
 {
 
+// Forward declarations
 template <typename...> class GaussianFilter;
 
-
-template <typename Filter> class JointGaussian;
-
-template <typename Filter>
-struct Traits<JointGaussian<Filter>>
-{
-
-};
-
 /**
- * Traits of GaussianFilter<
- *             StateProcessModel,
- *             JointProcessModel<MultipleOf<ParamProcessModel, ParameterCount>>>
+ * Traits of Factorized GaussianFilter for IID Parameters
  */
 template <
     typename StateProcessModel,
@@ -69,17 +59,28 @@ struct Traits<
 {
     /** \cond INTERNAL */
     /**
+     * Represents the factorized model of a set of independent parameters
+     * which shall be filtered jointly with the state.
+     */
+    typedef JointProcessModel<
+                MultipleOf<ParamProcessModel, ParameterCount>
+            > JointParameterProcessModel;
+
+    /**
      * Internal joint process model consisting of \c StateProcessModel and
      * the JointProcessModel of multiple ParamProcessModel.
      */
     typedef JointProcessModel<
                 StateProcessModel,
-                JointProcessModel<MultipleOf<ParamProcessModel, ParameterCount>>
+                JointParameterProcessModel
             > ProcessModel;
 
+    /**
+     * Filter declaration
+     */
     typedef GaussianFilter<
                 StateProcessModel,
-                JointProcessModel<MultipleOf<ParamProcessModel, ParameterCount>>,
+                JointParameterProcessModel,
                 ObservationModel,
                 PointSetTransform
             > Filter;
@@ -95,7 +96,6 @@ struct Traits<
      * - StateDistribution
      */
     typedef std::shared_ptr<Filter> Ptr;
-
     typedef typename Traits<ProcessModel>::State State;
     typedef typename Traits<ProcessModel>::Input Input;
     typedef typename Traits<ObservationModel>::Observation Observation;
@@ -130,6 +130,16 @@ struct Traits<
 
 /**
  * \ingroup sigma_point_kalman_filters
+ *
+ * This \c GaussianFilter represents a factorized implementation of a Sigma
+ * Point Kalman Filter. The filter state consists of a coherent state component
+ * and a factorized parameter component.
+ *
+ * \tparam StateProcessModel
+ * \tparam ParamProcessModel
+ * \tparam ParameterCount
+ * \tparam ObservationModel
+ * \tparam PointSetTransform
  */
 template <
     typename StateProcessModel,
@@ -142,8 +152,12 @@ class GaussianFilter<
           StateProcessModel,
           JointProcessModel<MultipleOf<ParamProcessModel, ParameterCount>>,
           ObservationModel,
-          PointSetTransform>
-    : Traits<
+          PointSetTransform
+      >
+    : /**
+       * ProcessModelInterface Base
+       */
+      public Traits<
           GaussianFilter<
               StateProcessModel,
               JointProcessModel<MultipleOf<ParamProcessModel, ParameterCount>>,
@@ -152,8 +166,125 @@ class GaussianFilter<
           >
       >::ProcessModelBase
 {
-public:
+protected:
+    /** \cond INTERNAL */
+    typedef GaussianFilter<
+                StateProcessModel,
+                JointProcessModel<MultipleOf<ParamProcessModel, ParameterCount>>,
+                ObservationModel,
+                PointSetTransform
+            > This;
 
+    typedef typename Traits<This>::ProcessModel ProcessModel;
+    typedef typename
+        Traits<This>::JointParameterProcessModel JointParameterProcessModel;
+    /** \endcond */
+
+public:
+    /* public concept interface types */
+    typedef typename Traits<This>::State State;
+    typedef typename Traits<This>::Input Input;
+    typedef typename Traits<This>::Observation Observation;
+    typedef typename Traits<This>::StateDistribution StateDistribution;
+
+public:
+    /**
+     * Creates a factorized Gaussian filter
+     *
+     * @brief GaussianFilter
+     * @param state_process_model
+     * @param parameter_process_model
+     * @param parameter_count
+     */
+    GaussianFilter(
+            const std::shared_ptr<StateProcessModel>& state_process_model,
+            const std::shared_ptr<ParamProcessModel>& parameter_process_model,
+            const std::shared_ptr<ObservationModel> obsrv_model,
+            const std::shared_ptr<PointSetTransform>& point_set_transform,
+            int parameter_count = ToDimension<ParameterCount>::Value)
+        : state_process_model_(state_process_model),
+          joint_param_process_model_(
+              std::make_shared<JointParameterProcessModel>(
+                  parameter_process_model,
+                  parameter_count)),
+          process_model_(state_process_model_, joint_param_process_model_),
+          obsrv_model_(obsrv_model),
+          point_set_transform_(point_set_transform)
+    {
+
+    }
+
+    /**
+     * \copydoc FilterInterface::predict
+     */
+    virtual void predict(double delta_time,
+                         const Input& input,
+                         const StateDistribution& prior_dist,
+                         StateDistribution& predicted_dist)
+    {
+
+    }
+
+
+    /**
+     * \copydoc FilterInterface::update
+     */
+    virtual void update(const Observation& y,
+                        const StateDistribution& predicted_dist,
+                        StateDistribution& posterior_dist)
+    {
+
+    }
+
+
+    /**
+     * \copydoc FilterInterface::predict_and_update
+     */
+    virtual void predict_and_update(double delta_time,
+                                    const Input& input,
+                                    const Observation& observation,
+                                    const StateDistribution& prior_dist,
+                                    StateDistribution& posterior_dist)
+    {
+        predict(delta_time, input, prior_dist, posterior_dist);
+        update(observation, posterior_dist, posterior_dist);
+    }
+
+
+    const std::shared_ptr<StateProcessModel>& state_process_model()
+    {
+        return state_process_model_;
+    }
+
+    const std::shared_ptr<JointParameterProcessModel>&
+    joint_parameter_process_model()
+    {
+        return joint_param_process_model_;
+    }
+
+    const std::shared_ptr<ProcessModel>& process_model()
+    {
+        return process_model_;
+    }
+
+    const std::shared_ptr<ObservationModel>& observation_model()
+    {
+        return obsrv_model_;
+    }
+
+
+    const std::shared_ptr<PointSetTransform>& point_set_transform()
+    {
+        return point_set_transform_;
+    }
+
+protected:
+    std::shared_ptr<StateProcessModel> state_process_model_;
+    std::shared_ptr<JointParameterProcessModel> joint_param_process_model_;
+
+    std::shared_ptr<ProcessModel> process_model_;
+    std::shared_ptr<ObservationModel> obsrv_model_;
+    std::shared_ptr<PointSetTransform> point_set_transform_;
 };
 
 }
