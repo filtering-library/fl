@@ -57,19 +57,22 @@ target_link_libraries(meta_tests
  target_link_libraries(distribution_tests
                        ${catkin_LIBRARIES})
 
+ catkin_add_gtest(joint_distribution_id_test
+                  distribution/joint_distribution_id_test.cpp
+                  gtest_main.cpp)
+ target_link_libraries(joint_distribution_id_test ${catkin_LIBRARIES})
+
  ## exceptions tests ##
  catkin_add_gtest(exception_tests
                   exception/exception_test.cpp
                   gtest_main.cpp)
- target_link_libraries(exception_tests
-                       ${catkin_LIBRARIES})
+ target_link_libraries(exception_tests ${catkin_LIBRARIES})
 
  ## Kalman filter tests ##
  catkin_add_gtest(kalman_filter_tests
                   kalman_filter/kalman_filter_test.cpp
                   gtest_main.cpp)
- target_link_libraries(kalman_filter_tests
-                       ${catkin_LIBRARIES})
+ target_link_libraries(kalman_filter_tests ${catkin_LIBRARIES})
 
  ## linear models tests ##
  catkin_add_gtest(models_tests
@@ -77,15 +80,13 @@ target_link_libraries(meta_tests
                   model/linear_observation_model_test.cpp
                   model/factorized_iid_observation_model_test.cpp
                   gtest_main.cpp)
- target_link_libraries(models_tests
-                       ${catkin_LIBRARIES})
+ target_link_libraries(models_tests ${catkin_LIBRARIES})
 
 
- catkin_add_gtest(process_model_tests
-                  model/factorized_id_process_model_test.cpp
+ catkin_add_gtest(joint_process_model_id_test
+                  model/joint_process_model_id_test.cpp
                   gtest_main.cpp)
- target_link_libraries(process_model_tests
-                       ${catkin_LIBRARIES})
+ target_link_libraries(joint_process_model_id_test ${catkin_LIBRARIES})
 
 ### Factorized UKF vs. Kalman filter tests ##
 # catkin_add_gtest(factorized_ukf_kf_tests
