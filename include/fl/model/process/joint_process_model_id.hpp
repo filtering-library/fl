@@ -40,12 +40,12 @@ namespace fl
 template <typename...Models> class JointProcessModel;
 
 /**
- * Traits of FactorizedIDProcessModel
+ * Traits of JointProcessModel
  */
 template <typename...Models>
 struct Traits<
            JointProcessModel<Models...>
-        >
+       >
 {        
     enum : signed int
     {
@@ -67,7 +67,6 @@ struct Traits<
             > ProcessModelBase;
 };
 
-
 /**
  * \ingroup process_models
  */
@@ -86,8 +85,8 @@ public:
 
 public:
     /**
-     * Constructor a FactorizedIDProcessModel which is a composition of
-     * mixture of fixed and dynamic-size process models. If
+     * Constructor a JointProcessModel which is a composition of mixture of
+     * fixed and dynamic-size process models. If
      *
      * \param models    Variadic list of shared pointers of the models
      */
@@ -106,7 +105,7 @@ public:
     {
         State prediction = State(state_dimension(), 1);
 
-        VariadicExpansion<sizeof...(Models)>().predict_state(
+        predict_state<sizeof...(Models)>(
             models_,
             delta_time,
             state,
@@ -129,10 +128,6 @@ public:
      */
     virtual constexpr size_t state_dimension() const
     {
-        /*
-        return VariadicExpansion<sizeof...(Models)>().state_dimension(models_);
-        */
-
         return expand_state_dimension(CreateIndexSequence<sizeof...(Models)>());
     }
 
@@ -143,10 +138,6 @@ public:
      */
     virtual constexpr size_t noise_dimension() const
     {
-        /*
-        return VariadicExpansion<sizeof...(Models)>().noise_dimension(models_);
-        */
-
         return expand_noise_dimension(CreateIndexSequence<sizeof...(Models)>());
     }
 
@@ -157,10 +148,6 @@ public:
      */
     virtual constexpr size_t input_dimension() const
     {
-        /*
-        return VariadicExpansion<sizeof...(Models)>().input_dimension(models_);
-        */
-
         return expand_input_dimension(CreateIndexSequence<sizeof...(Models)>());
     }
 
@@ -176,11 +163,10 @@ private:
     /** \cond INTERNAL */
     template <int...Indices>
     constexpr size_t expand_state_dimension(IndexSequence<Indices...>) const
-    {
+    {        
+        const auto& dims = { std::get<Indices>(models_)->state_dimension()... };
+
         int joint_dim = 0;
-
-        auto&& dims = { std::get<Indices>(models_)->state_dimension()... };
-
         for (auto dim : dims) { joint_dim += dim; }
 
         return joint_dim;
@@ -189,10 +175,9 @@ private:
     template <int...Indices>
     constexpr size_t expand_noise_dimension(IndexSequence<Indices...>) const
     {
+        const auto& dims = { std::get<Indices>(models_)->noise_dimension()... };
+
         int joint_dim = 0;
-
-        auto&& dims = { std::get<Indices>(models_)->noise_dimension()... };
-
         for (auto dim : dims) { joint_dim += dim; }
 
         return joint_dim;
@@ -201,131 +186,59 @@ private:
     template <int...Indices>
     constexpr size_t expand_input_dimension(IndexSequence<Indices...>) const
     {
+        const auto& dims = { std::get<Indices>(models_)->input_dimension()... };
+
         int joint_dim = 0;
-
-        auto&& dims = { std::get<Indices>(models_)->input_dimension()... };
-
         for (auto dim : dims) { joint_dim += dim; }
 
         return joint_dim;
     }
 
-    /**
-     * Represents expansion of model function calls on the variadic model list
-     */
-    template <int k, bool make_non_explicit = true>
-    struct VariadicExpansion
+    template <
+        int Size,
+        int k = 0,
+        typename Tuple,
+        typename State,
+        typename Noise,
+        typename Input
+    >
+    void predict_state(Tuple& models_tuple,
+                       double delta_time,
+                       const State& state,
+                       const Noise& noise,
+                       const Input& input,
+                       State& prediction,
+                       const int state_offset = 0,
+                       const int noise_offset = 0,
+                       const int input_offset = 0)
     {
-        template <typename Tuple>
-        constexpr size_t state_dimension(Tuple& models_tuple) const
-        {
-            return ::fl::join_sizes(
-                        std::get<k - 1>(models_tuple)->state_dimension(),
-                        VariadicExpansion<k - 1, make_non_explicit>()
-                            .state_dimension(models_tuple));
-        }
+        auto&& model = std::get<k>(models_tuple);
 
-        template <typename Tuple>
-        constexpr size_t noise_dimension(Tuple& models_tuple) const
-        {
-            return ::fl::join_sizes(
-                        std::get<k - 1>(models_tuple)->noise_dimension(),
-                        VariadicExpansion<k - 1, make_non_explicit>()
-                            .noise_dimension(models_tuple));
-        }
+        const auto state_dim = model->state_dimension();
+        const auto noise_dim = model->noise_dimension();
+        const auto input_dim = model->input_dimension();
 
-        template <typename Tuple>
-        constexpr size_t input_dimension(Tuple& models_tuple) const
-        {
-            return ::fl::join_sizes(
-                        std::get<k - 1>(models_tuple)->input_dimension(),
-                        VariadicExpansion<k - 1, make_non_explicit>()
-                            .input_dimension(models_tuple));
-        }
+        prediction.middleRows(state_offset, state_dim) =
+            model->predict_state(
+                delta_time,
+                state.middleRows(state_offset, state_dim),
+                noise.middleRows(noise_offset, noise_dim),
+                input.middleRows(input_offset, input_dim)
+            );
 
-        template <
-            typename Tuple,
-            typename State,
-            typename Noise,
-            typename Input
-        >
-        void predict_state(Tuple& models_tuple,
-                           double delta_time,
-                           const State& state,
-                           const Noise& noise,
-                           const Input& input,
-                           State& prediction,
-                           int state_offset = 0,
-                           int noise_offset = 0,
-                           int input_offset = 0)
-        {
-            auto&& model = std::get<k - 1>(models_tuple);
+        if (Size == k + 1) return;
 
-            auto state_dim = model->state_dimension();
-            auto noise_dim = model->noise_dimension();
-            auto input_dim = model->input_dimension();
-
-            state_offset += state_dim;
-            noise_offset += noise_dim;
-            input_offset += input_dim;
-
-            prediction.middleRows(state.rows() - state_offset, state_dim) =
-                model->predict_state(
-                    delta_time,
-                    state.middleRows(state.rows() - state_offset, state_dim),
-                    noise.middleRows(noise.rows() - noise_offset, noise_dim),
-                    input.middleRows(input.rows() - input_offset, input_dim)
-                );
-
-            VariadicExpansion<k - 1, make_non_explicit>()
-                .predict_state(
+        predict_state<Size, k + (k + 1 < Size ? 1 : 0)>(
                     models_tuple,
                     delta_time,
                     state,
                     noise,
                     input,
                     prediction,
-                    state_offset,
-                    noise_offset,
-                    input_offset
-                );
-        }
-    };
-
-    /**
-     * Terminal expansion specialization.
-     *
-     * Uses void implementation to avoid redundancy
-     */
-    template <bool make_non_explicit>
-    struct VariadicExpansion<0, make_non_explicit>
-    {
-        template <typename Tuple>
-        constexpr size_t state_dimension(Tuple&) const { return 0; }
-
-        template <typename Tuple>
-        constexpr size_t noise_dimension(Tuple&) const { return 0; }
-
-        template <typename Tuple>
-        constexpr size_t input_dimension(Tuple&) const { return 0; }
-
-        template <
-            typename Tuple,
-            typename State,
-            typename Noise,
-            typename Input
-        >
-        void predict_state(Tuple& models_tuple,
-                           double delta_time,
-                           const State& state,
-                           const Noise& noise,
-                           const Input& input,
-                           State& prediction,
-                           int state_offset,
-                           int noise_offset,
-                           int input_offset)
-        { }
-    };
+                    state_offset + state_dim,
+                    noise_offset + noise_dim,
+                    input_offset + input_dim);
+    }
     /** \endcond */
 };
 

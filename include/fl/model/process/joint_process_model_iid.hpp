@@ -35,20 +35,18 @@
 namespace fl
 {
 
-
-
 // Forward declarations
 template <typename ... Models> class JointProcessModel;
 
 /**
- * Traits of JointProcessModel<Multiply<ProcessModel, Count>>
+ * Traits of JointProcessModel<MultipleOf<ProcessModel, Count>>
  */
 template <
     typename ProcessModel,
     int Count
 >
 struct Traits<
-           JointProcessModel<Multiply<ProcessModel, Count>>
+           JointProcessModel<MultipleOf<ProcessModel, Count>>
         >
 {
     enum : signed int { ModelCount = Count };
@@ -84,13 +82,13 @@ template <
     typename LocalProcessModel,
     int Count
 >
-class JointProcessModel<Multiply<LocalProcessModel, Count>>
+class JointProcessModel<MultipleOf<LocalProcessModel, Count>>
     : public Traits<
-                 JointProcessModel<Multiply<LocalProcessModel, Count>>
+                 JointProcessModel<MultipleOf<LocalProcessModel, Count>>
              >::ProcessModelBase
 {
 public:
-    typedef JointProcessModel<Multiply<LocalProcessModel, Count>> This;
+    typedef JointProcessModel<MultipleOf<LocalProcessModel, Count>> This;
 
     typedef typename Traits<This>::State State;
     typedef typename Traits<This>::Noise Noise;

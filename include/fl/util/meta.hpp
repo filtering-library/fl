@@ -226,7 +226,7 @@ struct CreateTypeSequence<Eigen::Dynamic, Type>
  * an attempt to make the use of \c CreateTypeSequence more natural.
  */
 template <typename Type, int Count>
-struct Multiply
+struct MultipleOf
     : CreateTypeSequence<Count, Type>
 { };
 
@@ -237,8 +237,8 @@ struct Multiply
  * Creates an empty TypeSequence for dynamic count
  */
 template <typename Type>
-struct Multiply<Type, -1>
-    : CreateTypeSequence<-1, Type>
+struct MultipleOf<Type, Eigen::Dynamic>
+    : CreateTypeSequence<Eigen::Dynamic, Type>
 { };
 
 }
