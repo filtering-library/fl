@@ -54,7 +54,7 @@
 #include <fl/model/process/joint_process_model.hpp>
 
 
-class FactorizedIDProcessModelTests
+class JointProcessModel_ID_Tests
         : public ::testing::Test
 {
 protected:
@@ -79,22 +79,21 @@ protected:
 
 };
 
-
-TEST_F(FactorizedIDProcessModelTests, fixed)
+TEST_F(JointProcessModel_ID_Tests, fixed)
 {
     EXPECT_EQ(fl::Traits<FixedModel>::State::SizeAtCompileTime, 15);
     EXPECT_EQ(fl::Traits<FixedModel>::Noise::SizeAtCompileTime, 15);
     EXPECT_EQ(fl::Traits<FixedModel>::Input::SizeAtCompileTime, 3);
 }
 
-TEST_F(FactorizedIDProcessModelTests, dynamic)
+TEST_F(JointProcessModel_ID_Tests, dynamic)
 {
     EXPECT_EQ(fl::Traits<DynamicModel>::State::SizeAtCompileTime, -1);
     EXPECT_EQ(fl::Traits<DynamicModel>::Noise::SizeAtCompileTime, -1);
     EXPECT_EQ(fl::Traits<DynamicModel>::Input::SizeAtCompileTime,  3);
 }
 
-TEST_F(FactorizedIDProcessModelTests, dynamic_fallback)
+TEST_F(JointProcessModel_ID_Tests, dynamic_fallback)
 {
     EXPECT_EQ(fl::Traits<DynamicFallbackModel>::State::SizeAtCompileTime, -1);
     EXPECT_EQ(fl::Traits<DynamicFallbackModel>::Noise::SizeAtCompileTime, -1);
@@ -102,7 +101,7 @@ TEST_F(FactorizedIDProcessModelTests, dynamic_fallback)
 }
 
 
-TEST_F(FactorizedIDProcessModelTests, state_dimension_fixed)
+TEST_F(JointProcessModel_ID_Tests, state_dimension_fixed)
 {
     auto my_model = FixedModel(std::make_shared<FModelA>(FACov::Identity()),
                                std::make_shared<FModelB>(FBCov::Identity()),
@@ -111,7 +110,7 @@ TEST_F(FactorizedIDProcessModelTests, state_dimension_fixed)
     EXPECT_EQ(my_model.state_dimension(), 15);
 }
 
-TEST_F(FactorizedIDProcessModelTests, state_dimension_dynamic)
+TEST_F(JointProcessModel_ID_Tests, state_dimension_dynamic)
 {
     auto my_model = DynamicModel(
         std::make_shared<DModelA>(DACov::Identity(3,3), 3),
@@ -121,7 +120,7 @@ TEST_F(FactorizedIDProcessModelTests, state_dimension_dynamic)
     EXPECT_EQ(my_model.state_dimension(), 3 + 5 + 7);
 }
 
-TEST_F(FactorizedIDProcessModelTests, state_dimension_dynamic_fallback)
+TEST_F(JointProcessModel_ID_Tests, state_dimension_dynamic_fallback)
 {
     auto my_model = DynamicFallbackModel(
         std::make_shared<FModelA>(FACov::Identity()),
@@ -131,7 +130,7 @@ TEST_F(FactorizedIDProcessModelTests, state_dimension_dynamic_fallback)
     EXPECT_EQ(my_model.state_dimension(), 3 + 5 + 7);
 }
 
-TEST_F(FactorizedIDProcessModelTests, predict_fixed)
+TEST_F(JointProcessModel_ID_Tests, predict_fixed)
 {
     auto my_model = FixedModel(
         std::make_shared<FModelA>(FACov::Identity() * 3 * 3),
@@ -160,7 +159,7 @@ TEST_F(FactorizedIDProcessModelTests, predict_fixed)
     EXPECT_TRUE(prediction.isApprox(expected));
 }
 
-TEST_F(FactorizedIDProcessModelTests, predict_dynamic)
+TEST_F(JointProcessModel_ID_Tests, predict_dynamic)
 {
     auto my_model = DynamicModel(
         std::make_shared<DModelA>(DACov::Identity(3, 3) * 3 * 3, 3),
@@ -189,7 +188,7 @@ TEST_F(FactorizedIDProcessModelTests, predict_dynamic)
     EXPECT_TRUE(prediction.isApprox(expected));
 }
 
-TEST_F(FactorizedIDProcessModelTests, predict_dynamic_fallback)
+TEST_F(JointProcessModel_ID_Tests, predict_dynamic_fallback)
 {
     auto my_model = DynamicFallbackModel(
         std::make_shared<FModelA>(FACov::Identity() * 3 * 3),
@@ -218,11 +217,12 @@ TEST_F(FactorizedIDProcessModelTests, predict_dynamic_fallback)
     EXPECT_TRUE(prediction.isApprox(expected));
 }
 
+
 //long int sum = 0;
 
-//TEST_F(FactorizedIDProcessModelTests, speed_test_fixed)
+//TEST_F(JointProcessModel_ID_Tests, speed_test_fixed)
 //{
-//    typedef fl::FactorizedIDProcessModel<
+//    typedef fl::JointProcessModel<
 //                FModelA, FModelB, FModelC,
 //                FModelA, FModelB, FModelC,
 //                FModelA, FModelB, FModelC,
@@ -296,7 +296,7 @@ TEST_F(FactorizedIDProcessModelTests, predict_dynamic_fallback)
 //}
 
 
-//TEST_F(FactorizedIDProcessModelTests, speed_test_dynamic)
+//TEST_F(JointProcessModel_ID_Tests, speed_test_dynamic)
 //{
 //    auto my_model = DynamicModel(
 //        std::make_shared<DModelA>(DACov::Identity(3,3), 3),
@@ -311,7 +311,7 @@ TEST_F(FactorizedIDProcessModelTests, predict_dynamic_fallback)
 //    }
 //}
 
-//TEST_F(FactorizedIDProcessModelTests, speed_test_dynamic_fallback)
+//TEST_F(JointProcessModel_ID_Tests, speed_test_dynamic_fallback)
 //{
 //    auto my_model = DynamicFallbackModel(
 //        std::make_shared<FModelA>(FACov::Identity()),
