@@ -38,8 +38,8 @@
  */
 
 /**
- * \file factorized_id_process_model_test.cpp
- * \date January 2015
+ * \file joint_distribution_id_test.cpp
+ * \date Febuary 2015
  * \author Jan Issac (jan.issac@gmail.com)
  */
 

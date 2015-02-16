@@ -62,6 +62,11 @@ target_link_libraries(meta_tests
                   gtest_main.cpp)
  target_link_libraries(joint_distribution_id_test ${catkin_LIBRARIES})
 
+ catkin_add_gtest(joint_distribution_iid_test
+                  distribution/joint_distribution_iid_test.cpp
+                  gtest_main.cpp)
+ target_link_libraries(joint_distribution_iid_test ${catkin_LIBRARIES})
+
  ## exceptions tests ##
  catkin_add_gtest(exception_tests
                   exception/exception_test.cpp
