@@ -75,6 +75,8 @@ struct Traits<
             > ProcessModelBase;
 };
 
+
+
 /**
  * \ingroup process_models
  */
@@ -101,7 +103,7 @@ public:
         : local_process_model_(local_process_model),
           count_(count)
     {
-        assert(count_ > 0);
+        assert(count > 0);
     }
 
     ~JointProcessModel() { }
@@ -152,7 +154,7 @@ public:
 
 protected:
     std::shared_ptr<LocalProcessModel> local_process_model_;
-    size_t count_;
+    int count_;
 };
 
 }

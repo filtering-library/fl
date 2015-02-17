@@ -19,14 +19,8 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-
 #ifndef FL__FILTER__GAUSSIAN__GAUSSIAN_FILTER_HPP
 #define FL__FILTER__GAUSSIAN__GAUSSIAN_FILTER_HPP
-
-namespace fl
-{
-
-}
 
 #include <fl/filter/gaussian/gaussian_filter_kf.hpp>
 #include <fl/filter/gaussian/gaussian_filter_ukf.hpp>

@@ -143,7 +143,6 @@ template <int ... Indices> struct IndexSequence
     enum { Size = sizeof...(Indices) };
 };
 
-
 /**
  * \ingroup meta
  *
