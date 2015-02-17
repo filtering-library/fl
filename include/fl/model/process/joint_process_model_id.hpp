@@ -14,7 +14,7 @@
  */
 
 /**
- * \file factorized_id_process_model.hpp
+ * \file joint_process_model_id.hpp
  * \date Febuary 2015
  * \author Jan Issac (jan.issac@gmail.com)
  */
@@ -29,7 +29,6 @@
 
 #include <fl/util/traits.hpp>
 #include <fl/util/meta.hpp>
-#include <fl/distribution/gaussian.hpp>
 
 #include <fl/model/process/process_model_interface.hpp>
 
@@ -54,7 +53,9 @@ struct Traits<
         InputDim = JoinSizes<Traits<Models>::Input::SizeAtCompileTime...>::Size
     };
 
-    typedef typename FirstTypeIn<Models...>::Type::State::Scalar Scalar;
+    typedef typename Traits<
+                         typename FirstTypeIn<Models...>::Type
+                     >::State::Scalar Scalar;
 
     typedef Eigen::Matrix<Scalar, StateDim, 1> State;
     typedef Eigen::Matrix<Scalar, NoiseDim, 1> Noise;
@@ -86,7 +87,7 @@ public:
 public:
     /**
      * Constructor a JointProcessModel which is a composition of mixture of
-     * fixed and dynamic-size process models. If
+     * fixed and dynamic-size process models.
      *
      * \param models    Variadic list of shared pointers of the models
      */
