@@ -93,6 +93,12 @@ target_link_libraries(meta_tests
                   gtest_main.cpp)
  target_link_libraries(joint_process_model_id_test ${catkin_LIBRARIES})
 
+
+ catkin_add_gtest(joint_process_model_iid_test
+                  model/joint_process_model_iid_test.cpp
+                  gtest_main.cpp)
+ target_link_libraries(joint_process_model_iid_test ${catkin_LIBRARIES})
+
 ### Factorized UKF vs. Kalman filter tests ##
 # catkin_add_gtest(factorized_ukf_kf_tests
 #                  factorized_ukf/factorized_ukf_kf_test.cpp

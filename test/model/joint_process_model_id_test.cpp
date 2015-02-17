@@ -47,12 +47,8 @@
 
 #include <Eigen/Dense>
 
-#include <cmath>
-#include <iostream>
-
 #include <fl/model/process/linear_process_model.hpp>
 #include <fl/model/process/joint_process_model.hpp>
-
 
 class JointProcessModel_ID_Tests
         : public ::testing::Test
@@ -137,9 +133,9 @@ TEST_F(JointProcessModel_ID_Tests, predict_fixed)
         std::make_shared<FModelB>(FBCov::Identity() * 5 * 5),
         std::make_shared<FModelC>(FCCov::Identity() * 7 * 7));
 
-    auto state = typename fl::Traits<FixedModel>::State();
-    auto noise = typename fl::Traits<FixedModel>::Noise();
-    auto input = typename fl::Traits<FixedModel>::Input();
+    auto state = fl::Traits<FixedModel>::State();
+    auto noise = fl::Traits<FixedModel>::Noise();
+    auto input = fl::Traits<FixedModel>::Input();
 
     state.setZero();
     noise.setOnes();
@@ -166,9 +162,9 @@ TEST_F(JointProcessModel_ID_Tests, predict_dynamic)
         std::make_shared<DModelB>(DBCov::Identity(5, 5) * 5 * 5, 5),
         std::make_shared<DModelC>(DCCov::Identity(7, 7) * 7 * 7, 7));
 
-    auto state = typename fl::Traits<DynamicModel>::State(15, 1);
-    auto noise = typename fl::Traits<DynamicModel>::Noise(15, 1);
-    auto input = typename fl::Traits<DynamicModel>::Input(3, 1);
+    auto state = fl::Traits<DynamicModel>::State(15, 1);
+    auto noise = fl::Traits<DynamicModel>::Noise(15, 1);
+    auto input = fl::Traits<DynamicModel>::Input(3, 1);
 
     state.setZero();
     noise.setOnes();
@@ -195,9 +191,9 @@ TEST_F(JointProcessModel_ID_Tests, predict_dynamic_fallback)
         std::make_shared<DModelB>(DBCov::Identity(5, 5) * 5 * 5, 5),
         std::make_shared<FModelC>(FCCov::Identity() * 7 * 7));
 
-    auto state = typename fl::Traits<DynamicFallbackModel>::State(15, 1);
-    auto noise = typename fl::Traits<DynamicFallbackModel>::Noise(15, 1);
-    auto input = typename fl::Traits<DynamicFallbackModel>::Input(3, 1);
+    auto state = fl::Traits<DynamicFallbackModel>::State(15, 1);
+    auto noise = fl::Traits<DynamicFallbackModel>::Noise(15, 1);
+    auto input = fl::Traits<DynamicFallbackModel>::Input(3, 1);
 
     state.setZero();
     noise.setOnes();
