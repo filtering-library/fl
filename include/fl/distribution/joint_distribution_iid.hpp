@@ -48,7 +48,7 @@ struct Traits<
     enum : signed int
     {
         MarginalCount = Count,
-        Dimension = FactorSizes<MarginalVariate::SizeAtCompileTime, Count>::Size
+        Dimension = ExpandSizes<MarginalVariate::SizeAtCompileTime, Count>::Size
     };
 
     typedef typename MarginalVariate::Scalar Scalar;

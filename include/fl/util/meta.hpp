@@ -54,7 +54,7 @@ template <int... Sizes> struct JoinSizes;
  */
 template <int Head, int... Sizes> struct JoinSizes<Head, Sizes...>
 {
-    enum: signed int
+    enum : signed int
     {
         Size = IsFixed<Head>() && IsFixed<JoinSizes<Sizes...>::Size>()
                    ? Head + JoinSizes<Sizes...>::Size
@@ -87,18 +87,18 @@ inline constexpr int join_sizes(int a, int b)
  * set to Eigen::Dynamic, the factor size will collapse to Eigen::Dynbamic as
  * well.
  */
-template <int ... Sizes> struct FactorSizes;
+template <int ... Sizes> struct ExpandSizes;
 
 /**
  * \internal
  * \ingroup meta
  */
-template <int Head, int... Sizes> struct FactorSizes<Head, Sizes...>
+template <int Head, int... Sizes> struct ExpandSizes<Head, Sizes...>
 {
     enum: signed int
     {
-        Size = IsFixed<Head>() && IsFixed<FactorSizes<Sizes...>::Size>()
-                   ? Head * FactorSizes<Sizes...>::Size
+        Size = IsFixed<Head>() && IsFixed<ExpandSizes<Sizes...>::Size>()
+                   ? Head * ExpandSizes<Sizes...>::Size
                    : Eigen::Dynamic
     };
 };
@@ -107,9 +107,9 @@ template <int Head, int... Sizes> struct FactorSizes<Head, Sizes...>
  * \internal
  * \ingroup meta
  *
- * Terminal specialization of FactorSizes<...>
+ * Terminal specialization of ExpandSizes<...>
  */
-template <> struct FactorSizes<> { enum: signed int { Size = 1 }; } ;
+template <> struct ExpandSizes<> { enum: signed int { Size = 1 }; } ;
 
 /**
  * \ingroup meta

@@ -14,7 +14,7 @@
  */
 
 /**
- * \file factorized_iid_process_model.hpp
+ * \file joint_process_model_iid.hpp
  * \date January 2015
  * \author Jan Issac (jan.issac@gmail.com)
  */
@@ -28,7 +28,6 @@
 
 #include <fl/util/traits.hpp>
 #include <fl/util/meta.hpp>
-#include <fl/distribution/gaussian.hpp>
 
 #include <fl/model/process/process_model_interface.hpp>
 
@@ -59,9 +58,9 @@ struct Traits<
 
     enum : signed int
     {
-        StateDim = FactorSizes<LocalState::SizeAtCompileTime, Count>::Size,
-        NoiseDim = FactorSizes<LocalNoise::SizeAtCompileTime, Count>::Size,
-        InputDim = FactorSizes<LocalInput::SizeAtCompileTime, Count>::Size
+        StateDim = ExpandSizes<LocalState::SizeAtCompileTime, Count>::Size,
+        NoiseDim = ExpandSizes<LocalNoise::SizeAtCompileTime, Count>::Size,
+        InputDim = ExpandSizes<LocalInput::SizeAtCompileTime, Count>::Size
     };
 
     typedef Eigen::Matrix<Scalar, StateDim, 1> State;
@@ -97,9 +96,9 @@ public:
     typedef typename Traits<This>::Input Input;
 
 public:
-    JointProcessModel(
+    explicit JointProcessModel(
             const std::shared_ptr<LocalProcessModel>& local_process_model,
-            int count = Count)
+            int count = ToDimension<Count>::Value)
         : local_process_model_(local_process_model),
           count_(count)
     {
