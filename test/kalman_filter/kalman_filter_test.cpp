@@ -113,11 +113,10 @@ TEST(KalmanFilterTests, init_dynamic_size_predict)
     typedef typename fl::Traits<Filter>::ObservationModel ObservationModel;
 
     ProcessModel::SecondMoment Q =
-            ProcessModel::SecondMoment::Identity(dim_state,
-                                             dim_state);
+            ProcessModel::SecondMoment::Identity(dim_state, dim_state);
     ObservationModel::SecondMoment R =
-            ObservationModel::SecondMoment::Identity(dim_observation,
-                                                 dim_observation);
+            ObservationModel::SecondMoment::Identity(
+                dim_observation, dim_observation);
 
     std::shared_ptr<ProcessModel> process_model =
             std::make_shared<ProcessModel>(Q, dim_state);
@@ -127,17 +126,15 @@ TEST(KalmanFilterTests, init_dynamic_size_predict)
     fl::FilterInterface<Filter>::Ptr filter =
             std::make_shared<Filter>(process_model, observation_model);
 
-    Filter::StateDistribution state_dist(dim_state);
+    Filter::StateDistribution state_dist(dim_state);    
 
     EXPECT_TRUE(state_dist.mean().isZero());
     EXPECT_TRUE(state_dist.covariance().isIdentity());
 
-//    std::cout << state_dist.covariance() << std::endl << std::endl;
     filter->predict(1.0, Input(1), state_dist, state_dist);
+
     EXPECT_TRUE(state_dist.mean().isZero());
     EXPECT_TRUE(state_dist.covariance().isApprox(2. * Q));
-//    std::cout << state_dist.covariance() << std::endl << std::endl;
-    //std::cout <<  Q << std::endl;
 }
 
 TEST(KalmanFilterTests, fixed_size_predict_update)
