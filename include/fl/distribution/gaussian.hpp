@@ -151,6 +151,7 @@ public:
     }
 };
 
+
 /**
  * \class Gaussian
  *
@@ -231,7 +232,7 @@ public:
      *                  adapted. For dynamic-sized Variable the dimension is
      *                  initialized to 0.
      */
-    explicit Gaussian(size_t dim = DimensionOf<Variate>()):
+    explicit Gaussian(int dim = DimensionOf<Variate>()):
         Traits<This>::GaussianMappingBase(dim),
         dirty_(Attributes, true)
     {
@@ -383,6 +384,7 @@ public:
 
         return precision_;
     }
+
 
     /**
      * \return Gaussian second centered moment in the square root form (
@@ -593,7 +595,7 @@ public:
      * \throws ResizingFixedSizeEntityException
      *         see GaussianMap::standard_variate_dimension(size_t)
      */
-    virtual void dimension(size_t new_dimension)
+    virtual void dimension(int new_dimension)
     {
         standard_variate_dimension(new_dimension);
         set_standard();
@@ -628,6 +630,7 @@ public:
      *
      * \throws WrongSizeException
      */
+
     virtual void covariance(const SecondMoment& covariance) noexcept
     {
         if (covariance_.size() != covariance.size())
