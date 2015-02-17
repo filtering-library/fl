@@ -25,6 +25,7 @@
 #include <map>
 #include <tuple>
 #include <memory>
+#include <typeinfo>
 
 #include <fl/util/meta.hpp>
 #include <fl/util/traits.hpp>
@@ -186,8 +187,8 @@ public:
                          const StateDistribution& prior_dist,
                          StateDistribution& predicted_dist)
     {
-        auto A = delta_time * process_model_->A();
-        auto Q = delta_time * process_model_->covariance();
+        auto&& A = (process_model_->A() * delta_time).eval();
+        auto&& Q = (process_model_->covariance() * delta_time).eval();
 
         predicted_dist.mean(
             A * prior_dist.mean());
@@ -223,16 +224,15 @@ public:
     {
         auto&& H = obsrv_model_->H();
         auto&& R = obsrv_model_->covariance();
+
+        auto&& mean = predicted_dist.mean();
         auto&& cov_xx = predicted_dist.covariance();
-        auto S = H * cov_xx * H.transpose() + R;
 
-        KalmanGain K = cov_xx * H.transpose() * S.inverse();
+        auto&& S = (H * cov_xx * H.transpose() + R).eval();
+        auto&& K = (cov_xx * H.transpose() * S.inverse()).eval();
 
-        posterior_dist.mean(
-            predicted_dist.mean() + K * (y - H * predicted_dist.mean()));
-
-        posterior_dist.covariance(
-            cov_xx - K * H * cov_xx);
+        posterior_dist.mean(mean + K * (y - H * mean));
+        posterior_dist.covariance(cov_xx - K * H * cov_xx);
     }
 
     /**
