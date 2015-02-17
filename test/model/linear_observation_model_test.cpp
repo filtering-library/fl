@@ -66,7 +66,7 @@ public:
         EXPECT_EQ(model.observation_dimension(), dim);
         EXPECT_EQ(model.standard_variate_dimension(), dim);
         EXPECT_EQ(model.state_dimension(), dim_state);
-        EXPECT_TRUE(model.H().isZero());
+        EXPECT_TRUE(model.H().isOnes());
         EXPECT_TRUE(model.covariance().isApprox(cov));
     }
 };
@@ -153,11 +153,8 @@ TEST_F(LinearObservationModelTests, sensor_matrix)
     Observation observation = Observation::Zero(dim, 1);
     LGModel::Noise noise = LGModel::Noise::Random(dim, 1);
     LGModel::SecondMoment cov = LGModel::SecondMoment::Identity(dim, dim);
-    LGModel::SensorMatrix H = LGModel::SecondMoment::Zero(dim, dim_state);
+    LGModel::SensorMatrix H = LGModel::SecondMoment::Ones(dim, dim_state);
     LGModel model(cov, dim, dim_state);
-
-    H.block(0, 0, dim_state, dim_state)
-            = Eigen::MatrixXd::Identity(dim_state, dim_state);
 
     observation.topRows(dim_state) = state;
 
@@ -166,8 +163,12 @@ TEST_F(LinearObservationModelTests, sensor_matrix)
 
     model.condition(state);
 
-    EXPECT_TRUE(model.map_standard_normal(noise).isApprox(noise));
+    EXPECT_TRUE(model.map_standard_normal(noise).isApprox(H * state + noise));
     EXPECT_FALSE(model.map_standard_normal(noise).isApprox(observation));
+
+    H = LGModel::SecondMoment::Zero(dim, dim_state);
+    H.block(0, 0, dim_state, dim_state)
+            = Eigen::MatrixXd::Identity(dim_state, dim_state);
 
     model.H(H);
     model.condition(state);
