@@ -14,13 +14,13 @@
  */
 
 /**
- * \file factorized_iid_observation_model.hpp
- * \date January 2015
+ * \file joint_observation_model_iid.hpp
+ * \date Febuary 2015
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__MODEL__OBSERVATION__FACTORIZED_IID_OBSERVATION_MODEL_HPP
-#define FL__MODEL__OBSERVATION__FACTORIZED_IID_OBSERVATION_MODEL_HPP
+#ifndef FL__MODEL__OBSERVATION__JOINT_OBSERVATION_MODEL_IID_HPP
+#define FL__MODEL__OBSERVATION__JOINT_OBSERVATION_MODEL_IID_HPP
 
 #include <Eigen/Dense>
 
@@ -36,48 +36,37 @@ namespace fl
 {
 
 // Forward declarations
-template <    
-    typename ObservationModel,
-    int Factors
->
-class FactorizedIIDObservationModel;
+template <typename...Model> class JointObservationModel;
 
 /**
- * Traits of FactorizedIIDObservationModel
+ * Traits of JointObservationModel<MultipleOf<ObservationModel, Count>>
  */
-template <    
+template <
     typename ObservationModel,
-    int Factors
+    int Count
 >
 struct Traits<
-           FactorizedIIDObservationModel<ObservationModel, Factors>
+           JointObservationModel<MultipleOf<ObservationModel, Count>>
         >
 {
-    static constexpr int IIDFactors = Factors;
+    enum : signed int { ModelCount = Count };
 
     typedef ObservationModel LocalObservationModel;
     typedef typename Traits<ObservationModel>::Scalar Scalar;
     typedef typename Traits<ObservationModel>::State LocalState;
-    typedef typename Traits<ObservationModel>::Observation LocalObservation;
     typedef typename Traits<ObservationModel>::Noise LocalNoise;
+    typedef typename Traits<ObservationModel>::Observation LocalObsrv;
 
-    typedef Eigen::Matrix<
-                Scalar,
-                ExpandSizes<LocalObservation::RowsAtCompileTime, Factors>::Size,
-                1
-            > Observation;
+    enum : signed int
+    {
+        ObsrvDim = ExpandSizes<LocalObsrv::SizeAtCompileTime, Count>::Size,
+        StateDim = ExpandSizes<LocalState::SizeAtCompileTime, Count>::Size,
+        NoiseDim = ExpandSizes<LocalNoise::SizeAtCompileTime, Count>::Size,
+    };
 
-    typedef Eigen::Matrix<
-                Scalar,
-                ExpandSizes<LocalNoise::RowsAtCompileTime, Factors>::Size,
-                1
-            > Noise;
-
-    typedef Eigen::Matrix<
-                Scalar,
-                ExpandSizes<LocalState::RowsAtCompileTime, Factors>::Size,
-                1
-            > State;
+    typedef Eigen::Matrix<Scalar, ObsrvDim, 1> Observation;
+    typedef Eigen::Matrix<Scalar, StateDim, 1> State;
+    typedef Eigen::Matrix<Scalar, NoiseDim, 1> Noise;
 
     typedef ObservationModelInterface<
                 Observation,
@@ -91,29 +80,37 @@ struct Traits<
  */
 template <
     typename LocalObservationModel,
-    int Factors = Eigen::Dynamic>
-class FactorizedIIDObservationModel
+    int Count>
+class JointObservationModel<MultipleOf<LocalObservationModel, Count>>
     : public Traits<
-                 FactorizedIIDObservationModel<LocalObservationModel, Factors>
+                 JointObservationModel<MultipleOf<LocalObservationModel, Count>>
              >::ObservationModelBase
 {
 public:
-    typedef FactorizedIIDObservationModel<LocalObservationModel, Factors> This;
+    typedef JointObservationModel<MultipleOf<LocalObservationModel,Count>> This;
 
-    typedef typename Traits<This>::State State;
     typedef typename Traits<This>::Observation Observation;
-    typedef typename Traits<This>::Noise Noise;    
+    typedef typename Traits<This>::State State;
+    typedef typename Traits<This>::Noise Noise;
 
 public:
-    FactorizedIIDObservationModel(
+    explicit JointObservationModel(
             const std::shared_ptr<LocalObservationModel>& local_obsrv_model,
-            int factors = Factors)
+            int count = ToDimension<Count>::Value)
         : local_obsrv_model_(local_obsrv_model),
-          factors_(factors)
-    { }
+          count_(count)
+    {
+        assert(count > 0);
+    }
 
-    ~FactorizedIIDObservationModel() { }
+    /**
+     * \brief Overridable default destructor
+     */
+    ~JointObservationModel() { }
 
+    /**
+     * \copydoc ObservationModelInterface::predict_observation
+     */
     virtual Observation predict_observation(const State& state,
                                             const Noise& noise,
                                             double delta_time)
@@ -124,8 +121,8 @@ public:
         int noise_dim = local_obsrv_model_->noise_dimension();
         int state_dim = local_obsrv_model_->state_dimension();
 
-        const size_t factors = factors_;
-        for (int i = 0; i < factors; ++i)
+        const int count = count_;
+        for (int i = 0; i < count; ++i)
         {
             y.middleRows(i * obsrv_dim, obsrv_dim) =
                 local_obsrv_model_->predict_observation(
@@ -139,17 +136,17 @@ public:
 
     virtual size_t observation_dimension() const
     {
-        return local_obsrv_model_->observation_dimension() * factors_;
+        return local_obsrv_model_->observation_dimension() * count_;
     }
 
     virtual size_t state_dimension() const
     {
-        return local_obsrv_model_->state_dimension() * factors_;
+        return local_obsrv_model_->state_dimension() * count_;
     }
 
     virtual size_t noise_dimension() const
     {
-        return local_obsrv_model_->noise_dimension() * factors_;
+        return local_obsrv_model_->noise_dimension() * count_;
     }
 
     const std::shared_ptr<LocalObservationModel>& local_observation_model()
@@ -159,7 +156,7 @@ public:
 
 protected:
     std::shared_ptr<LocalObservationModel> local_obsrv_model_;
-    size_t factors_;
+    int count_;
 };
 
 }

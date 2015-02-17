@@ -28,14 +28,6 @@ target_link_libraries(meta_tests
  target_link_libraries(filter_interface_tests
                        ${catkin_LIBRARIES})
 
-# ## Gaussian filter tests ##
-# catkin_add_gtest(gaussian_filter_tests
-#                  gaussian_filter/gaussian_filter_test.cpp
-#                  gaussian_filter/gaussian_filter_stubs.hpp
-#                  gtest_main.cpp)
-# target_link_libraries(gaussian_filter_tests
-#                       ${catkin_LIBRARIES})
-
  ## point_set_tests tests ##
  catkin_add_gtest(point_set_tests
                   gaussian_filter/point_set_test.cpp
@@ -62,6 +54,7 @@ target_link_libraries(meta_tests
                   gtest_main.cpp)
  target_link_libraries(joint_distribution_id_test ${catkin_LIBRARIES})
 
+
  catkin_add_gtest(joint_distribution_iid_test
                   distribution/joint_distribution_iid_test.cpp
                   gtest_main.cpp)
@@ -73,20 +66,25 @@ target_link_libraries(meta_tests
                   gtest_main.cpp)
  target_link_libraries(exception_tests ${catkin_LIBRARIES})
 
+
  ## Kalman filter tests ##
  catkin_add_gtest(kalman_filter_tests
                   kalman_filter/kalman_filter_test.cpp
                   gtest_main.cpp)
  target_link_libraries(kalman_filter_tests ${catkin_LIBRARIES})
 
+
  ## linear models tests ##
- catkin_add_gtest(models_tests
+ catkin_add_gtest(linear_models_tests
                   model/linear_process_model_test.cpp
                   model/linear_observation_model_test.cpp
-                  model/factorized_iid_observation_model_test.cpp
                   gtest_main.cpp)
- target_link_libraries(models_tests ${catkin_LIBRARIES})
+ target_link_libraries(linear_models_tests ${catkin_LIBRARIES})
 
+ catkin_add_gtest(joint_observation_model_iid_test
+                  model/joint_observation_model_iid_test.cpp
+                  gtest_main.cpp)
+ target_link_libraries(joint_observation_model_iid_test ${catkin_LIBRARIES})
 
  catkin_add_gtest(joint_process_model_id_test
                   model/joint_process_model_id_test.cpp
@@ -98,6 +96,16 @@ target_link_libraries(meta_tests
                   model/joint_process_model_iid_test.cpp
                   gtest_main.cpp)
  target_link_libraries(joint_process_model_iid_test ${catkin_LIBRARIES})
+
+
+# ## Gaussian filter tests ##
+# catkin_add_gtest(gaussian_filter_tests
+#                  gaussian_filter/gaussian_filter_test.cpp
+#                  gaussian_filter/gaussian_filter_stubs.hpp
+#                  gtest_main.cpp)
+# target_link_libraries(gaussian_filter_tests
+#                       ${catkin_LIBRARIES})
+
 
 ### Factorized UKF vs. Kalman filter tests ##
 # catkin_add_gtest(factorized_ukf_kf_tests

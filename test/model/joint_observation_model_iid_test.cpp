@@ -51,12 +51,12 @@
 #include <iostream>
 
 #include <fl/model/observation/linear_observation_model.hpp>
-#include <fl/model/observation/factorized_iid_observation_model.hpp>
+#include <fl/model/observation/joint_observation_model_iid.hpp>
 
 constexpr static double sigma = 2.0;
 
-class FactorizedIIDObservationModelTests
-        : public ::testing::Test
+class JointObservationModel_IID_Tests
+    : public ::testing::Test
 {
 public:
     enum
@@ -92,14 +92,12 @@ public:
     typedef typename fl::Traits<LocalObsrvModel_D>::SensorMatrix SensorMatrix_D;
 
     // holistic model
-    typedef fl::FactorizedIIDObservationModel<
-                LocalObsrvModel_F,
-                Factors
+    typedef fl::JointObservationModel<
+                fl::MultipleOf<LocalObsrvModel_F, Factors>
             > ObservationModel_F;
 
-    typedef fl::FactorizedIIDObservationModel<
-                LocalObsrvModel_D,
-                Eigen::Dynamic
+    typedef fl::JointObservationModel<
+                fl::MultipleOf<LocalObsrvModel_D, Eigen::Dynamic>
             > ObservationModel_D;
 
     typedef typename fl::Traits<ObservationModel_F>::State State_F;
@@ -111,7 +109,7 @@ public:
     typedef typename fl::Traits<ObservationModel_D>::Observation Observation_D;
 };
 
-TEST_F(FactorizedIIDObservationModelTests, predict_F)
+TEST_F(JointObservationModel_IID_Tests, predict_F)
 {
     auto model = ObservationModel_F(
                     std::make_shared<LocalObsrvModel_F>(
@@ -128,7 +126,7 @@ TEST_F(FactorizedIIDObservationModelTests, predict_F)
     EXPECT_TRUE(y.isApprox(Noise_F::Ones() + sigma*Noise_F::Ones()));
 }
 
-TEST_F(FactorizedIIDObservationModelTests, predict_F_using_dynamic_interface)
+TEST_F(JointObservationModel_IID_Tests, predict_F_using_dynamic_interface)
 {
     auto model = ObservationModel_F(
                     std::make_shared<LocalObsrvModel_F>(
@@ -149,8 +147,7 @@ TEST_F(FactorizedIIDObservationModelTests, predict_F_using_dynamic_interface)
     EXPECT_TRUE(y.isApprox(Noise_F::Ones() + sigma*Noise_F::Ones()));
 }
 
-
-TEST_F(FactorizedIIDObservationModelTests, predict_D)
+TEST_F(JointObservationModel_IID_Tests, predict_D)
 {
     auto model = ObservationModel_D(
                      std::make_shared<LocalObsrvModel_D>(
@@ -171,7 +168,7 @@ TEST_F(FactorizedIIDObservationModelTests, predict_D)
     EXPECT_TRUE(y.isApprox(Noise_F::Ones() + sigma*Noise_F::Ones()));
 }
 
-TEST_F(FactorizedIIDObservationModelTests, predict_F_vs_D)
+TEST_F(JointObservationModel_IID_Tests, predict_F_vs_D)
 {
     auto model_D = ObservationModel_D(
                         std::make_shared<LocalObsrvModel_D>(
@@ -206,7 +203,7 @@ TEST_F(FactorizedIIDObservationModelTests, predict_F_vs_D)
 
 }
 
-TEST_F(FactorizedIIDObservationModelTests, predict_F_vs_D_using_dynamic_interface)
+TEST_F(JointObservationModel_IID_Tests, predict_F_vs_D_using_dynamic_interface)
 {
     auto model_D = ObservationModel_D(
                         std::make_shared<LocalObsrvModel_D>(
@@ -242,5 +239,4 @@ TEST_F(FactorizedIIDObservationModelTests, predict_F_vs_D_using_dynamic_interfac
     auto y_F = model_F.predict_observation(x_F, w_F, 1.);
 
     EXPECT_TRUE(y_D.isApprox(y_F));
-
 }
