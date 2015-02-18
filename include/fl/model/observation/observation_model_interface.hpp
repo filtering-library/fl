@@ -30,12 +30,11 @@ namespace fl
 /**
  * \ingroup observation_models
  */
-template <typename Observation, typename State, typename Noise>
+template <typename Observation, typename State, typename Noise, int Id = 0>
 class ObservationModelInterface
 {
 public:
     /**
-     *
      * \param state
      * \param noise
      * \param time_step_parity - Time step parity flag
@@ -49,6 +48,8 @@ public:
     virtual size_t state_dimension() const = 0;    
     virtual size_t noise_dimension() const = 0;
     virtual size_t observation_dimension() const = 0;
+
+    virtual int id() const { return Id; }
 };
 
 /**
@@ -56,12 +57,12 @@ public:
  *
  * Additive noise Observation model interface
  */
-template <typename Observation, typename State, typename Noise>
+template <typename Observation, typename State, typename Noise, int Id = 0>
 class ANObservationModelInterface
+    : public ObservationModelInterface<Observation, State, Noise, Id>
 {
 public:
     /**
-     *
      * \param state
      * \param time_step_parity - Time step parity flag
      *
@@ -71,10 +72,6 @@ public:
                                             double delta_time) = 0;
 
     virtual Noise noise_covariance_vector() const = 0;
-
-    virtual size_t state_dimension() const = 0;
-    virtual size_t noise_dimension() const = 0;
-    virtual size_t observation_dimension() const = 0;
 };
 
 }
