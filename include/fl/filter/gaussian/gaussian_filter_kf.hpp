@@ -47,8 +47,8 @@ template <typename...> class GaussianFilter;
 template <typename State_,typename Input_,typename Observation_>
 struct Traits<
            GaussianFilter<
-               fl::LinearGaussianProcessModel<State_, Input_>,
-               fl::LinearGaussianObservationModel<Observation_, State_>>>
+               LinearGaussianProcessModel<State_, Input_>,
+               LinearGaussianObservationModel<Observation_, State_>>>
 {
     /**
      * Process model definition.
@@ -57,7 +57,7 @@ struct Traits<
      * \c LinearGaussianProcessModel taking a \c State and an \c Input type as
      * the only parameter types.
      */
-    typedef fl::LinearGaussianProcessModel<State_, Input_> ProcessModel;
+    typedef LinearGaussianProcessModel<State_, Input_> ProcessModel;
 
     /**
      * Observation model definition
@@ -66,7 +66,9 @@ struct Traits<
      * \c LinearGaussianObservationModel taking an \c Observation and a
      * \c State type as the only parameters.
      */
-    typedef fl::LinearGaussianObservationModel<Observation_, State_> ObservationModel;
+    typedef LinearGaussianObservationModel<
+                Observation_, State_
+            > ObservationModel;
 
     /**
      * Represents KalmanFilter definition
@@ -75,8 +77,8 @@ struct Traits<
      * the linear Gaussian Models.
      */
     typedef GaussianFilter<
-                fl::LinearGaussianProcessModel<State_, Input_>,
-                fl::LinearGaussianObservationModel<Observation_, State_>
+                LinearGaussianProcessModel<State_, Input_>,
+                LinearGaussianObservationModel<Observation_, State_>
              > Filter;
 
     /*
@@ -99,17 +101,6 @@ struct Traits<
      * the dimension of the \c State
      */
     typedef Gaussian<State> StateDistribution;
-
-    /** \cond INTERNAL */
-    /**
-     * \brief KalmanGain Matrix
-     */
-    typedef Eigen::Matrix<
-                typename StateDistribution::Scalar,
-                State::RowsAtCompileTime,
-                Observation::RowsAtCompileTime
-            > KalmanGain;
-    /** \endcond */
 };
 
 /**
@@ -126,23 +117,21 @@ struct Traits<
  */
 template <typename State, typename Input, typename Obsrv>
 class GaussianFilter<
-          fl::LinearGaussianProcessModel<State, Input>,
-          fl::LinearGaussianObservationModel<Obsrv, State>>
+          LinearGaussianProcessModel<State, Input>,
+          LinearGaussianObservationModel<Obsrv, State>>
     :
     /* Implement the conceptual filter interface */
     public FilterInterface<
                GaussianFilter<
-                   fl::LinearGaussianProcessModel<State, Input>,
-                   fl::LinearGaussianObservationModel<Obsrv, State>>>
+                   LinearGaussianProcessModel<State, Input>,
+                   LinearGaussianObservationModel<Obsrv, State>>>
 {
 protected:
     /** \cond INTERNAL */
     typedef GaussianFilter<
-                fl::LinearGaussianProcessModel<State, Input>,
-                fl::LinearGaussianObservationModel<Obsrv, State>
+                LinearGaussianProcessModel<State, Input>,
+                LinearGaussianObservationModel<Obsrv, State>
             > This;
-
-    typedef typename Traits<This>::KalmanGain KalmanGain;
     /** \endcond */
 
 public:
