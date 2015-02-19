@@ -218,13 +218,17 @@ struct CreateTypeSequence<Eigen::Dynamic, Type>
   : TypeSequence<>
 { };
 
+template <typename Model, typename ParameterModel>
+struct AdaptiveModel { };
+
 /**
  * \ingroup meta
  *
  * Same as CreateTypeSequence, however with a reversed parameter order. This is
- * an attempt to make the use of \c CreateTypeSequence more natural.
+ * an attempt to make the use of \c CreateTypeSequence more natural. It also
+ * allows dynamic sizes if needed.
  */
-template <typename Type, int Count>
+template <typename Type, int Count = Eigen::Dynamic>
 struct MultipleOf
     : CreateTypeSequence<Count, Type>
 { };
@@ -239,6 +243,158 @@ template <typename Type>
 struct MultipleOf<Type, Eigen::Dynamic>
     : CreateTypeSequence<Eigen::Dynamic, Type>
 { };
+
+/**
+ * \c Join represents a meta operator taking an argument pack which should be
+ * unified in a specific way. The operator is defined by the following axioms
+ *
+ * - pack of Join<P1, P2, ...>  {P1, P2, ...}
+ * - positive pack:             sizeof...(T) of Join<T...>
+ * - nesting:                   Join<P1, Join<P2, P3>> = {P1, P2, P3}
+ * - Comm.                      Join<P1, Join<P2, P3>> = Join<Join<P1, P2>, P3>
+ * - MultipleOf operator:       Join<MultipleOf<P, #>>
+ *
+ * \ingroup meta
+ */
+template <typename...T> struct Join;
+
+/**
+ * \internal
+ * \ingroup meta
+ *
+ * Collapes the argument pack of the Join operator into Model<T...> of ay given
+ * Join<...> operator.
+ */
+template <typename...T> struct CollapseJoin;
+
+/**
+ * \internal
+ * \ingroup meta
+ *
+ * CollapseJoin specialization which expands the type sequence by the Head
+ * element assuming Head is neither a Join<...> nor a MultipleOf<P, #> operator.
+ */
+template <
+    typename...S,
+    typename Head,
+    typename...T,
+    template <typename...> class Model
+>
+struct CollapseJoin<
+           Model<>,                 // Final model type
+           TypeSequence<S...>,      // Type sequence holding the pack expansion
+           Head,                    // Current non-operator pack head element
+           T...>                    // Remaining Tail
+  : CollapseJoin<
+        Model<>,                    // Final model type
+        TypeSequence<Head, S...>,   // updated type sequence
+        T...>                       // Remaining Tail
+{ };
+
+/**
+ * \internal
+ * \ingroup meta
+ *
+ * CollapseJoin specialization which unifies a Join<...> pack Head into the
+ * outer Join pack, i.e.
+ *
+ * Join<T1..., Join<T2...>, T3 > = Join<T1..., T2..., T3...>
+ */
+template <
+    typename...S,
+    typename...T,
+    typename...U,
+    template <typename...> class Model
+>
+struct CollapseJoin<
+           Model<>,                 // Final model type
+           TypeSequence<S...>,      // Type sequence holding the pack expansion
+           Join<T...>,              // Current pack head element
+           U...>                    // Remaining Tail
+  : CollapseJoin<
+        Model<>,                    // Final model type
+        TypeSequence<S...>,         // Type sequence holding the pack expansion
+        T...,                       // Extracted pack from inner Join operator
+        U...>                       // Remaining Tail
+{ };
+
+/**
+ * \internal
+ * \ingroup meta
+ *
+ * CollapseJoin specialization which translates a MultipleOf<P,#> operator,
+ * at the head of the pack, into Model<MultipleOf<P, #>>, i.e
+ *
+ * Join<T1..., MultipleOf<P, 10>, T2...> =
+ * Join<T1..., Model<MultipleOf<P, 10>>, T2...>.
+ */
+template <
+    typename...S,
+    typename...T,
+    typename U,
+    int Count,
+    template <typename...> class Model
+>
+struct CollapseJoin<
+           Model<>,                 // Final model type
+           TypeSequence<S...>,      // Type sequence holding the pack expansion
+           MultipleOf<U, Count>,    // Current pack head element
+           T...>                    // Remaining Join pack, the tail
+  : CollapseJoin<
+        Model<>,                    // Final model type
+        TypeSequence<S...>,         // Type sequence holding the pack expansion
+        Model<MultipleOf<U, Count>>,// Redefine head in terms of Model<>
+        T...>                       // Remaining Tail
+{ };
+
+
+/**
+ * \internal
+ * \ingroup meta
+ *
+ * Terminal case of Join operator collapsing. The final result of Join<T...>
+ * is Model<U...> where U are all the expanded non operator types.
+ */
+template <
+    typename...S,
+    template <typename...> class Model
+>
+struct CollapseJoin<
+           Model<>,
+           TypeSequence<S...>>
+{
+    /**
+     * \brief Final type outcome of the Join Operator
+     */
+    typedef Model<S...> Type;
+
+
+  static_assert(sizeof...(S) > 1, "Join<A, B, ...> operator must take 2 or more"
+                                  " operands");
+};
+
+/**
+ * \internal
+ * \ingroup meta
+ *
+ * Terminal case of Join operator collapsing for a Join of the form
+ * Join<MultipleOf<P, #>> resulting in Model<MultipleOf<P, #>>
+ */
+template <
+    typename M,
+    int Count,
+    template <typename...> class Model
+>
+struct CollapseJoin<Model<>, TypeSequence<Model<MultipleOf<M, Count>>>>
+{
+    typedef Model<MultipleOf<M, Count>> Type;
+
+    static_assert(Count > 0 || Count == -1,
+                  "Cannot expand Join<MultipleOf<M, Count>> operator on M. "
+                  "Count must be positive or set to -1 for the dynamic size "
+                  "case.");
+};
+
 
 }
 
