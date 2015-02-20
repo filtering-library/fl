@@ -38,8 +38,8 @@
  */
 
 /**
- * @date 2014
- * @author Jan Issac (jan.issac@gmail.com)
+ * \date 2014
+ * \author Jan Issac (jan.issac@gmail.com)
  * Max-Planck-Institute for Intelligent Systems,
  * University of Southern California
  */

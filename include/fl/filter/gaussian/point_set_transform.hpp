@@ -51,7 +51,7 @@ public:
     /**
      * Asserts correct interface
      *
-     * @param derived instance pointer
+     * \param derived instance pointer
      */
     explicit PointSetTransform(const Derived* const derived)
     {
@@ -97,8 +97,8 @@ public:
      * Transforms the given Gaussian into a statistic represented as a set of
      * points.
      *
-     * @param [in]  gaussian    Source Gaussian distribution
-     * @param [out] point_set   Destination PointSet containing the
+     * \param [in]  gaussian    Source Gaussian distribution
+     * \param [out] point_set   Destination PointSet containing the
      *                          selected set of points represeting the source
      *                          Gaussian.
      */
@@ -144,11 +144,11 @@ public:
      * \f$\Sigma_i\f$ as the full covariance will result in a different and
      * a smaller set of points \f${\cal X}'_i\f$ with different \em weights.
      *
-     * @param [in]  gaussian         Source Gaussian distribution
-     * @param [in]  global_dimension Dimension of the global covariance
-     * @param [in]  dimension_offset Dimension offset determining the position
+     * \param [in]  gaussian         Source Gaussian distribution
+     * \param [in]  global_dimension Dimension of the global covariance
+     * \param [in]  dimension_offset Dimension offset determining the position
      *                               of the current marginal Gaussian.
-     * @param [out] point_set        Destination PointSet containing the
+     * \param [out] point_set        Destination PointSet containing the
      *                               selected set of points represeting the
      *                               source Gaussian.
      */

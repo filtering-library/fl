@@ -38,8 +38,8 @@
  */
 
 /**
- * @date 2014
- * @author Jan Issac (jan.issac@gmail.com)
+ * \date 2014
+ * \author Jan Issac (jan.issac@gmail.com)
  * Max-Planck-Institute for Intelligent Systems,
  * University of Southern California
  */
@@ -90,7 +90,6 @@ TEST(KalmanFilterTests, init_fixed_size_predict)
     filter->predict(1.0, Input(1), state_dist, state_dist);
     EXPECT_TRUE(state_dist.mean().isZero());
     EXPECT_TRUE(state_dist.covariance().isApprox(2. * Q));
-
 }
 
 TEST(KalmanFilterTests, init_dynamic_size_predict)

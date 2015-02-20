@@ -79,7 +79,7 @@ public:
     /**
      * Create an exception with a customized message under the tag \em Msg.
      *
-     * @param message   Customized error message using the Msg tag.
+     * \param message   Customized error message using the Msg tag.
      */
     explicit Exception(std::string msg)
     {
@@ -108,7 +108,7 @@ public:
      * Sets a tagged diagnostic info message
      *
      * \param tag       Message tag
-     * @param msg       Message text
+     * \param msg       Message text
      */
     void info(std::string tag, std::string msg)
     {
@@ -168,7 +168,7 @@ public:
      * Creates an OutOfBoundsException with a default message including the
      * index
      *
-     * @param index     The out of bounds index
+     * \param index     The out of bounds index
      */
     explicit OutOfBoundsException(long int index)
         : Exception("Index["
@@ -180,8 +180,8 @@ public:
      * Creates an OutOfBoundsException with a default message including the
      * index and the container size
      *
-     * @param index     The out of bounds index
-     * @param size      Container size
+     * \param index     The out of bounds index
+     * \param size      Container size
      */
     OutOfBoundsException(long int index, long int size)
         : Exception("Index["

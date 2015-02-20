@@ -173,7 +173,7 @@ public:
     }
 
     /**
-     * @return The weighted mean of the deltas, or simply the first moment of
+     * \return The weighted mean of the deltas, or simply the first moment of
      *         the distribution.
      */
     virtual Variate mean() const
@@ -186,7 +186,7 @@ public:
     }
 
     /**
-     * @return The covariance or the second central moment of the distribution
+     * \return The covariance or the second central moment of the distribution
      */
     virtual SecondMoment covariance() const
     {
@@ -199,7 +199,7 @@ public:
     }
 
     /**
-     * @return Dimension of the distribution variate
+     * \return Dimension of the distribution variate
      */
     virtual int dimension() const
     {

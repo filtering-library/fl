@@ -125,11 +125,11 @@ public:
      * Predicts the state distribution for a given delta time and subsequently
      * updates the prediction using a measurement.
      *
-     * @param delta_time
-     * @param input
-     * @param observation
-     * @param prior_dist
-     * @param posterior_dist
+     * \param delta_time
+     * \param input
+     * \param observation
+     * \param prior_dist
+     * \param posterior_dist
      */
     virtual void predict_and_update(double delta_time,
                                     const Input& input,

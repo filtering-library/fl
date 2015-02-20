@@ -144,8 +144,8 @@ public:
     /**
      * Creates a linear Gaussian filter (a KalmanFilter)
      *
-     * @param process_model         Process model instance
-     * @param obsrv_model           Obsrv model instance
+     * \param process_model         Process model instance
+     * \param obsrv_model           Obsrv model instance
      */
     GaussianFilter(const std::shared_ptr<ProcessModel>& process_model,
                    const std::shared_ptr<ObservationModel>& obsrv_model)
