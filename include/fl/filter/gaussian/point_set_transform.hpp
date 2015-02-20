@@ -126,7 +126,8 @@ public:
      * \f$
      * where \c gaussian = \f$\Sigma_i\f$.
      *
-     * The number points in \f${\cal X}\f$ is a function of\f$dim(\Sigma_i)\f$.
+     * The number of points in \f${\cal X}\f$ is a function of\f$dim(\Sigma_i)
+     * \f$.
      * Let the full transform of \f$\Sigma\f$ be
      *
      * \f$
@@ -146,8 +147,8 @@ public:
      *
      * \param [in]  gaussian         Source Gaussian distribution
      * \param [in]  global_dimension Dimension of the global covariance
-     * \param [in]  dimension_offset Dimension offset determining the position
-     *                               of the current marginal Gaussian.
+     * \param [in]  dimension_offset Dimension offset determining the starting
+     *                               position of the current marginal Gaussian.
      * \param [out] point_set        Destination PointSet containing the
      *                               selected set of points represeting the
      *                               source Gaussian.

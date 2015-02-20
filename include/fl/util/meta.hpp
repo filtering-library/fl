@@ -124,7 +124,8 @@ template <typename...T> struct FirstTypeIn;
  *
  * Implementation of FirstTypeIn
  */
-template <typename First, typename...T> struct FirstTypeIn<First, T...>
+template <typename First, typename...T>
+struct FirstTypeIn<First, T...>
 {
     typedef First Type;
 };
@@ -218,7 +219,7 @@ struct CreateTypeSequence<Eigen::Dynamic, Type>
   : TypeSequence<>
 { };
 
-template <typename Model, typename ParameterModel>
+template <typename Model, typename ParameterProcess>
 struct AdaptiveModel { };
 
 /**
@@ -248,9 +249,9 @@ struct MultipleOf<Type, Eigen::Dynamic>
  * \c Join represents a meta operator taking an argument pack which should be
  * unified in a specific way. The operator is defined by the following axioms
  *
- * - pack of Join<P1, P2, ...>  {P1, P2, ...}
- * - positive pack:             sizeof...(T) of Join<T...>
- * - nesting:                   Join<P1, Join<P2, P3>> = {P1, P2, P3}
+ * - Pack of Join<P1, P2, ...>: {P1, P2, ...}
+ * - Positive pack:             sizeof...(T) > 0 for Join<T...>
+ * - Nesting:                   Join<P1, Join<P2, P3>> = {P1, P2, P3}
  * - Comm.                      Join<P1, Join<P2, P3>> = Join<Join<P1, P2>, P3>
  * - MultipleOf operator:       Join<MultipleOf<P, #>>
  *
@@ -368,9 +369,8 @@ struct CollapseJoin<
      */
     typedef Model<S...> Type;
 
-
-  static_assert(sizeof...(S) > 1, "Join<A, B, ...> operator must take 2 or more"
-                                  " operands");
+    static_assert(sizeof...(S) > 1,
+                  "Join<A, B, ...> operator must take 2 or more operands");
 };
 
 /**
