@@ -5,7 +5,7 @@ project(fl)
 # Flags                    #
 ############################
 # Enable c++11 GCC 4.6 or greater required
-add_definitions(-std=c++0x)
+add_definitions(-std=c++0x -Wall)
 
 add_definitions(-DPROFILING_ON=1) #print profiling output
 add_definitions(-DUSE_RANDOM_SEED=1)
