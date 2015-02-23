@@ -65,7 +65,7 @@ public:
         : filter_(_filter),
           dist_(1.),
           u_(0.),
-          y_(2.)        
+          y_(2.)
     {
     }
 
@@ -85,9 +85,9 @@ public:
     }
 
     typename Filter::Ptr filter_;
-    typename Filter::Input u_;
-    typename Filter::Observation y_;
     typename Filter::StateDistribution dist_;
+    typename Filter::Input u_;
+    typename Filter::Observation y_;    
 };
 
 TEST(FilterInterface, NonTemplatedFilter)
