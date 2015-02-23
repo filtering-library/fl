@@ -74,8 +74,6 @@ struct Traits<
             > ProcessModelBase;
 };
 
-
-
 /**
  * \ingroup process_models
  */
@@ -102,7 +100,14 @@ public:
         : local_process_model_(local_process_model),
           count_(count)
     {
-        assert(count > 0);
+        assert(count_ > 0);
+    }
+
+    JointProcessModel(const MultipleOf<LocalProcessModel, Count>& mof)
+        : local_process_model_(mof.instance()),
+          count_(mof.count())
+    {
+        assert(count_ > 0);
     }
 
     ~JointProcessModel() { }
