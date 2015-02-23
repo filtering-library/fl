@@ -66,14 +66,6 @@ target_link_libraries(meta_tests
                   gtest_main.cpp)
  target_link_libraries(exception_tests ${catkin_LIBRARIES})
 
-
- ## Kalman filter tests ##
- catkin_add_gtest(kalman_filter_tests
-                  kalman_filter/kalman_filter_test.cpp
-                  gtest_main.cpp)
- target_link_libraries(kalman_filter_tests ${catkin_LIBRARIES})
-
-
  ## linear models tests ##
  catkin_add_gtest(linear_models_tests
                   model/linear_process_model_test.cpp
@@ -96,6 +88,22 @@ target_link_libraries(meta_tests
                   model/joint_process_model_iid_test.cpp
                   gtest_main.cpp)
  target_link_libraries(joint_process_model_iid_test ${catkin_LIBRARIES})
+
+## Gaussian Filters tests ##
+# Kalman filter #
+catkin_add_gtest(gaussian_filter_kf_test
+                 gaussian_filter/gaussian_filter_kf_test.cpp
+                 gtest_main.cpp)
+target_link_libraries(gaussian_filter_kf_test ${catkin_LIBRARIES})
+
+# Factorized SPKF #
+catkin_add_gtest(gaussian_filter_factorized_test
+                 gaussian_filter/gaussian_filter_factorized_test.cpp
+                 gtest_main.cpp)
+target_link_libraries(gaussian_filter_factorized_test ${catkin_LIBRARIES})
+
+
+
 
 
 # ## Gaussian filter tests ##
