@@ -95,8 +95,8 @@ public:
 public:
     LinearGaussianObservationModel(
             const SecondMoment& noise_covariance,
-            const size_t observation_dim = DimensionOf<Observation>(),
-            const size_t state_dim = DimensionOf<State>())
+            const int observation_dim = DimensionOf<Observation>(),
+            const int state_dim = DimensionOf<State>())
         : Traits<This>::GaussianBase(observation_dim),
           state_dimension_(state_dim),
           H_(SensorMatrix::Ones(observation_dimension(),
@@ -130,24 +130,24 @@ public:
         return Traits<This>::GaussianBase::map_standard_normal(noise);
     }
 
-    virtual size_t observation_dimension() const
+    virtual int observation_dimension() const
     {
         return Traits<This>::GaussianBase::dimension();
     }
 
-    virtual size_t noise_dimension() const
+    virtual int noise_dimension() const
     {
         return Traits<This>::GaussianBase::standard_variate_dimension();
     }
 
-    virtual size_t state_dimension() const
+    virtual int state_dimension() const
     {
         return state_dimension_;
     }
 
 
 protected:
-    size_t state_dimension_;
+    int state_dimension_;
     SensorMatrix H_;
 };
 

@@ -70,8 +70,8 @@ public:
 
     /**
      * \copydoc PointSetTransform::forward(const Gaussian&,
-     *                                     size_t global_dimension,
-     *                                     size_t dimension_offset,
+     *                                     int global_dimension,
+     *                                     int dimension_offset,
      *                                     PointSet&) const
      *
      * \throws WrongSizeException
@@ -79,15 +79,17 @@ public:
      */
     template <typename Gaussian_, typename PointSet_>
     void forward(const Gaussian_& gaussian,
-                 size_t global_dimension,
-                 size_t dimension_offset,
+                 int global_dimension,
+                 int dimension_offset,
                  PointSet_& point_set) const
     {
         typedef typename Traits<PointSet_>::Point  Point;
         typedef typename Traits<PointSet_>::Weight Weight;
 
         const double dim = double(global_dimension);
-        const size_t point_count = number_of_points(dim);
+        const int point_count = number_of_points(dim);
+
+        assert(point_count > 0);
 
         /**
          * \internal
@@ -105,7 +107,7 @@ public:
         }
 
         // will resize of transform size is different from point count.
-        point_set.resize(point_count);
+        point_set.resize(size_t(point_count));
 
         auto&& covariance_sqrt = gaussian.square_root() * gamma_factor(dim);
 
@@ -119,25 +121,25 @@ public:
         Weight weight_i{weight_mean_i(dim), weight_cov_i(dim)};
 
         // use squential loops to enable loop unrolling
-        const size_t start_1 = 1;
-        const size_t limit_1 = start_1 + dimension_offset;
-        const size_t limit_2 = limit_1 + gaussian.dimension();
-        const size_t limit_3 = global_dimension;
+        const int start_1 = 1;
+        const int limit_1 = start_1 + dimension_offset;
+        const int limit_2 = limit_1 + gaussian.dimension();
+        const int limit_3 = global_dimension;
 
-        for (size_t i = start_1; i < limit_1; ++i)
+        for (int i = start_1; i < limit_1; ++i)
         {
             point_set.point(i, mean, weight_i);
             point_set.point(global_dimension + i, mean, weight_i);
         }
 
-        for (size_t i = limit_1; i < limit_2; ++i)
+        for (int i = limit_1; i < limit_2; ++i)
         {
             point_shift = covariance_sqrt.col(i - dimension_offset - 1);
             point_set.point(i, mean + point_shift, weight_i);
             point_set.point(global_dimension + i, mean - point_shift, weight_i);
         }
 
-        for (size_t i = limit_2; i <= limit_3; ++i)
+        for (int i = limit_2; i <= limit_3; ++i)
         {
             point_set.point(i, mean, weight_i);
             point_set.point(global_dimension + i, mean, weight_i);

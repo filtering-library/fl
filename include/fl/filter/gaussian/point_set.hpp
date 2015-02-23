@@ -41,7 +41,7 @@
  * Checks dimensions
  */
 #define INLINE_CHECK_POINT_SET_DIMENSIONS() \
-    assert(points_.cols() == weights_.size()); \
+    assert(points_.cols() == int(weights_.size())); \
     if (points_.rows() == 0) \
     { \
         fl_throw(ZeroDimensionException("PointSet")); \
@@ -55,7 +55,7 @@
  * Checks for index out of bounds and valid dimensions
  */
 #define INLINE_CHECK_POINT_SET_BOUNDS(i) \
-    if (i >= weights_.size()) \
+    if (i >= int(weights_.size())) \
     { \
         fl_throw(OutOfBoundsException(i, weights_.size())); \
     } \
@@ -176,8 +176,8 @@ public:
      * \param points_count   Number of points representing the Gaussian
      * \param dimension      Sample space dimension
      */
-    PointSet(size_t dimension = DimensionOf<Point>(),
-             size_t points_count = MaxOf<Points_, 0>())
+    PointSet(int dimension = DimensionOf<Point>(),
+             int points_count = MaxOf<Points_, 0>())
         : points_(dimension, points_count),
           weights_(points_count)
     {
@@ -202,9 +202,9 @@ public:
      *
      * \throws ResizingFixedSizeEntityException
      */
-    void resize(size_t points_count)
+    void resize(int points_count)
     {
-        if (weights_.size() == points_count) return;
+        if (int(weights_.size()) == points_count) return;
 
         if (IsFixed<Points_>())
         {
@@ -227,7 +227,7 @@ public:
      *
      * \param dim  Dimension of each point
      */
-    void dimension(size_t dim)
+    void dimension(int dim)
     {
         points_.resize(dim, count_points());
     }
@@ -235,7 +235,7 @@ public:
     /**
      * \return Dimension of containing points
      */
-    size_t dimension() const
+    int dimension() const
     {
         return points_.rows();
     }
@@ -243,7 +243,7 @@ public:
     /**
      * \return The number of points
      */
-    size_t count_points() const
+    int count_points() const
     {
         return points_.cols();
     }
@@ -256,7 +256,7 @@ public:
      * \throws OutOfBoundsException
      * \throws ZeroDimensionException
      */
-    Point point(size_t i) const
+    Point point(int i) const
     {
         INLINE_CHECK_POINT_SET_BOUNDS(i);
 
@@ -271,7 +271,7 @@ public:
      * \throws OutOfBoundsException
      * \throws ZeroDimensionException
      */
-    double weight(size_t i)
+    double weight(int i)
     {
         INLINE_CHECK_POINT_SET_BOUNDS(i);
 
@@ -286,7 +286,7 @@ public:
      * \throws OutOfBoundsException
      * \throws ZeroDimensionException
      */
-    const Weight& weights(size_t i) const
+    const Weight& weights(int i) const
     {
         INLINE_CHECK_POINT_SET_BOUNDS(i);
 
@@ -314,11 +314,11 @@ public:
      */
     WeightVector mean_weights_vector() const noexcept
     {
-        const size_t point_count = count_points();
+        const int point_count = count_points();
 
         WeightVector weight_vec(point_count);
 
-        for (size_t i = 0; i < point_count; ++i)
+        for (int i = 0; i < point_count; ++i)
         {
             weight_vec(i) = weights_[i].w_mean;
         }
@@ -331,11 +331,11 @@ public:
      */
     WeightVector covariance_weights_vector() const noexcept
     {
-        const size_t point_count = count_points();
+        const int point_count = count_points();
 
         WeightVector weight_vec(point_count);
 
-        for (size_t i = 0; i < point_count; ++i)
+        for (int i = 0; i < point_count; ++i)
         {
             weight_vec(i) = weights_[i].w_cov;
         }
@@ -352,7 +352,7 @@ public:
      * \throws OutOfBoundsException
      * \throws ZeroDimensionException
      */
-    void point(size_t i, Point p)
+    void point(int i, Point p)
     {
         INLINE_CHECK_POINT_SET_BOUNDS(i);
 
@@ -370,7 +370,7 @@ public:
      * \throws OutOfBoundsException
      * \throws ZeroDimensionException
      */
-    void point(size_t i, Point p, double w)
+    void point(int i, Point p, double w)
     {
         point(i, p, Weight{w, w});        
     }
@@ -386,7 +386,7 @@ public:
      * \throws OutOfBoundsException
      * \throws ZeroDimensionException
      */
-    void point(size_t i, Point p, double w_mean , double w_cov)
+    void point(int i, Point p, double w_mean , double w_cov)
     {
         point(i, p, Weight{w_mean, w_cov});
     }
@@ -401,7 +401,7 @@ public:
      * \throws OutOfBoundsException
      * \throws ZeroDimensionException
      */
-    void point(size_t i, Point p, Weight weights)
+    void point(int i, Point p, Weight weights)
     {
         INLINE_CHECK_POINT_SET_BOUNDS(i);
 
@@ -419,7 +419,7 @@ public:
      * \throws OutOfBoundsException
      * \throws ZeroDimensionException
      */
-    void weight(size_t i, double w)
+    void weight(int i, double w)
     {
         weight(i, Weight{w, w});
     }
@@ -434,7 +434,7 @@ public:
      * \throws OutOfBoundsException
      * \throws ZeroDimensionException
      */
-    void weight(size_t i, double w_mean , double w_cov)
+    void weight(int i, double w_mean , double w_cov)
     {
         weight(i, Weight{w_mean, w_cov});
     }
@@ -448,7 +448,7 @@ public:
      * \throws OutOfBoundsException
      * \throws ZeroDimensionException
      */
-    void weight(size_t i, Weight weights)
+    void weight(int i, Weight weights)
     {
         INLINE_CHECK_POINT_SET_BOUNDS(i);
 
@@ -470,8 +470,8 @@ public:
         PointMatrix centered(points_.rows(), points_.cols());
 
         const Point weighted_mean = mean();
-        const size_t point_count = points_.cols();
-        for (size_t i = 0; i < point_count; ++i)
+        const int point_count = points_.cols();
+        for (int i = 0; i < point_count; ++i)
         {
             centered.col(i) = points_.col(i) - weighted_mean;
         }
@@ -492,8 +492,8 @@ public:
         Point weighted_mean;
         weighted_mean.setZero(points_.rows());
 
-        const size_t point_count = points_.cols();
-        for (size_t i = 0; i < point_count; ++i)
+        const int point_count = points_.cols();
+        for (int i = 0; i < point_count; ++i)
         {
             weighted_mean += weights_[i].w_mean * points_.col(i);
         }

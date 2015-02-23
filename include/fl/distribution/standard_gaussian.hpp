@@ -30,7 +30,7 @@ class StandardGaussian:
         public Sampling<StandardVariate>
 {
 public:
-    explicit StandardGaussian(size_t dim = DimensionOf<StandardVariate>())
+    explicit StandardGaussian(int dim = DimensionOf<StandardVariate>())
         : dimension_ (dim),
           generator_(fl::seed()),
           gaussian_distribution_(0.0, 1.0)
@@ -55,7 +55,7 @@ public:
         return dimension_;
     }
 
-    virtual void dimension(size_t new_dimension)
+    virtual void dimension(int new_dimension)
     {
         if (dimension_ == new_dimension) return;
 

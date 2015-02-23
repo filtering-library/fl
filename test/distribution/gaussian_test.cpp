@@ -64,7 +64,7 @@ public:
 
 protected:
     template <typename Gaussian>
-    void test_gaussian_dimension(Gaussian& gaussian, size_t dim)
+    void test_gaussian_dimension(Gaussian& gaussian, int dim)
     {
         EXPECT_EQ(gaussian.dimension(), dim);
         EXPECT_EQ(gaussian.standard_variate_dimension(), dim);
@@ -152,6 +152,10 @@ protected:
         const Covariance temp =
                 gaussian.square_root() * gaussian.square_root().transpose();
         const Covariance temp2 = square_root * square_root.transpose();
+
+        (void) temp;
+        (void) temp2;
+
         //EXPECT_TRUE(temp.isApprox(temp2));
         EXPECT_TRUE(gaussian.has_full_rank());
     }
@@ -174,7 +178,7 @@ TEST_F(GaussianTests, fixed_dimension)
 
 TEST_F(GaussianTests, dynamic_dimension)
 {
-    const size_t dim = 10;
+    const int dim = 10;
     typedef Eigen::Matrix<double, Eigen::Dynamic, 1> Vector;
     fl::Gaussian<Vector> gaussian(dim);
 

@@ -27,10 +27,18 @@
 namespace fl
 {
 
+struct NoObservationParameter { };
+
 /**
  * \ingroup observation_models
  */
-template <typename Observation, typename State, typename Noise, int Id = 0>
+template <
+    typename Observation,
+    typename State,
+    typename Noise,
+    typename Parameter = NoObservationParameter,
+    int Id = 0
+>
 class ObservationModelInterface
 {
 public:
@@ -45,21 +53,32 @@ public:
                                             const Noise& noise,
                                             double delta_time) = 0;
 
-    virtual size_t state_dimension() const = 0;    
-    virtual size_t noise_dimension() const = 0;
-    virtual size_t observation_dimension() const = 0;
+
+    virtual int state_dimension() const = 0;
+    virtual int noise_dimension() const = 0;
+    virtual int observation_dimension() const = 0;
 
     virtual int id() const { return Id; }
+
+    virtual void parameter(Parameter param) {  }
+    virtual Parameter parameter() const { return Parameter(); }
 };
+
 
 /**
  * \ingroup observation_models
  *
  * Additive noise Observation model interface
  */
-template <typename Observation, typename State, typename Noise, int Id = 0>
+template <
+    typename Observation,
+    typename State,
+    typename Noise,
+    typename Parameter = NoObservationParameter,
+    int Id = 0
+>
 class ANObservationModelInterface
-    : public ObservationModelInterface<Observation, State, Noise, Id>
+    : public ObservationModelInterface<Observation, State, Noise, Parameter, Id>
 {
 public:
     /**

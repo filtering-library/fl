@@ -77,7 +77,7 @@ void test_fixed_dynamic_default(Distribution& sigmas)
 }
 
 template <typename Distribution>
-void test_fixed_dynamic(Distribution& sigmas, size_t initial_size)
+void test_fixed_dynamic(Distribution& sigmas, int initial_size)
 {
     EXPECT_THROW(sigmas.point(initial_size), fl::OutOfBoundsException);
     EXPECT_EQ(sigmas.count_points(), initial_size);
@@ -90,7 +90,7 @@ void test_fixed_dynamic(Distribution& sigmas, size_t initial_size)
 
 TEST(PointSet, fixed_dynamic)
 {
-    constexpr size_t dim = 10;
+    constexpr int dim = 10;
 
     {SCOPED_TRACE("fixed_dynamic_default");
         fl::PointSet<Eigen::Matrix<double, dim, 1>> sigmas;
@@ -125,7 +125,7 @@ void test_dynamic_dynamic_default(Distribution& sigmas)
 }
 
 template <typename Distribution>
-void test_dynamic_dynamic(Distribution& sigmas, size_t initial_size)
+void test_dynamic_dynamic(Distribution& sigmas, int initial_size)
 {
     EXPECT_THROW(sigmas.point(initial_size), fl::OutOfBoundsException);
     EXPECT_EQ(sigmas.count_points(), initial_size);
@@ -158,7 +158,7 @@ TEST(PointSet, dynamic_dynamic)
 }
 
 template <typename Distribution, typename Point>
-void point_setter_tests(Distribution& sigmas, Point& p, size_t dimension)
+void point_setter_tests(Distribution& sigmas, Point& p, int dimension)
 {
     sigmas.point(0, p);
     EXPECT_TRUE(sigmas.point(0).isApprox(p));
@@ -190,7 +190,7 @@ void point_setter_tests(Distribution& sigmas, Point& p, size_t dimension)
 
 TEST(PointSet, point_setter_fixed)
 {
-    constexpr size_t dim = 5;
+    constexpr int dim = 5;
 
     typedef Eigen::Matrix<double, dim, 1> Point ;
 
@@ -202,7 +202,7 @@ TEST(PointSet, point_setter_fixed)
 
 TEST(PointSet, point_setter_dynamic)
 {
-    constexpr size_t dim = 5;
+    constexpr int dim = 5;
 
     typedef Eigen::Matrix<double, Eigen::Dynamic, 1> Point ;
 
@@ -298,7 +298,7 @@ void weight_setter_tests(Distribution& sigmas)
 
 TEST(PointSet, weight_setter_fixed)
 {
-    constexpr size_t dim = 5;
+    constexpr int dim = 5;
     typedef Eigen::Matrix<double, 5, 1> Point ;
 
     {
@@ -316,7 +316,7 @@ TEST(PointSet, weight_setter_fixed)
 
 TEST(PointSet, weight_setter_dynamic_constructor)
 {
-    constexpr size_t dim = 5;
+    constexpr int dim = 5;
     typedef Eigen::Matrix<double, Eigen::Dynamic, 1> Point ;
 
     {
@@ -334,7 +334,7 @@ TEST(PointSet, weight_setter_dynamic_constructor)
 
 TEST(PointSet, weight_setter_dynamic_dimension_setter)
 {
-    const size_t dim = 5;
+    const int dim = 5;
     typedef Eigen::Matrix<double, Eigen::Dynamic, 1> Point ;
 
     {
@@ -372,7 +372,7 @@ void centered_points_tests(Distribution& sigmas)
     EXPECT_TRUE(sigmas.count_points() > 0);
     EXPECT_TRUE(sigmas.dimension() > 0);
 
-    for (size_t i = 0; i < sigmas.count_points(); ++i)
+    for (int i = 0; i < sigmas.count_points(); ++i)
     {
         sigmas.point(i, Point::Random(sigmas.dimension()));
     }
@@ -382,7 +382,7 @@ void centered_points_tests(Distribution& sigmas)
     EXPECT_EQ(centered_points.cols(), sigmas.count_points());
 
     Point mean = Point::Zero(sigmas.dimension());
-    for (size_t i = 0; i < centered_points.cols(); ++i)
+    for (int i = 0; i < centered_points.cols(); ++i)
     {
         mean += centered_points.col(i);
     }
@@ -401,7 +401,7 @@ TEST(PointSet, centered_points_fixed_fixed)
 
 TEST(PointSet, centered_points_fixed_dynamic)
 {
-    constexpr size_t dim = 10;
+    constexpr int dim = 10;
 
     typedef Eigen::Matrix<double, dim, 1> Point;
     typedef fl::PointSet<Point> Distribution;
@@ -432,7 +432,7 @@ TEST(PointSet, centered_points_dynamic_fixed)
 
 TEST(PointSet, centered_points_dynamic_dynamic)
 {
-    constexpr size_t dim = 10;
+    constexpr int dim = 10;
 
     typedef Eigen::Matrix<double, Eigen::Dynamic, 1> Point;
     typedef fl::PointSet<Point> Distribution;

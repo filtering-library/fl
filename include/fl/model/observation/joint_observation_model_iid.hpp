@@ -100,7 +100,14 @@ public:
         : local_obsrv_model_(local_obsrv_model),
           count_(count)
     {
-        assert(count > 0);
+        assert(count_ > 0);
+    }
+
+    JointObservationModel(const MultipleOf<LocalObservationModel, Count>& mof)
+        : local_obsrv_model_(mof.instance()),
+          count_(mof.count())
+    {
+        assert(count_ > 0);
     }
 
     /**
@@ -134,17 +141,17 @@ public:
         return y;
     }
 
-    virtual size_t observation_dimension() const
+    virtual int observation_dimension() const
     {
         return local_obsrv_model_->observation_dimension() * count_;
     }
 
-    virtual size_t state_dimension() const
+    virtual int state_dimension() const
     {
         return local_obsrv_model_->state_dimension() * count_;
     }
 
-    virtual size_t noise_dimension() const
+    virtual int noise_dimension() const
     {
         return local_obsrv_model_->noise_dimension() * count_;
     }

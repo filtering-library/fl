@@ -302,7 +302,7 @@ public:
 
             case DiagonalSquareRootMatrix:
                 covariance_.setZero(dimension(), dimension());
-                for (size_t i = 0; i < square_root_.diagonalSize(); ++i)
+                for (int i = 0; i < square_root_.diagonalSize(); ++i)
                 {
                     covariance_(i, i) = square_root_(i, i) * square_root_(i, i);
                 }
@@ -310,7 +310,7 @@ public:
 
             case DiagonalPrecisionMatrix:
                 covariance_.setZero(dimension(), dimension());
-                for (size_t i = 0; i < precision_.diagonalSize(); ++i)
+                for (int i = 0; i < precision_.diagonalSize(); ++i)
                 {
                     covariance_(i, i) = 1./precision_(i, i);
                 }
@@ -368,7 +368,7 @@ public:
             case DiagonalCovarianceMatrix:
             case DiagonalSquareRootMatrix:
                 precision_.setZero(dimension(), dimension());
-                for (size_t i = 0; i < cov.rows(); ++i)
+                for (int i = 0; i < cov.rows(); ++i)
                 {
                     precision_(i, i) = 1./cov(i, i);
                 }
@@ -425,7 +425,7 @@ public:
                 Eigen::LDLT<SecondMoment> ldlt;
                 ldlt.compute(covariance());
                 Variate D_sqrt = ldlt.vectorD();
-                for(size_t i = 0; i < D_sqrt.rows(); ++i)
+                for(int i = 0; i < D_sqrt.rows(); ++i)
                 {
                     D_sqrt(i) = std::sqrt(std::fabs(D_sqrt(i)));
                 }
@@ -438,7 +438,7 @@ public:
             case DiagonalPrecisionMatrix:
             {
                 square_root_.setZero(dimension(), dimension());
-                for (size_t i = 0; i < square_root_.rows(); ++i)
+                for (int i = 0; i < square_root_.rows(); ++i)
                 {
                     square_root_(i, i) = std::sqrt(cov(i, i));
                 }
@@ -593,7 +593,7 @@ public:
      * \endcond
      *
      * \throws ResizingFixedSizeEntityException
-     *         see GaussianMap::standard_variate_dimension(size_t)
+     *         see GaussianMap::standard_variate_dimension(int)
      */
     virtual void dimension(int new_dimension)
     {

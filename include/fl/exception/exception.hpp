@@ -220,7 +220,7 @@ public:
     /**
      * Creates an WrongSizeException
      */
-    WrongSizeException(size_t given, size_t expected)
+    WrongSizeException(int given, int expected)
         : Exception("Wrong size ("
                     + std::to_string(given)
                     + "). Expected ("
@@ -272,8 +272,8 @@ public:
     /**
      * Creates an ResizingFixedSizeEntityException
      */
-    ResizingFixedSizeEntityException(size_t fixed_size,
-                                     size_t new_size,
+    ResizingFixedSizeEntityException(int fixed_size,
+                                     int new_size,
                                      std::string entity = "entity")
         : Exception("Attempt to resize the fixed-size ("
                     + std::to_string(fixed_size)

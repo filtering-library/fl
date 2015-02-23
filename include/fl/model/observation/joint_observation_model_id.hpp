@@ -126,7 +126,7 @@ public:
      *
      * Determines the joint size of the state vector of all models
      */
-    virtual constexpr size_t state_dimension() const
+    virtual constexpr int state_dimension() const
     {
         return expand_state_dimension(CreateIndexSequence<sizeof...(Models)>());
     }
@@ -136,7 +136,7 @@ public:
      *
      * Determines the joint size of the noise vector of all models
      */
-    virtual constexpr size_t noise_dimension() const
+    virtual constexpr int noise_dimension() const
     {
         return expand_noise_dimension(CreateIndexSequence<sizeof...(Models)>());
     }
@@ -146,7 +146,7 @@ public:
      *
      * Determines the joint size of the observation vector of all models
      */
-    virtual constexpr size_t observation_dimension() const
+    virtual constexpr int observation_dimension() const
     {
         return expand_obsrv_dimension(CreateIndexSequence<sizeof...(Models)>());
     }
@@ -162,7 +162,7 @@ protected:
 private:
     /** \cond INTERNAL */
     template <int...Indices>
-    constexpr size_t expand_state_dimension(IndexSequence<Indices...>) const
+    constexpr int expand_state_dimension(IndexSequence<Indices...>) const
     {
         const auto& dims = { std::get<Indices>(models_)->state_dimension()... };
 
@@ -173,7 +173,7 @@ private:
     }
 
     template <int...Indices>
-    constexpr size_t expand_noise_dimension(IndexSequence<Indices...>) const
+    constexpr int expand_noise_dimension(IndexSequence<Indices...>) const
     {
         const auto& dims = { std::get<Indices>(models_)->noise_dimension()... };
 
@@ -184,7 +184,7 @@ private:
     }
 
     template <int...Indices>
-    constexpr size_t expand_obsrv_dimension(IndexSequence<Indices...>) const
+    constexpr int expand_obsrv_dimension(IndexSequence<Indices...>) const
     {
         const auto& dims =
             { std::get<Indices>(models_)->observation_dimension()... };
