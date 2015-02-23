@@ -23,6 +23,9 @@
 #define FL__UTIL__META_HPP
 
 #include <Eigen/Dense>
+
+#include <memory>
+
 #include <fl/util/traits.hpp>
 
 namespace fl
@@ -232,18 +235,32 @@ struct AdaptiveModel { };
 template <typename Type, int Count = Eigen::Dynamic>
 struct MultipleOf
     : CreateTypeSequence<Count, Type>
-{ };
+{
+    MultipleOf(std::shared_ptr<Type> instance, int instance_count = Count)
+        : instance_(instance),
+          count_(instance_count)
+    { }
+
+    std::shared_ptr<Type> instance() const { return instance_; }
+    int count() const { return count_; }
+
+    std::shared_ptr<Type> instance_;
+    int count_;
+};
+
 
 /**
  * \internal
  * \ingroup meta
+ * \todo fix
  *
  * Creates an empty TypeSequence for dynamic count
  */
-template <typename Type>
-struct MultipleOf<Type, Eigen::Dynamic>
-    : CreateTypeSequence<Eigen::Dynamic, Type>
-{ };
+//template <typename Type>
+//struct MultipleOf<Type, Eigen::Dynamic>
+//    : CreateTypeSequence<Eigen::Dynamic, Type>
+//{ };
+
 
 /**
  * \c Join represents a meta operator taking an argument pack which should be
