@@ -57,7 +57,7 @@ public:
      */
     virtual Scalar unnormalized_probability(const Variate& variate) const
     {
-        std::exp(log_unnormalized_probability(variate));
+        return std::exp(log_unnormalized_probability(variate));
     }
 
     /**
