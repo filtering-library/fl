@@ -412,6 +412,45 @@ struct CollapseJoin<Model<>, TypeSequence<Model<MultipleOf<M, Count>>>>
                   "case.");
 };
 
+/**
+ * \ingroup meta
+ * Represents any number of available options as defined in #FilterOptions
+ */
+template <int T> struct Options { enum : signed int { Value = T }; };
+
+/**
+ * \ingroup meta
+ * Combines multiple options into one. This allows to specify the options
+ * listed in an arbitrary number
+ */
+template <int ... T> struct CombineOptions;
+
+/**
+ * \internal
+ * \ingroup meta
+ *
+ * Combines the first option within the option pack with the previous one.
+ */
+template <int Value, int H, int ... T>
+struct CombineOptions<Value, H, T...> : CombineOptions<Value | H, T...> { };
+
+/**
+ * \internal
+ * \ingroup meta
+ *
+ * Terminal case CombineOptions
+ */
+template <int Value>
+struct CombineOptions<Value> { typedef fl::Options<Value> Options; };
+
+/**
+ * \internal
+ * \ingroup meta
+ *
+ * No Option case
+ */
+template <>
+struct CombineOptions<> { typedef fl::Options<NoOptions> Options; };
 
 }
 
