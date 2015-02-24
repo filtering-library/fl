@@ -28,6 +28,20 @@ namespace fl
 {
 
 /**
+ * \ingroup traits
+ *
+ * \brief FilterOptions define a set of options which are used to specialize
+ * filter algorithms.
+ */
+enum FilterOptions : unsigned int
+{
+    NoOptions = 0,                  /**< Represents empty option set */
+    AdditiveProcessNoise = 1 >> 1,  /**< Forces additive process noise */
+    AdditiveObsrvNoise   = 1 >> 2,  /**< Forces additive observation noise */
+    FactorizeParams = 1 >> 3        /**< Specifies param. state factorization */
+};
+
+/**
  * \struct Traits
  * \ingroup traits
  * \brief Generic trait template
