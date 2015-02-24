@@ -13,7 +13,7 @@ li {
 }
 
 div.fragment {
-  display: table;
+  display: table;  
 }
 
 table.doxtable, table.example th, table.manual th, table.manual-vl th {
@@ -112,9 +112,9 @@ div.fragment {
     font-weight: normal;
     line-height: 16.7999992370605px;
 
-    width:100%;
-    padding: 4px 6px;
-    margin: 4px 8px 4px 2px;
+    width: 100%;
+    padding: 0 0 0 0;
+    margin: 0 0 0 0;
     background-color: #FFFFFF;
     border: 1px solid #C4CFE5;
 }
