@@ -27,8 +27,6 @@
 namespace fl
 {
 
-struct NoObservationParameter { };
-
 /**
  * \ingroup observation_models
  *
@@ -37,23 +35,17 @@ struct NoObservationParameter { };
  * \f$w\sim {\cal N}(0, 1)\f$ is a white noise term, and \f$\theta\f$ the
  * model variable parameters.
  *
- * \note \f$\theta\f$ represents a subset of the models parameter which are
- *       subject to changes during exectution time. That is, \f$\theta\f$ does
- *       not represent all model parameters but only those which may be adapted
- *       on-line such as in adaptive estiamtion in which the parameters are
- *       estimated along the state \f$x\f$ \todo REF.
+
  *
  * \tparam Obsrv  Measurement type \f$y = h(x, w, \theta)\f$
  * \tparam State        State variate \f$x\f$
  * \tparam Noise        White noise variate term \f$w\sim {\cal N}(0, I)\f$
- * \tparam Parameter    Model variable parameters \f$\theta\f$
  * \tparam Id           Model id number
  */
 template <
     typename Obsrv,
     typename State,
     typename Noise,
-    typename Parameter = NoObservationParameter,
     int Id = 0
 >
 class ObservationModelInterface
@@ -86,7 +78,7 @@ public:
     /**
      * \return Dimension of the measurement \f$h(x, w)\f$
      */
-    virtual int observation_dimension() const = 0;
+    virtual int obsrv_dimension() const = 0;
 
     /**
      * \return Model id number
@@ -95,18 +87,6 @@ public:
      * id of the individual model.
      */
     virtual int id() const { return Id; }
-
-    /**
-     * \return Copy of the model parameters.
-     */
-    virtual Parameter parameter() const { return Parameter(); }
-
-    /**
-     * Sets the adaptive parameters of the model.
-     *
-     * \param param     New model parameter values
-     */
-    virtual void parameter(Parameter param) {  }
 };
 
 
@@ -131,11 +111,10 @@ template <
     typename Obsrv,
     typename State,
     typename Noise,
-    typename Parameter = NoObservationParameter,
     int Id = 0
 >
 class ANObservationModelInterface
-    : public ObservationModelInterface<Obsrv, State, Noise, Parameter, Id>
+    : public ObservationModelInterface<Obsrv, State, Noise, Id>
 {
 public:
     /**
