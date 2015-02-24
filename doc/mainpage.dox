@@ -3,15 +3,6 @@ namespace fl
 {
 
 /**
- \defgroup filter Filter Algorithms
- \defgroup distributions Distributions
- \defgroup observation_models Observation Models
- \defgroup process_models Process Models
- \defgroup exceptions Exceptions
-*/
-
-
-/**
 
 \mainpage notitle
 
