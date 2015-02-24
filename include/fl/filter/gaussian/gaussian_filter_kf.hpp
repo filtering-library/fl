@@ -22,10 +22,7 @@
 #ifndef FL__FILTER__GAUSSIAN__GAUSSIAN_FILTER_KF_HPP
 #define FL__FILTER__GAUSSIAN__GAUSSIAN_FILTER_KF_HPP
 
-#include <map>
-#include <tuple>
-#include <memory>
-#include <typeinfo>
+#include <utility>
 
 #include <fl/util/meta.hpp>
 #include <fl/util/traits.hpp>
@@ -42,6 +39,13 @@ namespace fl
 template <typename...> class GaussianFilter;
 
 /**
+ * \defgroup kalman_filter KalmanFilter
+ * \ingroup filters
+ */
+
+/**
+ * \ingroup kalman_filter
+ *
  * Traits of the Linear GaussianFilter (KalmanFilter)
  */
 template <typename State_,typename Input_,typename Obsrv_>
@@ -51,8 +55,7 @@ struct Traits<
                LinearGaussianObservationModel<Obsrv_, State_>>>
 {
     /**
-     * Process model definition.
-     *
+     * \brief Process model definition.
      * The process model of the KalmanFilter is always the
      * \c LinearGaussianProcessModel taking a \c State and an \c Input type as
      * the only parameter types.
@@ -60,8 +63,7 @@ struct Traits<
     typedef LinearGaussianProcessModel<State_, Input_> ProcessModel;
 
     /**
-     * Observation model definition
-     *
+     * \brief Observation model definition.
      * The observation model of the KalmanFilter is always the
      * \c LinearGaussianObservationModel taking an \c Obsrv and a
      * \c State type as the only parameters.
@@ -71,8 +73,7 @@ struct Traits<
             > ObservationModel;
 
     /**
-     * Represents KalmanFilter definition
-     *
+     * \brief Represents KalmanFilter definition.
      * The KalmanFilter type is represented by the GaussianFilter using
      * the linear Gaussian Models.
      */
@@ -96,14 +97,16 @@ struct Traits<
     typedef typename Traits<ObservationModel>::Obsrv Obsrv;
 
     /**
-     * Represents the underlying distribution of the estimated state. In the
-     * case of the Kalman filter, the distribution is a simple Gaussian with
-     * the dimension of the \c State
+     * \brief Represents the underlying distribution of the estimated state.
+     * In the case of the Kalman filter, the distribution is a simple Gaussian
+     * with the dimension of the \c State
      */
     typedef Gaussian<State> StateDistribution;
 };
 
 /**
+ * \ingroup kalman_filter
+ *
  * \brief GaussianFilter resembles the Kalman filter.
  *
  * \tparam State  State type defining the state space
@@ -112,8 +115,7 @@ struct Traits<
  *
  * The KalmanFilter type is represented by the GaussianFilter using
  * the linear Gaussian Models.
- *
- * \ingroup filters
+ * 
  */
 template <typename State, typename Input, typename Obsrv>
 class GaussianFilter<
@@ -147,10 +149,15 @@ public:
      * \param process_model         Process model instance
      * \param obsrv_model           Obsrv model instance
      */
-    GaussianFilter(const std::shared_ptr<ProcessModel>& process_model,
-                   const std::shared_ptr<ObservationModel>& obsrv_model)
-        : process_model_(process_model),
-          obsrv_model_(obsrv_model) { }
+    template <
+        typename ProcessModel,  // deduce model type for perfect forwarding
+        typename ObsrvModel     // deduce model type for perfect forwarding
+    >
+    GaussianFilter(ProcessModel&& process_model,
+                   ObsrvModel&& obsrv_model)
+        : process_model_(std::forward<ProcessModel>(process_model)),
+          obsrv_model_(std::forward<ObservationModel>(obsrv_model))
+    { }
 
     /**
      * \copydoc FilterInterface::predict
@@ -176,8 +183,8 @@ public:
                          const StateDistribution& prior_dist,
                          StateDistribution& predicted_dist)
     {
-        auto&& A = (process_model_->A() * delta_time).eval();
-        auto&& Q = (process_model_->covariance() * delta_time).eval();
+        auto&& A = (process_model_.A() * delta_time).eval();
+        auto&& Q = (process_model_.covariance() * delta_time).eval();
 
         predicted_dist.mean(
             A * prior_dist.mean());
@@ -211,8 +218,8 @@ public:
                         const StateDistribution& predicted_dist,
                         StateDistribution& posterior_dist)
     {
-        auto&& H = obsrv_model_->H();
-        auto&& R = obsrv_model_->covariance();
+        auto&& H = obsrv_model_.H();
+        auto&& R = obsrv_model_.covariance();
 
         auto&& mean = predicted_dist.mean();
         auto&& cov_xx = predicted_dist.covariance();
@@ -238,8 +245,8 @@ public:
     }
 
 protected:
-    std::shared_ptr<ProcessModel> process_model_;
-    std::shared_ptr<ObservationModel> obsrv_model_;
+    ProcessModel process_model_;
+    ObservationModel obsrv_model_;
 };
 
 }
