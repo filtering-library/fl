@@ -63,7 +63,7 @@ public:
                             size_t dim_state,
                             typename Model::SecondMoment& cov)
     {
-        EXPECT_EQ(model.observation_dimension(), dim);
+        EXPECT_EQ(model.obsrv_dimension(), dim);
         EXPECT_EQ(model.standard_variate_dimension(), dim);
         EXPECT_EQ(model.state_dimension(), dim_state);
         EXPECT_TRUE(model.H().isOnes());

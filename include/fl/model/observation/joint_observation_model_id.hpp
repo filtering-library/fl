@@ -108,7 +108,7 @@ public:
                                             const Noise& noise,
                                             double delta_time)
     {
-        Obsrv prediction = Obsrv(observation_dimension(), 1);
+        Obsrv prediction = Obsrv(obsrv_dimension(), 1);
 
         predict_observation<sizeof...(Models)>(
             models_,
@@ -146,7 +146,7 @@ public:
      *
      * Determines the joint size of the observation vector of all models
      */
-    virtual constexpr int observation_dimension() const
+    virtual constexpr int obsrv_dimension() const
     {
         return expand_obsrv_dimension(CreateIndexSequence<sizeof...(Models)>());
     }
@@ -187,7 +187,7 @@ private:
     constexpr int expand_obsrv_dimension(IndexSequence<Indices...>) const
     {
         const auto& dims =
-            { std::get<Indices>(models_)->observation_dimension()... };
+            { std::get<Indices>(models_)->obsrv_dimension()... };
 
         int joint_dim = 0;
         for (auto dim : dims) { joint_dim += dim; }
@@ -214,7 +214,7 @@ private:
     {
         auto&& model = std::get<k>(models_tuple);
 
-        const auto obsrv_dim = model->observation_dimension();
+        const auto obsrv_dim = model->obsrv_dimension();
         const auto state_dim = model->state_dimension();
         const auto noise_dim = model->noise_dimension();
 

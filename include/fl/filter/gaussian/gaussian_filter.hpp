@@ -25,6 +25,7 @@
 namespace fl
 {
 
+
 struct FadingMemoryPolicy // None, alpha, decay
 {
 };

@@ -88,7 +88,7 @@ public:
         /** \endcond */
     }
 
-#ifdef PARSED_BY_DOXYGEN
+#ifdef GENERATING_DOCUMENTATION
     /**
      * \note This function is not explicitly definded nor implemented within
      *       PointSetTransform. However, it is implicitly required to be

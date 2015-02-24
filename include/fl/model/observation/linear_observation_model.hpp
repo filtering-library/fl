@@ -99,7 +99,7 @@ public:
             const int state_dim = DimensionOf<State>())
         : Traits<This>::GaussianBase(observation_dim),
           state_dimension_(state_dim),
-          H_(SensorMatrix::Ones(observation_dimension(),
+          H_(SensorMatrix::Ones(obsrv_dimension(),
                                 state_dimension()))
     {
         covariance(noise_covariance);
@@ -130,7 +130,7 @@ public:
         return Traits<This>::GaussianBase::map_standard_normal(noise);
     }
 
-    virtual int observation_dimension() const
+    virtual int obsrv_dimension() const
     {
         return Traits<This>::GaussianBase::dimension();
     }

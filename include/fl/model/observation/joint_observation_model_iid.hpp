@@ -122,9 +122,9 @@ public:
                                             const Noise& noise,
                                             double delta_time)
     {
-        Obsrv y = Obsrv::Zero(observation_dimension(), 1);
+        Obsrv y = Obsrv::Zero(obsrv_dimension(), 1);
 
-        int obsrv_dim = local_obsrv_model_->observation_dimension();
+        int obsrv_dim = local_obsrv_model_->obsrv_dimension();
         int noise_dim = local_obsrv_model_->noise_dimension();
         int state_dim = local_obsrv_model_->state_dimension();
 
@@ -141,9 +141,9 @@ public:
         return y;
     }
 
-    virtual int observation_dimension() const
+    virtual int obsrv_dimension() const
     {
-        return local_obsrv_model_->observation_dimension() * count_;
+        return local_obsrv_model_->obsrv_dimension() * count_;
     }
 
     virtual int state_dimension() const
