@@ -38,8 +38,6 @@ namespace fl
 
 template <typename...> class GaussianFilter;
 
-enum class AdditiveObservationNoise : bool { };
-
 #ifdef Arguments
     #undef Arguments
 #endif
@@ -50,8 +48,7 @@ enum class AdditiveObservationNoise : bool { };
 #define Arguments                   \
             ProcessModel,           \
             ObservationModel,       \
-            PointSetTransform,      \
-            AdditiveObservationNoise
+            PointSetTransform
 
 /**
  * GaussianFilter Traits
@@ -60,7 +57,7 @@ template <typename ProcessModel,
           typename ObservationModel,
           typename PointSetTransform>
 struct Traits<
-           GaussianFilter<Arguments>>
+           GaussianFilter<Arguments, Options<AdditiveObsrvNoise>>>
 {
     typedef GaussianFilter<
                 Arguments
@@ -128,6 +125,8 @@ struct Traits<
     /** \endcond */
 };
 
+
+
 /**
  * GaussianFilter represents all filters based on Gaussian distributed systems.
  * This includes the Kalman Filter and filters using non-linear models such as
@@ -146,16 +145,16 @@ template<
     typename ProcessModel,
     typename ObservationModel,
     typename PointSetTransform>
-class GaussianFilter<Arguments>
+class GaussianFilter<Arguments, Options<AdditiveObsrvNoise>>
     :
     /* Implement the conceptual filter interface */
     public FilterInterface<
-              GaussianFilter<Arguments>>
+              GaussianFilter<Arguments, Options<AdditiveObsrvNoise>>>
 
 {
 protected:
     /** \cond INTERNAL */
-    typedef GaussianFilter<Arguments> This;
+    typedef GaussianFilter<Arguments, Options<AdditiveObsrvNoise>> This;
 
     typedef typename Traits<This>::KalmanGain KalmanGain;
     typedef typename Traits<This>::StateNoise StateNoise;
@@ -234,7 +233,7 @@ public:
                 PointSetTransform::number_of_points(global_dimension_);
 
         X_y.resize(point_count);
-        X_y.dimension(obsrv_model_->observation_dimension());
+        X_y.dimension(obsrv_model_->obsrv_dimension());
 
         /*
          * Setup the point set of the state predictions
