@@ -44,11 +44,11 @@ template <typename...> class GaussianFilter;
 /**
  * Traits of the Linear GaussianFilter (KalmanFilter)
  */
-template <typename State_,typename Input_,typename Observation_>
+template <typename State_,typename Input_,typename Obsrv_>
 struct Traits<
            GaussianFilter<
                LinearGaussianProcessModel<State_, Input_>,
-               LinearGaussianObservationModel<Observation_, State_>>>
+               LinearGaussianObservationModel<Obsrv_, State_>>>
 {
     /**
      * Process model definition.
@@ -63,11 +63,11 @@ struct Traits<
      * Observation model definition
      *
      * The observation model of the KalmanFilter is always the
-     * \c LinearGaussianObservationModel taking an \c Observation and a
+     * \c LinearGaussianObservationModel taking an \c Obsrv and a
      * \c State type as the only parameters.
      */
     typedef LinearGaussianObservationModel<
-                Observation_, State_
+                Obsrv_, State_
             > ObservationModel;
 
     /**
@@ -78,7 +78,7 @@ struct Traits<
      */
     typedef GaussianFilter<
                 LinearGaussianProcessModel<State_, Input_>,
-                LinearGaussianObservationModel<Observation_, State_>
+                LinearGaussianObservationModel<Obsrv_, State_>
              > Filter;
 
     /*
@@ -93,7 +93,7 @@ struct Traits<
     typedef std::shared_ptr<Filter> Ptr;
     typedef typename Traits<ProcessModel>::State State;
     typedef typename Traits<ProcessModel>::Input Input;
-    typedef typename Traits<ObservationModel>::Observation Observation;
+    typedef typename Traits<ObservationModel>::Obsrv Obsrv;
 
     /**
      * Represents the underlying distribution of the estimated state. In the
@@ -106,9 +106,9 @@ struct Traits<
 /**
  * \brief GaussianFilter resembles the Kalman filter.
  *
- * \tparam State_       State type defining the state space
- * \tparam Input_       Process model input type
- * \tparam Observation_ Observation type of the linear observation Gaussian model
+ * \tparam State  State type defining the state space
+ * \tparam Input  Process model input type
+ * \tparam Obsrv  Observation type of the linear observation Gaussian model
  *
  * The KalmanFilter type is represented by the GaussianFilter using
  * the linear Gaussian Models.

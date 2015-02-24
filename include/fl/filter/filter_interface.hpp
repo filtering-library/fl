@@ -33,20 +33,19 @@ namespace fl
  * \brief Common filter interface
  *
  *
- *
  * FilterInterface represents the common interface of all filters. Each filter
  * must implement the two filter steps, predict/propagate and update.
  * The filtered state, observation and the state distribution are subject to the
  * underlying filtering algorithm and therefore may differ from one to another.
  * This interface, provides these types of the actual algorithm, such as the
- * the State, Observation, and StateDistribution types. Therefore, the traits
- * of each filter implememntation must provide the following types
+ * the State, Obsrv (Observation), and StateDistribution types. Therefore, the
+ * traits of each filter implememntation must provide the following types
  *
  * Required Types        | Description                        | Requirements
  * --------------------- | ---------------------------------- | ---------------
  * \c State              | Used State type                    | -
  * \c Input              | Process control input type         | -
- * \c Observation        | Used Observation type              | -
+ * \c Obsrv              | Used Obsrv type              | -
  * \c StateDistribution  | Distribution type over the state   | must implement fl::Moments
  * \c Ptr                | Shared pointer of the derived type | must specialize std::shared_ptr<>
  */
@@ -80,13 +79,13 @@ public:
     typedef typename Traits<Derived>::Input Input;
 
     /**
-     * \brief Observation type provided by the filter specialization
+     * \brief Obsrv (Observation) type provided by the filter specialization
      *
-     * The filter specialization traits must provide the \c Observation type.
-     * The \c Observation type is commonly provided by the measurement
+     * The filter specialization traits must provide the \c Obsrv type.
+     * The \c Obsrv type is commonly provided by the measurement
      * model.
      */
-    typedef typename Traits<Derived>::Observation Observation;
+    typedef typename Traits<Derived>::Obsrv Obsrv;
 
     /**
      * \brief StateDistribution type uses by the filter specialization.
@@ -102,7 +101,7 @@ public:
      *
      * \param delta_time        Delta time of prediction
      * \param input             Control input argument
-     * \param prior_dist        Prior state distribution     
+     * \param prior_dist        Prior state distribution
      * \param predicted_dist    Predicted state distribution
      */
     virtual void predict(double delta_time,
@@ -117,7 +116,7 @@ public:
      * \param observation       Latest observation
      * \param posterior_dist    Updated posterior state distribution
      */
-    virtual void update(const Observation& observation,
+    virtual void update(const Obsrv& observation,
                         const StateDistribution& predicted_dist,
                         StateDistribution& posterior_dist) = 0;
 
@@ -125,15 +124,15 @@ public:
      * Predicts the state distribution for a given delta time and subsequently
      * updates the prediction using a measurement.
      *
-     * \param delta_time
-     * \param input
-     * \param observation
-     * \param prior_dist
-     * \param posterior_dist
+     * @param delta_time
+     * @param input
+     * @param observation
+     * @param prior_dist
+     * @param posterior_dist
      */
     virtual void predict_and_update(double delta_time,
                                     const Input& input,
-                                    const Observation& observation,
+                                    const Obsrv& observation,
                                     const StateDistribution& prior_dist,
                                     StateDistribution& posterior_dist) = 0;
 };

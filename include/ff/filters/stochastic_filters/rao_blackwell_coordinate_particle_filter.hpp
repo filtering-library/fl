@@ -84,7 +84,7 @@ struct Traits<
     typedef typename Traits<ProcessModel>::State State;
     typedef typename Traits<ProcessModel>::Input Input;
     typedef typename Traits<ProcessModel>::Noise Noise;
-    typedef typename ObservationModel::Observation Observation; //!< \todo traits missing
+    typedef typename ObservationModel::Obsrv Observation; //!< \todo traits missing
 
     /**
      * Represents the underlying distribution of the estimated state.
@@ -119,7 +119,7 @@ public:
     typedef typename Traits<This>::State             State;
     typedef typename Traits<This>::Input             Input;
     typedef typename Traits<This>::Noise             Noise;
-    typedef typename Traits<This>::Observation       Observation;
+    typedef typename Traits<This>::Obsrv       Observation;
     typedef typename Traits<This>::StateDistribution StateDistribution;
 
 public:

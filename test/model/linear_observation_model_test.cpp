@@ -74,10 +74,10 @@ public:
 TEST_F(LinearObservationModelTests, init_fixedsize_dimension)
 {
     typedef Eigen::Matrix<double, 10, 1> State;
-    typedef Eigen::Matrix<double, 20, 1> Observation;
-    const size_t dim = Observation::SizeAtCompileTime;
+    typedef Eigen::Matrix<double, 20, 1> Obsrv;
+    const size_t dim = Obsrv::SizeAtCompileTime;
     const size_t dim_state = State::SizeAtCompileTime;
-    typedef fl::LinearGaussianObservationModel<Observation, State> LGModel;
+    typedef fl::LinearGaussianObservationModel<Obsrv, State> LGModel;
 
     LGModel::SecondMoment cov = LGModel::SecondMoment::Identity() * 5.5465;
     LGModel model(cov);
@@ -90,8 +90,8 @@ TEST_F(LinearObservationModelTests, init_dynamicsize_dimension)
     const size_t dim = 20;
     const size_t dim_state = 10;
     typedef Eigen::VectorXd State;
-    typedef Eigen::VectorXd Observation;
-    typedef fl::LinearGaussianObservationModel<Observation, State> LGModel;
+    typedef Eigen::VectorXd Obsrv;
+    typedef fl::LinearGaussianObservationModel<Obsrv, State> LGModel;
 
     LGModel::SecondMoment cov = LGModel::SecondMoment::Identity(dim, dim) * 5.5465;
     LGModel model(cov, dim, dim_state);
@@ -102,13 +102,13 @@ TEST_F(LinearObservationModelTests, init_dynamicsize_dimension)
 TEST_F(LinearObservationModelTests, predict_fixedsize_with_zero_noise)
 {
     typedef Eigen::Matrix<double, 10, 1> State;
-    typedef Eigen::Matrix<double, 20, 1> Observation;
-    const size_t dim = Observation::SizeAtCompileTime;
+    typedef Eigen::Matrix<double, 20, 1> Obsrv;
+    const size_t dim = Obsrv::SizeAtCompileTime;
     const size_t dim_state = State::SizeAtCompileTime;
-    typedef fl::LinearGaussianObservationModel<Observation, State> LGModel;
+    typedef fl::LinearGaussianObservationModel<Obsrv, State> LGModel;
 
     State state = State::Random(dim_state, 1);
-    Observation observation = Observation::Random(dim, 1);
+    Obsrv observation = Obsrv::Random(dim, 1);
     LGModel::Noise noise = LGModel::Noise::Zero(dim, 1);
     LGModel::SecondMoment cov = LGModel::SecondMoment::Identity(dim, dim) * 5.5465;
     LGModel model(cov);
@@ -125,11 +125,11 @@ TEST_F(LinearObservationModelTests, predict_dynamic_with_zero_noise)
     const size_t dim = 20;
     const size_t dim_state = 10;
     typedef Eigen::VectorXd State;
-    typedef Eigen::VectorXd Observation;
-    typedef fl::LinearGaussianObservationModel<Observation, State> LGModel;
+    typedef Eigen::VectorXd Obsrv;
+    typedef fl::LinearGaussianObservationModel<Obsrv, State> LGModel;
 
     State state = State::Random(dim_state, 1);
-    Observation observation = Observation::Random(dim, 1);
+    Obsrv observation = Obsrv::Random(dim, 1);
     LGModel::Noise noise = LGModel::Noise::Zero(dim, 1);
     LGModel::SecondMoment cov = LGModel::SecondMoment::Identity(dim, dim) * 5.5465;
     LGModel model(cov, dim, dim_state);
@@ -146,11 +146,11 @@ TEST_F(LinearObservationModelTests, sensor_matrix)
     const size_t dim = 20;
     const size_t dim_state = 10;
     typedef Eigen::VectorXd State;
-    typedef Eigen::VectorXd Observation;
-    typedef fl::LinearGaussianObservationModel<Observation, State> LGModel;
+    typedef Eigen::VectorXd Obsrv;
+    typedef fl::LinearGaussianObservationModel<Obsrv, State> LGModel;
 
     State state = State::Random(dim_state, 1);
-    Observation observation = Observation::Zero(dim, 1);
+    Obsrv observation = Obsrv::Zero(dim, 1);
     LGModel::Noise noise = LGModel::Noise::Random(dim, 1);
     LGModel::SecondMoment cov = LGModel::SecondMoment::Identity(dim, dim);
     LGModel::SensorMatrix H = LGModel::SecondMoment::Ones(dim, dim_state);

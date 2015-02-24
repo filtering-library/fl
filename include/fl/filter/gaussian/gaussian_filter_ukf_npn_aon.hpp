@@ -40,6 +40,19 @@ template <typename...> class GaussianFilter;
 
 enum class AdditiveObservationNoise : bool { };
 
+#ifdef Arguments
+    #undef Arguments
+#endif
+
+/**
+ * Arguments doing some UKF-NPN args stuff
+ */
+#define Arguments                   \
+            ProcessModel,           \
+            ObservationModel,       \
+            PointSetTransform,      \
+            AdditiveObservationNoise
+
 /**
  * GaussianFilter Traits
  */
@@ -47,17 +60,10 @@ template <typename ProcessModel,
           typename ObservationModel,
           typename PointSetTransform>
 struct Traits<
-           GaussianFilter<
-               ProcessModel,
-               ObservationModel,
-               PointSetTransform,
-               AdditiveObservationNoise>>
+           GaussianFilter<Arguments>>
 {
     typedef GaussianFilter<
-                ProcessModel,
-                ObservationModel,
-                PointSetTransform,
-                AdditiveObservationNoise
+                Arguments
             > Filter;
 
     /*
@@ -72,7 +78,7 @@ struct Traits<
     typedef std::shared_ptr<Filter> Ptr;
     typedef typename Traits<ProcessModel>::State State;
     typedef typename Traits<ProcessModel>::Input Input;    
-    typedef typename Traits<ObservationModel>::Observation Observation;
+    typedef typename Traits<ObservationModel>::Obsrv Obsrv;
 
     /**
      * Represents the underlying distribution of the estimated state. In
@@ -108,7 +114,7 @@ struct Traits<
                         >::Size);
 
     typedef PointSet<State, NumberOfPoints> StatePointSet;
-    typedef PointSet<Observation, NumberOfPoints> ObsrvPointSet;
+    typedef PointSet<Obsrv, NumberOfPoints> ObsrvPointSet;
     typedef PointSet<StateNoise, NumberOfPoints> StateNoisePointSet;
 
     /**
@@ -117,7 +123,7 @@ struct Traits<
     typedef Eigen::Matrix<
                 typename StateDistribution::Scalar,
                 State::RowsAtCompileTime,
-                Observation::RowsAtCompileTime
+                Obsrv::RowsAtCompileTime
             > KalmanGain;
     /** \endcond */
 };
@@ -127,7 +133,7 @@ struct Traits<
  * This includes the Kalman Filter and filters using non-linear models such as
  * Sigma Point Kalman Filter family.
  *
- * Gaussian for Non-Additive Process Noise & Additive Observation Noise
+ * Gaussian for Non-Additive Process Noise & Additive Obsrv Noise
  *
  * \tparam ProcessModel
  * \tparam ObservationModel
@@ -140,29 +146,16 @@ template<
     typename ProcessModel,
     typename ObservationModel,
     typename PointSetTransform>
-class GaussianFilter<
-          ProcessModel,
-          ObservationModel,
-          PointSetTransform,
-          AdditiveObservationNoise>
+class GaussianFilter<Arguments>
     :
     /* Implement the conceptual filter interface */
     public FilterInterface<
-              GaussianFilter<
-                  ProcessModel,
-                  ObservationModel,
-                  PointSetTransform,
-                  AdditiveObservationNoise>>
+              GaussianFilter<Arguments>>
 
 {
 protected:
     /** \cond INTERNAL */
-    typedef GaussianFilter<
-                ProcessModel,
-                ObservationModel,
-                PointSetTransform,
-                AdditiveObservationNoise
-            > This;
+    typedef GaussianFilter<Arguments> This;
 
     typedef typename Traits<This>::KalmanGain KalmanGain;
     typedef typename Traits<This>::StateNoise StateNoise;
@@ -176,7 +169,7 @@ public:
     /* public concept interface types */
     typedef typename Traits<This>::State State;    
     typedef typename Traits<This>::Input Input;
-    typedef typename Traits<This>::Observation Obsrv;    
+    typedef typename Traits<This>::Obsrv Obsrv;
     typedef typename Traits<This>::StateDistribution StateDistribution;    
 
 public:

@@ -66,7 +66,7 @@ template <> struct Traits<FilterForFun>
 {
     typedef double State;
     typedef double Input;
-    typedef double Observation;
+    typedef double Obsrv;
     typedef double StateDistribution;
     typedef std::shared_ptr<FilterForFun> Ptr;
 };
@@ -84,7 +84,7 @@ public:
     typedef typename fl::Traits<This>::Ptr Ptr;
     typedef typename fl::Traits<This>::State State;
     typedef typename fl::Traits<This>::Input Input;
-    typedef typename fl::Traits<This>::Observation Observation;
+    typedef typename fl::Traits<This>::Obsrv Obsrv;
     typedef typename fl::Traits<This>::StateDistribution StateDistribution;
 
     virtual void predict(double delta_time,
@@ -96,7 +96,7 @@ public:
     }
 
     virtual void update(const StateDistribution& predicted_dist,
-                        const Observation& observation,
+                        const Obsrv& observation,
                         StateDistribution& posterior_dist)
     {
         posterior_dist = (predicted_dist + observation) / 2.;
@@ -104,7 +104,7 @@ public:
 
     virtual void predict_and_update(double delta_time,
                                     const Input& input,
-                                    const Observation& observation,
+                                    const Obsrv& observation,
                                     const StateDistribution& prior_dist,
                                     StateDistribution& posterior_dist)
     {
@@ -131,7 +131,7 @@ struct Traits<FilterForMoreFun<A, B, C>>
 {
     typedef double State;
     typedef double Input;
-    typedef double Observation;
+    typedef double Obsrv;
     typedef double StateDistribution;
     typedef std::shared_ptr<FilterForMoreFun<A, B, C>> Ptr;
 };
@@ -150,7 +150,7 @@ public:
     typedef typename fl::Traits<This>::Ptr Ptr;
     typedef typename fl::Traits<This>::State State;
     typedef typename fl::Traits<This>::Input Input;
-    typedef typename fl::Traits<This>::Observation Observation;
+    typedef typename fl::Traits<This>::Obsrv Obsrv;
     typedef typename fl::Traits<This>::StateDistribution StateDistribution;
 
     virtual void predict(double delta_time,
@@ -162,7 +162,7 @@ public:
     }
 
     virtual void update(const StateDistribution& predicted_dist,
-                        const Observation& observation,
+                        const Obsrv& observation,
                         StateDistribution& posterior_dist)
     {
         posterior_dist = (predicted_dist + observation) / 3.;
@@ -170,7 +170,7 @@ public:
 
     virtual void predict_and_update(double delta_time,
                                     const Input& input,
-                                    const Observation& observation,
+                                    const Obsrv& observation,
                                     const StateDistribution& prior_dist,
                                     StateDistribution& posterior_dist)
     {

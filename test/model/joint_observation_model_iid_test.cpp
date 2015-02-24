@@ -102,11 +102,11 @@ public:
 
     typedef typename fl::Traits<ObservationModel_F>::State State_F;
     typedef typename fl::Traits<ObservationModel_F>::Noise Noise_F;
-    typedef typename fl::Traits<ObservationModel_F>::Observation Observation_F;
+    typedef typename fl::Traits<ObservationModel_F>::Obsrv Obsrv_F;
 
     typedef typename fl::Traits<ObservationModel_D>::State State_D;
     typedef typename fl::Traits<ObservationModel_D>::Noise Noise_D;
-    typedef typename fl::Traits<ObservationModel_D>::Observation Observation_D;
+    typedef typename fl::Traits<ObservationModel_D>::Obsrv Obsrv_D;
 };
 
 TEST_F(JointObservationModel_IID_Tests, predict_F)

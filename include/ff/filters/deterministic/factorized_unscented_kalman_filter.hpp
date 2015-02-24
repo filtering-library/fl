@@ -86,9 +86,9 @@ public:
     typedef typename Traits<FactorizedStateProcessModel>::Noise Noise_b_i;
     typedef typename Traits<FactorizedStateProcessModel>::Input Input_b_i;
         
-    typedef typename ObservationModel::Observation Observation;
+    typedef typename ObservationModel::Obsrv Obsrv;
 
-    typedef ComposedStateDistribution<State_a, State_b_i, Observation> StateDistribution;
+    typedef ComposedStateDistribution<State_a, State_b_i, Obsrv> StateDistribution;
     typedef typename StateDistribution::JointPartitions JointPartitions;
     typedef typename StateDistribution::Cov_aa Cov_aa;
     typedef typename StateDistribution::Cov_bb Cov_bb;
@@ -246,7 +246,7 @@ public:
      * \attention NEEDS TO BE TESTED
      */
     template <typename RT = void>
-    typename std::enable_if<Observation::SizeAtCompileTime != 1, RT>::type
+    typename std::enable_if<Obsrv::SizeAtCompileTime != 1, RT>::type
     Update_a(const StateDistribution& predicted_state,
              const Eigen::MatrixXd& y,
              StateDistribution& posterior_state)
@@ -317,7 +317,7 @@ public:
      * \attention NEEDS TO BE TESTED
      */
     template <typename RT = void>
-    typename std::enable_if<Observation::SizeAtCompileTime == 1, RT>::type
+    typename std::enable_if<Obsrv::SizeAtCompileTime == 1, RT>::type
     Update_a(const StateDistribution& predicted_state,
              const Eigen::MatrixXd& y,
              StateDistribution& posterior_state)

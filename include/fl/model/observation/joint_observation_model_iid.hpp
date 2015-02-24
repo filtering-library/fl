@@ -55,7 +55,7 @@ struct Traits<
     typedef typename Traits<ObservationModel>::Scalar Scalar;
     typedef typename Traits<ObservationModel>::State LocalState;
     typedef typename Traits<ObservationModel>::Noise LocalNoise;
-    typedef typename Traits<ObservationModel>::Observation LocalObsrv;
+    typedef typename Traits<ObservationModel>::Obsrv LocalObsrv;
 
     enum : signed int
     {
@@ -64,12 +64,12 @@ struct Traits<
         NoiseDim = ExpandSizes<LocalNoise::SizeAtCompileTime, Count>::Size,
     };
 
-    typedef Eigen::Matrix<Scalar, ObsrvDim, 1> Observation;
+    typedef Eigen::Matrix<Scalar, ObsrvDim, 1> Obsrv;
     typedef Eigen::Matrix<Scalar, StateDim, 1> State;
     typedef Eigen::Matrix<Scalar, NoiseDim, 1> Noise;
 
     typedef ObservationModelInterface<
-                Observation,
+                Obsrv,
                 State,
                 Noise
             > ObservationModelBase;
@@ -89,7 +89,7 @@ class JointObservationModel<MultipleOf<LocalObservationModel, Count>>
 public:
     typedef JointObservationModel<MultipleOf<LocalObservationModel,Count>> This;
 
-    typedef typename Traits<This>::Observation Observation;
+    typedef typename Traits<This>::Obsrv Obsrv;
     typedef typename Traits<This>::State State;
     typedef typename Traits<This>::Noise Noise;
 
@@ -118,11 +118,11 @@ public:
     /**
      * \copydoc ObservationModelInterface::predict_observation
      */
-    virtual Observation predict_observation(const State& state,
+    virtual Obsrv predict_observation(const State& state,
                                             const Noise& noise,
                                             double delta_time)
     {
-        Observation y = Observation::Zero(observation_dimension(), 1);
+        Obsrv y = Obsrv::Zero(observation_dimension(), 1);
 
         int obsrv_dim = local_obsrv_model_->observation_dimension();
         int noise_dim = local_obsrv_model_->noise_dimension();

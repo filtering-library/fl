@@ -36,12 +36,12 @@ TEST(KalmanFilterTests, init_fixed_size_predict)
     typedef double Scalar;
     typedef Eigen::Matrix<Scalar, 10, 1> State;
     typedef Eigen::Matrix<Scalar, 1, 1> Input;
-    typedef Eigen::Matrix<Scalar, 20, 1> Observation;
+    typedef Eigen::Matrix<Scalar, 20, 1> Obsrv;
 
     // the KalmanFilter
     typedef fl::GaussianFilter<
                 fl::LinearGaussianProcessModel<State, Input>,
-                fl::LinearGaussianObservationModel<Observation, State>
+                fl::LinearGaussianObservationModel<Obsrv, State>
             > Filter;
 
     typedef typename fl::Traits<Filter>::ProcessModel ProcessModel;
@@ -72,7 +72,7 @@ TEST(KalmanFilterTests, init_dynamic_size_predict)
     typedef double Scalar;
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> State;
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Input;
-    typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Observation;
+    typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Obsrv;
 
     const size_t dim_state = 10;
     const size_t dim_observation = 20;
@@ -80,7 +80,7 @@ TEST(KalmanFilterTests, init_dynamic_size_predict)
     // the KalmanFilter
     typedef fl::GaussianFilter<
                 fl::LinearGaussianProcessModel<State, Input>,
-                fl::LinearGaussianObservationModel<Observation, State>
+                fl::LinearGaussianObservationModel<Obsrv, State>
             > Filter;
 
     typedef typename fl::Traits<Filter>::ProcessModel ProcessModel;
@@ -116,12 +116,12 @@ TEST(KalmanFilterTests, fixed_size_predict_update)
     typedef double Scalar;
     typedef Eigen::Matrix<Scalar, 6, 1> State;
     typedef Eigen::Matrix<Scalar, 6, 1> Input;
-    typedef Eigen::Matrix<Scalar, 6, 1> Observation;
+    typedef Eigen::Matrix<Scalar, 6, 1> Obsrv;
 
     // the KalmanFilter
     typedef fl::GaussianFilter<
                 fl::LinearGaussianProcessModel<State, Input>,
-                fl::LinearGaussianObservationModel<Observation, State>
+                fl::LinearGaussianObservationModel<Obsrv, State>
             > Filter;
 
     typedef typename fl::Traits<Filter>::ProcessModel ProcessModel;
@@ -154,7 +154,7 @@ TEST(KalmanFilterTests, fixed_size_predict_update)
     {
         filter->predict(1.0, Input(), state_dist, state_dist);
         EXPECT_TRUE(state_dist.covariance().ldlt().isPositive());
-        Observation y = Observation::Random();
+        Obsrv y = Obsrv::Random();
         filter->update(y, state_dist, state_dist);
         EXPECT_TRUE(state_dist.covariance().ldlt().isPositive());
     }
@@ -165,7 +165,7 @@ TEST(KalmanFilterTests, dynamic_size_predict_update)
     typedef double Scalar;
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> State;
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Input;
-    typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Observation;
+    typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Obsrv;
 
     const size_t dim_state = 10;
     const size_t dim_observation = 10;
@@ -173,7 +173,7 @@ TEST(KalmanFilterTests, dynamic_size_predict_update)
     // the KalmanFilter
     typedef fl::GaussianFilter<
                 fl::LinearGaussianProcessModel<State, Input>,
-                fl::LinearGaussianObservationModel<Observation, State>
+                fl::LinearGaussianObservationModel<Obsrv, State>
             > Filter;
 
     typedef typename fl::Traits<Filter>::ProcessModel ProcessModel;
@@ -211,7 +211,7 @@ TEST(KalmanFilterTests, dynamic_size_predict_update)
     {
         filter->predict(1.0, Input(1), state_dist, state_dist);
         EXPECT_TRUE(state_dist.covariance().ldlt().isPositive());
-        Observation y = Observation::Random(dim_observation);
+        Obsrv y = Obsrv::Random(dim_observation);
         filter->update(y, state_dist, state_dist);
         EXPECT_TRUE(state_dist.covariance().ldlt().isPositive());
     }

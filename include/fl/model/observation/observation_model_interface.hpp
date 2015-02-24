@@ -31,9 +31,26 @@ struct NoObservationParameter { };
 
 /**
  * \ingroup observation_models
+ *
+ * Represents the generic observation model interface of the model function
+ * \f$h(x, w, \theta)\f$ where \f$x\f$ is the state,
+ * \f$w\sim {\cal N}(0, 1)\f$ is a white noise term, and \f$\theta\f$ the
+ * model variable parameters.
+ *
+ * \note \f$\theta\f$ represents a subset of the models parameter which are
+ *       subject to changes during exectution time. That is, \f$\theta\f$ does
+ *       not represent all model parameters but only those which may be adapted
+ *       on-line such as in adaptive estiamtion in which the parameters are
+ *       estimated along the state \f$x\f$ \todo REF.
+ *
+ * \tparam Obsrv  Measurement type \f$y = h(x, w, \theta)\f$
+ * \tparam State        State variate \f$x\f$
+ * \tparam Noise        White noise variate term \f$w\sim {\cal N}(0, I)\f$
+ * \tparam Parameter    Model variable parameters \f$\theta\f$
+ * \tparam Id           Model id number
  */
 template <
-    typename Observation,
+    typename Obsrv,
     typename State,
     typename Noise,
     typename Parameter = NoObservationParameter,
@@ -43,53 +60,98 @@ class ObservationModelInterface
 {
 public:
     /**
-     * \param state
-     * \param noise
-     * \param time_step_parity - Time step parity flag
+     * Evaluates the model function \f$y = h(x, w)\f$ where \f$x\f$ is the state
+     * and \f$w\sim {\cal N}(0, 1)\f$ is a white noise parameter. Put
+     * differently, \f$y = h(x, w)\f$ is a sample from the conditional model
+     * distribution \f$p(y \mid x)\f$.
      *
-     * \return
+     * \param state         The state variable \f$x\f$
+     * \param noise         The noise term \f$w\f$
+     * \param delta_time    Prediction time
      */
-    virtual Observation predict_observation(const State& state,
+    virtual Obsrv predict_observation(const State& state,
                                             const Noise& noise,
                                             double delta_time) = 0;
 
-
+    /**
+     * \return Dimension of the state variable $\f$x\f$
+     */
     virtual int state_dimension() const = 0;
+
+    /**
+     * \return Dimension of the noise term \f$w\f$
+     */
     virtual int noise_dimension() const = 0;
+
+    /**
+     * \return Dimension of the measurement \f$h(x, w)\f$
+     */
     virtual int observation_dimension() const = 0;
 
+    /**
+     * \return Model id number
+     *
+     * In case of multiple sensors of the same kind, this function returns the
+     * id of the individual model.
+     */
     virtual int id() const { return Id; }
 
-    virtual void parameter(Parameter param) {  }
+    /**
+     * \return Copy of the model parameters.
+     */
     virtual Parameter parameter() const { return Parameter(); }
+
+    /**
+     * Sets the adaptive parameters of the model.
+     *
+     * \param param     New model parameter values
+     */
+    virtual void parameter(Parameter param) {  }
 };
 
 
 /**
  * \ingroup observation_models
  *
- * Additive noise Observation model interface
+ * \brief This is the observation model interface with additive noise. The noise
+ * is represented as uncorrelated covariance matrix \f$R\f$. The model function
+ * is of the form
+ *
+ * \f$ y = h(x, \theta) + w \f$
+ *
+ * with noise term \f$w \sim {\cal N}(0, R)\f$. Since the noise is assumed to
+ * be uncorrelated white noise, the \f$R\f$ matrix has a diagonal form \f$diag(
+ * \sigma_1, \sigma_2, \ldots, \sigma_M)\f$. The representation of \f$R\f$ is a
+ * vector containing the diagonal elements.
+ *
+ *
+ * \copydoc ObservationModelInterface
  */
 template <
-    typename Observation,
+    typename Obsrv,
     typename State,
     typename Noise,
     typename Parameter = NoObservationParameter,
     int Id = 0
 >
 class ANObservationModelInterface
-    : public ObservationModelInterface<Observation, State, Noise, Parameter, Id>
+    : public ObservationModelInterface<Obsrv, State, Noise, Parameter, Id>
 {
 public:
     /**
-     * \param state
-     * \param time_step_parity - Time step parity flag
+     * Evaluates the model function \f$y = h(x)\f$ where \f$x\f$ is the state.
      *
-     * \return
+     * \param state         The state variable \f$x\f$
+     * \param delta_time    Prediction time
      */
-    virtual Observation predict_observation(const State& state,
+    virtual Obsrv predict_observation(const State& state,
                                             double delta_time) = 0;
 
+    /**
+     * \return Noise covariance \f$R = diag(\sigma_1, \sigma_2, \ldots,
+     * \sigma_M)\f$ as a column vector containing the \f$\sigma_i\f$. The noise
+     * covariance vector type is same as the noise variate type.
+     */
     virtual Noise noise_covariance_vector() const = 0;
 };
 

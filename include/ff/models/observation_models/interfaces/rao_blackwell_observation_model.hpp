@@ -45,7 +45,7 @@ class RaoBlackwellObservationModel
 {
 public:
     typedef State_       State;
-    typedef Observation_ Observation;
+    typedef Observation_ Obsrv;
 
 public:
     virtual ~RaoBlackwellObservationModel() { }

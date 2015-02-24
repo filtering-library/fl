@@ -48,7 +48,7 @@ struct Traits<
 {
     enum : signed int
     {
-        ObsrvDim = JoinSizes<Traits<Models>::Observation::SizeAtCompileTime...>::Size,
+        ObsrvDim = JoinSizes<Traits<Models>::Obsrv::SizeAtCompileTime...>::Size,
         StateDim = JoinSizes<Traits<Models>::State::SizeAtCompileTime...>::Size,
         NoiseDim = JoinSizes<Traits<Models>::Noise::SizeAtCompileTime...>::Size
     };
@@ -59,10 +59,10 @@ struct Traits<
 
     typedef Eigen::Matrix<Scalar, StateDim, 1> State;
     typedef Eigen::Matrix<Scalar, NoiseDim, 1> Noise;
-    typedef Eigen::Matrix<Scalar, ObsrvDim, 1> Observation;
+    typedef Eigen::Matrix<Scalar, ObsrvDim, 1> Obsrv;
 
     typedef ObservationModelInterface<
-                Observation,
+                Obsrv,
                 State,
                 Noise
             > ObservationModelBase;
@@ -82,7 +82,7 @@ public:
 
     typedef typename Traits<This>::State State;
     typedef typename Traits<This>::Noise Noise;
-    typedef typename Traits<This>::Observation Observation;
+    typedef typename Traits<This>::Obsrv Obsrv;
 
 public:
     /**
@@ -104,11 +104,11 @@ public:
     /**
      * \copydoc ObservationModelInterface::predict_observation
      */
-    virtual Observation predict_observation(const State& state,
+    virtual Obsrv predict_observation(const State& state,
                                             const Noise& noise,
                                             double delta_time)
     {
-        Observation prediction = Observation(observation_dimension(), 1);
+        Obsrv prediction = Obsrv(observation_dimension(), 1);
 
         predict_observation<sizeof...(Models)>(
             models_,

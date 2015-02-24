@@ -87,7 +87,7 @@ public:
     typename Filter::Ptr filter_;
     typename Filter::StateDistribution dist_;
     typename Filter::Input u_;
-    typename Filter::Observation y_;    
+    typename Filter::Obsrv y_;
 };
 
 TEST(FilterInterface, NonTemplatedFilter)
