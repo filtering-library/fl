@@ -236,18 +236,16 @@ template <typename Type, int Count = Eigen::Dynamic>
 struct MultipleOf
     : CreateTypeSequence<Count, Type>
 {
-    MultipleOf(std::shared_ptr<Type> instance, int instance_count = Count)
-        : instance_(instance),
-          count_(instance_count)
+    template <typename InstanceType>
+    explicit
+    MultipleOf(InstanceType&& instance, int instance_count = Count)
+        : instance(std::forward<InstanceType>(instance)),
+          count(instance_count)
     { }
 
-    std::shared_ptr<Type> instance() const { return instance_; }
-    int count() const { return count_; }
-
-    std::shared_ptr<Type> instance_;
-    int count_;
+    Type instance;
+    int count;
 };
-
 
 /**
  * \internal
