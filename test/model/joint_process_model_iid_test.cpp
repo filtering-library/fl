@@ -73,19 +73,14 @@ TEST(JointProcessModel_IID_Tests, dynamic_fixed_static_dimensions)
     EXPECT_EQ(fl::Traits<JointModel>::Noise::SizeAtCompileTime, -1);
     EXPECT_EQ(fl::Traits<JointModel>::Input::SizeAtCompileTime, -1);
 
-    auto f = JointModel(
-        std::make_shared<LocalModel>(Cov::Identity(3, 3), 3),
-        3);
+    auto f = JointModel(LocalModel(3), 3);
     EXPECT_EQ(f.state_dimension(), 9);
     EXPECT_EQ(f.noise_dimension(), 9);
     EXPECT_EQ(f.input_dimension(), 3);
 
     auto f_mof = JointModel(
-        MultipleOf<LocalModel, -1>(
-            std::make_shared<LocalModel>(Cov::Identity()),
-            3
-        )
-    );
+                MultipleOf<LocalModel, -1>(LocalModel(Cov::Identity()), 3));
+
     EXPECT_EQ(f_mof.state_dimension(), 9);
     EXPECT_EQ(f_mof.noise_dimension(), 9);
     EXPECT_EQ(f_mof.input_dimension(), 3);
@@ -119,13 +114,12 @@ TEST(JointProcessModel_IID_Tests, fixed_fixed_dimensions)
 
     typedef JointProcessModel<MultipleOf<LocalModel, 3>> JointModel;
 
-    auto f = JointModel(std::make_shared<LocalModel>(Cov::Identity()));
+    auto f = JointModel(LocalModel());
     EXPECT_EQ(f.state_dimension(), 9);
     EXPECT_EQ(f.noise_dimension(), 9);
     EXPECT_EQ(f.input_dimension(), 3);
 
-    auto f_mof = JointModel(MultipleOf<LocalModel, 3>(
-        std::make_shared<LocalModel>(Cov::Identity())));
+    auto f_mof = JointModel(MultipleOf<LocalModel, 3>(LocalModel()));
     EXPECT_EQ(f_mof.state_dimension(), 9);
     EXPECT_EQ(f_mof.noise_dimension(), 9);
     EXPECT_EQ(f_mof.input_dimension(), 3);
@@ -140,14 +134,13 @@ TEST(JointProcessModel_IID_Tests, fixed_dynamic_dimensions)
 
     typedef JointProcessModel<MultipleOf<LocalModel, 3>> JointModel;
 
-    auto f = JointModel(
-        std::make_shared<LocalModel>(Cov::Identity(3,3), 3));
+    auto f = JointModel(LocalModel(3));
     EXPECT_EQ(f.state_dimension(), 9);
     EXPECT_EQ(f.noise_dimension(), 9);
     EXPECT_EQ(f.input_dimension(), 3);
 
-    auto f_mof = JointModel(MultipleOf<LocalModel, 3>(
-        std::make_shared<LocalModel>(Cov::Identity(3,3), 3)));
+    auto f_mof = JointModel(
+        MultipleOf<LocalModel, 3>(LocalModel(Cov::Identity(3,3), 3)));
     EXPECT_EQ(f_mof.state_dimension(), 9);
     EXPECT_EQ(f_mof.noise_dimension(), 9);
     EXPECT_EQ(f_mof.input_dimension(), 3);
@@ -162,15 +155,14 @@ TEST(JointProcessModel_IID_Tests, dynamic_dynamic_dimensions)
 
     typedef JointProcessModel<MultipleOf<LocalModel, -1>> JointModel;
 
-    auto f = JointModel(
-                std::make_shared<LocalModel>(Cov::Identity(3, 3), 3), 3);
+    auto f = JointModel(LocalModel(Cov::Identity(3, 3), 3), 3);
 
     EXPECT_EQ(f.state_dimension(), 9);
     EXPECT_EQ(f.noise_dimension(), 9);
     EXPECT_EQ(f.input_dimension(), 3);
 
-    auto f_mof = JointModel(MultipleOf<LocalModel, -1>(
-        std::make_shared<LocalModel>(Cov::Identity(3,3), 3), 3));
+    auto f_mof = JointModel(
+        MultipleOf<LocalModel, -1>(LocalModel(Cov::Identity(3,3), 3), 3));
     EXPECT_EQ(f_mof.state_dimension(), 9);
     EXPECT_EQ(f_mof.noise_dimension(), 9);
     EXPECT_EQ(f_mof.input_dimension(), 3);
@@ -189,7 +181,7 @@ TEST(JointProcessModel_IID_Tests, fixed_fixed_prediction)
 
     typedef JointProcessModel<MultipleOf<LocalModel, 3>> JointModel;
 
-    auto f = JointModel(std::make_shared<LocalModel>(Cov::Identity() * 9.0 ));
+    auto f = JointModel(LocalModel(Cov::Identity() * 9.0 ));
 
     auto state = Traits<JointModel>::State();
     auto noise = Traits<JointModel>::Noise();
@@ -219,8 +211,7 @@ TEST(JointProcessModel_IID_Tests, fixed_dynamic_prediction)
 
     typedef JointProcessModel<MultipleOf<LocalModel, 3>> JointModel;
 
-    auto f = JointModel(
-                std::make_shared<LocalModel>(Cov::Identity(5,5) * 9.0, 5));
+    auto f = JointModel(LocalModel(Cov::Identity(5, 5) * 9.0, 5));
 
     auto state = Traits<JointModel>::State(f.state_dimension(), 1);
     auto noise = Traits<JointModel>::Noise(f.noise_dimension(), 1);
@@ -250,8 +241,7 @@ TEST(JointProcessModel_IID_Tests, dynamic_fixed_prediction)
 
     typedef JointProcessModel<MultipleOf<LocalModel, -1>> JointModel;
 
-    auto f = JointModel(
-                std::make_shared<LocalModel>(Cov::Identity() * 9.0), 3);
+    auto f = JointModel(LocalModel(Cov::Identity() * 9.0), 3);
 
     auto state = Traits<JointModel>::State(f.state_dimension(), 1);
     auto noise = Traits<JointModel>::Noise(f.noise_dimension(), 1);
@@ -280,8 +270,7 @@ TEST(JointProcessModel_IID_Tests, dynamic_dynamic_prediction)
 
     typedef JointProcessModel<MultipleOf<LocalModel, -1>> JointModel;
 
-    auto f = JointModel(
-                std::make_shared<LocalModel>(Cov::Identity(5,5) * 9.0, 5), 3);
+    auto f = JointModel(LocalModel(Cov::Identity(5,5) * 9.0, 5), 3);
 
     auto state = Traits<JointModel>::State(f.state_dimension(), 1);
     auto noise = Traits<JointModel>::Noise(f.noise_dimension(), 1);

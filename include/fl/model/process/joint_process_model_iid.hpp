@@ -24,7 +24,7 @@
 
 #include <Eigen/Dense>
 
-#include <memory>
+#include <utility>
 
 #include <fl/util/traits.hpp>
 #include <fl/util/meta.hpp>
@@ -94,18 +94,32 @@ public:
     typedef typename Traits<This>::Input Input;
 
 public:
-    explicit JointProcessModel(
-            const std::shared_ptr<LocalProcessModel>& local_process_model,
-            int count = ToDimension<Count>::Value)
+    JointProcessModel(LocalProcessModel&& local_process_model,
+                      int count = ToDimension<Count>())
+        : local_process_model_(std::move(local_process_model)),
+          count_(count)
+    {
+        assert(count_ > 0);
+    }
+
+    JointProcessModel(const LocalProcessModel& local_process_model,
+                      int count = ToDimension<Count>())
         : local_process_model_(local_process_model),
           count_(count)
     {
         assert(count_ > 0);
     }
 
+    JointProcessModel(MultipleOf<LocalProcessModel, Count>&& mof)
+        : local_process_model_(std::move(mof.instance)),
+          count_(mof.count)
+    {
+        assert(count_ > 0);
+    }
+
     JointProcessModel(const MultipleOf<LocalProcessModel, Count>& mof)
-        : local_process_model_(mof.instance()),
-          count_(mof.count())
+        : local_process_model_(mof.instance),
+          count_(mof.count)
     {
         assert(count_ > 0);
     }
@@ -119,14 +133,14 @@ public:
     {
         State x = State::Zero(state_dimension(), 1);
 
-        int state_dim = local_process_model_->state_dimension();
-        int noise_dim = local_process_model_->noise_dimension();
-        int input_dim = local_process_model_->input_dimension();
+        int state_dim = local_process_model_.state_dimension();
+        int noise_dim = local_process_model_.noise_dimension();
+        int input_dim = local_process_model_.input_dimension();
 
         for (int i = 0; i < count_; ++i)
         {
             x.middleRows(i * state_dim, state_dim) =
-                local_process_model_->predict_state(
+                local_process_model_.predict_state(
                     delta_time,
                     state.middleRows(i * state_dim, state_dim),
                     noise.middleRows(i * noise_dim, noise_dim),
@@ -138,26 +152,26 @@ public:
 
     virtual size_t state_dimension() const
     {
-        return local_process_model_->state_dimension() * count_;
+        return local_process_model_.state_dimension() * count_;
     }
 
     virtual size_t noise_dimension() const
     {
-        return local_process_model_->noise_dimension() * count_;
+        return local_process_model_.noise_dimension() * count_;
     }
 
     virtual size_t input_dimension() const
     {
-        return local_process_model_->input_dimension() * count_;
+        return local_process_model_.input_dimension() * count_;
     }
 
-    const std::shared_ptr<LocalProcessModel>& local_process_model()
+    const LocalProcessModel& local_process_model()
     {
         return local_process_model_;
     }
 
 protected:
-    std::shared_ptr<LocalProcessModel> local_process_model_;
+    LocalProcessModel local_process_model_;
     int count_;
 };
 
