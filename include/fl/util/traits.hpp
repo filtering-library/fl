@@ -155,10 +155,11 @@ template <> struct IsFixed<Eigen::Dynamic>
  */
 template <typename Matrix> struct DimensionOf
 {
-    static constexpr size_t value = IsFixed<Matrix::SizeAtCompileTime>()
-                                        ? Matrix::RowsAtCompileTime
-                                        : 0;
-    constexpr operator size_t () { return value; }
+    enum : signed int { Value = IsFixed<Matrix::SizeAtCompileTime>()
+                                    ? Matrix::RowsAtCompileTime
+                                    : 0 };
+
+    constexpr operator size_t () { return Value; }
 };
 
 template <int Dimension> struct ToDimension
