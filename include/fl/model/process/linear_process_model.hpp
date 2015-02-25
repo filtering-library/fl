@@ -19,16 +19,12 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-
 #ifndef FL__MODEL__PROCESS__LINEAR_GAUSSIAN_PROCESS_MODEL_HPP
 #define FL__MODEL__PROCESS__LINEAR_GAUSSIAN_PROCESS_MODEL_HPP
-
 
 #include <fl/util/traits.hpp>
 #include <fl/distribution/gaussian.hpp>
 #include <fl/model/process/process_model_interface.hpp>
-
-
 
 namespace fl
 {
@@ -61,7 +57,6 @@ struct Traits<LinearGaussianProcessModel<State_, Input_>>
 
 /**
  * \ingroup process_models
- * \warning correct input parameter
  * \todo correct input parameter
  */
 template <typename State_, typename Input_ = Eigen::Matrix<double, 1, 1>>
@@ -85,16 +80,27 @@ public:
     using Traits<This>::GaussianBase::square_root;
 
 public:
-    LinearGaussianProcessModel(
-            const SecondMoment& noise_covariance,
-            const int dimension = DimensionOf<State>()):
-        Traits<This>::GaussianBase(dimension),
-        A_(DynamicsMatrix::Identity(dimension, dimension)),
+    explicit
+    LinearGaussianProcessModel(const SecondMoment& noise_covariance,
+                               int dim = DimensionOf<State>()):
+        Traits<This>::GaussianBase(dim),
+        A_(DynamicsMatrix::Identity(dim, dim)),
         delta_time_(1.)
     {
-        assert(dimension > 0);
+        assert(dim > 0);
 
         covariance(noise_covariance);
+    }
+
+    explicit
+    LinearGaussianProcessModel(int dim = DimensionOf<State>())
+        : Traits<This>::GaussianBase(dim),
+          A_(DynamicsMatrix::Identity(dim, dim)),
+          delta_time_(1.)
+    {
+        assert(dim > 0);
+
+        covariance(SecondMoment::Identity(dim, dim));
     }
 
     ~LinearGaussianProcessModel() { }        
