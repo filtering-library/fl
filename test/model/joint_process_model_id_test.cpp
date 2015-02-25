@@ -99,9 +99,9 @@ TEST_F(JointProcessModel_ID_Tests, dynamic_fallback)
 
 TEST_F(JointProcessModel_ID_Tests, state_dimension_fixed)
 {
-    auto my_model = FixedModel(std::make_shared<FModelA>(FACov::Identity()),
-                               std::make_shared<FModelB>(FBCov::Identity()),
-                               std::make_shared<FModelC>(FCCov::Identity()));
+    auto my_model = FixedModel(FModelA(),
+                               FModelB(),
+                               FModelC());
 
     EXPECT_EQ(my_model.state_dimension(), 15);
 }
@@ -109,9 +109,9 @@ TEST_F(JointProcessModel_ID_Tests, state_dimension_fixed)
 TEST_F(JointProcessModel_ID_Tests, state_dimension_dynamic)
 {
     auto my_model = DynamicModel(
-        std::make_shared<DModelA>(DACov::Identity(3,3), 3),
-        std::make_shared<DModelB>(DBCov::Identity(5,5), 5),
-        std::make_shared<DModelC>(DCCov::Identity(7,7), 7));
+        DModelA(DACov::Identity(3,3), 3),
+        DModelB(DBCov::Identity(5,5), 5),
+        DModelC(DCCov::Identity(7,7), 7));
 
     EXPECT_EQ(my_model.state_dimension(), 3 + 5 + 7);
 }
@@ -119,9 +119,9 @@ TEST_F(JointProcessModel_ID_Tests, state_dimension_dynamic)
 TEST_F(JointProcessModel_ID_Tests, state_dimension_dynamic_fallback)
 {
     auto my_model = DynamicFallbackModel(
-        std::make_shared<FModelA>(FACov::Identity()),
-        std::make_shared<DModelB>(DBCov::Identity(5,5), 5),
-        std::make_shared<FModelC>(FCCov::Identity()));
+        FModelA(),
+        DModelB(DBCov::Identity(5,5), 5),
+        FModelC());
 
     EXPECT_EQ(my_model.state_dimension(), 3 + 5 + 7);
 }
@@ -129,9 +129,9 @@ TEST_F(JointProcessModel_ID_Tests, state_dimension_dynamic_fallback)
 TEST_F(JointProcessModel_ID_Tests, predict_fixed)
 {
     auto my_model = FixedModel(
-        std::make_shared<FModelA>(FACov::Identity() * 3 * 3),
-        std::make_shared<FModelB>(FBCov::Identity() * 5 * 5),
-        std::make_shared<FModelC>(FCCov::Identity() * 7 * 7));
+        FModelA(FACov::Identity() * 3 * 3),
+        FModelB(FBCov::Identity() * 5 * 5),
+        FModelC(FCCov::Identity() * 7 * 7));
 
     auto state = fl::Traits<FixedModel>::State();
     auto noise = fl::Traits<FixedModel>::Noise();
@@ -158,9 +158,9 @@ TEST_F(JointProcessModel_ID_Tests, predict_fixed)
 TEST_F(JointProcessModel_ID_Tests, predict_dynamic)
 {
     auto my_model = DynamicModel(
-        std::make_shared<DModelA>(DACov::Identity(3, 3) * 3 * 3, 3),
-        std::make_shared<DModelB>(DBCov::Identity(5, 5) * 5 * 5, 5),
-        std::make_shared<DModelC>(DCCov::Identity(7, 7) * 7 * 7, 7));
+        DModelA(DACov::Identity(3, 3) * 3 * 3, 3),
+        DModelB(DBCov::Identity(5, 5) * 5 * 5, 5),
+        DModelC(DCCov::Identity(7, 7) * 7 * 7, 7));
 
     auto state = fl::Traits<DynamicModel>::State(15, 1);
     auto noise = fl::Traits<DynamicModel>::Noise(15, 1);
@@ -187,9 +187,9 @@ TEST_F(JointProcessModel_ID_Tests, predict_dynamic)
 TEST_F(JointProcessModel_ID_Tests, predict_dynamic_fallback)
 {
     auto my_model = DynamicFallbackModel(
-        std::make_shared<FModelA>(FACov::Identity() * 3 * 3),
-        std::make_shared<DModelB>(DBCov::Identity(5, 5) * 5 * 5, 5),
-        std::make_shared<FModelC>(FCCov::Identity() * 7 * 7));
+        FModelA(FACov::Identity() * 3 * 3),
+        DModelB(DBCov::Identity(5, 5) * 5 * 5, 5),
+        FModelC(FCCov::Identity() * 7 * 7));
 
     auto state = fl::Traits<DynamicFallbackModel>::State(15, 1);
     auto noise = fl::Traits<DynamicFallbackModel>::Noise(15, 1);
@@ -214,90 +214,61 @@ TEST_F(JointProcessModel_ID_Tests, predict_dynamic_fallback)
 }
 
 
-//long int sum = 0;
-
-//TEST_F(JointProcessModel_ID_Tests, speed_test_fixed)
-//{
-//    typedef fl::JointProcessModel<
-//                FModelA, FModelB, FModelC,
-//                FModelA, FModelB, FModelC,
-//                FModelA, FModelB, FModelC,
-//                FModelA, FModelB, FModelC,
-//                FModelA, FModelB, FModelC,
-//                FModelA, FModelB, FModelC,
-//                FModelA, FModelB, FModelC,
-//                FModelA, FModelB, FModelC,
-//                FModelA, FModelB, FModelC,
-//                FModelA, FModelB, FModelC,
-//                FModelA, FModelB, FModelC,
-//                FModelA, FModelB, FModelC,
-//                FModelA, FModelB, FModelC,
-//                FModelA, FModelB, FModelC,
-//                FModelA, FModelB, FModelC> LargeModel;
 
 
-//    auto my_model = LargeModel(
-//        std::make_shared<FModelA>(FACov::Identity()),
-//        std::make_shared<FModelB>(FBCov::Identity()),
-//        std::make_shared<FModelC>(FCCov::Identity()),
-//        std::make_shared<FModelA>(FACov::Identity()),
-//        std::make_shared<FModelB>(FBCov::Identity()),
-//        std::make_shared<FModelC>(FCCov::Identity()),
-//        std::make_shared<FModelA>(FACov::Identity()),
-//        std::make_shared<FModelB>(FBCov::Identity()),
-//        std::make_shared<FModelC>(FCCov::Identity()),
-//        std::make_shared<FModelA>(FACov::Identity()),
-//        std::make_shared<FModelB>(FBCov::Identity()),
-//        std::make_shared<FModelC>(FCCov::Identity()),
-//        std::make_shared<FModelA>(FACov::Identity()),
-//        std::make_shared<FModelB>(FBCov::Identity()),
-//        std::make_shared<FModelC>(FCCov::Identity()),
-//        std::make_shared<FModelA>(FACov::Identity()),
-//        std::make_shared<FModelB>(FBCov::Identity()),
-//        std::make_shared<FModelC>(FCCov::Identity()),
-//        std::make_shared<FModelA>(FACov::Identity()),
-//        std::make_shared<FModelB>(FBCov::Identity()),
-//        std::make_shared<FModelC>(FCCov::Identity()),
-//        std::make_shared<FModelA>(FACov::Identity()),
-//        std::make_shared<FModelB>(FBCov::Identity()),
-//        std::make_shared<FModelC>(FCCov::Identity()),
-//        std::make_shared<FModelA>(FACov::Identity()),
-//        std::make_shared<FModelB>(FBCov::Identity()),
-//        std::make_shared<FModelC>(FCCov::Identity()),
-//        std::make_shared<FModelA>(FACov::Identity()),
-//        std::make_shared<FModelB>(FBCov::Identity()),
-//        std::make_shared<FModelC>(FCCov::Identity()),
-//        std::make_shared<FModelA>(FACov::Identity()),
-//        std::make_shared<FModelB>(FBCov::Identity()),
-//        std::make_shared<FModelC>(FCCov::Identity()),
-//        std::make_shared<FModelA>(FACov::Identity()),
-//        std::make_shared<FModelB>(FBCov::Identity()),
-//        std::make_shared<FModelC>(FCCov::Identity()),
-//        std::make_shared<FModelA>(FACov::Identity()),
-//        std::make_shared<FModelB>(FBCov::Identity()),
-//        std::make_shared<FModelC>(FCCov::Identity()),
-//        std::make_shared<FModelA>(FACov::Identity()),
-//        std::make_shared<FModelB>(FBCov::Identity()),
-//        std::make_shared<FModelC>(FCCov::Identity()),
-//        std::make_shared<FModelA>(FACov::Identity()),
-//        std::make_shared<FModelB>(FBCov::Identity()),
-//        std::make_shared<FModelC>(FCCov::Identity()));
+long int sum = 0;
 
-//    sum = 0;
+TEST_F(JointProcessModel_ID_Tests, speed_test_fixed)
+{
+    typedef fl::JointProcessModel<
+        FModelA, FModelB, FModelC,
+        FModelA, FModelB, FModelC,
+        FModelA, FModelB, FModelC,
+        FModelA, FModelB, FModelC,
+        FModelA, FModelB, FModelC,
+        FModelA, FModelB, FModelC,
+        FModelA, FModelB, FModelC,
+        FModelA, FModelB, FModelC,
+        FModelA, FModelB, FModelC,
+        FModelA, FModelB, FModelC,
+        FModelA, FModelB, FModelC,
+        FModelA, FModelB, FModelC,
+        FModelA, FModelB, FModelC,
+        FModelA, FModelB, FModelC,
+        FModelA, FModelB, FModelC> LargeModel;
 
-//    for (int i = 0; i < 1000000; ++i)
-//    {
-//        sum += my_model.state_dimension();
-//    }
-//}
 
+    auto my_model = LargeModel(
+        FModelA(), FModelB(), FModelC(),
+        FModelA(), FModelB(), FModelC(),
+        FModelA(), FModelB(), FModelC(),
+        FModelA(), FModelB(), FModelC(),
+        FModelA(), FModelB(), FModelC(),
+        FModelA(), FModelB(), FModelC(),
+        FModelA(), FModelB(), FModelC(),
+        FModelA(), FModelB(), FModelC(),
+        FModelA(), FModelB(), FModelC(),
+        FModelA(), FModelB(), FModelC(),
+        FModelA(), FModelB(), FModelC(),
+        FModelA(), FModelB(), FModelC(),
+        FModelA(), FModelB(), FModelC(),
+        FModelA(), FModelB(), FModelC(),
+        FModelA(), FModelB(), FModelC());
+
+    sum = 0;
+
+    for (int i = 0; i < 640*480; ++i)
+    {
+        sum += my_model.state_dimension();
+    }
+}
 
 //TEST_F(JointProcessModel_ID_Tests, speed_test_dynamic)
 //{
 //    auto my_model = DynamicModel(
-//        std::make_shared<DModelA>(DACov::Identity(3,3), 3),
-//        std::make_shared<DModelB>(DBCov::Identity(5,5), 5),
-//        std::make_shared<DModelC>(DCCov::Identity(7,7), 7));
+//        DModelA(DACov::Identity(3,3), 3),
+//        DModelB(DBCov::Identity(5,5), 5),
+//        DModelC(DCCov::Identity(7,7), 7));
 
 //    sum = 0;
 
@@ -310,9 +281,9 @@ TEST_F(JointProcessModel_ID_Tests, predict_dynamic_fallback)
 //TEST_F(JointProcessModel_ID_Tests, speed_test_dynamic_fallback)
 //{
 //    auto my_model = DynamicFallbackModel(
-//        std::make_shared<FModelA>(FACov::Identity()),
-//        std::make_shared<DModelB>(DBCov::Identity(5,5), 5),
-//        std::make_shared<FModelC>(FCCov::Identity()));
+//        FModelA(),
+//        DModelB(DBCov::Identity(5,5), 5),
+//        FModelC());
 
 //    sum = 0;
 

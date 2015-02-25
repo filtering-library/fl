@@ -91,9 +91,9 @@ public:
      *
      * \param models    Variadic list of shared pointers of the models
      */
-    explicit
-    JointProcessModel(std::shared_ptr<Models>...models)
-        : models_(models...)
+    template <typename ... Model>
+    JointProcessModel(Model&& ... models)
+        : models_(std::forward<Model>(models)...)
     { }
 
     /**
@@ -157,7 +157,7 @@ protected:
      * \brief Contains the points to the sub-models which this joint model
      *        is composed of.
      */
-    std::tuple<std::shared_ptr<Models>...> models_;
+    std::tuple<Models...> models_;
 
 
 private:
@@ -165,7 +165,7 @@ private:
     template <int...Indices>
     constexpr size_t expand_state_dimension(IndexSequence<Indices...>) const
     {        
-        const auto& dims = { std::get<Indices>(models_)->state_dimension()... };
+        const auto& dims = { std::get<Indices>(models_).state_dimension()... };
 
         int joint_dim = 0;
         for (auto dim : dims) { joint_dim += dim; }
@@ -176,7 +176,7 @@ private:
     template <int...Indices>
     constexpr size_t expand_noise_dimension(IndexSequence<Indices...>) const
     {
-        const auto& dims = { std::get<Indices>(models_)->noise_dimension()... };
+        const auto& dims = { std::get<Indices>(models_).noise_dimension()... };
 
         int joint_dim = 0;
         for (auto dim : dims) { joint_dim += dim; }
@@ -187,7 +187,7 @@ private:
     template <int...Indices>
     constexpr size_t expand_input_dimension(IndexSequence<Indices...>) const
     {
-        const auto& dims = { std::get<Indices>(models_)->input_dimension()... };
+        const auto& dims = { std::get<Indices>(models_).input_dimension()... };
 
         int joint_dim = 0;
         for (auto dim : dims) { joint_dim += dim; }
@@ -215,12 +215,12 @@ private:
     {
         auto&& model = std::get<k>(models_tuple);
 
-        const auto state_dim = model->state_dimension();
-        const auto noise_dim = model->noise_dimension();
-        const auto input_dim = model->input_dimension();
+        const auto state_dim = model.state_dimension();
+        const auto noise_dim = model.noise_dimension();
+        const auto input_dim = model.input_dimension();
 
         prediction.middleRows(state_offset, state_dim) =
-            model->predict_state(
+            model.predict_state(
                 delta_time,
                 state.middleRows(state_offset, state_dim),
                 noise.middleRows(noise_offset, noise_dim),
