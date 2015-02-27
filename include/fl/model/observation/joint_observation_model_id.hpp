@@ -37,6 +37,8 @@ namespace fl
 
 // Forward declarations
 template <typename...Models> class JointObservationModel;
+template <typename...Models> class JointOneToManyObsrvModel;
+template <typename...Models> class JointManyToManyObsrvModel;
 
 /**
  * Traits of JointObservationModel
@@ -102,15 +104,15 @@ public:
     ~JointObservationModel() { }
 
     /**
-     * \copydoc ObservationModelInterface::predict_observation
+     * \copydoc ObservationModelInterface::predict_obsrv
      */
-    virtual Obsrv predict_observation(const State& state,
+    virtual Obsrv predict_obsrv(const State& state,
                                             const Noise& noise,
                                             double delta_time)
     {
         Obsrv prediction = Obsrv(obsrv_dimension(), 1);
 
-        predict_observation<sizeof...(Models)>(
+        predict_obsrv<sizeof...(Models)>(
             models_,
             delta_time,
             state,
@@ -203,7 +205,7 @@ private:
         typename Noise,
         typename Obsrv
     >
-    void predict_observation(Tuple& models_tuple,
+    void predict_obsrv(Tuple& models_tuple,
                        double delta_time,
                        const State& state,
                        const Noise& noise,
@@ -219,7 +221,7 @@ private:
         const auto noise_dim = model->noise_dimension();
 
         prediction.middleRows(obsrv_offset, obsrv_dim) =
-            model->predict_observation(
+            model->predict_obsrv(
                 state.middleRows(state_offset, state_dim),
                 noise.middleRows(noise_offset, noise_dim),
                 delta_time
@@ -227,7 +229,7 @@ private:
 
         if (Size == k + 1) return;
 
-        predict_observation<Size, k + (k + 1 < Size ? 1 : 0)>(
+        predict_obsrv<Size, k + (k + 1 < Size ? 1 : 0)>(
                     models_tuple,
                     delta_time,
                     state,
@@ -243,4 +245,3 @@ private:
 }
 
 #endif
-
