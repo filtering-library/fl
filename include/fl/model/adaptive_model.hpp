@@ -50,21 +50,21 @@ namespace fl
  *                      estiamtion in which the parameters are estimated along
  *                      the state \f$x\f$ \todo REF.
  */
-template <typename Parameter>
+template <typename Param>
 class AdaptiveModel
 {
 public:
     /**
-     * \return Copy of the model parameters \f$\theta\f$.
+     * \return Model parameters \f$\theta\f$.
      */
-    virtual Parameter parameter() const = 0;
+    virtual const Param& param() const = 0;
 
     /**
      * Sets the adaptive parameters of the model.
      *
      * \param param     New model parameter values \f$\theta\f$
      */
-    virtual void parameter(Parameter param) = 0;
+    virtual void param(Param params) = 0;
 
     /**
      * \return Parameter variable dimension: \f$dim(\theta)\f$
