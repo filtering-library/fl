@@ -165,7 +165,7 @@ public:
         return local_process_model_.input_dimension() * count_;
     }
 
-    const LocalProcessModel& local_process_model()
+    LocalProcessModel& local_process_model()
     {
         return local_process_model_;
     }
