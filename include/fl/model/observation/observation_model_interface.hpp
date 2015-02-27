@@ -22,10 +22,42 @@
 #ifndef FL__MODEL__OBSERVATION__OBSERVATION_MODEL_INTERFACE_HPP
 #define FL__MODEL__OBSERVATION__OBSERVATION_MODEL_INTERFACE_HPP
 
-#include <cstdlib>
-
 namespace fl
 {
+
+namespace internal
+{
+
+/**
+ * \internal
+ * Observation model type identifier
+ */
+struct ObsrvModelType { };
+
+}
+
+/* Forward declaration */
+template <
+    typename Obsrv,
+    typename State,
+    typename Noise,
+    int Id
+>
+class ObservationModelInterface;
+
+/**
+ * Traits of ObservationModelInterface
+ */
+template <
+    typename Obsrv,
+    typename State,
+    typename Noise,
+    int Id
+>
+struct Traits<ObservationModelInterface<Obsrv, State, Noise, Id>>
+{
+    typedef internal::ObsrvModelType ModelType;
+};
 
 /**
  * \ingroup observation_models
@@ -34,8 +66,6 @@ namespace fl
  * \f$h(x, w, \theta)\f$ where \f$x\f$ is the state,
  * \f$w\sim {\cal N}(0, 1)\f$ is a white noise term, and \f$\theta\f$ the
  * model variable parameters.
- *
-
  *
  * \tparam Obsrv  Measurement type \f$y = h(x, w, \theta)\f$
  * \tparam State        State variate \f$x\f$
@@ -51,6 +81,8 @@ template <
 class ObservationModelInterface
 {
 public:
+    typedef internal::ObsrvModelType ModelType;
+
     /**
      * Evaluates the model function \f$y = h(x, w)\f$ where \f$x\f$ is the state
      * and \f$w\sim {\cal N}(0, 1)\f$ is a white noise parameter. Put
@@ -61,9 +93,9 @@ public:
      * \param noise         The noise term \f$w\f$
      * \param delta_time    Prediction time
      */
-    virtual Obsrv predict_observation(const State& state,
-                                            const Noise& noise,
-                                            double delta_time) = 0;
+    virtual Obsrv predict_obsrv(const State& state,
+                                const Noise& noise,
+                                double delta_time) = 0;
 
     /**
      * \return Dimension of the state variable $\f$x\f$
@@ -88,7 +120,6 @@ public:
      */
     virtual int id() const { return Id; }
 };
-
 
 /**
  * \ingroup observation_models
@@ -123,8 +154,8 @@ public:
      * \param state         The state variable \f$x\f$
      * \param delta_time    Prediction time
      */
-    virtual Obsrv predict_observation(const State& state,
-                                            double delta_time) = 0;
+    virtual Obsrv predict_obsrv(const State& state,
+                                double delta_time) = 0;
 
     /**
      * \return Noise covariance \f$R = diag(\sigma_1, \sigma_2, \ldots,
