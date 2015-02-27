@@ -93,16 +93,29 @@ public:
     using Traits<This>::GaussianBase::dimension;
 
 public:
+    explicit
     LinearGaussianObservationModel(
             const SecondMoment& noise_covariance,
-            const int observation_dim = DimensionOf<Obsrv>(),
+            const int obsrv_dim = DimensionOf<Obsrv>(),
             const int state_dim = DimensionOf<State>())
-        : Traits<This>::GaussianBase(observation_dim),
+        : Traits<This>::GaussianBase(obsrv_dim),
           state_dimension_(state_dim),
           H_(SensorMatrix::Ones(obsrv_dimension(),
                                 state_dimension()))
     {
         covariance(noise_covariance);
+    }
+
+    explicit
+    LinearGaussianObservationModel(
+            const int obsrv_dim = DimensionOf<Obsrv>(),
+            const int state_dim = DimensionOf<State>())
+        : Traits<This>::GaussianBase(obsrv_dim),
+          state_dimension_(state_dim),
+          H_(SensorMatrix::Ones(obsrv_dimension(),
+                                state_dimension()))
+    {
+        covariance(SecondMoment::Identity(obsrv_dim, obsrv_dim));
     }
 
     ~LinearGaussianObservationModel() { }
@@ -122,7 +135,7 @@ public:
         H_ = sensor_matrix;
     }
 
-    virtual Obsrv predict_observation(const State& state,
+    virtual Obsrv predict_obsrv(const State& state,
                                       const Noise& noise,
                                       double delta_time)
     {
