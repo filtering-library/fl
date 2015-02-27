@@ -73,7 +73,6 @@ public:
 TEST_F(LinearGaussianProcessModelTests, init_fixedsize_dimension)
 {
     typedef Eigen::Matrix<double, 10, 1> State;
-    const size_t dim = State::SizeAtCompileTime;
     typedef fl::LinearGaussianProcessModel<State> LGModel;
 
     LGModel::SecondMoment cov = LGModel::SecondMoment::Identity() * 5.5465;
