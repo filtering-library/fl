@@ -22,11 +22,42 @@
 #ifndef FL__MODEL__PROCESS__PROCESS_MODEL_INTERFACE_HPP
 #define FL__MODEL__PROCESS__PROCESS_MODEL_INTERFACE_HPP
 
-#include <cstddef>
 #include <fl/util/traits.hpp>
 
 namespace fl
 {
+
+namespace internal
+{
+
+/**
+ * \internal
+ * Process model type identifier
+ */
+struct ProcessModelType { };
+
+}
+
+/* Forward declaration */
+template <
+    typename State,
+    typename Noise,
+    typename Input
+>
+class ProcessModelInterface;
+
+/**
+ * Traits of ObservationModelInterface
+ */
+template <
+    typename State,
+    typename Noise,
+    typename Input
+>
+struct Traits<ProcessModelInterface<State, Noise, Input>>
+{
+    typedef internal::ProcessModelType ModelType;
+};
 
 /**
  * \interface ProcessModelInterface
@@ -39,7 +70,11 @@ namespace fl
  * \tparam Noise    Type of the noise term \f$v_t\f$
  * \tparam Input    Type of the control input \f$u_t\f$
  */
-template <typename State, typename Noise, typename Input = internal::Empty>
+template <
+    typename State,
+    typename Noise,
+    typename Input = internal::Empty
+>
 class ProcessModelInterface
 {
 public:
@@ -57,7 +92,7 @@ public:
      */
     virtual void condition(const double& delta_time,
                            const State& state,
-                           const Input& input = internal::Empty()) { }
+                           const Input& input = Input()) { }
 
     /**
      * Predicts the state conditioned on the previous state and input.
