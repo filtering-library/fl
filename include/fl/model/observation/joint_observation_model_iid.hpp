@@ -30,6 +30,7 @@
 #include <fl/util/meta.hpp>
 #include <fl/distribution/gaussian.hpp>
 
+#include <fl/model/adaptive_model.hpp>
 #include <fl/model/observation/observation_model_interface.hpp>
 
 namespace fl
@@ -51,7 +52,7 @@ struct Traits<
 {
     enum : signed int { ModelCount = Count };
 
-    typedef ObservationModel LocalObservationModel;
+    typedef ObservationModel LocalObsrvModel;
     typedef typename Traits<ObservationModel>::Scalar Scalar;
     typedef typename Traits<ObservationModel>::State LocalState;
     typedef typename Traits<ObservationModel>::Noise LocalNoise;
@@ -59,9 +60,9 @@ struct Traits<
 
     enum : signed int
     {
-        ObsrvDim = ExpandSizes<LocalObsrv::SizeAtCompileTime, Count>::Size,
-        StateDim = ExpandSizes<LocalState::SizeAtCompileTime, Count>::Size,
+        ObsrvDim = ExpandSizes<LocalObsrv::SizeAtCompileTime, Count>::Size,        
         NoiseDim = ExpandSizes<LocalNoise::SizeAtCompileTime, Count>::Size,
+        StateDim = LocalState::SizeAtCompileTime,
     };
 
     typedef Eigen::Matrix<Scalar, ObsrvDim, 1> Obsrv;
@@ -79,15 +80,15 @@ struct Traits<
  * \ingroup observation_models
  */
 template <
-    typename LocalObservationModel,
+    typename LocalObsrvModel,
     int Count>
-class JointObservationModel<MultipleOf<LocalObservationModel, Count>>
+class JointObservationModel<MultipleOf<LocalObsrvModel, Count>>
     : public Traits<
-                 JointObservationModel<MultipleOf<LocalObservationModel, Count>>
+                 JointObservationModel<MultipleOf<LocalObsrvModel, Count>>
              >::ObservationModelBase
 {
 public:
-    typedef JointObservationModel<MultipleOf<LocalObservationModel,Count>> This;
+    typedef JointObservationModel<MultipleOf<LocalObsrvModel,Count>> This;
 
     typedef typename Traits<This>::Obsrv Obsrv;
     typedef typename Traits<This>::State State;
@@ -95,7 +96,7 @@ public:
 
 public:
     explicit JointObservationModel(
-            const std::shared_ptr<LocalObservationModel>& local_obsrv_model,
+            const LocalObsrvModel& local_obsrv_model,
             int count = ToDimension<Count>::Value)
         : local_obsrv_model_(local_obsrv_model),
           count_(count)
@@ -103,9 +104,10 @@ public:
         assert(count_ > 0);
     }
 
-    JointObservationModel(const MultipleOf<LocalObservationModel, Count>& mof)
-        : local_obsrv_model_(mof.instance()),
-          count_(mof.count())
+    explicit
+    JointObservationModel(const MultipleOf<LocalObsrvModel, Count>& mof)
+        : local_obsrv_model_(mof.instance),
+          count_(mof.count)
     {
         assert(count_ > 0);
     }
@@ -116,24 +118,23 @@ public:
     ~JointObservationModel() { }
 
     /**
-     * \copydoc ObservationModelInterface::predict_observation
+     * \copydoc ObservationModelInterface::predict_obsrv
      */
-    virtual Obsrv predict_observation(const State& state,
-                                            const Noise& noise,
-                                            double delta_time)
+    virtual Obsrv predict_obsrv(const State& state,
+                                const Noise& noise,
+                                double delta_time)
     {
         Obsrv y = Obsrv::Zero(obsrv_dimension(), 1);
 
-        int obsrv_dim = local_obsrv_model_->obsrv_dimension();
-        int noise_dim = local_obsrv_model_->noise_dimension();
-        int state_dim = local_obsrv_model_->state_dimension();
+        int obsrv_dim = local_obsrv_model_.obsrv_dimension();
+        int noise_dim = local_obsrv_model_.noise_dimension();
 
         const int count = count_;
         for (int i = 0; i < count; ++i)
         {
             y.middleRows(i * obsrv_dim, obsrv_dim) =
-                local_obsrv_model_->predict_observation(
-                    state.middleRows(i * state_dim, state_dim),
+                local_obsrv_model_.predict_obsrv(
+                    state,
                     noise.middleRows(i * noise_dim, noise_dim),
                     delta_time);
         }
@@ -143,27 +144,90 @@ public:
 
     virtual int obsrv_dimension() const
     {
-        return local_obsrv_model_->obsrv_dimension() * count_;
-    }
-
-    virtual int state_dimension() const
-    {
-        return local_obsrv_model_->state_dimension() * count_;
+        return local_obsrv_model_.obsrv_dimension() * count_;
     }
 
     virtual int noise_dimension() const
     {
-        return local_obsrv_model_->noise_dimension() * count_;
+        return local_obsrv_model_.noise_dimension() * count_;
     }
 
-    const std::shared_ptr<LocalObservationModel>& local_observation_model()
+    virtual int state_dimension() const
+    {
+        return local_obsrv_model_.state_dimension();
+    }
+
+    LocalObsrvModel& local_observation_model()
     {
         return local_obsrv_model_;
     }
 
 protected:
-    std::shared_ptr<LocalObservationModel> local_obsrv_model_;
+    LocalObsrvModel local_obsrv_model_;
     int count_;
+};
+
+/**
+ * Traits of the \em Adaptive JointObservationModel
+ */
+template <
+    typename ObsrvModel,
+    int Count
+>
+struct Traits<
+           JointObservationModel<MultipleOf<Adaptive<ObsrvModel>, Count>>
+        >
+    : Traits<JointObservationModel<MultipleOf<ObsrvModel, Count>>>
+{
+    typedef Traits<JointObservationModel<MultipleOf<ObsrvModel, Count>>> Base;
+
+    typedef typename Traits<ObsrvModel>::Param LocalParam;
+
+    enum : signed int
+    {
+        ParamDim = ExpandSizes<LocalParam::SizeAtCompileTime, Count>::Size
+    };
+
+    typedef Eigen::Matrix<typename Base::Scalar, ParamDim, 1> Param;
+
+    typedef ObservationModelInterface<
+                typename Base::Obsrv,
+                typename Base::State,
+                typename Base::Noise
+            > ObservationModelBase;
+
+    typedef AdaptiveModel<Param> AdaptiveModelBase;
+};
+
+/**
+ * \ingroup observation_models
+ *
+ * JointObservationModel for adaptive local observation models
+ */
+template <
+    typename LocalObsrvModel,
+    int Count>
+class JointObservationModel<MultipleOf<Adaptive<LocalObsrvModel>, Count>>
+    : public Traits<
+                 JointObservationModel<MultipleOf<Adaptive<LocalObsrvModel>, Count>>
+             >::ObservationModelBase,
+      public Traits<
+                JointObservationModel<MultipleOf<Adaptive<LocalObsrvModel>, Count>>
+             >::AdaptiveModelBase
+
+{
+public:
+    typedef JointObservationModel<MultipleOf<Adaptive<LocalObsrvModel>, Count>> This;
+
+    typedef typename Traits<This>::Param Param;
+
+public:
+    virtual Param param() const { return param_; }
+    virtual void param(Param new_param) {  param_ = new_param; }
+    virtual int param_dimension() const { return param_.rows(); }
+
+protected:
+    Param param_;
 };
 
 }
