@@ -1,41 +1,18 @@
 /*
- * Software License Agreement (BSD License)
+ * This is part of the FL library, a C++ Bayesian filtering library
+ * (https://github.com/filtering-library)
  *
- *  Copyright (c) 2014 Max-Planck-Institute for Intelligent Systems,
- *                     University of Southern California
- *    Jan Issac (jan.issac@gmail.com)
- *    Manuel Wuthrich (manuel.wuthrich@gmail.com)
+ * Copyright (c) 2014 Jan Issac (jan.issac@gmail.com)
+ * Copyright (c) 2014 Manuel Wuthrich (manuel.wuthrich@gmail.com)
  *
+ * Max-Planck Institute for Intelligent Systems, AMD Lab
+ * University of Southern California, CLMC Lab
  *
- *
- *  Redistribution and use in source and binary forms, with or without
- *  modification, are permitted provided that the following conditions
- *  are met:
- *
- *   * Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above
- *     copyright notice, this list of conditions and the following
- *     disclaimer in the documentation and/or other materials provided
- *     with the distribution.
- *   * Neither the name of Willow Garage, Inc. nor the names of its
- *     contributors may be used to endorse or promote products derived
- *     from this software without specific prior written permission.
- *
- *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- *  POSSIBILITY OF SUCH DAMAGE.
- *
+ * This Source Code Form is subject to the terms of the MIT License (MIT).
+ * A copy of the license can be found in the LICENSE file distributed with this
+ * source code.
  */
+
 
 /**
  * \file factorized_iid_observation_model_test.cpp
@@ -109,69 +86,112 @@ public:
     typedef typename fl::Traits<ObservationModel_D>::Obsrv Obsrv_D;
 };
 
+TEST_F(JointObservationModel_IID_Tests, dimensions_F)
+{
+    using namespace fl;
+
+    EXPECT_EQ(Traits<ObservationModel_F>::StateDim, StateDimension);
+    EXPECT_EQ(Traits<ObservationModel_F>::ObsrvDim, ObsrvDimension * Factors);
+    EXPECT_EQ(Traits<ObservationModel_F>::NoiseDim, ObsrvDimension * Factors);
+
+    auto model = ObservationModel_F(LocalObsrvModel_F());
+
+    EXPECT_EQ(model.state_dimension(), StateDimension);
+    EXPECT_EQ(model.obsrv_dimension(), ObsrvDimension * Factors);
+    EXPECT_EQ(model.noise_dimension(), ObsrvDimension * Factors);
+
+    model = ObservationModel_F(
+                MultipleOf<LocalObsrvModel_F, Factors>(LocalObsrvModel_F()));
+
+    EXPECT_EQ(model.state_dimension(), StateDimension);
+    EXPECT_EQ(model.obsrv_dimension(), ObsrvDimension * Factors);
+    EXPECT_EQ(model.noise_dimension(), ObsrvDimension * Factors);
+}
+
+TEST_F(JointObservationModel_IID_Tests, dimensions_D)
+{
+    using namespace fl;
+
+    auto model = ObservationModel_D(
+                     LocalObsrvModel_D(ObsrvDimension, StateDimension),
+                     Factors);
+
+    EXPECT_EQ(model.state_dimension(), StateDimension);
+    EXPECT_EQ(model.obsrv_dimension(), ObsrvDimension * Factors);
+    EXPECT_EQ(model.noise_dimension(), ObsrvDimension * Factors);
+
+    model = ObservationModel_D(
+        MultipleOf<LocalObsrvModel_D, -1>(
+            LocalObsrvModel_D(ObsrvDimension, StateDimension), Factors));
+
+    EXPECT_EQ(model.state_dimension(), StateDimension);
+    EXPECT_EQ(model.obsrv_dimension(), ObsrvDimension * Factors);
+    EXPECT_EQ(model.noise_dimension(), ObsrvDimension * Factors);
+}
+
 TEST_F(JointObservationModel_IID_Tests, predict_F)
 {
     auto model = ObservationModel_F(
-                    std::make_shared<LocalObsrvModel_F>(
-                        LocalCov_F::Identity() * sigma*sigma));
+                    LocalObsrvModel_F(
+                        LocalCov_F::Identity() * sigma * sigma));
 
-    auto H = model.local_observation_model()->H();
+    auto H = model.local_observation_model().H();
     H.setIdentity();
-    model.local_observation_model()->H(H);
+    model.local_observation_model().H(H);
 
     auto x = State_F::Ones();
     auto w = Noise_F::Ones();
 
-    auto y = model.predict_observation(x, w, 1.);
-    EXPECT_TRUE(y.isApprox(Noise_F::Ones() + sigma*Noise_F::Ones()));
+    auto y = model.predict_obsrv(x, w, 1.);
+    EXPECT_TRUE(y.isApprox(Noise_F::Ones() + sigma * Noise_F::Ones()));
 }
 
 TEST_F(JointObservationModel_IID_Tests, predict_F_using_dynamic_interface)
 {
     auto model = ObservationModel_F(
-                    std::make_shared<LocalObsrvModel_F>(
+                    LocalObsrvModel_F(
                         LocalCov_F::Identity(ObsrvDimension,
                                              ObsrvDimension) * sigma*sigma,
                         ObsrvDimension,
                         StateDimension),
                     Factors);
 
-    auto H = model.local_observation_model()->H();
+    auto H = model.local_observation_model().H();
     H.setIdentity();
-    model.local_observation_model()->H(H);
+    model.local_observation_model().H(H);
 
     auto x = State_F::Ones(model.state_dimension(), 1);
     auto w = Noise_F::Ones(model.noise_dimension(), 1);
 
-    auto y = model.predict_observation(x, w, 1.);
+    auto y = model.predict_obsrv(x, w, 1.);
     EXPECT_TRUE(y.isApprox(Noise_F::Ones() + sigma*Noise_F::Ones()));
 }
 
 TEST_F(JointObservationModel_IID_Tests, predict_D)
 {
     auto model = ObservationModel_D(
-                     std::make_shared<LocalObsrvModel_D>(
+                     LocalObsrvModel_D(
                          LocalCov_D::Identity(ObsrvDimension,
                                               ObsrvDimension) * sigma*sigma,
                          ObsrvDimension,
                          StateDimension),
                      Factors);
 
-    auto H = model.local_observation_model()->H();
+    auto H = model.local_observation_model().H();
     H.setIdentity();
-    model.local_observation_model()->H(H);
+    model.local_observation_model().H(H);
 
     auto x = State_D::Ones(model.state_dimension(), 1);
     auto w = Noise_D::Ones(model.noise_dimension(), 1);
 
-    auto y = model.predict_observation(x, w, 1.);
+    auto y = model.predict_obsrv(x, w, 1.);
     EXPECT_TRUE(y.isApprox(Noise_F::Ones() + sigma*Noise_F::Ones()));
 }
 
 TEST_F(JointObservationModel_IID_Tests, predict_F_vs_D)
 {
     auto model_D = ObservationModel_D(
-                        std::make_shared<LocalObsrvModel_D>(
+                        LocalObsrvModel_D(
                            LocalCov_D::Identity(ObsrvDimension,
                                                 ObsrvDimension) * sigma*sigma,
                            ObsrvDimension,
@@ -179,16 +199,16 @@ TEST_F(JointObservationModel_IID_Tests, predict_F_vs_D)
                        Factors);
 
     auto model_F = ObservationModel_F(
-                       std::make_shared<LocalObsrvModel_F>(
+                       LocalObsrvModel_F(
                             LocalCov_F::Identity() * sigma*sigma));
 
-    auto H_D = model_D.local_observation_model()->H();
+    auto H_D = model_D.local_observation_model().H();
     H_D.setIdentity();
-    model_D.local_observation_model()->H(H_D);
+    model_D.local_observation_model().H(H_D);
 
-    auto H_F = model_F.local_observation_model()->H();
+    auto H_F = model_F.local_observation_model().H();
     H_F.setIdentity();
-    model_F.local_observation_model()->H(H_D);
+    model_F.local_observation_model().H(H_D);
 
     auto x_D = State_D::Ones(model_D.state_dimension(), 1);
     auto w_D = Noise_D::Ones(model_D.noise_dimension(), 1);
@@ -196,8 +216,8 @@ TEST_F(JointObservationModel_IID_Tests, predict_F_vs_D)
     auto x_F = State_F::Ones();
     auto w_F = Noise_F::Ones();
 
-    auto y_D = model_D.predict_observation(x_D, w_D, 1.);
-    auto y_F = model_F.predict_observation(x_F, w_F, 1.);
+    auto y_D = model_D.predict_obsrv(x_D, w_D, 1.);
+    auto y_F = model_F.predict_obsrv(x_F, w_F, 1.);
 
     EXPECT_TRUE(y_D.isApprox(y_F));
 
@@ -206,7 +226,7 @@ TEST_F(JointObservationModel_IID_Tests, predict_F_vs_D)
 TEST_F(JointObservationModel_IID_Tests, predict_F_vs_D_using_dynamic_interface)
 {
     auto model_D = ObservationModel_D(
-                        std::make_shared<LocalObsrvModel_D>(
+                        LocalObsrvModel_D(
                             LocalCov_D::Identity(ObsrvDimension,
                                                  ObsrvDimension) * sigma*sigma,
                             ObsrvDimension,
@@ -214,29 +234,31 @@ TEST_F(JointObservationModel_IID_Tests, predict_F_vs_D_using_dynamic_interface)
                         Factors);
 
     auto model_F = ObservationModel_F(
-                        std::make_shared<LocalObsrvModel_F>(
+                        LocalObsrvModel_F(
                             LocalCov_F::Identity(ObsrvDimension,
                                                  ObsrvDimension) * sigma*sigma,
                             ObsrvDimension,
                             StateDimension),
                         Factors);
 
-    auto H_D = model_D.local_observation_model()->H();
+    auto H_D = model_D.local_observation_model().H();
     H_D.setIdentity();
-    model_D.local_observation_model()->H(H_D);
+    model_D.local_observation_model().H(H_D);
 
-    auto H_F = model_F.local_observation_model()->H();
+    auto H_F = model_F.local_observation_model().H();
     H_F.setIdentity();
-    model_F.local_observation_model()->H(H_D);
+    model_F.local_observation_model().H(H_F);
 
     auto x_D = State_D::Ones(model_D.state_dimension(), 1);
     auto w_D = Noise_D::Ones(model_D.noise_dimension(), 1);
 
     auto x_F = State_F::Ones(model_F.state_dimension(), 1);
-    auto w_F = Noise_F::Ones(model_F.state_dimension(), 1);
+    auto w_F = Noise_F::Ones(model_F.noise_dimension(), 1);
 
-    auto y_D = model_D.predict_observation(x_D, w_D, 1.);
-    auto y_F = model_F.predict_observation(x_F, w_F, 1.);
+    auto y_D = model_D.predict_obsrv(x_D, w_D, 1.);
+    auto y_F = model_F.predict_obsrv(x_F, w_F, 1.);
 
     EXPECT_TRUE(y_D.isApprox(y_F));
+
 }
+
