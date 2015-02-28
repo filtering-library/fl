@@ -61,6 +61,8 @@ struct Traits<ObservationModelInterface<Obsrv, State, Noise, Id>>
 
 /**
  * \ingroup observation_models
+ * \interface ObservationModelInterface
+ *
  *
  * Represents the generic observation model interface of the model function
  * \f$h(x, w, \theta)\f$ where \f$x\f$ is the state,
@@ -79,6 +81,7 @@ template <
     int Id = 0
 >
 class ObservationModelInterface
+    : public internal::ObsrvModelType
 {
 public:
     typedef internal::ObsrvModelType ModelType;
