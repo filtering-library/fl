@@ -37,8 +37,6 @@ namespace fl
 
 // Forward declarations
 template <typename...Models> class JointObservationModel;
-template <typename...Models> class JointOneToManyObsrvModel;
-template <typename...Models> class JointManyToManyObsrvModel;
 
 /**
  * Traits of JointObservationModel
@@ -71,10 +69,30 @@ struct Traits<
 };
 
 /**
- * \ingroup process_models
+ * \ingroup observation_models
+ *
+ * \brief JointObservationModel itself is an observation model which contains
+ * internally multiple models. Each of the models must operate on the same state
+ * space. The joint model can be simply summarized as
+ * \f$ h(x, \theta, w) = [ h_1(x, \theta_1, w_1), h_2(x, \theta_2, w_2),
+ * \ldots, h_n(x, \theta_n, w_n) ]^T \f$
+ *
+ * where \f$x\f$ is the state variate, \f$\theta = [ \theta_1, \theta_2, \ldots,
+ * \theta_n ]^T\f$ and \f$w = [ w_1, w_2, \ldots, w_n ]^T\f$  are the the
+ * parameters and noise terms of each of the \f$n\f$ models.
+ *
+ * JointObservationModel implements the ObservationModelInterface and the
+ * AdaptiveModel interface. That being said, the JointObservationModel can be
+ * used as a regular observation model or even as an adaptive observation model
+ * which provides a set of parameters that can be changed at any time. This
+ * implies that all sub-models must implement the the AdaptiveModel
+ * interface. However, if a sub-model is not adaptive, JointObservationModel
+ * applies a decorator call the NotAdaptive operator on the sub-model. This
+ * operator enables any model to be treated as if it is adaptive without
+ * effecting the model behaviour.
  */
 template <typename ... Models>
-class JointObservationModel
+class JointObservationModel<Models...>
     : public Traits<
                  JointObservationModel<Models...>
              >::ObservationModelBase
