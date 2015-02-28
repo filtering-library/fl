@@ -34,10 +34,12 @@ namespace fl
  * unified in a specific way. The operator is defined by the following axioms
  *
  * - Pack of Join<P1, P2, ...>: {P1, P2, ...}
- * - Positive pack:             sizeof...(T) > 0 for Join<T...>
+ * - Positive pack size:        sizeof...(T) > 0 for Join<T...>
  * - Nesting:                   Join<P1, Join<P2, P3>> = {P1, P2, P3}
- * - Comm.                      Join<P1, Join<P2, P3>> = Join<Join<P1, P2>, P3>
+ * - Associative:               Join<P1, Join<P2, P3>> = Join<Join<P1, P2>, P3>
  * - MultipleOf operator:       Join<MultipleOf<P, #>>
+ * - MultipleOf Adaptive op:    Join<MultipleOf<Adaptive<O1, P1>, #>>
+ * - Adaptive operator:         Join<Adaptive<O1, P1>...>
  *
  * \ingroup meta
  */
