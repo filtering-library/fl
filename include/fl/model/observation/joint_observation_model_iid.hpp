@@ -25,6 +25,7 @@
 #include <Eigen/Dense>
 
 #include <memory>
+#include <type_traits>
 
 #include <fl/util/traits.hpp>
 #include <fl/util/meta.hpp>
@@ -37,37 +38,40 @@ namespace fl
 {
 
 // Forward declarations
-template <typename...Model> class JointObservationModel;
+template <typename...Models> class JointObservationModel;
 
 /**
  * Traits of JointObservationModel<MultipleOf<ObservationModel, Count>>
  */
 template <
-    typename ObservationModel,
+    typename ObsrvModel,
     int Count
 >
 struct Traits<
-           JointObservationModel<MultipleOf<ObservationModel, Count>>
+           JointObservationModel<MultipleOf<ObsrvModel, Count>, Adaptive<>>
         >
 {
     enum : signed int { ModelCount = Count };
 
-    typedef ObservationModel LocalObsrvModel;
-    typedef typename Traits<ObservationModel>::Scalar Scalar;
-    typedef typename Traits<ObservationModel>::State LocalState;
-    typedef typename Traits<ObservationModel>::Noise LocalNoise;
-    typedef typename Traits<ObservationModel>::Obsrv LocalObsrv;
+    typedef ObsrvModel LocalObsrvModel;
+    typedef typename Traits<ObsrvModel>::Scalar Scalar;
+    typedef typename Traits<ObsrvModel>::Obsrv LocalObsrv;
+    typedef typename Traits<ObsrvModel>::State LocalState;
+    typedef typename Traits<ObsrvModel>::Param LocalParam;
+    typedef typename Traits<ObsrvModel>::Noise LocalNoise;
 
     enum : signed int
     {
+        StateDim = LocalState::SizeAtCompileTime,
         ObsrvDim = ExpandSizes<LocalObsrv::SizeAtCompileTime, Count>::Size,        
         NoiseDim = ExpandSizes<LocalNoise::SizeAtCompileTime, Count>::Size,
-        StateDim = LocalState::SizeAtCompileTime,
+        ParamDim = ExpandSizes<LocalParam::SizeAtCompileTime, Count>::Size
     };
 
-    typedef Eigen::Matrix<Scalar, ObsrvDim, 1> Obsrv;
+    typedef Eigen::Matrix<Scalar, ObsrvDim, 1> Obsrv;    
     typedef Eigen::Matrix<Scalar, StateDim, 1> State;
     typedef Eigen::Matrix<Scalar, NoiseDim, 1> Noise;
+    typedef Eigen::Matrix<Scalar, ParamDim, 1> Param;
 
     typedef ObservationModelInterface<
                 Obsrv,
@@ -76,13 +80,50 @@ struct Traits<
             > ObservationModelBase;
 };
 
+
+
+
+
+
 /**
  * \ingroup observation_models
+ *
+ * \brief JointObservationModel itself is an observati
+ * on model which contains
+ * internally multiple models all of the \em same type. The joint model can be
+ * simply summarized as \f$ h(x, \theta, w) = [ h_{local}(x, \theta_1, w_1),
+ * h_{local}(x, \theta_2, w_2), \ldots, h_{local}(x, \theta_n, w_n) ]^T \f$
+ *
+ * where \f$x\f$ is the state variate, \f$\theta = [ \theta_1, \theta_2, \ldots,
+ * \theta_n ]^T\f$ and \f$w = [ w_1, w_2, \ldots, w_n ]^T\f$  are the the
+ * parameters and noise terms of each of the \f$n\f$ models.
+ *
+ * JointObservationModel implements the ObservationModelInterface and the
+ * AdaptiveModel interface. That being said, the JointObservationModel can be
+ * used as a regular observation model or even as an adaptive observation model
+ * which provides a set of parameters that can be changed at any time. This
+ * implies that all sub-models must implement the the AdaptiveModel
+ * interface. However, if the sub-model is not adaptive, JointObservationModel
+ * applies a decorator call the NotAdaptive operator on the sub-model. This
+ * operator enables any model to be treated as if it is adaptive without
+ * effecting the model behaviour.
  */
 template <
     typename LocalObsrvModel,
-    int Count>
+    int Count
+>
 class JointObservationModel<MultipleOf<LocalObsrvModel, Count>>
+    : public JointObservationModel<
+          MultipleOf<typename MakeAdaptive<LocalObsrvModel>::Type, Count>,
+          Adaptive<>
+      >
+{ };
+
+template <
+    typename LocalObsrvModel,
+    int Count
+>
+class JointObservationModel<MultipleOf<LocalObsrvModel, Count>, Adaptive<>>
     : public Traits<
                  JointObservationModel<MultipleOf<LocalObsrvModel, Count>>
              >::ObservationModelBase
@@ -167,68 +208,68 @@ protected:
     int count_;
 };
 
-/**
- * Traits of the \em Adaptive JointObservationModel
- */
-template <
-    typename ObsrvModel,
-    int Count
->
-struct Traits<
-           JointObservationModel<MultipleOf<Adaptive<ObsrvModel>, Count>>
-        >
-    : Traits<JointObservationModel<MultipleOf<ObsrvModel, Count>>>
-{
-    typedef Traits<JointObservationModel<MultipleOf<ObsrvModel, Count>>> Base;
+///**
+// * Traits of the \em Adaptive JointObservationModel
+// */
+//template <
+//    typename ObsrvModel,
+//    int Count
+//>
+//struct Traits<
+//           JointObservationModel<MultipleOf<Adaptive<ObsrvModel>, Count>>
+//        >
+//    : Traits<JointObservationModel<MultipleOf<ObsrvModel, Count>>>
+//{
+//    typedef Traits<JointObservationModel<MultipleOf<ObsrvModel, Count>>> Base;
 
-    typedef typename Traits<ObsrvModel>::Param LocalParam;
+//    typedef typename Traits<ObsrvModel>::Param LocalParam;
 
-    enum : signed int
-    {
-        ParamDim = ExpandSizes<LocalParam::SizeAtCompileTime, Count>::Size
-    };
+//    enum : signed int
+//    {
+//        ParamDim = ExpandSizes<LocalParam::SizeAtCompileTime, Count>::Size
+//    };
 
-    typedef Eigen::Matrix<typename Base::Scalar, ParamDim, 1> Param;
+//    typedef Eigen::Matrix<typename Base::Scalar, ParamDim, 1> Param;
 
-    typedef ObservationModelInterface<
-                typename Base::Obsrv,
-                typename Base::State,
-                typename Base::Noise
-            > ObservationModelBase;
+//    typedef ObservationModelInterface<
+//                typename Base::Obsrv,
+//                typename Base::State,
+//                typename Base::Noise
+//            > ObservationModelBase;
 
-    typedef AdaptiveModel<Param> AdaptiveModelBase;
-};
+//    typedef AdaptiveModel<Param> AdaptiveModelBase;
+//};
 
-/**
- * \ingroup observation_models
- *
- * JointObservationModel for adaptive local observation models
- */
-template <
-    typename LocalObsrvModel,
-    int Count>
-class JointObservationModel<MultipleOf<Adaptive<LocalObsrvModel>, Count>>
-    : public Traits<
-                 JointObservationModel<MultipleOf<Adaptive<LocalObsrvModel>, Count>>
-             >::ObservationModelBase,
-      public Traits<
-                JointObservationModel<MultipleOf<Adaptive<LocalObsrvModel>, Count>>
-             >::AdaptiveModelBase
+///**
+// * \ingroup observation_models
+// *
+// * JointObservationModel for adaptive local observation models
+// */
+//template <
+//    typename LocalObsrvModel,
+//    int Count>
+//class JointObservationModel<MultipleOf<Adaptive<LocalObsrvModel>, Count>>
+//    : public Traits<
+//                 JointObservationModel<MultipleOf<Adaptive<LocalObsrvModel>, Count>>
+//             >::ObservationModelBase,
+//      public Traits<
+//                JointObservationModel<MultipleOf<Adaptive<LocalObsrvModel>, Count>>
+//             >::AdaptiveModelBase
 
-{
-public:
-    typedef JointObservationModel<MultipleOf<Adaptive<LocalObsrvModel>, Count>> This;
+//{
+//public:
+//    typedef JointObservationModel<MultipleOf<Adaptive<LocalObsrvModel>, Count>> This;
 
-    typedef typename Traits<This>::Param Param;
+//    typedef typename Traits<This>::Param Param;
 
-public:
-    virtual Param param() const { return param_; }
-    virtual void param(Param new_param) {  param_ = new_param; }
-    virtual int param_dimension() const { return param_.rows(); }
+//public:
+//    virtual Param param() const { return param_; }
+//    virtual void param(Param new_param) {  param_ = new_param; }
+//    virtual int param_dimension() const { return param_.rows(); }
 
-protected:
-    Param param_;
-};
+//protected:
+//    Param param_;
+//};
 
 }
 
