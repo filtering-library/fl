@@ -36,8 +36,9 @@ namespace fl
  *
  * Adaptive operator
  */
-template <typename... Model> class Adaptive;
-
+template <typename... Model>
+class Adaptive
+{ };
 
 /**
  * \internal
