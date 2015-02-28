@@ -25,13 +25,25 @@
 namespace fl
 {
 
+namespace internal
+{
+
+/**
+ * \internal
+ * Adaptive model type identifier
+ */
+struct AdaptiveModelType { };
+
+}
+
 /**
  * \ingroup process_models
  * \ingroup observation_models
+ * \interface AdaptiveModel
  *
- * The AdaptiveModel interface represents the base of any model which provides a
- * variable set of parameters \f$\theta\f$ such that the model \f$y = h(x, w)\f$
- * becomes \f$h(x, w, \theta)\f$. Here \f$x\f$ is the state,
+ * \brief The AdaptiveModel interface represents the base of any model which
+ * provides a variable set of parameters \f$\theta\f$ such that the model \f$y =
+ * h(x, w)\f$ becomes \f$h(x, w, \theta)\f$. Here \f$x\f$ is the state,
  * \f$w\sim {\cal N}(0, 1)\f$ is a white noise term.
  *
  * Strictly speeking, the parameters \f$\theta\f$ are simply a part of the state
@@ -52,6 +64,7 @@ namespace fl
  */
 template <typename Param>
 class AdaptiveModel
+    : public internal::AdaptiveModelType
 {
 public:
     /**
