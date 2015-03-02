@@ -86,7 +86,23 @@ struct CreateTypeSequence
 template <typename Type, typename...T>
 struct CreateTypeSequence<1, Type, T...>
     : TypeSequence<Type, T...>
-{ };
+{
+    typedef TypeSequence<Type, T...> TypeSeq;
+};
+
+/**
+ * \internal
+ * \ingroup meta
+ *
+ * Terminal type of CreateTypeSequence for Count = 0 resulting in an empty
+ * type sequence
+ */
+template <typename Type>
+struct CreateTypeSequence<0, Type>
+    : TypeSequence<>
+{
+    typedef TypeSequence<> TypeSeq;
+};
 
 /**
  * \ingroup meta
@@ -97,6 +113,7 @@ template <typename Type>
 struct CreateTypeSequence<-1, Type>
   : TypeSequence<>
 { };
+
 
 }
 
