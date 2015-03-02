@@ -30,5 +30,6 @@
 #include "meta/operator/multiple_of.hpp"
 #include "meta/operator/adaptive.hpp"
 #include "meta/operator/not_adaptive.hpp"
+#include "meta/operator/forward_adaptive.hpp"
 
 #endif
