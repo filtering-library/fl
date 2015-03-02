@@ -40,63 +40,6 @@ namespace fl
 // Forward declarations
 template <typename...Models> class JointObservationModel;
 
-
-
-
-/**
- * Traits of JointObservationModel<MultipleOf<ObservationModel, Count>>
- */
-template <
-    typename ObsrvModel,
-    int Count
->
-struct Traits<
-           JointObservationModel<MultipleOf<ObsrvModel, Count>>
-        >
-    : public Traits<
-                JointObservationModel<
-                    MultipleOf<
-                        typename ForwardAdaptive<ObsrvModel>::Type, Count
-                    >,
-                    Adaptive<>>>
-{ };
-
-/**
- * \internal
- * \ingroup observation_models
- *
- * Forwards an adaptive LocalObsrvModel type to the JointObservationModel
- * implementation. \sa ForwardAdaptive for more details.
- */
-template <
-    typename ObsrvModel,
-    int Count
->
-class JointObservationModel<MultipleOf<ObsrvModel, Count>>
-    : public JointObservationModel<
-                MultipleOf<typename ForwardAdaptive<ObsrvModel>::Type, Count>,
-                Adaptive<>>
-{
-public:
-    typedef JointObservationModel<
-                MultipleOf<typename ForwardAdaptive<ObsrvModel>::Type, Count>,
-                Adaptive<>
-            > Base;
-
-    typedef typename ForwardAdaptive<ObsrvModel>::Type ForwardedType;
-
-    JointObservationModel(
-            const ObsrvModel& local_obsrv_model,
-            int count = ToDimension<Count>::Value)
-        : Base(ForwardedType(local_obsrv_model), count)
-    { }
-
-    JointObservationModel(const MultipleOf<ObsrvModel, Count>& mof)
-        : Base(mof)
-    { }
-};
-
-
 /**
  * Traits of JointObservationModel<MultipleOf<ObservationModel, Count>>
  */
@@ -161,28 +104,15 @@ struct Traits<
  * operator enables any model to be treated as if it is adaptive without
  * effecting the model behaviour.
  */
-
-
-//template <
-//    typename ObsrvModel,
-//    int Count
-//>
-//class JointObservationModel<MultipleOf<NotAdaptive<ObsrvModel>, Count>>
-//    : public JointObservationModel<
-//                MultipleOf<NotAdaptive<ObsrvModel>, Count>, Adaptive<>>
-//{
-//public:
-//};
-
 template <
     typename LocalObsrvModel,
     int Count
 >
-//#ifdef GENERATING_DOCUMENTATION
-//class JointObservationModel<MultipleOf<LocalObsrvModel, Count>>
-//#else
+#ifdef GENERATING_DOCUMENTATION
+class JointObservationModel<MultipleOf<LocalObsrvModel, Count>>
+#else
 class JointObservationModel<MultipleOf<LocalObsrvModel, Count>, Adaptive<>>
-//#endif
+#endif
     : public Traits<
                  JointObservationModel<MultipleOf<LocalObsrvModel, Count>>
              >::ObservationModelBase,
@@ -277,7 +207,7 @@ public:
         return local_obsrv_model_;
     }
 
-    virtual Param param() const { return param_; }
+    virtual const Param& param() const { return param_; }
 
     virtual void param(Param new_param) { param_ = new_param; }
 
@@ -291,6 +221,60 @@ protected:
     int count_;
     Param param_;
 };
+
+/**
+ * Traits of JointObservationModel<MultipleOf<ObservationModel, Count>>
+ */
+template <
+    typename ObsrvModel,
+    int Count
+>
+struct Traits<
+           JointObservationModel<MultipleOf<ObsrvModel, Count>>
+        >
+    : public Traits<
+                JointObservationModel<
+                    MultipleOf<
+                        typename ForwardAdaptive<ObsrvModel>::Type, Count
+                    >,
+                    Adaptive<>>>
+{ };
+
+/**
+ * \internal
+ * \ingroup observation_models
+ *
+ * Forwards an adaptive LocalObsrvModel type to the JointObservationModel
+ * implementation. \sa ForwardAdaptive for more details.
+ */
+template <
+    typename ObsrvModel,
+    int Count
+>
+class JointObservationModel<MultipleOf<ObsrvModel, Count>>
+    : public JointObservationModel<
+                MultipleOf<typename ForwardAdaptive<ObsrvModel>::Type, Count>,
+                Adaptive<>>
+{
+public:
+    typedef JointObservationModel<
+                MultipleOf<typename ForwardAdaptive<ObsrvModel>::Type, Count>,
+                Adaptive<>
+            > Base;
+
+    typedef typename ForwardAdaptive<ObsrvModel>::Type ForwardedType;
+
+    JointObservationModel(
+            const ObsrvModel& local_obsrv_model,
+            int count = ToDimension<Count>::Value)
+        : Base(ForwardedType(local_obsrv_model), count)
+    { }
+
+    JointObservationModel(const MultipleOf<ObsrvModel, Count>& mof)
+        : Base(mof)
+    { }
+};
+
 
 }
 
