@@ -22,6 +22,8 @@
 #ifndef FL__UTIL__META__SIZE_DEDUCTION_HPP
 #define FL__UTIL__META__SIZE_DEDUCTION_HPP
 
+#include <fl/util/traits.hpp>
+
 namespace fl
 {
 
