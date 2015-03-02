@@ -14,13 +14,13 @@
  */
 
 /**
- * \file make_adaptive.hpp
+ * \file forward_adaptive.hpp
  * \date Febuary 2015
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__UTIL__META__OPERATOR__MAKE_ADAPTIVE_HPP
-#define FL__UTIL__META__OPERATOR__MAKE_ADAPTIVE_HPP
+#ifndef FL__UTIL__META__OPERATOR__FORWARD_ADAPTIVE_HPP
+#define FL__UTIL__META__OPERATOR__FORWARD_ADAPTIVE_HPP
 
 #include <type_traits>
 
@@ -32,39 +32,53 @@ namespace fl
 {
 
 // Forward declaration
-template <typename ... > struct MakeAdaptive;
+template <typename ... > struct ForwardAdaptive;
 
 /**
  * \ingroup meta
  *
- * \brief MakeAdaptive operator injects the AdaptiveModel interface into the
+ * \brief ForwardAdaptive operator injects the AdaptiveModel interface into the
  * model if the specified \c Model does not implement it. If the model already
  * implements the interface, no changes will be made.
  *
- * The resulting model of MakeAdaptive<Model>::Type can be used
+ * The resulting model of ForwardAdaptive<Model>::Type can be used
  * within the adaptive context. For instance, the JointObservationModel<...>
  * is an adaptive model and therefore its sum-models must be adaptive too. If
  * one of the sub-models does not implement AdaptiveModel it will be
- * translated into an adaptive model using the MakeAdaptive operator. This is
+ * translated into an adaptive model using the ForwardAdaptive operator. This is
  * achieved by applying the NotAdaptive decorating operator on the specific
  * model.
  */
 template <typename Model>
-struct MakeAdaptive
-    : MakeAdaptive<
+struct ForwardAdaptive<Model>
+    : ForwardAdaptive<
           Model,
           Options<std::is_base_of<internal::AdaptiveModelType, Model>::value>
       >
 { };
 
+/**
+ * \internal
+ * \ingroup meta
+ *
+ * ForwardAdaptive specialization forwarding an adaptive model of \c Model which
+ * is decorated by the NotAdaptive operator
+ */
 template <typename Model>
-struct MakeAdaptive<Model, Options<0>>
+struct ForwardAdaptive<Model, Options<0>>
 {
     typedef NotAdaptive<Model> Type;
 };
 
+/**
+ * \internal
+ * \ingroup meta
+ *
+ * ForwardAdaptive specialization forwarding the unmodified \c Model which
+ * already implements the AdaptiveModel interface.
+ */
 template <typename Model>
-struct MakeAdaptive<Model, Options<1>>
+struct ForwardAdaptive<Model, Options<1>>
 {
     typedef Model Type;
 };
