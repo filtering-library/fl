@@ -22,26 +22,22 @@
 #ifndef FL__UTIL__META__OPERATOR__JOIN_HPP
 #define FL__UTIL__META__OPERATOR__JOIN_HPP
 
+#include "adaptive.hpp"
 #include "multiple_of.hpp"
 #include "../type_sequence.hpp"
 
 namespace fl
 {
 
-
 /**
- * \c Join represents a meta operator taking an argument pack which should be
- * unified in a specific way. The operator is defined by the following axioms
- *
- * - Pack of Join<P1, P2, ...>: {P1, P2, ...}
- * - Positive pack size:        sizeof...(T) > 0 for Join<T...>
- * - Nesting:                   Join<P1, Join<P2, P3>> = {P1, P2, P3}
- * - Associative:               Join<P1, Join<P2, P3>> = Join<Join<P1, P2>, P3>
- * - MultipleOf operator:       Join<MultipleOf<P, #>>
- * - MultipleOf Adaptive op:    Join<MultipleOf<Adaptive<O1, P1>, #>>
- * - Adaptive operator:         Join<Adaptive<O1, P1>...>
- *
  * \ingroup meta
+ *
+ * \c Join represents a meta operator taking an argument pack which should be
+ * unified in a specific way. The operator is defined by the following rules
+ *
+ * Mapping:     Join<T...> = T...
+ * Associative: Join<Join<O1, O2>, O3> =  Join<O1, Join<O2, O3>> = {O1, O2, O3}
+ * Affinity:    Join<Adaptive<O1, P1>, O2> = Adaptive<Join<<O1, O2>, Join<P1>>
  */
 template <typename...T> struct Join;
 
@@ -49,10 +45,33 @@ template <typename...T> struct Join;
  * \internal
  * \ingroup meta
  *
- * Collapes the argument pack of the Join operator into Model<T...> of ay given
- * Join<...> operator.
+ * Collapses the argument pack of the Join operator into Model<T...> or given
+ * sequence within the Join<...> operator pack.
  */
 template <typename...T> struct CollapseJoin;
+
+/**
+ * \internal
+ * \ingroup meta
+ *
+ * Collapses the argument pack of an adaptive Join operator into Model<T...> or
+ * given sequence within the Join<...> operator pack. Unlike CollapseJoin,
+ * CollapseAdaptiveJoin results in Adaptive<Model<...>, JointProcessModel<...>>
+ * Where JointProcessModel<...> repreents the joint process of all parameters
+ * of the final adaptive Model<...>.
+ */
+template <typename...T> struct CollapseAdaptiveJoin;
+
+/**
+ * \internal
+ * \ingroup meta
+ *
+ * Inherit from this to display the join collapse result
+ */
+template <typename ... S> struct ShowResult
+{
+  static_assert(sizeof...(S) < 0, "Showing Join result");
+};
 
 /**
  * \internal
@@ -62,8 +81,8 @@ template <typename...T> struct CollapseJoin;
  * element assuming Head is neither a Join<...> nor a MultipleOf<P, #> operator.
  */
 template <
-    typename...S,
     typename Head,
+    typename...S,
     typename...T,
     template <typename...> class Model
 >
@@ -74,8 +93,34 @@ struct CollapseJoin<
            T...>                    // Remaining Tail
   : CollapseJoin<
         Model<>,                    // Final model type
-        TypeSequence<Head, S...>,   // updated type sequence
+        TypeSequence<S..., Head>,   // updated type sequence
         T...>                       // Remaining Tail
+{ };
+
+/**
+ * \internal
+ * \ingroup meta
+ *
+ * CollapseJoin specialization which branches of to an adaptive joint model.
+ */
+template <
+    typename Head,
+    typename Process,
+    typename...S,
+    typename...T,
+    template <typename...> class Model
+>
+struct CollapseJoin<
+           Model<>,                 // Final model type
+           TypeSequence<S...>,      // Type sequence holding the pack expansion
+           Adaptive<Head, Process>, // Adaptive model specification
+           T...>                    // Remaining Tail
+  : CollapseAdaptiveJoin<
+        Model<>,
+        TypeSequence<NotAdaptive<S>...>,
+        typename CreateTypeSequence<sizeof...(S), VoidProcessModel>::TypeSeq,
+        Adaptive<Head, Process>,
+        T...>
 { };
 
 /**
@@ -134,6 +179,32 @@ struct CollapseJoin<
         T...>                       // Remaining Tail
 { };
 
+/**
+ * \internal
+ * \ingroup meta
+ *
+* CollapseJoin specialization which branches of to an adaptive joint model.
+ */
+template <
+    typename...S,
+    typename...T,
+    typename U,
+    typename V,
+    int Count,
+    template <typename...> class Model
+>
+struct CollapseJoin<
+           Model<>,                 // Final model type
+           TypeSequence<S...>,      // Type sequence holding the pack expansion
+           MultipleOf<Adaptive<U, V>, Count>,    // Current pack head element
+           T...>                    // Remaining Join pack, the tail
+  : CollapseAdaptiveJoin<
+        Model<>,                    // Final model type
+        TypeSequence<NotAdaptive<S>...>,         // Type sequence holding the pack expansion
+        typename CreateTypeSequence<sizeof...(S), VoidProcessModel>::TypeSeq,
+        MultipleOf<Adaptive<U, V>, Count>,// Redefine head in terms of Model<>
+        T...>                       // Remaining Tail
+{ };
 
 /**
  * \internal
@@ -179,6 +250,261 @@ struct CollapseJoin<Model<>, TypeSequence<Model<MultipleOf<M, Count>>>>
                   "Cannot expand Join<MultipleOf<M, Count>> operator on M. "
                   "Count must be positive or set to -1 for the dynamic size "
                   "case.");
+};
+
+/**
+ * \internal
+ * \ingroup meta
+ *
+ * Terminal case of Join operator collapsing for a Join of the form
+ * Join<MultipleOf<P, #>> resulting in Model<MultipleOf<P, #>>
+ */
+template <
+    typename M,
+    typename Process,
+    int Count,
+    template <typename...> class Model
+>
+struct CollapseJoin<
+           Model<>,
+           TypeSequence<Model<MultipleOf<Adaptive<M, Process>, Count>>>>
+    : CollapseAdaptiveJoin<
+           Model<>,
+           TypeSequence<Model<MultipleOf<Adaptive<M, Process>, Count>>>>
+{ };
+
+
+template <typename...> class JointProcessModel;
+
+/**
+ * \internal
+ * \ingroup meta
+ */
+template <
+    typename Head,
+    typename Process,
+    typename...S,
+    typename...T,
+    typename...U,
+    template <typename...> class Model
+>
+struct CollapseAdaptiveJoin<
+           Model<>,
+           TypeSequence<S...>,
+           TypeSequence<T...>,
+           Adaptive<Head, Process>,
+           U...>
+  : CollapseAdaptiveJoin<
+        Model<>,
+        TypeSequence<S..., Head>,
+        TypeSequence<T..., Process>,
+        U...>
+{ };
+
+/**
+ * \internal
+ * \ingroup meta
+ */
+template <
+    typename Head,
+    typename...S,
+    typename...T,
+    typename...U,
+    template <typename...> class Model
+>
+struct CollapseAdaptiveJoin<
+           Model<>,
+           TypeSequence<S...>,
+           TypeSequence<T...>,
+           Head,
+           U...>
+  : CollapseAdaptiveJoin<
+        Model<>,
+        TypeSequence<S..., NotAdaptive<Head>>,
+        TypeSequence<T..., VoidProcessModel>,
+        U...>
+{ };
+
+/**
+ * \internal
+ * \ingroup meta
+ */
+template <
+    typename...S,
+    typename...T,
+    typename...U,
+    typename...V,
+    template <typename...> class Model
+>
+struct CollapseAdaptiveJoin<
+           Model<>,
+           TypeSequence<S...>,
+           TypeSequence<T...>,
+           Join<V...>,
+           U...>
+  : CollapseAdaptiveJoin<
+        Model<>,
+        TypeSequence<S...>,
+        TypeSequence<T...>,
+        V...,
+        U...>
+{ };
+
+/**
+ * \internal
+ * \ingroup meta
+ */
+template <
+    typename...S,
+    typename...T,
+    typename...U,
+    typename V,
+    int Count,
+    template <typename...> class Model
+>
+struct CollapseAdaptiveJoin<
+           Model<>,
+           TypeSequence<S...>,
+           TypeSequence<T...>,
+           MultipleOf<V, Count>,
+           U...>
+  : CollapseAdaptiveJoin<
+        Model<>,
+        TypeSequence<S...>,
+        TypeSequence<T...>,
+        Model<MultipleOf<V, Count>>,
+        U...>
+{ };
+
+
+/**
+ * \internal
+ * \ingroup meta
+ */
+template <
+    typename...S,
+    typename...T,
+    typename...U,
+    typename V,
+    typename Process,
+    int Count,
+    template <typename...> class Model
+>
+struct CollapseAdaptiveJoin<
+           Model<>,
+           TypeSequence<S...>,
+           TypeSequence<T...>,
+           MultipleOf<Adaptive<V, Process>, Count>,
+           U...>
+  : CollapseAdaptiveJoin<
+        Model<>,
+        TypeSequence<S...>,
+        TypeSequence<T...>,
+        Adaptive<
+            Model<MultipleOf<V, Count>>,
+            JointProcessModel<MultipleOf<Process, Count>>
+        >,
+        U...>
+{ };
+
+/**
+ * \internal
+ * \ingroup meta
+ *
+ * Terminal case of CollapseAdaptiveJoin
+ */
+template <
+    typename...S,
+    typename...T,
+    template <typename...> class Model
+>
+struct CollapseAdaptiveJoin<
+           Model<>,
+           TypeSequence<S...>,
+           TypeSequence<T...>>
+//        : ShowResult<Adaptive<Model<S...>, JointProcessModel<T...>>>
+{
+    /**
+     * \brief Final type outcome of the Join Operator
+     */
+    typedef Adaptive<Model<S...>, JointProcessModel<T...>> Type;
+
+//    static_assert(sizeof...(S) > 1,
+//                  "Join<A, B, ...> operator must take 2 or more operands");
+};
+
+/**
+ * \internal
+ * \ingroup meta
+ *
+ * Terminal case of CollapseAdaptiveJoin for single JointProcessModel<>
+ */
+template <
+    typename...S,
+    typename...T,
+    template <typename...> class Model
+>
+struct CollapseAdaptiveJoin<
+           Model<>,
+           TypeSequence<S...>,
+           TypeSequence<JointProcessModel<T...>>>
+//        : ShowResult<Adaptive<Model<S...>, JointProcessModel<T...>>>
+{
+    /**
+     * \brief Final type outcome of the Join Operator
+     */
+    typedef Adaptive<Model<S...>, JointProcessModel<T...>> Type;
+};
+
+/**
+ * \internal
+ * \ingroup meta
+ *
+ * Terminal case of CollapseAdaptiveJoin for singe JointProcessModel<> and
+ * single Model<>
+ */
+template <
+    typename...S,
+    typename...T,
+    template <typename...> class Model
+>
+struct CollapseAdaptiveJoin<
+           Model<>,
+           TypeSequence<Model<S...>>,
+           TypeSequence<JointProcessModel<T...>>>
+//        : ShowResult<Adaptive<Model<S...>, JointProcessModel<T...>>>
+{
+    /**
+     * \brief Final type outcome of the Join Operator
+     */
+    typedef Adaptive<Model<S...>, JointProcessModel<T...>> Type;
+};
+
+
+/**
+ * \internal
+ * \ingroup meta
+ *
+ * Terminal case of CollapseAdaptiveJoin for MultipleOf<Adaptive<M, Process>, #>
+ */
+template <
+    typename M,
+    typename Process,
+    int Count,
+    template <typename...> class Model
+>
+struct CollapseAdaptiveJoin<
+           Model<>,
+           TypeSequence<Model<MultipleOf<Adaptive<M, Process>, Count>>>>
+//        : ShowResult<Adaptive<Model<S...>, JointProcessModel<T...>>>
+{
+    /**
+     * \brief Final type outcome of the Join Operator
+     */
+    typedef Adaptive<
+                Model<MultipleOf<M, Count>>,
+                JointProcessModel<MultipleOf<Process, Count>>
+            > Type;
 };
 
 }
