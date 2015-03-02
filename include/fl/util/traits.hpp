@@ -29,21 +29,6 @@ namespace fl
 
 /**
  * \ingroup traits
- *
- * \brief FilterOptions define a set of options which are used to specialize
- * filter algorithms.
- */
-enum FilterOptions : unsigned int
-{
-    NoOptions = 0,                  /**< Represents empty option set */
-    AdditiveProcessNoise = 1 >> 1,  /**< Forces additive process noise */
-    AdditiveObsrvNoise   = 1 >> 2,  /**< Forces additive observation noise */
-    FactorizeParams = 1 >> 3        /**< Specifies param. state factorization */
-};
-
-/**
- * \struct Traits
- * \ingroup traits
  * \brief Generic trait template
  *
  * Filters, models and distributions may specify a \c Traits specialization
@@ -198,10 +183,12 @@ namespace fl
 
 namespace internal
 {
-//struct Empty { };
-typedef Eigen::Matrix<double, 0, 0> Empty;
+typedef Eigen::Matrix<double, 0, 1> NullVector;
 
-enum SpaceType
+//struct Empty { };
+typedef Eigen::Matrix<double, 0, 0> Empty; // must GO!
+
+enum SpaceType // must GO!
 {
     Scalar,
     Vectorial
