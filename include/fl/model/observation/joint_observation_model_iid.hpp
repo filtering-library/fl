@@ -40,6 +40,63 @@ namespace fl
 // Forward declarations
 template <typename...Models> class JointObservationModel;
 
+
+
+
+/**
+ * Traits of JointObservationModel<MultipleOf<ObservationModel, Count>>
+ */
+template <
+    typename ObsrvModel,
+    int Count
+>
+struct Traits<
+           JointObservationModel<MultipleOf<ObsrvModel, Count>>
+        >
+    : public Traits<
+                JointObservationModel<
+                    MultipleOf<
+                        typename ForwardAdaptive<ObsrvModel>::Type, Count
+                    >,
+                    Adaptive<>>>
+{ };
+
+/**
+ * \internal
+ * \ingroup observation_models
+ *
+ * Forwards an adaptive LocalObsrvModel type to the JointObservationModel
+ * implementation. \sa ForwardAdaptive for more details.
+ */
+template <
+    typename ObsrvModel,
+    int Count
+>
+class JointObservationModel<MultipleOf<ObsrvModel, Count>>
+    : public JointObservationModel<
+                MultipleOf<typename ForwardAdaptive<ObsrvModel>::Type, Count>,
+                Adaptive<>>
+{
+public:
+    typedef JointObservationModel<
+                MultipleOf<typename ForwardAdaptive<ObsrvModel>::Type, Count>,
+                Adaptive<>
+            > Base;
+
+    typedef typename ForwardAdaptive<ObsrvModel>::Type ForwardedType;
+
+    JointObservationModel(
+            const ObsrvModel& local_obsrv_model,
+            int count = ToDimension<Count>::Value)
+        : Base(ForwardedType(local_obsrv_model), count)
+    { }
+
+    JointObservationModel(const MultipleOf<ObsrvModel, Count>& mof)
+        : Base(mof)
+    { }
+};
+
+
 /**
  * Traits of JointObservationModel<MultipleOf<ObservationModel, Count>>
  */
@@ -78,6 +135,8 @@ struct Traits<
                 State,
                 Noise
             > ObservationModelBase;
+
+    typedef AdaptiveModel<Param> AdaptiveModelBase;
 };
 
 /**
@@ -102,18 +161,34 @@ struct Traits<
  * operator enables any model to be treated as if it is adaptive without
  * effecting the model behaviour.
  */
+
+
+//template <
+//    typename ObsrvModel,
+//    int Count
+//>
+//class JointObservationModel<MultipleOf<NotAdaptive<ObsrvModel>, Count>>
+//    : public JointObservationModel<
+//                MultipleOf<NotAdaptive<ObsrvModel>, Count>, Adaptive<>>
+//{
+//public:
+//};
+
 template <
     typename LocalObsrvModel,
     int Count
 >
-#ifdef GENERATING_DOCUMENTATION
-class JointObservationModel<MultipleOf<LocalObsrvModel, Count>>
-#else
+//#ifdef GENERATING_DOCUMENTATION
+//class JointObservationModel<MultipleOf<LocalObsrvModel, Count>>
+//#else
 class JointObservationModel<MultipleOf<LocalObsrvModel, Count>, Adaptive<>>
-#endif
+//#endif
     : public Traits<
                  JointObservationModel<MultipleOf<LocalObsrvModel, Count>>
-             >::ObservationModelBase
+             >::ObservationModelBase,
+      public Traits<
+                 JointObservationModel<MultipleOf<LocalObsrvModel, Count>>
+             >::AdaptiveModelBase
 {
 public:
     typedef JointObservationModel<MultipleOf<LocalObsrvModel,Count>> This;
@@ -121,9 +196,11 @@ public:
     typedef typename Traits<This>::Obsrv Obsrv;
     typedef typename Traits<This>::State State;
     typedef typename Traits<This>::Noise Noise;
+    typedef typename Traits<This>::Param Param;
 
 public:
-    explicit JointObservationModel(
+    explicit
+    JointObservationModel(
             const LocalObsrvModel& local_obsrv_model,
             int count = ToDimension<Count>::Value)
         : local_obsrv_model_(local_obsrv_model),
@@ -132,8 +209,9 @@ public:
         assert(count_ > 0);
     }
 
+    template <typename Model>
     explicit
-    JointObservationModel(const MultipleOf<LocalObsrvModel, Count>& mof)
+    JointObservationModel(const MultipleOf<Model, Count>& mof)
         : local_obsrv_model_(mof.instance),
           count_(mof.count)
     {
@@ -154,12 +232,21 @@ public:
     {
         Obsrv y = Obsrv::Zero(obsrv_dimension(), 1);
 
-        int obsrv_dim = local_obsrv_model_.obsrv_dimension();
-        int noise_dim = local_obsrv_model_.noise_dimension();
+        const int obsrv_dim = local_obsrv_model_.obsrv_dimension();
+        const int noise_dim = local_obsrv_model_.noise_dimension();
+        const int param_dim = local_obsrv_model_.param_dimension();
 
         const int count = count_;
         for (int i = 0; i < count; ++i)
         {
+            // set parameters if exist
+            if (param_dim > 0)
+            {
+                local_obsrv_model_.param(
+                    param_.middleRows(i * param_dim, param_dim));
+            }
+
+            // predict observation
             y.middleRows(i * obsrv_dim, obsrv_dim) =
                 local_obsrv_model_.predict_obsrv(
                     state,
@@ -190,30 +277,21 @@ public:
         return local_obsrv_model_;
     }
 
+    virtual Param param() const { return param_; }
+
+    virtual void param(Param new_param) { param_ = new_param; }
+
+    virtual int param_dimension() const
+    {
+        return local_obsrv_model_.param_dimension() * count_;
+    }
+
 protected:
     LocalObsrvModel local_obsrv_model_;
     int count_;
+    Param param_;
 };
-
-/**
- * \internal
- * \ingroup observation_models
- *
- * Forwards an adaptive LocalObsrvModel type to the JointObservationModel
- * implementation. \sa ForwardAdaptive for more details.
- */
-template <
-    typename LocalObsrvModel,
-    int Count
->
-class JointObservationModel<MultipleOf<LocalObsrvModel, Count>>
-    : public JointObservationModel<
-          MultipleOf<typename ForwardAdaptive<LocalObsrvModel>::Type, Count>,
-          Adaptive<>
-      >
-{ };
 
 }
 
 #endif
-
