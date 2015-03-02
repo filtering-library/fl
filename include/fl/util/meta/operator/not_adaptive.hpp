@@ -43,7 +43,7 @@ template <typename... Model> class NotAdaptive;
  * \internal
  * \ingroup meta
  *
- * MakeAdaptive operator specialization applied on the passed model type
+ * ForwardAdaptive operator specialization applied on the passed model type
  */
 template <typename Model>
 class NotAdaptive<Model>
@@ -120,6 +120,50 @@ public:
 
 protected:
     Param param_;
+};
+
+
+class VoidProcessModel;
+
+/**
+ * Traits of ObservationModelInterface
+ */
+template <>
+struct Traits<VoidProcessModel>
+{
+    typedef internal::NullVector State;
+    typedef internal::NullVector Input;
+    typedef internal::NullVector Noise;
+    typedef internal::NullVector::Scalar Scalar;
+};
+
+/**
+ * \internal
+ * \ingroup process_models
+ *
+ */
+class VoidProcessModel
+    : public ProcessModelInterface<
+                 internal::NullVector,
+                 internal::NullVector,
+                 internal::NullVector>
+{
+public:
+    typedef VoidProcessModel This;
+
+    typedef typename Traits<This>::State State;
+    typedef typename Traits<This>::Input Input;
+    typedef typename Traits<This>::Noise Noise;
+    typedef typename Traits<This>::Scalar Scalar;
+
+public:
+    virtual State predict_state(double,
+                                const State&,
+                                const Noise&,
+                                const Input&) { return State(); }
+    virtual constexpr size_t state_dimension() const { return 0; }
+    virtual constexpr size_t noise_dimension() const { return 0; }
+    virtual constexpr size_t input_dimension() const { return 0; }
 };
 
 }
