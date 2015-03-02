@@ -14,11 +14,14 @@ target_link_libraries(traits_tests
                       ${catkin_LIBRARIES})
 
 ## meta tests##
-catkin_add_gtest(meta_tests
-                 utils/meta_test.cpp
-                 gtest_main.cpp)
-target_link_libraries(meta_tests
-                      ${catkin_LIBRARIES})
+catkin_add_gtest(meta_tests utils/meta_test.cpp gtest_main.cpp)
+target_link_libraries(meta_tests ${catkin_LIBRARIES})
+
+catkin_add_gtest(options_test utils/options_test.cpp gtest_main.cpp)
+target_link_libraries(options_test ${catkin_LIBRARIES})
+
+catkin_add_gtest(join_test utils/join_test.cpp gtest_main.cpp)
+target_link_libraries(join_test ${catkin_LIBRARIES})
 
  # filter interface tests ##
  catkin_add_gtest(filter_interface_tests
@@ -102,8 +105,10 @@ catkin_add_gtest(gaussian_filter_factorized_test
                  gtest_main.cpp)
 target_link_libraries(gaussian_filter_factorized_test ${catkin_LIBRARIES})
 
-
-
+catkin_add_gtest(adaptive_test
+                 model/adaptive_test.cpp
+                 gtest_main.cpp)
+target_link_libraries(adaptive_test ${catkin_LIBRARIES})
 
 
 # ## Gaussian filter tests ##
