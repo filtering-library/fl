@@ -335,7 +335,7 @@ public:
         const size_t point_count = X_r.count_points();
         for (size_t i = 0; i < point_count; ++i)
         {
-            X_y.point(i, obsrv_model_->predict_observation(X_r.point(i),
+            X_y.point(i, obsrv_model_->predict_obsrv(X_r.point(i),
                                                            0 /* delta time */));
         }
 
