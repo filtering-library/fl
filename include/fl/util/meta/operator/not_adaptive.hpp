@@ -24,6 +24,7 @@
 
 #include <Eigen/Dense>
 
+#include <fl/util/traits.hpp>
 #include <fl/util/meta/size_deduction.hpp>
 #include <fl/model/adaptive_model.hpp>
 #include <fl/model/process/process_model_interface.hpp>
@@ -40,23 +41,12 @@ namespace fl
 template <typename... Model> class NotAdaptive;
 
 /**
- * \internal
- * \ingroup meta
- *
- * ForwardAdaptive operator specialization applied on the passed model type
- */
-template <typename Model>
-class NotAdaptive<Model>
-  : public NotAdaptive<typename Model::ModelType, Model>
-{ };
-
-/**
  * \ingroup meta
  *
  * Traits of Non-Adaptive model
  */
 template <typename Model>
-struct Traits<NotAdaptive<internal::ObsrvModelType, Model>>
+struct Traits<NotAdaptive<Model>>
     : Traits<Model>
 {
     typedef typename Traits<Model>::Scalar Scalar;
@@ -72,8 +62,53 @@ struct Traits<NotAdaptive<internal::ObsrvModelType, Model>>
 };
 
 /**
+ * \ingroup meta
+ *
+ * \brief The NotAdaptive operator decorates any model such that it represents a
+ * non-adaptive model. This operator can be applied to any model inparticular
+ * to models which do not implement the AdaptiveModel interface.
+ *
+ * The way this operates is simply by overriding the AdaptiveModel interface
+ * and deactivating it. If the model does not implement the AdaptiveModel
+ * interface, then the NotAdaptive injects the interface with a deactivated
+ * adaptivity.
+ *
+ * \cond INTERNAL
+ * NotAdaptive operator specialization forwarding to the according ModelType
+ * (i.e. either internal::ObsrvModelType or internal::ProcessModelType).
+ * \endcond
+ */
+template <typename Model>
+class NotAdaptive<Model>
+  : public NotAdaptive<typename Model::ModelType, Model>
+{
+public:
+    typedef NotAdaptive<typename Model::ModelType, Model> Base;
+
+    /**
+     * Conversion constructor. This converts the actual model instance into
+     * a NotAdaptive instances
+     *
+     * \param model     Actual model instance
+     */
+    NotAdaptive(const Model& model) : Base(model) { }
+};
+
+/**
  * \internal
  * \ingroup meta
+ *
+ * Traits of Non-Adaptive model
+ */
+template <typename Model>
+struct Traits<NotAdaptive<internal::ObsrvModelType, Model>>
+    : Traits<NotAdaptive<Model>>
+{ };
+
+/**
+ * \internal
+ * \ingroup meta
+ *
  * Adaptive operator implementation of the observation model
  */
 template <typename Model>
@@ -88,6 +123,14 @@ public:
     typedef typename Traits<This>::State State;
     typedef typename Traits<This>::Noise Noise;
     typedef typename Traits<This>::Param Param;
+
+    /**
+     * Conversion constructor. This converts the actual model instance into
+     * a NotAdaptive instances
+     *
+     * \param model     Actual model instance
+     */
+    NotAdaptive(const Model& model) : Model(model) { }
 
     /**
      * Evaluates the model function \f$y = h(x, w)\f$ where \f$x\f$ is the state
@@ -123,48 +166,48 @@ protected:
 };
 
 
-class VoidProcessModel;
+//class NAProcessModel;
 
-/**
- * Traits of ObservationModelInterface
- */
-template <>
-struct Traits<VoidProcessModel>
-{
-    typedef internal::NullVector State;
-    typedef internal::NullVector Input;
-    typedef internal::NullVector Noise;
-    typedef internal::NullVector::Scalar Scalar;
-};
+///**
+// * Traits of ObservationModelInterface
+// */
+//template <>
+//struct Traits<NAProcessModel>
+//{
+//    typedef internal::NullVector State;
+//    typedef internal::NullVector Input;
+//    typedef internal::NullVector Noise;
+//    typedef internal::NullVector::Scalar Scalar;
+//};
 
-/**
- * \internal
- * \ingroup process_models
- *
- */
-class VoidProcessModel
-    : public ProcessModelInterface<
-                 internal::NullVector,
-                 internal::NullVector,
-                 internal::NullVector>
-{
-public:
-    typedef VoidProcessModel This;
+///**
+// * \internal
+// * \ingroup process_models
+// *
+// */
+//class NAProcessModel
+//    : public ProcessModelInterface<
+//                 internal::NullVector,
+//                 internal::NullVector,
+//                 internal::NullVector>
+//{
+//public:
+//    typedef NAProcessModel This;
 
-    typedef typename Traits<This>::State State;
-    typedef typename Traits<This>::Input Input;
-    typedef typename Traits<This>::Noise Noise;
-    typedef typename Traits<This>::Scalar Scalar;
+//    typedef typename Traits<This>::State State;
+//    typedef typename Traits<This>::Input Input;
+//    typedef typename Traits<This>::Noise Noise;
+//    typedef typename Traits<This>::Scalar Scalar;
 
-public:
-    virtual State predict_state(double,
-                                const State&,
-                                const Noise&,
-                                const Input&) { return State(); }
-    virtual constexpr size_t state_dimension() const { return 0; }
-    virtual constexpr size_t noise_dimension() const { return 0; }
-    virtual constexpr size_t input_dimension() const { return 0; }
-};
+//public:
+//    virtual State predict_state(double,
+//                                const State&,
+//                                const Noise&,
+//                                const Input&) { return State(); }
+//    virtual constexpr size_t state_dimension() const { return 0; }
+//    virtual constexpr size_t noise_dimension() const { return 0; }
+//    virtual constexpr size_t input_dimension() const { return 0; }
+//};
 
 }
 
