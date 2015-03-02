@@ -19,8 +19,13 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__UTIL__META__OPERATOR_MULTIPLE_OF_HPP
-#define FL__UTIL__META__OPERATOR_MULTIPLE_OF_HPP
+#ifndef FL__UTIL__META__OPERATOR__MULTIPLE_OF_HPP
+#define FL__UTIL__META__OPERATOR__MULTIPLE_OF_HPP
+
+#include <type_traits>
+
+#include <fl/util/meta/operator/not_adaptive.hpp>
+#include <fl/util/meta/operator/forward_adaptive.hpp>
 
 namespace fl
 {
@@ -32,32 +37,20 @@ namespace fl
  * an attempt to make the use of \c CreateTypeSequence more natural. It also
  * allows dynamic sizes if needed.
  */
-template <typename Type, int Count = Eigen::Dynamic>
+template <typename T, int Count>
 struct MultipleOf
-    : CreateTypeSequence<Count, Type>
+    : CreateTypeSequence<Count, typename ForwardAdaptive<T>::Type>
 {
-    template <typename InstanceType>
-    explicit
-    MultipleOf(InstanceType&& instance, int instance_count = Count)
-        : instance(std::forward<InstanceType>(instance)),
+    typedef typename ForwardAdaptive<T>::Type Type;
+
+    MultipleOf(const Type& instance, int instance_count = Count)
+        : instance(instance),
           count(instance_count)
     { }
 
     Type instance;
     int count;
 };
-
-/**
- * \internal
- * \ingroup meta
- * \todo fix
- *
- * Creates an empty TypeSequence for dynamic count
- */
-//template <typename Type>
-//struct MultipleOf<Type, Eigen::Dynamic>
-//    : CreateTypeSequence<Eigen::Dynamic, Type>
-//{ };
 
 }
 
