@@ -47,25 +47,31 @@ struct Traits<
        >
 {
     enum : signed int
-    {
+    {        
         ObsrvDim = JoinSizes<Traits<Models>::Obsrv::SizeAtCompileTime...>::Size,
-        StateDim = JoinSizes<Traits<Models>::State::SizeAtCompileTime...>::Size,
-        NoiseDim = JoinSizes<Traits<Models>::Noise::SizeAtCompileTime...>::Size
+        NoiseDim = JoinSizes<Traits<Models>::Noise::SizeAtCompileTime...>::Size,
+        ParamDim = JoinSizes<Traits<Models>::Param::SizeAtCompileTime...>::Size,
+        StateDim = Traits<
+                       typename FirstTypeIn<Models...>::Type
+                    >::State::SizeAtCompileTime
     };
 
     typedef typename Traits<
                          typename FirstTypeIn<Models...>::Type
                      >::State::Scalar Scalar;
 
+    typedef Eigen::Matrix<Scalar, ObsrvDim, 1> Obsrv;
     typedef Eigen::Matrix<Scalar, StateDim, 1> State;
     typedef Eigen::Matrix<Scalar, NoiseDim, 1> Noise;
-    typedef Eigen::Matrix<Scalar, ObsrvDim, 1> Obsrv;
+    typedef Eigen::Matrix<Scalar, ParamDim, 1> Param;
 
     typedef ObservationModelInterface<
                 Obsrv,
                 State,
                 Noise
             > ObservationModelBase;
+
+    typedef AdaptiveModel<Param> AdaptiveModelBase;
 };
 
 /**
@@ -103,6 +109,7 @@ public:
     typedef typename Traits<This>::State State;
     typedef typename Traits<This>::Noise Noise;
     typedef typename Traits<This>::Obsrv Obsrv;
+    typedef typename Traits<This>::Param Param ;
 
 public:
     /**
