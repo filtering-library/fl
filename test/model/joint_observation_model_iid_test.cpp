@@ -27,6 +27,7 @@
 #include <cmath>
 #include <iostream>
 
+#include <fl/util/meta.hpp>
 #include <fl/model/observation/linear_observation_model.hpp>
 #include <fl/model/observation/joint_observation_model_iid.hpp>
 
