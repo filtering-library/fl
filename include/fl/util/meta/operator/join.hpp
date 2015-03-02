@@ -68,7 +68,7 @@ template <typename...T> struct CollapseAdaptiveJoin;
  *
  * Inherit from this to display the join collapse result
  */
-template <typename ... S> struct ShowResult
+template <typename ... S> struct ShowCompilerResult
 {
   static_assert(sizeof...(S) < 0, "Showing Join result");
 };
@@ -118,7 +118,8 @@ struct CollapseJoin<
   : CollapseAdaptiveJoin<
         Model<>,
         TypeSequence<NotAdaptive<S>...>,
-        typename CreateTypeSequence<sizeof...(S), VoidProcessModel>::TypeSeq,
+        TypeSequence<>,
+        //typename CreateTypeSequence<sizeof...(S), NAProcessModel>::TypeSeq,
         Adaptive<Head, Process>,
         T...>
 { };
@@ -199,11 +200,12 @@ struct CollapseJoin<
            MultipleOf<Adaptive<U, V>, Count>,    // Current pack head element
            T...>                    // Remaining Join pack, the tail
   : CollapseAdaptiveJoin<
-        Model<>,                    // Final model type
-        TypeSequence<NotAdaptive<S>...>,         // Type sequence holding the pack expansion
-        typename CreateTypeSequence<sizeof...(S), VoidProcessModel>::TypeSeq,
-        MultipleOf<Adaptive<U, V>, Count>,// Redefine head in terms of Model<>
-        T...>                       // Remaining Tail
+        Model<>,
+        TypeSequence<NotAdaptive<S>...>,
+        TypeSequence<>,
+        //typename CreateTypeSequence<sizeof...(S), NAProcessModel>::TypeSeq,
+        MultipleOf<Adaptive<U, V>, Count>,
+        T...>
 { };
 
 /**
@@ -321,7 +323,8 @@ struct CollapseAdaptiveJoin<
   : CollapseAdaptiveJoin<
         Model<>,
         TypeSequence<S..., NotAdaptive<Head>>,
-        TypeSequence<T..., VoidProcessModel>,
+        TypeSequence<T...>,
+        //TypeSequence<T..., NAProcessModel>,
         U...>
 { };
 
@@ -422,7 +425,7 @@ struct CollapseAdaptiveJoin<
            Model<>,
            TypeSequence<S...>,
            TypeSequence<T...>>
-//        : ShowResult<Adaptive<Model<S...>, JointProcessModel<T...>>>
+//        : ShowCompilerResult<Adaptive<Model<S...>, JointProcessModel<T...>>>
 {
     /**
      * \brief Final type outcome of the Join Operator
@@ -448,7 +451,7 @@ struct CollapseAdaptiveJoin<
            Model<>,
            TypeSequence<S...>,
            TypeSequence<JointProcessModel<T...>>>
-//        : ShowResult<Adaptive<Model<S...>, JointProcessModel<T...>>>
+//        : ShowCompilerResult<Adaptive<Model<S...>, JointProcessModel<T...>>>
 {
     /**
      * \brief Final type outcome of the Join Operator
@@ -472,7 +475,7 @@ struct CollapseAdaptiveJoin<
            Model<>,
            TypeSequence<Model<S...>>,
            TypeSequence<JointProcessModel<T...>>>
-//        : ShowResult<Adaptive<Model<S...>, JointProcessModel<T...>>>
+//        : ShowCompilerResult<Adaptive<Model<S...>, JointProcessModel<T...>>>
 {
     /**
      * \brief Final type outcome of the Join Operator
@@ -496,7 +499,7 @@ template <
 struct CollapseAdaptiveJoin<
            Model<>,
            TypeSequence<Model<MultipleOf<Adaptive<M, Process>, Count>>>>
-//        : ShowResult<Adaptive<Model<S...>, JointProcessModel<T...>>>
+//        : ShowCompilerResult<Adaptive<Model<S...>, JointProcessModel<T...>>>
 {
     /**
      * \brief Final type outcome of the Join Operator
