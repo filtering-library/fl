@@ -22,10 +22,12 @@
 #ifndef FL__UTIL__META__OPERATOR__NOT_ADAPTIVE_HPP
 #define FL__UTIL__META__OPERATOR__NOT_ADAPTIVE_HPP
 
+#include <type_traits>
+
 #include <Eigen/Dense>
 
 #include <fl/util/traits.hpp>
-#include <fl/util/meta/size_deduction.hpp>
+#include <fl/util/meta.hpp>
 #include <fl/model/adaptive_model.hpp>
 #include <fl/model/process/process_model_interface.hpp>
 #include <fl/model/observation/observation_model_interface.hpp>
@@ -50,14 +52,9 @@ struct Traits<NotAdaptive<Model>>
     : Traits<Model>
 {
     typedef typename Traits<Model>::Scalar Scalar;
-    typedef typename Traits<Model>::Obsrv Obsrv;
-    typedef typename Traits<Model>::State State;
-    typedef typename Traits<Model>::Noise Noise;
 
     enum : signed int { ParamDim = 0 };
-
     typedef Eigen::Matrix<Scalar, ParamDim, 1> Param;
-
     typedef AdaptiveModel<Param> AdaptiveModelBase;
 };
 
@@ -80,10 +77,22 @@ struct Traits<NotAdaptive<Model>>
  */
 template <typename Model>
 class NotAdaptive<Model>
-  : public NotAdaptive<typename Model::ModelType, Model>
+  : public NotAdaptive<
+               Model,
+               typename Model::ModelType,
+               Options<
+                   std::is_base_of<internal::AdaptiveModelType, Model>::value
+                >
+            >
 {
 public:
-    typedef NotAdaptive<typename Model::ModelType, Model> Base;
+    typedef NotAdaptive<
+                Model,
+                typename Model::ModelType,
+                Options<
+                    std::is_base_of<internal::AdaptiveModelType, Model>::value
+                >
+            > Base;
 
     /**
      * Conversion constructor. This converts the actual model instance into
@@ -91,17 +100,20 @@ public:
      *
      * \param model     Actual model instance
      */
-    NotAdaptive(const Model& model) : Base(model) { }
+    template <typename ... M>
+    NotAdaptive(const M& ... model) : Base(model...) { }
 };
 
 /**
  * \internal
  * \ingroup meta
  *
- * Traits of Non-Adaptive model
+ * Traits of Non-Adaptive observation models
  */
-template <typename Model>
-struct Traits<NotAdaptive<internal::ObsrvModelType, Model>>
+template <typename Model, int Adaptivity>
+struct Traits<
+           NotAdaptive<Model, internal::ObsrvModelType, Options<Adaptivity>>
+       >
     : Traits<NotAdaptive<Model>>
 { };
 
@@ -109,15 +121,39 @@ struct Traits<NotAdaptive<internal::ObsrvModelType, Model>>
  * \internal
  * \ingroup meta
  *
- * Adaptive operator implementation of the observation model
+ * Traits of Non-Adaptive process model
+ */
+template <typename Model, int Adaptivity>
+struct Traits<
+           NotAdaptive<Model, internal::ProcessModelType, Options<Adaptivity>>
+        >
+    : Traits<NotAdaptive<Model>>
+{ };
+
+
+/**
+ * \internal
+ * \ingroup meta
+ *
+ * NotAdaptive operator implementation of the observation model
  */
 template <typename Model>
-class NotAdaptive<internal::ObsrvModelType, Model>
+class NotAdaptive<Model, internal::ObsrvModelType, Options<IsNotAdaptive>>
   : public Model,
-    public Traits<NotAdaptive<internal::ObsrvModelType, Model>>::AdaptiveModelBase
+    public Traits<
+               NotAdaptive<
+                   Model,
+                   internal::ObsrvModelType,
+                   Options<IsNotAdaptive>
+               >
+           >::AdaptiveModelBase
 {
 public:
-    typedef NotAdaptive<internal::ObsrvModelType, Model> This;
+    typedef NotAdaptive<
+                Model,
+                internal::ObsrvModelType,
+                Options<IsNotAdaptive>
+            > This;
 
     typedef typename Traits<This>::Obsrv Obsrv;
     typedef typename Traits<This>::State State;
@@ -130,18 +166,9 @@ public:
      *
      * \param model     Actual model instance
      */
-    NotAdaptive(const Model& model) : Model(model) { }
+    template <typename ... M>
+    NotAdaptive(const M& ... model) : Model(model...) { }
 
-    /**
-     * Evaluates the model function \f$y = h(x, w)\f$ where \f$x\f$ is the state
-     * and \f$w\sim {\cal N}(0, 1)\f$ is a white noise parameter. Put
-     * differently, \f$y = h(x, w)\f$ is a sample from the conditional model
-     * distribution \f$p(y \mid x)\f$.
-     *
-     * \param state         The state variable \f$x\f$
-     * \param noise         The noise term \f$w\f$
-     * \param delta_time    Prediction time
-     */
     virtual Obsrv predict_obsrv(const State& state,
                                 const Noise& noise,
                                 double delta_time)
@@ -165,49 +192,183 @@ protected:
     Param param_;
 };
 
+/**
+ * \internal
+ * \ingroup meta
+ *
+ * NotAdaptive operator implementation of the observation model
+ */
+template <typename Model>
+class NotAdaptive<Model, internal::ObsrvModelType, Options<IsAdaptive>>
+  : public Model
+{
+public:
+    typedef NotAdaptive<
+                Model,
+                internal::ObsrvModelType,
+                Options<IsAdaptive>
+            > This;
 
-//class NAProcessModel;
+    typedef typename Traits<This>::Obsrv Obsrv;
+    typedef typename Traits<This>::State State;
+    typedef typename Traits<This>::Noise Noise;
+    typedef typename Traits<This>::Param Param;
 
-///**
-// * Traits of ObservationModelInterface
-// */
-//template <>
-//struct Traits<NAProcessModel>
-//{
-//    typedef internal::NullVector State;
-//    typedef internal::NullVector Input;
-//    typedef internal::NullVector Noise;
-//    typedef internal::NullVector::Scalar Scalar;
-//};
+    /**
+     * Conversion constructor. This converts the actual model instance into
+     * a NotAdaptive instances
+     *
+     * \param model     Actual model instance
+     */
+    template <typename ... M>
+    NotAdaptive(const M& ... model) : Model(model...) { }
 
-///**
-// * \internal
-// * \ingroup process_models
-// *
-// */
-//class NAProcessModel
-//    : public ProcessModelInterface<
-//                 internal::NullVector,
-//                 internal::NullVector,
-//                 internal::NullVector>
-//{
-//public:
-//    typedef NAProcessModel This;
+    virtual Obsrv predict_obsrv(const State& state,
+                                const Noise& noise,
+                                double delta_time)
+    {
+        assert(state.rows() == state_dimension());
 
-//    typedef typename Traits<This>::State State;
-//    typedef typename Traits<This>::Input Input;
-//    typedef typename Traits<This>::Noise Noise;
-//    typedef typename Traits<This>::Scalar Scalar;
+        return Model::predict_obsrv(state.topRows(Model::state_dimension()),
+                                    noise, delta_time);
+    }
 
-//public:
-//    virtual State predict_state(double,
-//                                const State&,
-//                                const Noise&,
-//                                const Input&) { return State(); }
-//    virtual constexpr size_t state_dimension() const { return 0; }
-//    virtual constexpr size_t noise_dimension() const { return 0; }
-//    virtual constexpr size_t input_dimension() const { return 0; }
-//};
+    virtual int state_dimension() const
+    {
+        return Model::state_dimension() + param_dimension();
+    }
+
+    virtual void param(Param) {  }
+    virtual const Param& param() const { return param_; }
+    virtual int param_dimension() const { return 0; }
+
+protected:
+    Param param_;
+};
+
+/**
+ * \internal
+ * \ingroup meta
+ *
+ * NotAdaptive operator implementation of the process model
+ */
+template <typename Model>
+class NotAdaptive<Model, internal::ProcessModelType, Options<IsNotAdaptive>>
+  : public Model,
+    public Traits<
+               NotAdaptive<
+                   Model,
+                   internal::ProcessModelType,
+                   Options<IsNotAdaptive>>
+           >::AdaptiveModelBase
+{
+public:
+    typedef NotAdaptive<
+                Model,
+                internal::ProcessModelType,
+                Options<IsNotAdaptive>
+            > This;
+
+    typedef typename Traits<This>::Input Input;
+    typedef typename Traits<This>::State State;
+    typedef typename Traits<This>::Noise Noise;
+    typedef typename Traits<This>::Param Param;
+
+    /**
+     * Conversion constructor. This converts the actual model instance into
+     * a NotAdaptive instances
+     *
+     * \param model     Actual model instance
+     */
+    template <typename ... M>
+    NotAdaptive(const M& ... model) : Model(model...) { }
+
+    virtual State predict_state(double delta_time,
+                                const State& state,
+                                const Noise& noise,
+                                const Input& input)
+    {
+        assert(state.rows() == state_dimension());
+
+        return Model::predict_state(
+                    delta_time,
+                    state.topRows(Model::state_dimension()),
+                    noise,
+                    input);
+    }
+
+    virtual int state_dimension() const
+    {
+        return Model::state_dimension() + param_dimension();
+    }
+
+    virtual void param(Param) {  }
+    virtual const Param& param() const { return param_; }
+    virtual int param_dimension() const { return 0; }
+
+protected:
+    Param param_;
+};
+
+
+
+/**
+ * \internal
+ * \ingroup meta
+ *
+ * NotAdaptive operator implementation of the process model
+ */
+template <typename Model>
+class NotAdaptive<Model, internal::ProcessModelType, Options<IsAdaptive>>
+  : public Model
+{
+public:
+    typedef NotAdaptive<
+                Model,
+                internal::ProcessModelType,
+                Options<IsAdaptive>
+            > This;
+
+    typedef typename Traits<This>::Input Input;
+    typedef typename Traits<This>::State State;
+    typedef typename Traits<This>::Noise Noise;
+    typedef typename Traits<This>::Param Param;
+
+    /**
+     * Conversion constructor. This converts the actual model instance into
+     * a NotAdaptive instances
+     *
+     * \param model     Actual model instance
+     */
+    template <typename ... M>
+    NotAdaptive(const M& ... model) : Model(model...) { }
+
+    virtual State predict_state(double delta_time,
+                                const State& state,
+                                const Noise& noise,
+                                const Input& input)
+    {
+        assert(state.rows() == state_dimension());
+
+        return Model::predict_state(
+                    delta_time,
+                    state.topRows(Model::state_dimension()),
+                    noise,
+                    input);
+    }
+
+    virtual int state_dimension() const
+    {
+        return Model::state_dimension() + param_dimension();
+    }
+
+    virtual void param(Param) {  }
+    virtual const Param& param() const { return param_; }
+    virtual int param_dimension() const { return 0; }
+
+protected:
+    Param param_;
+};
 
 }
 
