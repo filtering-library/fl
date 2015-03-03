@@ -27,38 +27,6 @@
 namespace fl
 {
 
-namespace internal
-{
-
-/**
- * \internal
- * Process model type identifier
- */
-struct ProcessModelType { };
-
-}
-
-/* Forward declaration */
-template <
-    typename State,
-    typename Noise,
-    typename Input
->
-class ProcessModelInterface;
-
-/**
- * Traits of ObservationModelInterface
- */
-template <
-    typename State,
-    typename Noise,
-    typename Input
->
-struct Traits<ProcessModelInterface<State, Noise, Input>>
-{
-    typedef internal::ProcessModelType ModelType;
-};
-
 /**
  * \interface ProcessModelInterface
  * \ingroup process_models
@@ -76,7 +44,11 @@ template <
     typename Input = internal::Empty
 >
 class ProcessModelInterface
+    : public internal::ProcessModelType
 {
+public:
+    typedef internal::ProcessModelType ModelType;
+
 public:
     /**
      * Sets the conditional arguments \f$x_t, u_t\f$ of \f$p(x\mid x_t, u_t)\f$
@@ -112,17 +84,17 @@ public:
     /**
      * \return \f$\dim(x_t)\f$, dimension of the state
      */
-    virtual constexpr size_t state_dimension() const = 0;
+    virtual constexpr int state_dimension() const = 0;
 
     /**
      * \return \f$\dim(v_t)\f$, dimension of the noise
      */
-    virtual constexpr size_t noise_dimension() const = 0;
+    virtual constexpr int noise_dimension() const = 0;
 
     /**
      * \return \f$\dim(u_t)\f$, dimension of the control input
      */
-    virtual constexpr size_t input_dimension() const = 0;
+    virtual constexpr int input_dimension() const = 0;
 };
 
 }

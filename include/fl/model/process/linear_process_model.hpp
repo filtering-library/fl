@@ -115,17 +115,17 @@ public:
         return map_standard_normal(noise);
     }
 
-    virtual size_t state_dimension() const
+    virtual int state_dimension() const
     {
         return Traits<This>::GaussianBase::dimension();
     }
 
-    virtual size_t noise_dimension() const
+    virtual int noise_dimension() const
     {
         return Traits<This>::GaussianBase::dimension();
     }
 
-    virtual size_t input_dimension() const
+    virtual int input_dimension() const
     {
         return DimensionOf<Input>();
     }

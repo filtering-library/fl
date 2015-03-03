@@ -111,7 +111,7 @@ public:
     }
 
     JointProcessModel(MultipleOf<LocalProcessModel, Count>&& mof)
-        : local_process_model_(std::move(mof.instance)),
+        : local_process_model_(mof.instance),
           count_(mof.count)
     {
         assert(count_ > 0);
@@ -150,17 +150,17 @@ public:
         return x;
     }
 
-    virtual size_t state_dimension() const
+    virtual int state_dimension() const
     {
         return local_process_model_.state_dimension() * count_;
     }
 
-    virtual size_t noise_dimension() const
+    virtual int noise_dimension() const
     {
         return local_process_model_.noise_dimension() * count_;
     }
 
-    virtual size_t input_dimension() const
+    virtual int input_dimension() const
     {
         return local_process_model_.input_dimension() * count_;
     }
