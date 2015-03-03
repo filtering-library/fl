@@ -32,7 +32,8 @@ namespace fl
 // Forward declarations
 template <
     typename Obsrv,
-    typename State>
+    typename State
+>
 class LinearGaussianObservationModel;
 
 
@@ -43,7 +44,8 @@ class LinearGaussianObservationModel;
  */
 template <
     typename Obsrv_,
-    typename State_>
+    typename State_
+>
 struct Traits<
            LinearGaussianObservationModel<Obsrv_, State_>>
 {    
@@ -167,4 +169,3 @@ protected:
 }
 
 #endif
-

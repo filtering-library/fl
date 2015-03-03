@@ -48,8 +48,7 @@ template <
     int Count
 >
 struct Traits<
-           JointObservationModel<MultipleOf<ObsrvModel, Count>, Adaptive<>>
-        >
+           JointObservationModel<MultipleOf<ObsrvModel, Count>, Adaptive<>>>
 {
     enum : signed int { ModelCount = Count };
 

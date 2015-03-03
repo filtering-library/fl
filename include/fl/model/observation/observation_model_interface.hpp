@@ -22,42 +22,10 @@
 #ifndef FL__MODEL__OBSERVATION__OBSERVATION_MODEL_INTERFACE_HPP
 #define FL__MODEL__OBSERVATION__OBSERVATION_MODEL_INTERFACE_HPP
 
+#include <fl/util/traits.hpp>
+
 namespace fl
 {
-
-namespace internal
-{
-
-/**
- * \internal
- * Observation model type identifier
- */
-struct ObsrvModelType { };
-
-}
-
-/* Forward declaration */
-template <
-    typename Obsrv,
-    typename State,
-    typename Noise,
-    int Id
->
-class ObservationModelInterface;
-
-/**
- * Traits of ObservationModelInterface
- */
-template <
-    typename Obsrv,
-    typename State,
-    typename Noise,
-    int Id
->
-struct Traits<ObservationModelInterface<Obsrv, State, Noise, Id>>
-{
-    typedef internal::ObsrvModelType ModelType;
-};
 
 /**
  * \ingroup observation_models
