@@ -22,19 +22,10 @@
 #ifndef FL__MODEL__ADAPTIVE_MODEL_HPP
 #define FL__MODEL__ADAPTIVE_MODEL_HPP
 
+#include <fl/util/traits.hpp>
+
 namespace fl
 {
-
-namespace internal
-{
-
-/**
- * \internal
- * Adaptive model type identifier
- */
-struct AdaptiveModelType { };
-
-}
 
 /**
  * \ingroup process_models
@@ -66,6 +57,9 @@ template <typename Param>
 class AdaptiveModel
     : public internal::AdaptiveModelType
 {
+public:
+    typedef internal::AdaptiveModelType AdaptivityType;
+
 public:
     /**
      * \return Model parameters \f$\theta\f$.
