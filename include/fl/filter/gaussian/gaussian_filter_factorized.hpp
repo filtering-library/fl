@@ -147,7 +147,7 @@ struct Traits<
      * - Observation
      * - StateDistribution
      */
-    typedef std::shared_ptr<Filter> Ptr;
+    //typedef std::shared_ptr<Filter> Ptr;
     typedef typename Traits<ProcessModel>::State State;
     typedef typename Traits<ProcessModel>::Input Input;
     typedef typename Traits<ObservationModel>::Obsrv Obsrv;
@@ -174,10 +174,10 @@ struct Traits<
     typedef typename Traits<ProcessModel>::State StateState;
     typedef typename Traits<ProcessModel>::Noise StateNoise;
 
-    typedef typename Traits<LocalParamModel>::Param ParamState;
-    typedef typename Traits<LocalParamModel>::Noise ParamNoise;
-    typedef typename Traits<LocalObsrvModel>::Obsrv Obsrv;
-    typedef typename Traits<LocalObsrvModel>::Noise ObsrvNoise;
+    typedef typename Traits<LocalObsrvModel>::Param ParamState;
+    typedef typename Traits<LocalObsrvModel>::Noise ParamNoise;
+    typedef typename Traits<LocalObsrvModel>::Obsrv LocalObsrv;
+    typedef typename Traits<LocalObsrvModel>::Noise LocalNoise;
 
     /**
      * \brief Represents the total number of points required by the point set
@@ -191,7 +191,7 @@ struct Traits<
                                  StateNoise::RowsAtCompileTime,
                                  ParamState::RowsAtCompileTime,
                                  ParamNoise::RowsAtCompileTime,
-                                 ObsrvNoise::RowsAtCompileTime
+                                 LocalNoise::RowsAtCompileTime
                              >::Size)
     };
 
@@ -199,7 +199,7 @@ struct Traits<
     typedef PointSet<StateNoise, NumberOfPoints> StateNoisePointSet;
     typedef PointSet<ParamState, NumberOfPoints> ParamStatePointSet;
     typedef PointSet<ParamNoise, NumberOfPoints> ParamNoisePointSet;
-    typedef PointSet<ObsrvNoise, NumberOfPoints> ObsrvNoisePointSet;
+    typedef PointSet<LocalNoise, NumberOfPoints> ObsrvNoisePointSet;
 
     typedef Eigen::Matrix<ParamStatePointSet, Count, 1> ParamStatePointSets;
     /** \endcond */
@@ -210,7 +210,6 @@ struct Traits<
  * \class GaussianFilter<TemplateParameters, FactorizeParameters>
  *
  * \ingroup gaussian_filter_iid
- * \{
  *
  * This \c GaussianFilter represents a factorized implementation of a Sigma
  * Point Kalman Filter. The filter state consists of a coherent state component
@@ -245,7 +244,7 @@ class GaussianFilter<
                         JointProcessModel<MultipleOf<LocalParamModel, Count>>>,
                     JointObservationModel<MultipleOf<LocalObsrvModel, Count>>,
                     PointSetTransform,
-                    Options<FactorizeParams>>
+                    Options<FactorizeParams>>>
 {
 private:
     /** \cond INTERNAL */
@@ -309,10 +308,10 @@ public:
      * \param parameter_count
      */
     GaussianFilter(
-            StateProcessModel&& state_process_model,
-            LocalParamModel&& param_process_model,
-            LocalObsrvModel&& obsrv_model,
-            PointSetTransform&& point_set_transform,
+            const StateProcessModel& state_process_model,
+            const LocalParamModel& param_process_model,
+            const LocalObsrvModel& obsrv_model,
+            const PointSetTransform& point_set_transform,
             int parameter_count = Count)
         : state_process_model_(state_process_model),
           param_process_model_(param_process_model),
@@ -339,7 +338,7 @@ public:
                                  dim(b_i) + dim(v_b_i) +
                                  dim(w_i);
 
-
+        (void) marginal_dim;
 
         //point_set_transform_->forward(prior_dist, );
     }
@@ -397,22 +396,23 @@ private:
     {
         switch (component)
         {
-        case a:     return state_process_model_->state_dimension();
-        case v_a:   return obsrv_model_->noi_dimension();
-        case b:     return joint_param_process_model_->state_dimension();
-        case v_b:   return joint_param_process_model_->noise_dimension();
-        case b_i:   return param_process_model_->state_dimension();
-        case v_b_i: return param_process_model_->noise_dimension();
-        case y:     return obsrv_model_->obsrv_dimension();
-        case w:     return obsrv_model_->noise_dimension();
-        case y_i:   return obsrv_model_->obsrv_dimension()/Count;
-        case w_i:   return obsrv_model_->noise_dimension()/Count;
+        case a:     return state_process_model_.state_dimension();
+        case v_a:   return obsrv_model_.noise_dimension();
+        case b:     return joint_param_process_model_.state_dimension();
+        case v_b:   return joint_param_process_model_.noise_dimension();
+        case b_i:   return param_process_model_.state_dimension();
+        case v_b_i: return param_process_model_.noise_dimension();
+        case y:     return obsrv_model_.obsrv_dimension();
+        case w:     return obsrv_model_.noise_dimension();
+        case y_i:   return obsrv_model_.obsrv_dimension() / Count;
+        case w_i:   return obsrv_model_.noise_dimension() / Count;
 
         default:
             // throw!
-            break;
+            throw Exception("Unknown variate component.");
         }
     }
+
 
 private:
     StateProcessModel state_process_model_;
@@ -424,42 +424,54 @@ private:
     PointSetTransform point_set_transform_;
 };
 
-/** \} */
+template <
+    typename StateProcessModel,
+    typename ObsrvModel,
+    typename ParamProcess,
+    int Count,
+    typename PointTransform
+>
+class GaussianFilter<
+          StateProcessModel,
+          Join<MultipleOf<Adaptive<ObsrvModel, ParamProcess>, Count>>,
+          PointTransform,
+          Options<FactorizeParams>>
+    : public GaussianFilter<
+                JointProcessModel<
+                    StateProcessModel,
+                    JointProcessModel<MultipleOf<ParamProcess, Count>>
+                >,
+                JointObservationModel<MultipleOf<ObsrvModel, Count>>,
+                PointTransform,
+                Options<FactorizeParams>>
+{
+public:
+    typedef GaussianFilter<
+                JointProcessModel<
+                    StateProcessModel,
+                    JointProcessModel<MultipleOf<ParamProcess, Count>>
+                >,
+                JointObservationModel<MultipleOf<ObsrvModel, Count>>,
+                PointTransform,
+                Options<FactorizeParams>
+            > Base;
 
-//template <
-//    typename StateProcessModel,
-//    typename ObsrvModel,
-//    typename ParamProcess,
-//    int Count,
-//    typename PointTransform
-//>
-//class GaussianFilter<
-//          StateProcessModel,
-//          Join<MultipleOf<AdaptiveModel<ObsrvModel, ParamProcess>, Count>>,
-//          PointTransform>
-//    : public GaussianFilter<
-//                StateProcessModel,
-//                JointProcessModel<MultipleOf<ParamProcess, Count>>,
-//                JointProcessModel<MultipleOf<ObsrvModel, Count>>,
-//                PointTransform>
-//{ };
 
-//template <
-//    typename StateProcessModel,
-//    typename ... ObsrvModel,
-//    typename ... ParamProcess,
-//    typename PointTransform
-//>
-//class GaussianFilter<
-//          StateProcessModel,
-//          Join<AdaptiveModel<ObsrvModel, ParamProcess>...>,
-//          PointTransform>
-//    : public GaussianFilter<
-//                StateProcessModel,
-//                JointProcessModel<MultipleOf<ParamProcess, Count>>,
-//                JointProcessModel<MultipleOf<ObsrvModel, Count>>,
-//                PointTransform>
-//{ };
+    template <typename LocalParamModel,
+              typename LocalObsrvModel>
+    GaussianFilter(
+            const StateProcessModel& state_process_model,
+            const LocalParamModel& param_process_model,
+            const LocalObsrvModel& obsrv_model,
+            const PointTransform& point_set_transform,
+            int parameter_count = Count)
+                : Base(state_process_model,
+                       param_process_model,
+                       obsrv_model,
+                       point_set_transform,
+                       parameter_count)
+    { }
+};
 
 #ifdef Template_Parameters
     #undef Template_Parameters
