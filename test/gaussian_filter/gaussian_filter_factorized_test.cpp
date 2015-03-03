@@ -26,56 +26,56 @@
 #include <fl/model/process/linear_process_model.hpp>
 #include <fl/model/process/joint_process_model.hpp>
 #include <fl/model/observation/linear_observation_model.hpp>
+
 #include <fl/filter/filter_interface.hpp>
-#include <fl/filter/gaussian/gaussian_filter.hpp>
-//#include <fl/filter/gaussian/gaussian_filter_factorized.hpp>
+#include <fl/filter/gaussian/unscented_transform.hpp>
+#include <fl/filter/gaussian/gaussian_filter_factorized.hpp>
 
 TEST(GaussianFilterFactorizedTests, init)
 {
-//    using namespace fl;
+    using namespace fl;
 
-//    typedef void ProcessModel;
-//    typedef void PixelObsrvModel<typename ProcessModel::State>;
-//    typedef void PixelParamModel<typename PixelObsrvModel::Param>;
+    typedef Eigen::Matrix<double, 3, 1> State;
+    typedef Eigen::Matrix<double, 1, 1> Pixel;
+    typedef Eigen::Matrix<double, 1, 1> Param;
 
-//    typedef GaussianFilter<
-//                ProcessModel,
-//                Join<MultipleOf<AdaptiveModel<PixelObsrvModel, PixelParamModel>, 10>>
-//            > Filter;
+    typedef LinearGaussianProcessModel<State> ProcessModel;
+    typedef LinearGaussianProcessModel<Param> ParamModel;
 
+    typedef NotAdaptive<LinearGaussianObservationModel<Pixel, State>> PixelModel;
 
+    constexpr int pixels = 10;
 
-//    typedef GaussianFilter<
-//                ProcessModel,
-//                AdaptiveModel<PixelObsrvModel, PixelParamModel>
-//            > Filter;
+    typedef GaussianFilter<
+                JointProcessModel<
+                    ProcessModel,
+                    JointProcessModel<MultipleOf<ParamModel, pixels>>>,
+                JointObservationModel<MultipleOf<PixelModel, pixels>>,
+                UnscentedTransform,
+                Options<FactorizeParams>
+            > ExplicitFilter;
 
-//    constexpr int state_dim = 5;
-//    constexpr int obsrv_dim = 1;
-//    constexpr int param_dim = 1;
-//    constexpr int count = 10;
+    typedef GaussianFilter<
+                ProcessModel,
+                Join<MultipleOf<Adaptive<PixelModel, ParamModel>, pixels>>,
+                UnscentedTransform,
+                Options<FactorizeParams>
+            > AutoFilter;
 
-//    typedef Eigen::Matrix<double, state_dim, 1> State;
-//    typedef Eigen::Matrix<double, obsrv_dim, 1> SingleObsrv;
-//    typedef Eigen::Matrix<double, param_dim, 1> SingleParam;
+    EXPECT_TRUE((std::is_base_of<ExplicitFilter, AutoFilter>::value));
 
-//    typedef Eigen::Matrix<
-//                double,
-//                fl::JoinSizes<state_dim, param_dim>::Size,
-//                1
-//            > JointState;
+    ExplicitFilter x = ExplicitFilter(
+                           ProcessModel(),
+                           ParamModel(),
+                           PixelModel(),
+                           UnscentedTransform(),
+                           pixels);
 
-//    typedef fl::LinearGaussianProcessModel<State> Process;
-//    typedef fl::JointProcessModel<State, >
-
-
-//    typedef fl::LinearGaussianProcessModel<SingleParam> SingleParamProcess;
-
-
-
-//    typedef fl::LinearGaussianObservationModel<SingleObsrv> SingleObsrvModel;
-
-//    typedef fl::GaussianFilter<>;
-
+    ExplicitFilter y = AutoFilter(
+                           ProcessModel(),
+                           ParamModel(),
+                           PixelModel(),
+                           UnscentedTransform(),
+                           pixels);
 
 }
