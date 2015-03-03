@@ -35,6 +35,29 @@ namespace fl
  */
 template <typename> struct Traits { };
 
+namespace internal
+{
+
+/**
+ * \internal
+ * Observation model type identifier
+ */
+struct ObsrvModelType { };
+
+/**
+ * \internal
+ * Process model type identifier
+ */
+struct ProcessModelType { };
+
+/**
+ * \internal
+ * Adaptive model type identifier
+ */
+struct AdaptiveModelType { };
+
+}
+
 /**
  * \ingroup traits
  *
