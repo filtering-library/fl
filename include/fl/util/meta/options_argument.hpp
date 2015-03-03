@@ -34,9 +34,15 @@ namespace fl
 enum FilterOptions : unsigned int
 {
     NoOptions = 0,                  /**< Represents empty option set */
-    AdditiveProcessNoise = 1 >> 1,  /**< Forces additive process noise */
-    AdditiveObsrvNoise   = 1 >> 2,  /**< Forces additive observation noise */
-    FactorizeParams = 1 >> 3        /**< Specifies param. state factorization */
+    AdditiveProcessNoise = 1 << 0,  /**< Forces additive process noise */
+    AdditiveObsrvNoise   = 1 << 1,  /**< Forces additive observation noise */
+    FactorizeParams = 1 << 2        /**< Specifies param. state factorization */
+};
+
+enum ModelOptions : bool
+{
+    IsNotAdaptive = 0,
+    IsAdaptive = 1
 };
 
 /**
