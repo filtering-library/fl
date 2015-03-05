@@ -72,11 +72,11 @@ class JointDistribution<MultipleOf<MarginalDistribution, Count>>
              >::MomentsInterface
 {
 public:
-    typedef JointDistribution<MultipleOf<MarginalDistribution, Count>> This;
+    typedef JointDistribution This;
 
-    typedef typename Traits<This>::Variate Variate;
-    typedef typename Traits<This>::SecondMoment SecondMoment;
-    typedef typename Traits<This>::MarginalDistributions MarginalDistributions;
+    typedef from_traits(Variate);
+    typedef from_traits(SecondMoment);
+    typedef from_traits(MarginalDistributions);
 
 public:
     JointDistribution(MarginalDistribution marginal,
@@ -142,6 +142,23 @@ public:
     MarginalDistributions& distributions()
     {
         return distributions_;
+    }
+
+    const MarginalDistributions& distributions() const
+    {
+        return distributions_;
+    }
+
+    MarginalDistribution& distribution(int index)
+    {
+        assert(index < distributions_.size());
+        return distributions_(index);
+    }
+
+    const MarginalDistribution& distribution(int index) const
+    {
+        assert(index < distributions_.size());
+        return distributions_(index);
     }
 
 protected:
