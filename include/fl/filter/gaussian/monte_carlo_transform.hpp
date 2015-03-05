@@ -64,7 +64,7 @@ namespace fl
  * \f$g(x) = a x^p + b x^0\f$. However, for simplicity reasons, in most cases
  * the parameter \c Min is 0.
  */
-template <size_t Power, size_t Factor = 1, size_t Min = 0>
+template <int Power, int Factor = 1, int Min = 0>
 class MonomialPointCountPolicy
 {
 public:
@@ -76,7 +76,7 @@ public:
     }
 
 protected:
-    static constexpr int monomial(size_t x, size_t p, size_t a, size_t b)
+    static constexpr int monomial(int x, int p, int a, int b)
     {
         return (p > 0) ? a * x * monomial(x, p - 1, 1, 0) + b : 1;
     }
@@ -97,7 +97,7 @@ protected:
  *
  * \c MonomialPointCountPolicy<1, Factor, \c Min>
  */
-template <size_t Factor = 1, size_t Min = 0>
+template <int Factor = 1, int Min = 0>
 struct LinearPointCountPolicy
 {
     static constexpr int number_of_points(int dimension)
@@ -124,7 +124,7 @@ struct LinearPointCountPolicy
  *
  * \c MonomialPointCountPolicy<1, 0, \c NumberOfPoints>
  */
-template <size_t NumberOfPoints>
+template <int NumberOfPoints>
 struct ConstantPointCountPolicy
 {
     static constexpr int number_of_points(int dimension)
@@ -184,8 +184,8 @@ public:
 
     /**
      * \copydoc PointSetTransform::forward(const Gaussian&,
-     *                                     size_t global_dimension,
-     *                                     size_t dimension_offset,
+     *                                     int global_dimension,
+     *                                     int dimension_offset,
      *                                     PointSet&) const
      *
      * \throws WrongSizeException
@@ -193,15 +193,15 @@ public:
      */
     template <typename Gaussian_, typename PointSet_>
     void forward(const Gaussian_& gaussian,
-                 size_t global_dimension,
-                 size_t dimension_offset,
+                 int global_dimension,
+                 int dimension_offset,
                  PointSet_& point_set) const
     {
 //        typedef typename Traits<Gaussian_>::Variate NormalVariate;
 //        typedef typename NormalVariate::Scalar Scalar;
 
 //        static bool create_lookup_table = true;
-//        static constexpr size_t table_size = 10000;
+//        static constexpr int table_size = 10000;
 //        static StandardGaussian<NormalVariate> mvnd;
 //        static Eigen::Matrix<
 //                   Scalar,
@@ -214,7 +214,7 @@ public:
 //            mvnd.dimension(gaussian.dimension());
 //            lt.resize(gaussian.dimension(), table_size);
 
-//            for (size_t i = 0; i < table_size; ++i)
+//            for (int i = 0; i < table_size; ++i)
 //            {
 //                lt.col(i) = mvnd.sample();
 //            }
@@ -224,7 +224,7 @@ public:
 
 //        auto&& cov_sqrt = gaussian.square_root();
 
-        const size_t point_count = number_of_points(global_dimension);
+        const int point_count = number_of_points(global_dimension);
         const double w = 1./double(point_count);        
 
         for (int i = 0; i < point_count; ++i)
