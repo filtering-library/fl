@@ -114,6 +114,11 @@ public:
         return distributions_;
     }
 
+    const MarginalDistributions& distributions() const
+    {
+        return distributions_;
+    }
+
 protected:
     MarginalDistributions distributions_;
 
