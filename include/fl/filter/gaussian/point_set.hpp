@@ -140,7 +140,7 @@ struct Traits<PointSet<Point_, Points_>>
     /**
      * \brief Weight list of all points
      */
-    typedef std::vector<Weight> Weights;
+    typedef Eigen::Matrix<Weight, Points_, 1> Weights;
 };
 
 /**
@@ -157,7 +157,7 @@ struct Traits<PointSet<Point_, Points_>>
  * \tparam Point    Gaussian variable type
  * \tparam Points_  Number of points representing the gaussian
  */
-template <typename Point_, int Points_ = Eigen::Dynamic>
+template <typename Point_, int Points_>
 class PointSet
 {
 public:
@@ -176,10 +176,10 @@ public:
      * \param points_count   Number of points representing the Gaussian
      * \param dimension      Sample space dimension
      */
-    PointSet(int dimension = DimensionOf<Point>(),
-             int points_count = MaxOf<Points_, 0>())
+    PointSet(int dimension,
+             int points_count)
         : points_(dimension, points_count),
-          weights_(points_count)
+          weights_(points_count, 1)
     {
         assert(points_count >= 0);
         static_assert(Points_ >= Eigen::Dynamic, "Invalid point count");
@@ -187,7 +187,28 @@ public:
         points_.setZero();
 
         double weight = (points_count > 0) ? 1./double(points_count) : 0;
-        std::fill(weights_.begin(), weights_.end(), Weight{weight, weight});
+
+        for (int i = 0; i < points_count; ++i)
+        {
+            weights_(i).w_mean = weight;
+            weights_(i).w_cov = weight;
+        }
+    }
+
+    /**
+     * Creates a PointSet
+     */
+    PointSet()
+    {
+        points_.setZero();
+
+        double weight = (weights_.size() > 0) ? 1./double(weights_.size()) : 0;
+
+        for (int i = 0; i < weights_.size(); ++i)
+        {
+            weights_(i).w_mean = weight;
+            weights_(i).w_cov = weight;
+        }
     }
 
     /**
@@ -196,7 +217,7 @@ public:
     virtual ~PointSet() { }
 
     /**
-     * Resizes a dynamic-size PointSet to a desired. For
+     * Resizes a dynamic-size PointSet
      *
      * \param Points_   Number of points
      *
@@ -216,9 +237,35 @@ public:
 
         points_.setZero(points_.rows(), points_count);
 
-        weights_.resize(points_count);
+        weights_.resize(points_count, 1);
         const double weight = (points_count > 0)? 1. / double(points_count) : 0;
-        std::fill(weights_.begin(), weights_.end(), Weight{weight, weight});
+        for (int i = 0; i < points_count; ++i)
+        {
+            weights_(i).w_mean = weight;
+            weights_(i).w_cov = weight;
+        }
+
+        // std::fill(weights_.begin(), weights_.end(), Weight{weight, weight});
+    }
+
+    /**
+     * Resizes a dynamic-size PointSet
+     *
+     * \param Points_   Number of points
+     *
+     * \throws ResizingFixedSizeEntityException
+     */
+    void resize(int dim, int points_count)
+    {
+        points_.setZero(dim, points_count);
+
+        weights_.resize(points_count, 1);
+        const double weight = (points_count > 0)? 1. / double(points_count) : 0;
+        for (int i = 0; i < points_count; ++i)
+        {
+            weights_(i).w_mean = weight;
+            weights_(i).w_cov = weight;
+        }
     }
 
     /**
@@ -275,7 +322,7 @@ public:
     {
         INLINE_CHECK_POINT_SET_BOUNDS(i);
 
-        return weights_[i].w_mean;
+        return weights_(i).w_mean;
     }
 
     /**
@@ -290,7 +337,7 @@ public:
     {
         INLINE_CHECK_POINT_SET_BOUNDS(i);
 
-        return weights_[i];
+        return weights_(i);
     }
 
     /**
@@ -320,7 +367,7 @@ public:
 
         for (int i = 0; i < point_count; ++i)
         {
-            weight_vec(i) = weights_[i].w_mean;
+            weight_vec(i) = weights_(i).w_mean;
         }
 
         return weight_vec;
@@ -337,7 +384,7 @@ public:
 
         for (int i = 0; i < point_count; ++i)
         {
-            weight_vec(i) = weights_[i].w_cov;
+            weight_vec(i) = weights_(i).w_cov;
         }
 
         return weight_vec;
@@ -406,7 +453,7 @@ public:
         INLINE_CHECK_POINT_SET_BOUNDS(i);
 
         points_.col(i) = p;
-        weights_[i] = weights;
+        weights_(i) = weights;
     }
 
     /**
@@ -452,7 +499,7 @@ public:
     {
         INLINE_CHECK_POINT_SET_BOUNDS(i);
 
-        weights_[i] = weights;
+        weights_(i) = weights;
     }
 
     /**
@@ -495,7 +542,7 @@ public:
         const int point_count = points_.cols();
         for (int i = 0; i < point_count; ++i)
         {
-            weighted_mean += weights_[i].w_mean * points_.col(i);
+            weighted_mean += weights_(i).w_mean * points_.col(i);
         }
 
         return weighted_mean;
