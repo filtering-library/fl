@@ -468,12 +468,15 @@ public:
         //auto mu_x_b = mu_x.bottomRows(dim(b)).eval();
         split(X_, X_a_, X_b_);
 
+        const auto&& W = X_a_.covariance_weights_vector().asDiagonal();
+
         const auto Y = Y_.points();
         const auto X_a = X_a_.points();
-        const auto cov_aa = (X_a * X_a.transpose()).eval();
+        const auto cov_aa = (X_a * W  * X_a.transpose()).eval();
         const auto cov_aa_inv = cov_aa.inverse().eval();
 
-        PV(mu_x);
+        PV(X_a_.mean());
+        PV(mu_x_a);
         PV(cov_aa);
 
 //        auto&& prior_a = std::get<a>(predicted_dist.distributions());
@@ -509,16 +512,16 @@ public:
         {
             /* == common ==================================================== */
             const auto Y_i = Y.middleRows(i * dim_y_i, dim_y_i).eval();
-            const auto cov_ay_i = (X_a * Y_i.transpose()).eval();
+            const auto cov_ay_i = (X_a * W * Y_i.transpose()).eval();
             const auto cov_ya_i = (cov_ay_i .transpose()).eval();
-            const auto cov_yy_i = (Y_i * Y_i.transpose()).eval();
+            const auto cov_yy_i = (Y_i * W  * Y_i.transpose()).eval();
             const auto innov = (obsrv.middleRows(i * dim_y_i, dim_y_i) -
                                  mu_y.middleRows(i * dim_y_i, dim_y_i)).eval();
 
             /* == part a ==================================================== */
             const auto A_i =  (cov_ya_i * cov_aa_inv).eval();
 
-            const auto cov_yy_i_given_a_inv = (cov_yy_i - cov_ya_i* cov_aa_inv * cov_ay_i).eval().inverse().eval();
+            const auto cov_yy_i_given_a_inv = (cov_yy_i - cov_ya_i * cov_aa_inv * cov_ay_i).eval().inverse().eval();
             const auto T = (A_i.transpose() * cov_yy_i_given_a_inv).eval();
 
             C += (T * A_i).eval();
@@ -550,7 +553,7 @@ public:
 //            postr_b(i).covariance(cov_b_given_ay);
         }
 
-        postr_a.covariance(cov_aa_inv * C.inverse());
+        postr_a.covariance((cov_aa_inv + C).inverse());
         postr_a.mean(mu_x_a + postr_a.covariance() * D);
 
 //        auto postr_mu_a = postr_a.mean();
@@ -565,6 +568,10 @@ public:
 //            postr_b(i).covariance(
 //                postr_b(i).covariance() - B_i * postr_cov_aa * B_i.transpose());
 //        }
+
+        PV(postr_a.mean());
+        PV(postr_a.covariance());
+
     }
 
     /**
