@@ -22,6 +22,8 @@
 #ifndef FL__FILTER__GAUSSIAN__GAUSSIAN_FILTER_FACTORIZED_HPP
 #define FL__FILTER__GAUSSIAN__GAUSSIAN_FILTER_FACTORIZED_HPP
 
+#include <omp.h>
+
 #include <fl/util/meta.hpp>
 #include <fl/util/traits.hpp>
 #include <fl/util/profiling.hpp>
@@ -36,7 +38,6 @@
 #include <fl/model/process/joint_process_model.hpp>
 #include <fl/model/observation/joint_observation_model.hpp>
 
-
 namespace fl
 {
 
@@ -47,6 +48,23 @@ template <typename...> class GaussianFilter;
  * \defgroup gaussian_filter_iid Factorized Gaussian Filter (IID)
  * \ingroup sigma_point_kalman_filters
  */
+
+
+#ifdef TEMPLATE_ARGUMENTS
+#  undef TEMPLATE_ARGUMENTS
+#endif
+
+#define TEMPLATE_ARGUMENTS \
+    JointProcessModel< \
+        StateProcessModel, \
+        JointProcessModel<MultipleOf<LocalParamModel, Count>>>, \
+    Adaptive< \
+        JointObservationModel< \
+            MultipleOf<LocalObsrvModel, Count> \
+        > \
+    >, \
+    PointSetTransform, \
+    Options<FactorizeParams> \
 
 /**
  * \ingroup gaussian_filter_iid
@@ -61,27 +79,16 @@ template <
     typename PointSetTransform
 >
 #endif
-struct Traits<
-           GaussianFilter<
-                JointProcessModel<
-                    StateProcessModel,
-                    JointProcessModel<MultipleOf<LocalParamModel, Count>>>,
-                    Adaptive<
-                        JointObservationModel<
-                            MultipleOf<LocalObsrvModel, Count>
-                        >
-                    >,
-                PointSetTransform,
-                Options<FactorizeParams>>>
+struct Traits<GaussianFilter<TEMPLATE_ARGUMENTS>>
 {
-    /** \cond INTERNAL ****************************************************** */
+    /** \cond INTERNAL ====================================================== */
     /**
      * \brief Represents the factorized model of a set of independent parameters
      * which shall be filtered jointly with the state.
      */
     typedef JointProcessModel<
                 MultipleOf<LocalParamModel, Count>
-            > JointParamProcessModel;    
+            > JointParamProcessModel;
 
     /**
      * \brief Internal joint process model consisting of \c StateProcessModel
@@ -118,7 +125,7 @@ struct Traits<
                     Gaussian<typename Traits<LocalParamModel>::State>,
                     Count>
             > ParamMarginalDistr;
-    /** \endcond ************************************************************ */
+    /** \endcond ============================================================ */
 
     /**
      * \brief Final filter declaration
@@ -160,7 +167,7 @@ struct Traits<
                 ParamMarginalDistr
             > StateDistribution;
 
-    /** \cond INTERNAL */        
+    /** \cond INTERNAL */
     typedef typename Traits<ProcessModel>::Noise StateNoise;
     typedef typename Traits<ObservationModel>::Noise ObsrvNoise;
 
@@ -193,8 +200,6 @@ struct Traits<
     typedef PointSet<Obsrv, NumberOfPoints> ObsrvPointSet;
     typedef PointSet<StateNoise, NumberOfPoints> StateNoisePointSet;
     typedef PointSet<ObsrvNoise, NumberOfPoints> ObsrvNoisePointSet;
-
-
     typedef PointSet<LocalState, NumberOfPoints> LocalStatePointSet;
     typedef PointSet<LocalParam, NumberOfPoints> LocalParamPointSet;
     typedef PointSet<LocalObsrv, NumberOfPoints> LocalObsrvPointSet;
@@ -209,20 +214,11 @@ struct Traits<
     typedef Gaussian<LocalStateNoise> LocalStateNoiseDistr;
     typedef Gaussian<LocalParamNoise> LocalParamNoiseDistr;
     typedef Gaussian<LocalObsrvNoise> LocalObsrvNoiseDistr;
-
-    typedef typename Traits<LocalStateDistr>::SecondMoment LocalStateCov;
-    typedef typename Traits<LocalParamDistr>::SecondMoment LocalParamCov;
-    typedef typename Traits<LocalObsrvDistr>::SecondMoment LocalObsrvCov;
-    typedef typename Traits<LocalStateNoiseDistr>::SecondMoment LocalStateNoiseCov;
-    typedef typename Traits<LocalParamNoiseDistr>::SecondMoment LocalParamNoiseCov;
-    typedef typename Traits<LocalObsrvNoiseDistr>::SecondMoment LocalObsrvNoiseCov;
     /** \endcond */
 };
 
 
 /**
- * \class GaussianFilter<TemplateParameters, FactorizeParameters>
- *
  * \ingroup gaussian_filter_iid
  *
  * This \c GaussianFilter represents a factorized implementation of a Sigma
@@ -255,53 +251,32 @@ class GaussianFilter<
           Options<FactorizeParams>>
     :
     /* Implement the filter interface */
-    public FilterInterface<
-               GaussianFilter<
-                    JointProcessModel<
-                        StateProcessModel,
-                        JointProcessModel<MultipleOf<LocalParamModel, Count>>>,
-                    Adaptive<
-                        JointObservationModel<
-                            MultipleOf<LocalObsrvModel, Count>
-                        >
-                    >,
-                    PointSetTransform,
-                    Options<FactorizeParams>>>
+    public FilterInterface<GaussianFilter<TEMPLATE_ARGUMENTS>>
 {
-protected:
-    /** \cond INTERNAL ****************************************************** */
+private:
+    /** \cond INTERNAL */
     typedef GaussianFilter This;
 
-    /* Models */
+    /* public concept interface types */
+    typedef from_traits(State);
+    typedef from_traits(Input);
+    typedef from_traits(Obsrv);
+    typedef from_traits(StateDistribution);
+
+    /* Model types */
     typedef from_traits(ProcessModel);
     typedef from_traits(ObservationModel);
     typedef from_traits(JointParamProcessModel);
 
-    /* Sigma Point Sets */
+    /* Sigma Point Set types */
     typedef from_traits(StatePointSet);
     typedef from_traits(ObsrvPointSet);
     typedef from_traits(StateNoisePointSet);
     typedef from_traits(ObsrvNoisePointSet);
-
     typedef from_traits(LocalStatePointSet);
-    typedef from_traits(LocalParamPointSet);
-    typedef from_traits(LocalObsrvPointSet);
-
     typedef from_traits(LocalParamPointSets);
 
-    typedef from_traits(LocalStateNoisePointSet);
-    typedef from_traits(LocalParamNoisePointSet);
-    typedef from_traits(LocalObsrvNoisePointSet);
-
-    /* Distributions */
-//    typedef from_traits(LocalStateDistr);
-//    typedef from_traits(LocalParamDistr);
-//    typedef from_traits(LocalObsrvDistr);
-//    typedef from_traits(LocalStateNoiseDistr);
-//    typedef from_traits(LocalParamNoiseDistr);
-//    typedef from_traits(LocalObsrvNoiseDistr);
-
-    /* Variates */
+    /* Variate types */
     typedef from_traits(LocalState);
     typedef from_traits(LocalStateNoise);
     typedef from_traits(LocalParam);
@@ -309,34 +284,33 @@ protected:
     typedef from_traits(LocalObsrv);
     typedef from_traits(LocalObsrvNoise);
 
-    typedef from_traits(Scalar);
-
+    /* Intermediate compile time dimensions */
     enum : signed int
     {
         CTDim_a     = LocalState::SizeAtCompileTime,
         CTDim_b_i   = LocalParam::SizeAtCompileTime,
         CTDim_y_i   = LocalObsrv::SizeAtCompileTime,
+        CTDim_b     = Traits<JointParamProcessModel>::State::SizeAtCompileTime,
         CTDim_a_y_i = JoinSizes<CTDim_a, CTDim_y_i>::Size
     };
+
+    /* Intermediate types */
+    typedef from_traits(Scalar);
+    typedef from_traits(StateNoise);
+    typedef from_traits(ObsrvNoise);
 
     typedef Eigen::Matrix<Scalar, CTDim_a,     1>           Ax1;
     typedef Eigen::Matrix<Scalar, CTDim_a,     CTDim_a>     AxA;
     typedef Eigen::Matrix<Scalar, CTDim_a,     CTDim_y_i>   AxY;
     typedef Eigen::Matrix<Scalar, CTDim_y_i,   CTDim_a>     YxA;
     typedef Eigen::Matrix<Scalar, CTDim_y_i,   CTDim_y_i>   YxY;
+    typedef Eigen::Matrix<Scalar, CTDim_b,     CTDim_a>     BixA;
     typedef Eigen::Matrix<Scalar, CTDim_b_i,   CTDim_a_y_i> BxAY;
+    typedef Eigen::Matrix<Scalar, CTDim_a_y_i, 1>           AYx1;
     typedef Eigen::Matrix<Scalar, CTDim_a_y_i, CTDim_a_y_i> AYxAY;
 
-    /* Second moments */
-//    typedef from_traits(LocalStateCov);
-//    typedef from_traits(LocalParamCov);
-//    typedef from_traits(LocalObsrvCov);
-//    typedef from_traits(LocalStateNoiseCov);
-//    typedef from_traits(LocalParamNoiseCov);
-//    typedef from_traits(LocalObsrvNoiseCov);
-
     /**
-     * \enum Variates
+     * \enum Variate IDs
      */
     enum Variate
     {
@@ -356,18 +330,10 @@ protected:
         u_a,
         u_b_i
     };
-    /** \endcond ************************************************************ */
+    /** \endcond  */
 
 public:
-    /* public concept interface types */
-    typedef from_traits(State);
-    typedef from_traits(Input);
-    typedef from_traits(Obsrv);
-    typedef from_traits(StateNoise);
-    typedef from_traits(ObsrvNoise);
-    typedef from_traits(StateDistribution);
 
-public:
     /**
      * Creates a factorized Gaussian filter
      *
@@ -425,6 +391,10 @@ public:
         auto N_y_i = Gaussian<LocalObsrvNoise>(dim(w_i));
 
         /* Pre-Compute the sigma points of noise distributions */
+        typedef from_traits(LocalStateNoisePointSet);
+        typedef from_traits(LocalParamNoisePointSet);
+        typedef from_traits(LocalObsrvNoisePointSet);
+
         auto X_v_a = LocalStateNoisePointSet(dim(v_a), point_count_);
         auto X_v_b_i = LocalParamNoisePointSet(dim(v_b_i), point_count_);
         auto X_w_y_i = LocalObsrvNoisePointSet(dim(w_i), point_count_);
@@ -432,7 +402,7 @@ public:
         int dim_offset = dim(a);
         transform_.forward(N_a, dim_marginal_, dim_offset, X_v_a);
 
-        dim_offset += dim(v_a);
+        dim_offset += dim(v_a) + dim(b_i);
         transform_.forward(N_b_i, dim_marginal_, dim_offset, X_v_b_i);
 
         dim_offset += dim(v_b_i);
@@ -475,7 +445,9 @@ public:
         {
             X_[i] = f_.predict_state(dt, X_[i], X_v_[i], u);
         }
-    }    
+    }
+
+#define PV(mat) std::cout << #mat << "\n" << mat << "\n\n";
 
     /**
      * \copydoc FilterInterface::update
@@ -492,81 +464,107 @@ public:
 
         auto mu_y = Y_.center();
         auto mu_x = X_.center();
-        separate(X_, X_a_, X_b_);
+        auto mu_x_a = mu_x.topRows(dim(a)).eval();
+        //auto mu_x_b = mu_x.bottomRows(dim(b)).eval();
+        split(X_, X_a_, X_b_);
 
-        auto Y = Y_.points();
-        auto X_a = X_a_.points();
-        auto cov_aa = (X_a * X_a.transpose()).eval();
-        auto cov_aa_inv = cov_aa.inverse().eval();
+        const auto Y = Y_.points();
+        const auto X_a = X_a_.points();
+        const auto cov_aa = (X_a * X_a.transpose()).eval();
+        const auto cov_aa_inv = cov_aa.inverse().eval();
 
-        auto&& prior_a = std::get<a>(predicted_dist.distributions());
-        auto&& prior_b = std::get<b>(predicted_dist.distributions());
+        PV(mu_x);
+        PV(cov_aa);
+
+//        auto&& prior_a = std::get<a>(predicted_dist.distributions());
+//        auto&& prior_b = std::get<b>(predicted_dist.distributions())
+//                            .distributions();
+
+        auto&& postr_a = std::get<a>(posterior_dist.distributions());
+//        auto&& postr_b = std::get<b>(posterior_dist.distributions())
+//                            .distributions();
 
         // get dimension constants
         const int dim_a   = dim(a);
+//        const int dim_b   = dim(b);
+//        const int dim_b_i = dim(b_i);
         const int dim_y_i = dim(y_i);
-        const int dim_b_i = dim(b_i);
 
-        auto C = AxA(dim_a, dim_a);
-        auto D = Ax1(dim_a, 1);
+        auto C = AxA::Zero(dim_a, dim_a).eval();
+        auto D = Ax1::Zero(dim_a, 1).eval();
 
-        auto L = AYxAY(dim_a + dim_y_i, dim_a + dim_y_i);
-        auto L_aa = AxA(dim_a,   dim_a);
-        auto L_yy = YxY(dim_y_i, dim_y_i);
-        auto L_ay = AxY(dim_a,   dim_y_i);
-        auto L_ya = YxA(dim_y_i, dim_a);
-        auto cov_ba_by = BxAY(dim_b_i, dim_a + dim_y_i);
+//        auto L    = AYxAY(dim_a + dim_y_i, dim_a + dim_y_i);
+//        auto L_aa = AxA(dim_a,   dim_a);
+//        auto L_yy = YxY(dim_y_i, dim_y_i);
+//        auto L_ay = AxY(dim_a,   dim_y_i);
+//        auto L_ya = YxA(dim_y_i, dim_a);
 
-        C.setZero();
-        D.setZero();
-        L.setZero();
-        L_aa.setZero();
-        L_yy.setZero();
-        L_ay.setZero();
-        L_ya.setZero();
+//        auto B = BixA(dim_b, dim_a);
+//        auto cov_ba_by = BxAY(dim_b_i, dim_a + dim_y_i);
+
+//        auto innov_b_i = AYx1(dim_a + dim_y_i, 1);
+//        innov_b_i.topRows(dim_a) = -mu_x_a;
 
         for (int i = 0; i < param_count_; ++i)
         {
-            /* ** common **************************************************** */
-            auto Y_i = Y.middleRows(i * dim_y_i, dim_y_i);
-            auto cov_ay_i = (X_a * Y_i.transpose()).eval();
-            auto cov_yy_i = (Y_i * Y_i.transpose()).eval();
-            auto mu_y_i = mu_y.middleRows(i * dim_y_i, dim_y_i);
-            auto obsrv_i = obsrv.middleRows(i * dim_y_i, dim_y_i);
+            /* == common ==================================================== */
+            const auto Y_i = Y.middleRows(i * dim_y_i, dim_y_i).eval();
+            const auto cov_ay_i = (X_a * Y_i.transpose()).eval();
+            const auto cov_ya_i = (cov_ay_i .transpose()).eval();
+            const auto cov_yy_i = (Y_i * Y_i.transpose()).eval();
+            const auto innov = (obsrv.middleRows(i * dim_y_i, dim_y_i) -
+                                 mu_y.middleRows(i * dim_y_i, dim_y_i)).eval();
 
-            /* ** part a **************************************************** */
-            auto A_i =  (cov_ay_i.transpose() * cov_aa_inv).eval();
-            auto cov_yy_i_given_a_inv =
-                (cov_yy_i - cov_ay_i.transpose() * cov_aa_inv * cov_ay_i)
-                .inverse().eval();
-            auto T = (A_i.transpose() * cov_yy_i_given_a_inv).eval();
+            /* == part a ==================================================== */
+            const auto A_i =  (cov_ya_i * cov_aa_inv).eval();
 
-            C += T * A_i;
-            D += T * (obsrv_i - mu_y_i);
+            const auto cov_yy_i_given_a_inv = (cov_yy_i - cov_ya_i* cov_aa_inv * cov_ay_i).eval().inverse().eval();
+            const auto T = (A_i.transpose() * cov_yy_i_given_a_inv).eval();
 
-            /* ** part b **************************************************** */
-            auto X_b_i = X_b_(i).points();
-            auto cov_ab = (X_a   * X_b_i.transpose()).eval();
-            auto cov_bb = (X_b_i * X_b_i.transpose()).eval();
-            auto cov_by = (X_b_i * Y_i.transpose()).eval();
+            C += (T * A_i).eval();
+            D += (T * innov).eval();
 
-            fl::smw_inverse(
-                cov_aa_inv, cov_ay_i, cov_ay_i.transpose(), cov_yy_i,
-                L_aa, L_ay, L_ya, L_yy, L);
+//            /* == part b ==================================================== */
+//            auto X_b_i = X_b_(i).points();
+//            auto cov_ab = (X_a   * X_b_i.transpose()).eval();
+//            auto cov_bb = (X_b_i * X_b_i.transpose()).eval();
+//            auto cov_by = (X_b_i *   Y_i.transpose()).eval();
 
-            auto B_i  = (cov_ab.transpose() * L_aa + cov_by * L_ya).eval();
+//            fl::smw_inverse(
+//                cov_aa_inv, cov_ay_i, cov_ya_i, cov_yy_i, // [in]
+//                L_aa,       L_ay,     L_ya,     L_yy,     // [out] block
+//                L);                                       // [out] joint
 
-            cov_ba_by.leftCols(dim_a) = cov_ab.transpose();
-            cov_ba_by.rightCols(dim_y_i) = cov_by;
+//            B.middleRows(i * dim_b_i, dim_b_i) =
+//                (cov_ab.transpose() * L_aa + cov_by * L_ya).eval();
 
-            auto K = cov_ba_by * L;
+//            cov_ba_by.leftCols(dim_a) = cov_ab.transpose();
+//            cov_ba_by.rightCols(dim_y_i) = cov_by;
 
+//            auto K = (cov_ba_by * L).eval();
+//            auto cov_b_given_ay = (cov_bb - K * cov_ba_by.transpose()).eval();
+
+//            innov_b_i.bottomRows(dim_y_i) = innov;
+//            postr_b(i).mean(
+//                mu_x_b.middleRows(i * dim_b_i, dim_b_i) + K * innov_b_i);
+//            postr_b(i).covariance(cov_b_given_ay);
         }
 
-        auto posterior_a = std::get<a>(posterior_dist.distributions());
+        postr_a.covariance(cov_aa_inv * C.inverse());
+        postr_a.mean(mu_x_a + postr_a.covariance() * D);
 
-        posterior_a.covariance(cov_aa_inv * C.inverse());
-        posterior_a.mean(mu_x.topRows(dim_a) + posterior_a.covariance() * D);
+//        auto postr_mu_a = postr_a.mean();
+//        auto postr_cov_aa = postr_a.covariance();
+//        for (int i = 0; i < param_count_; ++i)
+//        {
+//            auto&& B_i = B.middleRows(i * dim_b_i, dim_b_i);
+
+//            postr_b(i).mean(
+//                postr_b(i).mean() + B_i * postr_mu_a);
+
+//            postr_b(i).covariance(
+//                postr_b(i).covariance() - B_i * postr_cov_aa * B_i.transpose());
+//        }
     }
 
     /**
@@ -582,6 +580,7 @@ public:
         update(observation, posterior_dist, posterior_dist);
     }
 
+
     ProcessModel& process_model() { return f_; }
     ObservationModel& observation_model() { return h_; }
     PointSetTransform& point_set_transform() { return transform_; }
@@ -589,7 +588,8 @@ public:
     JointParamProcessModel& joint_param_process_model() { return f_b_; }
 
 public:
-    /* ** Helpers *********************************************************** */
+    /* == Helpers =========================================================== */
+    /** \cond INTERNAL */
 
     /**
      * \return Dimension of the specified variate
@@ -626,9 +626,8 @@ public:
      * Compute sigma points of part X_a and each of X_b(i) for a given
      * state distribution \c distr
      */
-    template <typename Xa, typename Xb>
-    void transform(const StateDistribution& distr,
-                   Xa& x_a, Xb& x_b)
+    template <class Xa, class Xb>
+    void transform(const StateDistribution& distr, Xa& x_a, Xb& x_b)
     {
         // transform X_a part
         auto&& prior_a = std::get<a>(distr.distributions());
@@ -644,7 +643,7 @@ public:
         }
     }
 
-    template <typename Xa, typename Xb, typename X_>
+    template <class Xa, class Xb, class X_>
     void augment(const Xa& x_a, const Xb& x_b, X_& x)
     {
         x.points().topRows(dim(a)) = x_a.points();
@@ -655,8 +654,8 @@ public:
         }
     }
 
-    template <typename X_, typename Xa, typename Xb>
-    void separate(const X_& x, Xa& x_a, Xb& x_b)
+    template <class X_, class Xa, class Xb>
+    void split(const X_& x, Xa& x_a, Xb& x_b)
     {
         x_a.points(x.points().topRows(dim(a)));
 
@@ -667,7 +666,10 @@ public:
         }
     }
 
+    /** \endcond */
+
 private:
+    /** \cond INTERNAL */
     /* Model */
     StateProcessModel f_a_;
     LocalParamModel f_b_i_;
@@ -678,20 +680,22 @@ private:
     ObservationModel h_;
 
     PointSetTransform transform_;
+    /** \endcond */
 
 protected:
+    /** \cond INTERNAL */
     /* Data */
     const int param_count_;
     const int dim_marginal_;
     const int point_count_;
 
-    LocalStatePointSet X_a_;
-    LocalParamPointSets X_b_;
-
-    StateNoisePointSet X_v_;
-    ObsrvNoisePointSet X_w_;
     StatePointSet X_;
     ObsrvPointSet Y_;
+    StateNoisePointSet X_v_;
+    ObsrvNoisePointSet X_w_;
+    LocalStatePointSet X_a_;
+    LocalParamPointSets X_b_;
+    /** \endcond */
 };
 
 
@@ -764,3 +768,4 @@ protected:
 }
 
 #endif
+
