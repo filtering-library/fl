@@ -38,6 +38,8 @@
 #include <fl/model/process/joint_process_model.hpp>
 #include <fl/model/observation/joint_observation_model.hpp>
 
+#define PV(mat) std::cout << #mat << "\n" << mat << "\n\n";
+
 namespace fl
 {
 
@@ -124,7 +126,7 @@ struct Traits<GaussianFilter<TEMPLATE_ARGUMENTS>>
                 MultipleOf<
                     Gaussian<typename Traits<LocalParamModel>::State>,
                     Count>
-            > ParamMarginalDistr;
+            > JointParamDistr;
     /** \endcond ============================================================ */
 
     /**
@@ -164,7 +166,7 @@ struct Traits<GaussianFilter<TEMPLATE_ARGUMENTS>>
      */
     typedef JointDistribution<
                 LocalStateDistr,
-                ParamMarginalDistr
+                JointParamDistr
             > StateDistribution;
 
     /** \cond INTERNAL */
@@ -447,8 +449,6 @@ public:
         }
     }
 
-#define PV(mat) std::cout << #mat << "\n" << mat << "\n\n";
-
     /**
      * \copydoc FilterInterface::update
      */
@@ -465,18 +465,17 @@ public:
         auto mu_y = Y_.center();
         auto mu_x = X_.center();
         auto mu_x_a = mu_x.topRows(dim(a)).eval();
-        //auto mu_x_b = mu_x.bottomRows(dim(b)).eval();
+        auto mu_x_b = mu_x.bottomRows(dim(b)).eval();
         split(X_, X_a_, X_b_);
 
         const auto&& W = X_a_.covariance_weights_vector().asDiagonal();
 
-        const auto Y = Y_.points();
-        const auto X_a = X_a_.points();
-        const auto cov_aa = (X_a * W  * X_a.transpose()).eval();
-        const auto cov_aa_inv = cov_aa.inverse().eval();
+        auto Y = Y_.points();
+        auto X_a = X_a_.points();
+        auto cov_aa = (X_a * W  * X_a.transpose()).eval();
+        auto cov_aa_inv = cov_aa.inverse().eval();
 
-        PV(X_a_.mean());
-        PV(mu_x_a);
+        PV(mu_x);
         PV(cov_aa);
 
 //        auto&& prior_a = std::get<a>(predicted_dist.distributions());
@@ -484,94 +483,101 @@ public:
 //                            .distributions();
 
         auto&& postr_a = std::get<a>(posterior_dist.distributions());
-//        auto&& postr_b = std::get<b>(posterior_dist.distributions())
-//                            .distributions();
+        auto&& postr_b = std::get<b>(posterior_dist.distributions())
+                            .distributions();
 
         // get dimension constants
         const int dim_a   = dim(a);
-//        const int dim_b   = dim(b);
-//        const int dim_b_i = dim(b_i);
+        const int dim_b   = dim(b);
+        const int dim_b_i = dim(b_i);
         const int dim_y_i = dim(y_i);
 
         auto C = AxA::Zero(dim_a, dim_a).eval();
         auto D = Ax1::Zero(dim_a, 1).eval();
 
-//        auto L    = AYxAY(dim_a + dim_y_i, dim_a + dim_y_i);
-//        auto L_aa = AxA(dim_a,   dim_a);
-//        auto L_yy = YxY(dim_y_i, dim_y_i);
-//        auto L_ay = AxY(dim_a,   dim_y_i);
-//        auto L_ya = YxA(dim_y_i, dim_a);
+        auto L    = AYxAY(dim_a + dim_y_i, dim_a + dim_y_i);
+        auto L_aa = AxA(dim_a,   dim_a);
+        auto L_yy = YxY(dim_y_i, dim_y_i);
+        auto L_ay = AxY(dim_a,   dim_y_i);
+        auto L_ya = YxA(dim_y_i, dim_a);
 
-//        auto B = BixA(dim_b, dim_a);
-//        auto cov_ba_by = BxAY(dim_b_i, dim_a + dim_y_i);
+//        AYxAY L;
+//        AxA L_aa;
+//        YxY L_yy;
+//        AxY L_ay;
+//        YxA L_ya;
 
-//        auto innov_b_i = AYx1(dim_a + dim_y_i, 1);
-//        innov_b_i.topRows(dim_a) = -mu_x_a;
+        auto B = BixA(dim_b, dim_a);
+        auto cov_ba_by = BxAY(dim_b_i, dim_a + dim_y_i);
+
+        auto innov_b_i = AYx1(dim_a + dim_y_i, 1);
+        innov_b_i.topRows(dim_a) = -mu_x_a;
 
         for (int i = 0; i < param_count_; ++i)
         {
             /* == common ==================================================== */
-            const auto Y_i = Y.middleRows(i * dim_y_i, dim_y_i).eval();
-            const auto cov_ay_i = (X_a * W * Y_i.transpose()).eval();
-            const auto cov_ya_i = (cov_ay_i .transpose()).eval();
-            const auto cov_yy_i = (Y_i * W  * Y_i.transpose()).eval();
-            const auto innov = (obsrv.middleRows(i * dim_y_i, dim_y_i) -
-                                 mu_y.middleRows(i * dim_y_i, dim_y_i)).eval();
+            Eigen::MatrixXd Y_i = Y.middleRows(i * dim_y_i, dim_y_i);
+            auto cov_ay_i = (X_a * W * Y_i.transpose()).eval();
+            auto cov_ya_i = (cov_ay_i .transpose()).eval();
+            auto cov_yy_i = (Y_i * W  * Y_i.transpose()).eval();
+            auto innov = (obsrv.middleRows(i * dim_y_i, dim_y_i) -
+                           mu_y.middleRows(i * dim_y_i, dim_y_i)).eval();
 
             /* == part a ==================================================== */
             const auto A_i =  (cov_ya_i * cov_aa_inv).eval();
 
-            const auto cov_yy_i_given_a_inv = (cov_yy_i - cov_ya_i * cov_aa_inv * cov_ay_i).eval().inverse().eval();
+            const auto cov_yy_i_given_a_inv =
+                    (cov_yy_i - cov_ya_i * cov_aa_inv * cov_ay_i)
+                    .inverse()
+                    .eval();
+
             const auto T = (A_i.transpose() * cov_yy_i_given_a_inv).eval();
 
             C += (T * A_i).eval();
             D += (T * innov).eval();
 
-//            /* == part b ==================================================== */
-//            auto X_b_i = X_b_(i).points();
-//            auto cov_ab = (X_a   * X_b_i.transpose()).eval();
-//            auto cov_bb = (X_b_i * X_b_i.transpose()).eval();
-//            auto cov_by = (X_b_i *   Y_i.transpose()).eval();
+            /* == part b ==================================================== */
+            auto X_b_i = X_b_(i).points();
+            auto cov_ab = (X_a   * W * X_b_i.transpose()).eval();
+            auto cov_bb = (X_b_i * W * X_b_i.transpose()).eval();
+            auto cov_by = (X_b_i * W * Y_i.transpose()).eval();
 
-//            fl::smw_inverse(
-//                cov_aa_inv, cov_ay_i, cov_ya_i, cov_yy_i, // [in]
-//                L_aa,       L_ay,     L_ya,     L_yy,     // [out] block
-//                L);                                       // [out] joint
+            fl::smw_inverse(
+                cov_aa_inv, cov_ay_i, cov_ya_i, cov_yy_i, // [in]
+                L_aa,       L_ay,     L_ya,     L_yy,     // [out] block
+                L);                                       // [out] joint
 
-//            B.middleRows(i * dim_b_i, dim_b_i) =
-//                (cov_ab.transpose() * L_aa + cov_by * L_ya).eval();
+            B.middleRows(i * dim_b_i, dim_b_i) =
+                (cov_ab.transpose() * L_aa + cov_by * L_ya).eval();
 
-//            cov_ba_by.leftCols(dim_a) = cov_ab.transpose();
-//            cov_ba_by.rightCols(dim_y_i) = cov_by;
+            cov_ba_by.leftCols(dim_a) = cov_ab.transpose();
+            cov_ba_by.rightCols(dim_y_i) = cov_by;
 
-//            auto K = (cov_ba_by * L).eval();
-//            auto cov_b_given_ay = (cov_bb - K * cov_ba_by.transpose()).eval();
+            auto K = (cov_ba_by * L).eval();
+            auto cov_b_given_ay = (cov_bb - K * cov_ba_by.transpose()).eval();
 
-//            innov_b_i.bottomRows(dim_y_i) = innov;
-//            postr_b(i).mean(
-//                mu_x_b.middleRows(i * dim_b_i, dim_b_i) + K * innov_b_i);
-//            postr_b(i).covariance(cov_b_given_ay);
+            innov_b_i.bottomRows(dim_y_i) = innov;
+
+            postr_b(i).mean(
+                mu_x_b.middleRows(i * dim_b_i, dim_b_i) + K * innov_b_i);
+            postr_b(i).covariance(cov_b_given_ay);
         }
 
         postr_a.covariance((cov_aa_inv + C).inverse());
         postr_a.mean(mu_x_a + postr_a.covariance() * D);
 
-//        auto postr_mu_a = postr_a.mean();
-//        auto postr_cov_aa = postr_a.covariance();
-//        for (int i = 0; i < param_count_; ++i)
-//        {
-//            auto&& B_i = B.middleRows(i * dim_b_i, dim_b_i);
+        auto postr_mu_a = postr_a.mean();
+        auto postr_cov_aa = postr_a.covariance();
+        for (int i = 0; i < param_count_; ++i)
+        {
+            auto&& B_i = B.middleRows(i * dim_b_i, dim_b_i);
 
-//            postr_b(i).mean(
-//                postr_b(i).mean() + B_i * postr_mu_a);
+            postr_b(i).mean(
+                postr_b(i).mean() + B_i * postr_mu_a);
 
-//            postr_b(i).covariance(
-//                postr_b(i).covariance() - B_i * postr_cov_aa * B_i.transpose());
-//        }
-
-        PV(postr_a.mean());
-        PV(postr_a.covariance());
-
+            postr_b(i).covariance(
+                postr_b(i).covariance() + B_i * postr_cov_aa * B_i.transpose());
+        }
     }
 
     /**
@@ -589,10 +595,20 @@ public:
 
 
     ProcessModel& process_model() { return f_; }
-    ObservationModel& observation_model() { return h_; }
+    ObservationModel& obsrv_model() { return h_; }
     PointSetTransform& point_set_transform() { return transform_; }
-    StateProcessModel& state_process_model() { return f_a_; }
-    JointParamProcessModel& joint_param_process_model() { return f_b_; }
+    StateProcessModel& local_process_model() { return f_a_; }
+    JointParamProcessModel& joint_param_model() { return f_b_; }
+    LocalParamModel& local_param_model() { return f_b_i_; }
+    LocalObsrvModel& local_obsrv_model() { return h_i_; }
+
+    const ProcessModel& process_model() const { return f_; }
+    const ObservationModel& obsrv_model() const { return h_; }
+    const PointSetTransform& point_set_transform() const { return transform_; }
+    const StateProcessModel& local_process_model() const { return f_a_; }
+    const JointParamProcessModel& joint_param_model() const { return f_b_; }
+    const LocalParamModel& local_param_model() const { return f_b_i_; }
+    const LocalObsrvModel& local_obsrv_model() const { return h_i_; }
 
 public:
     /* == Helpers =========================================================== */
