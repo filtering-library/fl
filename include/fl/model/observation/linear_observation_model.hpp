@@ -24,6 +24,7 @@
 
 #include <fl/util/traits.hpp>
 #include <fl/distribution/gaussian.hpp>
+#include <fl/model/adaptive_model.hpp>
 #include <fl/model/observation/observation_model_interface.hpp>
 
 namespace fl
@@ -61,13 +62,22 @@ struct Traits<
                 Scalar,
                 Obsrv::SizeAtCompileTime,
                 State::SizeAtCompileTime
-            > SensorMatrix;
+            > SensorMatrix;    
 
     typedef ObservationModelInterface<
                 Obsrv,
                 State,
                 Noise
             > ObservationModelBase;
+
+    typedef Eigen::Matrix<Scalar, 1, 1> Param;
+    typedef AdaptiveModel<Param> AdaptiveModelBase;
+
+    typedef Eigen::Matrix<
+                Scalar,
+                Obsrv::SizeAtCompileTime,
+                Param::SizeAtCompileTime
+            > ParamMatrix;
 };
 
 /**
@@ -77,18 +87,23 @@ template <typename Obsrv,typename State>
 class LinearGaussianObservationModel
     : public Traits<
                  LinearGaussianObservationModel<Obsrv, State>
+             >::GaussianBase,
+      public Traits<
+                 LinearGaussianObservationModel<Obsrv, State>
              >::ObservationModelBase,
       public Traits<
                  LinearGaussianObservationModel<Obsrv, State>
-             >::GaussianBase
+             >::AdaptiveModelBase
 {
 public:
     typedef LinearGaussianObservationModel<Obsrv, State> This;
 
-    typedef typename Traits<This>::Noise Noise;
     typedef typename Traits<This>::Scalar Scalar;
+    typedef typename Traits<This>::Noise Noise;    
+    typedef typename Traits<This>::Param Param;
     typedef typename Traits<This>::SecondMoment SecondMoment;
     typedef typename Traits<This>::SensorMatrix SensorMatrix;
+    typedef typename Traits<This>::ParamMatrix ParamMatrix;
 
     using Traits<This>::GaussianBase::mean;
     using Traits<This>::GaussianBase::covariance;
@@ -103,7 +118,9 @@ public:
         : Traits<This>::GaussianBase(obsrv_dim),
           state_dimension_(state_dim),
           H_(SensorMatrix::Ones(obsrv_dimension(),
-                                state_dimension()))
+                                state_dimension())),
+          H_p_(ParamMatrix::Ones(obsrv_dimension(),1)),
+          param_(Param::Zero(1, 1))
     {
         covariance(noise_covariance);
     }
@@ -115,7 +132,9 @@ public:
         : Traits<This>::GaussianBase(obsrv_dim),
           state_dimension_(state_dim),
           H_(SensorMatrix::Ones(obsrv_dimension(),
-                                state_dimension()))
+                                state_dimension())),
+          H_p_(ParamMatrix::Ones(obsrv_dimension(),1)),
+          param_(Param::Zero())
     {
         covariance(SecondMoment::Identity(obsrv_dim, obsrv_dim));
     }
@@ -124,7 +143,7 @@ public:
 
     virtual void condition(const State& x)
     {
-        mean(H_ * x);
+        mean(H_ * x + H_p_ * param_);
     }
 
     virtual const SensorMatrix& H() const
@@ -142,7 +161,8 @@ public:
                                       double delta_time)
     {
         condition(state);
-        return Traits<This>::GaussianBase::map_standard_normal(noise);
+        Obsrv y = Traits<This>::GaussianBase::map_standard_normal(noise);
+        return y;
     }
 
     virtual int obsrv_dimension() const
@@ -160,10 +180,26 @@ public:
         return state_dimension_;
     }
 
+    virtual const Param& param() const
+    {
+        return param_;
+    }
+
+    virtual void param(Param params)
+    {
+        param_ = params;
+    }
+
+    virtual int param_dimension() const
+    {
+        return param_.rows();
+    }
 
 protected:
     int state_dimension_;
     SensorMatrix H_;
+    ParamMatrix H_p_;
+    Param param_;
 };
 
 }
