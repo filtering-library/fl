@@ -91,7 +91,7 @@ struct Traits<
      * - Observation
      * - StateDistribution
      */
-    typedef std::shared_ptr<Filter> Ptr;
+    //typedef std::shared_ptr<Filter> Ptr;
     typedef typename Traits<ProcessModel>::State State;
     typedef typename Traits<ProcessModel>::Input Input;
     typedef typename Traits<ObservationModel>::Obsrv Obsrv;
@@ -149,14 +149,14 @@ public:
      * \param process_model         Process model instance
      * \param obsrv_model           Obsrv model instance
      */
-    template <
-        typename ProcessModel,  // deduce model type for perfect forwarding
-        typename ObsrvModel     // deduce model type for perfect forwarding
-    >
-    GaussianFilter(ProcessModel&& process_model,
-                   ObsrvModel&& obsrv_model)
-        : process_model_(std::forward<ProcessModel>(process_model)),
-          obsrv_model_(std::forward<ObservationModel>(obsrv_model))
+//    template <
+//        typename ProcessModel,  // deduce model type for perfect forwarding
+//        typename ObsrvModel     // deduce model type for perfect forwarding
+//    >
+    GaussianFilter(const ProcessModel& process_model,
+                   const ObservationModel& obsrv_model)
+        : process_model_(process_model),
+          obsrv_model_(obsrv_model)
     { }
 
     /**
@@ -219,7 +219,7 @@ public:
                         StateDistribution& posterior_dist)
     {
         auto&& H = obsrv_model_.H();
-        auto&& R = obsrv_model_.covariance();
+        auto&& R = obsrv_model_.covariance();                
 
         auto&& mean = predicted_dist.mean();
         auto&& cov_xx = predicted_dist.covariance();
@@ -228,7 +228,7 @@ public:
         auto&& K = (cov_xx * H.transpose() * S.inverse()).eval();
 
         posterior_dist.mean(mean + K * (y - H * mean));
-        posterior_dist.covariance(cov_xx - K * H * cov_xx);
+        posterior_dist.covariance(cov_xx - K * H * cov_xx);        
     }
 
     /**
@@ -243,6 +243,11 @@ public:
         predict(delta_time, input, prior_dist, posterior_dist);
         update(observation, posterior_dist, posterior_dist);
     }
+
+    ProcessModel& process_model() { return process_model_; }
+    ObservationModel& obsrv_model() { return obsrv_model_; }
+    const ProcessModel& process_model() const { return process_model_; }
+    const ObservationModel& obsrv_model() const { return obsrv_model_; }
 
 protected:
     ProcessModel process_model_;
