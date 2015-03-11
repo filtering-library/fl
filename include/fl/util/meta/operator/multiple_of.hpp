@@ -39,7 +39,7 @@ namespace fl
  */
 template <typename T, int Count>
 struct MultipleOf
-    : CreateTypeSequence<Count, typename ForwardAdaptive<T>::Type>
+    //: CreateTypeSequence<Count, typename ForwardAdaptive<T>::Type>
 {
     typedef typename ForwardAdaptive<T>::Type Type;
 
