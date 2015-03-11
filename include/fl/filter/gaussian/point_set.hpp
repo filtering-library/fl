@@ -140,7 +140,7 @@ struct Traits<PointSet<Point_, Points_>>
     /**
      * \brief Weight list of all points
      */
-    typedef Eigen::Matrix<Weight, Points_, 1> Weights;
+    typedef Eigen::Array<Weight, Points_, 1> Weights;
 };
 
 /**
@@ -187,12 +187,7 @@ public:
         points_.setZero();
 
         double weight = (points_count > 0) ? 1./double(points_count) : 0;
-
-        for (int i = 0; i < points_count; ++i)
-        {
-            weights_(i).w_mean = weight;
-            weights_(i).w_cov = weight;
-        }
+        weights_.fill(Weight{weight, weight});
     }
 
     /**
@@ -203,12 +198,7 @@ public:
         points_.setZero();
 
         double weight = (weights_.size() > 0) ? 1./double(weights_.size()) : 0;
-
-        for (int i = 0; i < weights_.size(); ++i)
-        {
-            weights_(i).w_mean = weight;
-            weights_(i).w_cov = weight;
-        }
+        weights_.fill(Weight{weight, weight});
     }
 
     /**
@@ -296,7 +286,7 @@ public:
     }
 
     /**
-     * \return i-th point
+     * \return read only access on i-th point
      *
      * \param i Index of requested point
      *
@@ -307,6 +297,11 @@ public:
     {
         INLINE_CHECK_POINT_SET_BOUNDS(i);
 
+        return points_.col(i);
+    }
+
+    auto operator[](int i) -> decltype(PointMatrix().col(i))
+    {
         return points_.col(i);
     }
 
@@ -341,9 +336,17 @@ public:
     }
 
     /**
-     * \return Point matrix
+     * \return Point matrix (read only)
      */
     const PointMatrix& points() const noexcept
+    {
+        return points_;
+    }
+
+    /**
+     * \return Point matrix
+     */
+    PointMatrix& points()
     {
         return points_;
     }
@@ -388,6 +391,14 @@ public:
         }
 
         return weight_vec;
+    }
+
+    /**
+     * Sets the given point matrix
+     */
+    void points(const PointMatrix& point_matrix)
+    {
+        points_ = point_matrix;
     }
 
     /**
@@ -524,6 +535,18 @@ public:
         }
 
         return centered;
+    }
+
+    Point center()
+    {
+        const Point weighted_mean = mean();
+        const int point_count = points_.cols();
+        for (int i = 0; i < point_count; ++i)
+        {
+            points_.col(i) -= weighted_mean;
+        }
+
+        return weighted_mean;
     }
 
     /**
