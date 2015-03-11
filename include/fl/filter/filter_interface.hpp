@@ -58,7 +58,7 @@ public:
      *
      * The filter specialization traits must provide the shared pointer type
      */
-    typedef typename Traits<Derived>::Ptr Ptr;
+    //typedef typename Traits<Derived>::Ptr Ptr;
 
     /**
      * \brief State type provided by the filter specialization
