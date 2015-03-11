@@ -177,6 +177,22 @@ $(function () {
     //$(".textblock h3").html($(".textblock h3").html().replace(/, /g, ",<br />&emsp;"));
     //$(".textblock h3").html($(".textblock h3").html().replace(/&gt;/g, "<br />&gt;"));
     //$(".textblock h3").html($(".textblock h3").html().replace(/&lt;/g, "&lt;<br />&emsp;"));
+    
+    // extract class identifier on members
+    var constr = $(".mlabels-left table tbody tr td:first").text();
+    var qualifierSepIndex = constr.lastIndexOf("::");
+    var constr_qualifier = ""; 
+    if (qualifierSepIndex > -1)
+    {
+        constr_qualifier = constr.substring(0, qualifierSepIndex + 2);
+    }
+
+    $(".mlabels-left table tbody").each(function( i ) 
+    {
+        var memname = $(this).find("tr td:first");        
+        var t = memname.text().replace(constr_qualifier, "");
+        memname.html(t);
+    });
 });
 </script>
 </head>
