@@ -135,7 +135,9 @@ private:
     }
 
     template <int Size, int k = 0>
-    void mean_(const MarginalDistributions& distr_tuple, Variate& mu, int offset = 0) const
+    void mean_(const MarginalDistributions& distr_tuple,
+               Variate& mu,
+               int offset = 0) const
     {
         auto&& distribution = std::get<k>(distr_tuple);
         const int dim = distribution.dimension();

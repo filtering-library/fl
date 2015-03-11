@@ -55,7 +55,7 @@ struct Traits<
 
     typedef Eigen::Matrix<Scalar, Dimension, 1> Variate;
     typedef Eigen::Matrix<Scalar, Dimension, Dimension> SecondMoment;
-    typedef Eigen::Matrix<Distribution, Count, 1> MarginalDistributions;
+    typedef Eigen::Array<Distribution, Count, 1> MarginalDistributions;
 
     typedef Moments<Variate, SecondMoment> MomentsInterface;
 };
@@ -79,6 +79,7 @@ public:
     typedef from_traits(MarginalDistributions);
 
 public:
+    explicit
     JointDistribution(MarginalDistribution marginal,
                       int count = ToDimension<Count>::Value)
         : distributions_(MarginalDistributions(count, 1))
@@ -103,7 +104,7 @@ public:
         Variate mu = Variate(dimension(), 1);
 
         int offset = 0;
-        for (int i = 0; i < Traits<This>::MarginalCount; ++i)
+        for (int i = 0; i < distributions_.size(); ++i)
         {
             const MarginalDistribution& marginal = distributions_(i);
             int dim =  marginal.dimension();
@@ -121,7 +122,7 @@ public:
         SecondMoment cov = SecondMoment::Zero(dimension(), dimension());
 
         int offset = 0;
-        for (int i = 0; i < distributions_.rows(); ++i)
+        for (int i = 0; i < distributions_.size(); ++i)
         {
             const MarginalDistribution& marginal = distributions_(i);
             int dim =  marginal.dimension();
