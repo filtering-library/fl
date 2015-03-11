@@ -53,7 +53,12 @@ template <typename Model>
 struct ForwardAdaptive<Model>
     : ForwardAdaptive<
           Model,
-          Options<std::is_base_of<internal::AdaptiveModelType, Model>::value>
+          Options<
+            !std::is_base_of<internal::AdaptiveModelType, Model>::value
+            &
+            (std::is_base_of<internal::ObsrvModelType, Model>::value |
+             std::is_base_of<internal::ProcessModelType, Model>::value)
+          >
       >
 { };
 
@@ -65,7 +70,7 @@ struct ForwardAdaptive<Model>
  * is decorated by the NotAdaptive operator
  */
 template <typename Model>
-struct ForwardAdaptive<Model, Options<0>>
+struct ForwardAdaptive<Model, Options<1>>
 {
     typedef NotAdaptive<Model> Type;
 };
@@ -78,10 +83,12 @@ struct ForwardAdaptive<Model, Options<0>>
  * already implements the AdaptiveModel interface.
  */
 template <typename Model>
-struct ForwardAdaptive<Model, Options<1>>
+struct ForwardAdaptive<Model, Options<0>>
 {
     typedef Model Type;
 };
+
+
 
 }
 
