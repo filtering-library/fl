@@ -87,7 +87,7 @@ class JointProcessModel<MultipleOf<LocalProcessModel, Count>>
              >::ProcessModelBase
 {
 public:
-    typedef JointProcessModel<MultipleOf<LocalProcessModel, Count>> This;
+    typedef JointProcessModel This;
 
     typedef typename Traits<This>::State State;
     typedef typename Traits<This>::Noise Noise;
