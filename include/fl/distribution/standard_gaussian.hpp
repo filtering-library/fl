@@ -17,20 +17,46 @@
 #include <fl/util/traits.hpp>
 #include <fl/util/math.hpp>
 #include <fl/distribution/interface/sampling.hpp>
+#include <fl/distribution/interface/moments.hpp>
 #include <fl/exception/exception.hpp>
 
 namespace fl
 {
 
+// Forward declaration
+template <typename StandardVariate> class StandardGaussian;
+
+/**
+ * \ingroup distributions
+ * Traits fo StandardGaussian<StandardVariate>
+ */
+template <typename StandardVariate>
+struct Traits<
+           StandardGaussian<StandardVariate>
+       >
+{
+    typedef StandardVariate Variate;
+    typedef typename Variate::Scalar Scalar;
+    typedef Eigen::Matrix<Scalar, Variate::SizeAtCompileTime, 1> SecondMoment;
+    typedef Moments<StandardVariate, SecondMoment> MomentsBase;
+};
+
 /**
  * \ingroup distributions
  */
 template <typename StandardVariate>
-class StandardGaussian:
-        public Sampling<StandardVariate>
+class StandardGaussian
+    : public Sampling<StandardVariate>,
+      public Traits<StandardGaussian<StandardVariate>>::MomentsBase
 {
 public:
-    explicit StandardGaussian(int dim = DimensionOf<StandardVariate>())
+    typedef StandardGaussian This;
+    typedef from_traits(Variate);
+    typedef from_traits(SecondMoment);
+
+public:
+    explicit
+    StandardGaussian(int dim = DimensionOf<StandardVariate>())
         : dimension_ (dim),
           generator_(fl::seed()),
           gaussian_distribution_(0.0, 1.0)
@@ -70,6 +96,21 @@ public:
         dimension_ = new_dimension;
     }
 
+    virtual Variate mean() const
+    {
+        Variate mu;
+        mu.setZero(dimension(), 1);
+        return mu;
+    }
+
+    virtual SecondMoment covariance() const
+    {
+        SecondMoment cov;
+        cov.setIdentity(dimension(), dimension());
+
+        return cov;
+    }
+
 private:
     int dimension_;
     mutable fl::mt11213b generator_;
@@ -83,6 +124,7 @@ private:
  */
 template <typename Scalar>
 class StandardGaussianFloatingPointScalarImpl
+    : Moments<Scalar, Scalar>
 {
     static_assert(
         std::is_floating_point<Scalar>::value,
@@ -97,6 +139,16 @@ public:
     Scalar sample_impl() const
     {
         return gaussian_distribution_(generator_);
+    }
+
+    virtual Scalar mean() const
+    {
+        return 0.;
+    }
+
+    virtual Scalar covariance() const
+    {
+        return 1.;
     }
 
 protected:
