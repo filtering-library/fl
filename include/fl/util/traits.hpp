@@ -29,6 +29,20 @@ namespace fl
 
 /**
  * \ingroup traits
+ * \brief Helper macro to import typedefs from the traits of a class
+ *
+ * typedef from_traits(SomeTypeName);
+ *
+ * is the short hand for
+ *
+ * typedef typename Traits<This>::SomeTimeName SomeTimeName;
+ *
+ * \note from_this(.) requires the typedef \c This of the current class
+ */
+#define from_traits(TypeName) typename Traits<This>::TypeName TypeName
+
+/**
+ * \ingroup traits
  * \brief Generic trait template
  *
  * Filters, models and distributions may specify a \c Traits specialization
