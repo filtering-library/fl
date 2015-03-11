@@ -77,17 +77,26 @@ inline void smw_inverse(const MatrixAInv& A_inv,
                   MatrixLC& L_C,
                   MatrixLD& L_D)
 {
-    Eigen::MatrixXd CAinv = C * A_inv;
-    Eigen::MatrixXd AinvB = A_inv * B;
+    auto&& AinvB = (A_inv * B).eval();
 
     L_D = (D - C * AinvB).inverse();
-
-    Eigen::MatrixXd L_D_CAinv = L_D * CAinv;
-
-    L_A = A_inv + AinvB * L_D_CAinv;
-    L_B = -(AinvB * L_D);
-    L_C = -L_D_CAinv;
+    L_C = -(L_D * C * A_inv).eval();
+    L_A = A_inv - AinvB * L_C;
+    L_B = L_C.transpose();
 }
+
+//    auto CAinv = C * A_inv;
+//    auto AinvB = (A_inv * B).eval();
+
+//    L_D = (D - C * AinvB).inverse();
+
+//    auto L_D_CAinv = L_D * CAinv;
+
+//    L_A = A_inv + AinvB * L_D_CAinv;
+
+//    L_C = -L_D_CAinv;
+
+//    L_B = L_C.transpose();
 
 /**
  * \ingroup linear_algebra
