@@ -90,6 +90,13 @@ public:
      * id of the individual model.
      */
     virtual int id() const { return Id; }
+
+    /**
+     * Sets the model id
+     *
+     * \param new_id    Model's new ID
+     */
+    virtual void id(int) { /* const ID, no actions will be taken. */ }
 };
 
 /**
