@@ -37,37 +37,13 @@ namespace fl
  * Adaptive operator
  */
 template <typename... Model>
-class Adaptive
-{ };
-
-/**
- * \internal
- * \ingroup meta
- *
- * Adaptive operator specialization applied on the passed model type
- */
-template <typename Model>
-class Adaptive<Model>
-  : public Adaptive<typename Model::ModelType, Model>
-{ };
-
-/**
- * \internal
- * \ingroup meta
- */
-template <typename Model>
-class Adaptive<NotAdaptive<Model>>
-  : public Adaptive<
-        typename Model::ModelType,
-        NotAdaptive<typename Model::ModelType, Model>
-    >
-{ };
+class Adaptive { };
 
 /**
  * \ingroup meta
  */
 template <typename Model>
-struct Traits<Adaptive<internal::ObsrvModelType, Model>>
+struct Traits<Adaptive<Model>>
     : Traits<Model>
 {
     typedef typename Traits<Model>::State ActualState;
@@ -83,6 +59,53 @@ struct Traits<Adaptive<internal::ObsrvModelType, Model>>
 };
 
 /**
+ * \internal
+ * \ingroup meta
+ *
+ * Adaptive operator specialization applied on the passed model type
+ */
+template <typename Model>
+class Adaptive<Model>
+  : public Adaptive<typename Model::ModelType, Model>
+{
+public:
+    typedef Adaptive<typename Model::ModelType, Model> Base;
+
+    template <typename...Args>
+    Adaptive(Args&&...args) : Base(std::forward<Args>(args)...) { }
+};
+
+/**
+ * \internal
+ * \ingroup meta
+ */
+template <typename Model>
+class Adaptive<NotAdaptive<Model>>
+  : public Adaptive<
+               typename Model::ModelType,
+               NotAdaptive<typename Model::ModelType, Model>
+           >
+{
+public:
+    typedef Adaptive<
+                typename Model::ModelType,
+                NotAdaptive<typename Model::ModelType, Model>
+            > Base;
+
+    template <typename...Args>
+    Adaptive(Args&&...args) : Base(std::forward<Args>(args)...) { }
+};
+
+/**
+ * \ingroup meta
+ */
+template <typename Model>
+struct Traits<Adaptive<internal::ObsrvModelType, Model>>
+    : Traits<Adaptive<Model>>
+{
+};
+
+/**
  * Adaptive operator implementation of the observation model
  */
 template <typename Model>
@@ -90,10 +113,16 @@ class Adaptive<internal::ObsrvModelType, Model>
   : public Model
 {
 public:
+    typedef Adaptive This;
+
+    typedef typename Traits<This>::State State;
+
     typedef typename Traits<Model>::Obsrv Obsrv;
-    typedef typename Traits<Model>::State State;
     typedef typename Traits<Model>::Noise Noise;
     typedef typename Traits<Model>::Param Param;
+
+    template <typename...Args>
+    Adaptive(Args&&...args) : Model(std::forward<Args>(args)...) { }
 
     /**
      * Evaluates the model function \f$y = h(x, w)\f$ where \f$x\f$ is the state
