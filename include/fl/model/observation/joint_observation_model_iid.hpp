@@ -168,6 +168,8 @@ public:
         const int count = count_;
         for (int i = 0; i < count; ++i)
         {
+            local_obsrv_model_.id(i);
+
             // set parameters if exist
             if (param_dim > 0)
             {
