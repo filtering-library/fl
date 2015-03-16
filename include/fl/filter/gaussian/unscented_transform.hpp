@@ -107,7 +107,7 @@ public:
         }
 
         // will resize of transform size is different from point count.
-        point_set.resize(size_t(point_count));
+        point_set.resize(point_count);
 
         auto&& covariance_sqrt = gaussian.square_root() * gamma_factor(dim);
 
