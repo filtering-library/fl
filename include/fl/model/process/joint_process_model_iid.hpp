@@ -94,25 +94,10 @@ public:
     typedef typename Traits<This>::Input Input;
 
 public:
-    JointProcessModel(LocalProcessModel&& local_process_model,
-                      int count = ToDimension<Count>())
-        : local_process_model_(std::move(local_process_model)),
-          count_(count)
-    {
-        assert(count_ > 0);
-    }
-
     JointProcessModel(const LocalProcessModel& local_process_model,
                       int count = ToDimension<Count>())
         : local_process_model_(local_process_model),
           count_(count)
-    {
-        assert(count_ > 0);
-    }
-
-    JointProcessModel(MultipleOf<LocalProcessModel, Count>&& mof)
-        : local_process_model_(mof.instance),
-          count_(mof.count)
     {
         assert(count_ > 0);
     }
@@ -166,6 +151,11 @@ public:
     }
 
     LocalProcessModel& local_process_model()
+    {
+        return local_process_model_;
+    }
+
+    const LocalProcessModel& local_process_model() const
     {
         return local_process_model_;
     }
