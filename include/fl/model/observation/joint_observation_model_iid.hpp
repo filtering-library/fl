@@ -128,7 +128,6 @@ public:
     typedef typename Traits<This>::Param Param;
 
 public:
-    explicit
     JointObservationModel(
             const LocalObsrvModel& local_obsrv_model,
             int count = ToDimension<Count>::Value)
@@ -139,7 +138,6 @@ public:
     }
 
     template <typename Model>
-    explicit
     JointObservationModel(const MultipleOf<Model, Count>& mof)
         : local_obsrv_model_(mof.instance),
           count_(mof.count)
@@ -203,7 +201,12 @@ public:
         return local_obsrv_model_.state_dimension();
     }
 
-    LocalObsrvModel& local_observation_model()
+    LocalObsrvModel& local_obsrv_model()
+    {
+        return local_obsrv_model_;
+    }
+
+    const LocalObsrvModel& local_obsrv_model() const
     {
         return local_obsrv_model_;
     }
