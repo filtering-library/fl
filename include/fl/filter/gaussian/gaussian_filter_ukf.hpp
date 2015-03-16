@@ -28,10 +28,13 @@
 
 #include <fl/util/meta.hpp>
 #include <fl/util/traits.hpp>
+#include <fl/util/profiling.hpp>
 
 #include <fl/exception/exception.hpp>
 #include <fl/filter/filter_interface.hpp>
 #include <fl/filter/gaussian/point_set.hpp>
+
+#include <fl/model/observation/joint_observation_model.hpp>
 
 namespace fl
 {
@@ -68,7 +71,7 @@ struct Traits<
     typedef std::shared_ptr<Filter> Ptr;
     typedef typename Traits<ProcessModel>::State State;
     typedef typename Traits<ProcessModel>::Input Input;    
-    typedef typename Traits<ObservationModel>::Observation Observation;
+    typedef typename Traits<ObservationModel>::Obsrv Obsrv;
 
     /**
      * Represents the underlying distribution of the estimated state. In
@@ -97,39 +100,34 @@ struct Traits<
      * That is, the number of points cannot be known at compile time and
      * will be allocated dynamically on run time.
      */
-    static constexpr int NumberOfPoints = PointSetTransform::number_of_points(
-                        JoinSizes<
-                            State::RowsAtCompileTime,
-                            StateNoise::RowsAtCompileTime,
-                            ObsrvNoise::RowsAtCompileTime
-                        >::Size);
+    enum : signed int
+    {
+        NumberOfPoints = PointSetTransform::number_of_points(
+                             JoinSizes<
+                                 State::RowsAtCompileTime,
+                                 StateNoise::RowsAtCompileTime,
+                                 ObsrvNoise::RowsAtCompileTime
+                             >::Size)
+    };
 
     typedef PointSet<State, NumberOfPoints> StatePointSet;
-    typedef PointSet<Observation, NumberOfPoints> ObsrvPointSet;
+    typedef PointSet<Obsrv, NumberOfPoints> ObsrvPointSet;
     typedef PointSet<StateNoise, NumberOfPoints> StateNoisePointSet;
     typedef PointSet<ObsrvNoise, NumberOfPoints> ObsrvNoisePointSet;
-
-    /**
-     * \brief KalmanGain Matrix
-     */
-    typedef Eigen::Matrix<
-                typename StateDistribution::Scalar,
-                State::RowsAtCompileTime,
-                Observation::RowsAtCompileTime
-            > KalmanGain;
     /** \endcond */
 };
 
 /**
+ * \ingroup sigma_point_kalman_filters
+ * \ingroup unscented_kalman_filter
+ *
  * GaussianFilter represents all filters based on Gaussian distributed systems.
  * This includes the Kalman Filter and filters using non-linear models such as
  * Sigma Point Kalman Filter family.
  *
  * \tparam ProcessModel
  * \tparam ObservationModel
- *
- * \ingroup filters
- * \ingroup sigma_point_kalman_filters
+ * 
  */
 template<
     typename ProcessModel,
@@ -138,7 +136,7 @@ template<
 >
 class GaussianFilter<ProcessModel, ObservationModel, PointSetTransform>
     :
-    /* Implement the conceptual filter interface */
+    /* Implement the filter interface */
     public FilterInterface<
               GaussianFilter<ProcessModel, ObservationModel, PointSetTransform>>
 
@@ -146,7 +144,6 @@ class GaussianFilter<ProcessModel, ObservationModel, PointSetTransform>
 protected:
     /** \cond INTERNAL */
     typedef GaussianFilter<ProcessModel, ObservationModel, PointSetTransform> This;
-    typedef typename Traits<This>::KalmanGain KalmanGain;
     typedef typename Traits<This>::StateNoise StateNoise;
     typedef typename Traits<This>::ObsrvNoise ObsrvNoise;
     typedef typename Traits<This>::StatePointSet StatePointSet;
@@ -159,7 +156,7 @@ public:
     /* public concept interface types */
     typedef typename Traits<This>::State State;    
     typedef typename Traits<This>::Input Input;
-    typedef typename Traits<This>::Observation Obsrv;    
+    typedef typename Traits<This>::Obsrv Obsrv;
     typedef typename Traits<This>::StateDistribution StateDistribution;    
 
 public:
@@ -171,9 +168,9 @@ public:
      * \param point_set_transform   Point set tranfrom such as the unscented
      *                              transform
      */
-    GaussianFilter(const std::shared_ptr<ProcessModel>& process_model,
-                   const std::shared_ptr<ObservationModel>& obsrv_model,
-                   const std::shared_ptr<PointSetTransform>& point_set_transform)
+    GaussianFilter(const ProcessModel& process_model,
+                   const ObservationModel& obsrv_model,
+                   const PointSetTransform& point_set_transform)
         : process_model_(process_model),
           obsrv_model_(obsrv_model),
           point_set_transform_(point_set_transform),
@@ -184,23 +181,22 @@ public:
            * consists of state Gaussian, state noise Gaussian and the
            * observation noise Gaussian.
            */
-          global_dimension_(process_model_->state_dimension()
-                            + process_model_->noise_dimension()
-                            + obsrv_model_->noise_dimension()),
+          global_dimension_(process_model_.state_dimension()
+                            + process_model_.noise_dimension()
+                            + obsrv_model_.noise_dimension()),
           /*
            * Initialize the points-set Gaussian (e.g. sigma points) of the
            * \em state noise. The number of points is determined by the
            * augmented Gaussian with the dimension  global_dimension_
            */
-          X_Q(process_model_->noise_dimension(),
+          X_Q(process_model_.noise_dimension(),
               PointSetTransform::number_of_points(global_dimension_)),
-
           /*
            * Initialize the points-set Gaussian (e.g. sigma points) of the
            * \em observation noise. The number of points is determined by the
            * augmented Gaussian with the dimension global_dimension_
            */
-          X_R(obsrv_model_->noise_dimension(),
+          X_R(obsrv_model_.noise_dimension(),
               PointSetTransform::number_of_points(global_dimension_))
     {
         /*
@@ -220,10 +216,10 @@ public:
          * The transform takes the global dimension (dim(P) + dim(Q) + dim(R))
          * and the dimension offset dim(P) as parameters.
          */
-        point_set_transform_->forward(
-            Gaussian<StateNoise>(process_model_->noise_dimension()),
+        point_set_transform_.forward(
+            Gaussian<StateNoise>(process_model_.noise_dimension()),
             global_dimension_,
-            process_model_->state_dimension(),
+            process_model_.state_dimension(),
             X_Q);
 
         /*
@@ -243,11 +239,11 @@ public:
          * The transform takes the global dimension (dim(P) + dim(Q) + dim(R))
          * and the dimension offset dim(P) + dim(Q) as parameters.
          */
-        point_set_transform_->forward(
-            Gaussian<ObsrvNoise>(obsrv_model_->noise_dimension()),
+        point_set_transform_.forward(
+            Gaussian<ObsrvNoise>(obsrv_model_.noise_dimension()),
             global_dimension_,
-            process_model_->state_dimension()
-            + process_model_->noise_dimension(),
+            process_model_.state_dimension()
+            + process_model_.noise_dimension(),
             X_R);
 
         /*
@@ -257,13 +253,13 @@ public:
                 PointSetTransform::number_of_points(global_dimension_);
 
         X_y.resize(point_count);
-        X_y.dimension(obsrv_model_->observation_dimension());
+        X_y.dimension(obsrv_model_.obsrv_dimension());
 
         /*
          * Setup the point set of the state predictions
          */
         X_r.resize(point_count);
-        X_r.dimension(process_model_->state_dimension());
+        X_r.dimension(process_model_.state_dimension());
     }
 
     /**
@@ -274,6 +270,14 @@ public:
                          const StateDistribution& prior_dist,
                          StateDistribution& predicted_dist)
     {
+        {
+            point_set_transform_.forward(
+                Gaussian<StateNoise>(process_model_.noise_dimension()),
+                global_dimension_,
+                process_model_.state_dimension(),
+                X_Q);
+        }
+
         /*
          * Compute the state points from the given prior state Gaussian
          * distribution and store the points in the X_r PointSet
@@ -288,7 +292,7 @@ public:
          * The transform takes the global dimension (dim(P) + dim(Q) + dim(R))
          * and the dimension offset 0 as parameters.
          */
-        point_set_transform_->forward(prior_dist,
+        point_set_transform_.forward(prior_dist,
                                       global_dimension_,
                                       0,
                                       X_r);
@@ -301,10 +305,10 @@ public:
         const size_t point_count = X_r.count_points();
         for (size_t i = 0; i < point_count; ++i)
         {
-            X_r.point(i, process_model_->predict_state(delta_time,
-                                                       X_r.point(i),
-                                                       X_Q.point(i),
-                                                       input));
+            X_r[i] = process_model_.predict_state(delta_time,
+                                                  X_r[i],
+                                                  X_Q[i],
+                                                  input);
         }
 
         /*
@@ -318,7 +322,7 @@ public:
          *
          * mu_r = Sum w_mean[i] X_r[i]
          */
-        X = X_r.centered_points();
+        auto&& X = X_r.centered_points();
 
         /*
          * Obtain the weights of point as a vector
@@ -327,7 +331,7 @@ public:
          *
          * Note that the covariance weights are used.
          */
-        W = X_r.covariance_weights_vector();
+        auto&& W = X_r.covariance_weights_vector();
 
         /*
          * Compute and set the moments
@@ -340,8 +344,8 @@ public:
          *
          * given that W is the diagonal matrix
          */
-        predicted_dist.mean(X_r.mean());
-        predicted_dist.covariance(X * W.asDiagonal() * X.transpose());
+//        predicted_dist.mean(X_r.mean());
+//        predicted_dist.covariance(X * W.asDiagonal() * X.transpose());
     }
 
     /**
@@ -351,66 +355,41 @@ public:
                         const StateDistribution& predicted_dist,
                         StateDistribution& posterior_dist)
     {
-        point_set_transform_->forward(predicted_dist,
-                                      global_dimension_,
-                                      0,
-                                      X_r);
+//        point_set_transform_.forward(predicted_dist,
+//                                     global_dimension_,
+//                                     0,
+//                                     X_r);
 
-//        std::cout << "point_set_transform_" << std::endl;
+//        {
+//            point_set_transform_.forward(
+//                Gaussian<ObsrvNoise>(obsrv_model_.noise_dimension()),
+//                global_dimension_,
+//                process_model_.state_dimension()
+//                + process_model_.noise_dimension(),
+//                X_R);
+//        }
 
         const size_t point_count = X_r.count_points();
 
-//        std::cout << "X_r.count_points() " << X_r.count_points() << std::endl;
-//        std::cout << "X_R.count_points() " << X_R.count_points() << std::endl;
-//        std::cout << "X_y.count_points() " << X_y.count_points() << std::endl;
-
-//        std::cout << "X_r.dimension() " << X_r.dimension() << std::endl;
-//        std::cout << "X_R.dimension() " << X_R.dimension() << std::endl;
-//        std::cout << "X_y.dimension() " << X_y.dimension() << std::endl;
-
         for (size_t i = 0; i < point_count; ++i)
         {
-//            std::cout << "X_r.point(i) " << X_r.point(i).transpose() << std::endl;
-//            std::cout << "X_R.point(i) " << X_R.point(i).transpose() << std::endl;
-
-            X_y.point(i, obsrv_model_->predict_observation(X_r.point(i),
-                                                           X_R.point(i),
-                                                           0 /* delta time */));            
-
-//            std::cout << "X_y.point(i) " << X_y.point(i).transpose() << std::endl;
+            X_y[i] = obsrv_model_.predict_obsrv(X_r[i],
+                                                X_R[i],
+                                                1.0 /* delta time */);
         }
 
-//        std::cout << "predict_observation" << std::endl;
+        auto&& W = X_r.covariance_weights_vector();
+        auto&& X = X_r.centered_points();
+        auto&& Y = X_y.centered_points();
 
-        W = X_r.covariance_weights_vector();
-        X = X_r.centered_points();
-        Y = X_y.centered_points();
+        auto&& prediction = X_y.mean();
+        auto&& innovation = (y - prediction);
 
-        prediction = X_y.mean();
-        innovation = (y - prediction);
+        auto&& cov_xx = (X * W.asDiagonal() * X.transpose()).eval();
+        auto&& cov_yy = (Y * W.asDiagonal() * Y.transpose()).eval();
+        auto&& cov_xy = (X * W.asDiagonal() * Y.transpose()).eval();
 
-//        std::cout << "innovation" << std::endl;
-
-        auto cov_xx = X * W.asDiagonal() * X.transpose();
-        auto cov_yy = (Y * W.asDiagonal() * Y.transpose()).eval();
-        auto cov_xy = (X * W.asDiagonal() * Y.transpose()).eval();
-
-//        std::cout << "cov_xy" << std::endl;
-
-        for (int i = 0; i < y.rows(); ++i)
-        {
-            if (std::abs(innovation(i, 0)) > threshold)
-            {
-                cov_yy(i, i) += inv_sigma;
-            }
-        }
-
-//        std::cout << "cov_xx" << cov_xx << std::endl;
-//        std::cout << "cov_yy" << cov_yy << std::endl;
-//        std::cout << "cov_xy" << cov_xy << std::endl;
-
-        //const KalmanGain& K = cov_xy * cov_yy.inverse();
-        Eigen::MatrixXd K = cov_xy * cov_yy.inverse();
+        auto&& K = (cov_xy * cov_yy.inverse()).eval();
 
         posterior_dist.mean(X_r.mean() + K * innovation);
         posterior_dist.covariance(cov_xx - K * cov_yy * K.transpose());
@@ -429,29 +408,41 @@ public:
         update(observation, posterior_dist, posterior_dist);
     }
 
-    const std::shared_ptr<ProcessModel>& process_model()
+    ProcessModel& process_model() { return process_model_; }
+    ObservationModel& obsrv_model() { return obsrv_model_; }
+    PointSetTransform& point_set_transfor199m() { return point_set_transform_; }
+
+    const ProcessModel& process_model() const
     {
         return process_model_;
     }
 
-    const std::shared_ptr<ObservationModel>& observation_model()
+    const ObservationModel& obsrv_model() const
     {
         return obsrv_model_;
     }
 
-    const std::shared_ptr<ProcessModel>& point_set_transform()
+    const PointSetTransform& point_set_transform() const
     {
         return point_set_transform_;
+    }
+
+    virtual StateDistribution create_state_distribution() const
+    {
+        auto state_distr = StateDistribution(process_model().state_dimension());
+
+        return state_distr;
     }
 
 public:
     double threshold;
     double inv_sigma;
+    bool print_details;
 
-protected:
-    std::shared_ptr<ProcessModel> process_model_;
-    std::shared_ptr<ObservationModel> obsrv_model_;
-    std::shared_ptr<PointSetTransform> point_set_transform_;
+public:
+    ProcessModel process_model_;
+    ObservationModel obsrv_model_;
+    PointSetTransform point_set_transform_;
 
     /** \cond INTERNAL */
     /**
@@ -491,12 +482,75 @@ public:
     /* Dungeon - keep put! */
     decltype(X_y.mean()) prediction;
     decltype(prediction) innovation;
-
-    decltype(X_r.centered_points()) X;
-    decltype(X_y.centered_points()) Y;
-    decltype(X_r.covariance_weights_vector()) W;
     /** \endcond */
 };
+
+#ifdef TEMPLATE_ARGUMENTS
+    #undef TEMPLATE_ARGUMENTS
+#endif
+
+
+#define TEMPLATE_ARGUMENTS \
+    JointProcessModel< \
+       ProcessModel, \
+       JointProcessModel<MultipleOf<LocalParamModel, Count>>>, \
+    Adaptive<JointObservationModel<MultipleOf<LocalObsrvModel, Count>>>, \
+    PointSetTransform
+
+#ifndef GENERATING_DOCUMENTATION
+template <
+    typename ProcessModel,
+    typename LocalObsrvModel,
+    typename LocalParamModel,
+    int Count,
+    typename PointSetTransform
+>
+#endif
+struct Traits<
+           GaussianFilter<
+               ProcessModel,
+               Join<MultipleOf<Adaptive<LocalObsrvModel, LocalParamModel>, Count>>,
+               PointSetTransform,
+               Options<NoOptions>
+            >
+        >
+    : Traits<GaussianFilter<TEMPLATE_ARGUMENTS>>
+{ };
+
+#ifndef GENERATING_DOCUMENTATION
+template <
+    typename ProcessModel,
+    typename LocalObsrvModel,
+    typename LocalParamModel,
+    int Count,
+    typename PointSetTransform
+>
+#endif
+class GaussianFilter<
+          ProcessModel,
+          Join<MultipleOf<Adaptive<LocalObsrvModel, LocalParamModel>, Count>>,
+          PointSetTransform,
+          Options<NoOptions>
+      >
+    : public GaussianFilter<TEMPLATE_ARGUMENTS>
+{
+public:
+    typedef GaussianFilter<TEMPLATE_ARGUMENTS> Base;
+
+    GaussianFilter(
+        const ProcessModel& state_process_model,
+        const LocalParamModel& param_process_model,
+        const LocalObsrvModel& obsrv_model,
+        const PointSetTransform& point_set_transform,
+        int parameter_count = Count)
+            : Base(
+                { state_process_model, {param_process_model, parameter_count} },
+                { obsrv_model, parameter_count },
+                point_set_transform)
+    { }
+};
+
+#undef TEMPLATE_ARGUMENTS
 
 }
 

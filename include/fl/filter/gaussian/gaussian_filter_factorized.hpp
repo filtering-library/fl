@@ -38,7 +38,7 @@
 #include <fl/model/process/joint_process_model.hpp>
 #include <fl/model/observation/joint_observation_model.hpp>
 
-#define PV(mat) std::cout << #mat << "\n" << mat << "\n\n";
+
 
 namespace fl
 {
@@ -114,18 +114,19 @@ struct Traits<GaussianFilter<TEMPLATE_ARGUMENTS>>
     /**
      * \brief Marginal distribution of the state component
      */
-    typedef Gaussian<
-                typename Traits<StateProcessModel>::State
-            > LocalStateDistr;
+    typedef Gaussian<typename Traits<StateProcessModel>::State> LocalStateDistr;
+
+    /**
+     * \brief Marginal distribution of \f$i\f$-th parameter component
+     */
+    typedef Gaussian<typename Traits<LocalParamModel>::State> LocalParamDistr;
 
     /**
      * \brief Marginal distribution of the parameter components. The marginal
      * ifself consist of multiple Gaussian marginals, one for each parameter.
      */
     typedef JointDistribution<
-                MultipleOf<
-                    Gaussian<typename Traits<LocalParamModel>::State>,
-                    Count>
+                MultipleOf<LocalParamDistr, Count>
             > JointParamDistr;
     /** \endcond ============================================================ */
 
@@ -211,7 +212,6 @@ struct Traits<GaussianFilter<TEMPLATE_ARGUMENTS>>
 
     typedef Eigen::Array<LocalParamPointSet, Count, 1> LocalParamPointSets;
 
-    typedef Gaussian<LocalParam> LocalParamDistr;
     typedef Gaussian<LocalObsrv> LocalObsrvDistr;
     typedef Gaussian<LocalStateNoise> LocalStateNoiseDistr;
     typedef Gaussian<LocalParamNoise> LocalParamNoiseDistr;
@@ -352,12 +352,8 @@ public:
             const LocalObsrvModel& obsrv_model,
             const PointSetTransform& point_set_transform,
             int param_count = Count)
-        : f_a_(state_process_model),
-          f_b_i_(param_process_model),
-          f_b_(f_b_i_, param_count),
-          f_(f_a_, f_b_),
-          h_i_(obsrv_model),
-          h_(Adaptive<ObservationModel>(h_i_, param_count)),
+        : f_(state_process_model, {param_process_model, param_count}),
+          h_(Adaptive<ObservationModel>(obsrv_model, param_count)),
           transform_(point_set_transform),
           param_count_(param_count),
 
@@ -431,6 +427,46 @@ public:
                          const StateDistribution& prior_dist,
                          StateDistribution& predicted_dist)
     {
+        {
+
+            /* Create noise standard gaussian distributions */
+            auto N_a = Gaussian<LocalStateNoise>(dim(v_a));
+            auto N_b_i = Gaussian<LocalParamNoise>(dim(v_b_i));
+            auto N_y_i = Gaussian<LocalObsrvNoise>(dim(w_i));
+
+            /* Pre-Compute the sigma points of noise distributions */
+            typedef from_traits(LocalStateNoisePointSet);
+            typedef from_traits(LocalParamNoisePointSet);
+            typedef from_traits(LocalObsrvNoisePointSet);
+
+            auto X_v_a = LocalStateNoisePointSet(dim(v_a), point_count_);
+            auto X_v_b_i = LocalParamNoisePointSet(dim(v_b_i), point_count_);
+            auto X_w_y_i = LocalObsrvNoisePointSet(dim(w_i), point_count_);
+
+            int dim_offset = dim(a);
+            transform_.forward(N_a, dim_marginal_, dim_offset, X_v_a);
+
+            /* Create X_v and X_w joint sigma points */
+            X_v_.points().topRows(dim(v_a)) = X_v_a.points();
+            for (int i = 0; i < param_count_; ++i)
+            {
+                dim_offset = dim(a);
+
+                dim_offset += dim(v_a) + dim(b_i);
+                transform_.forward(N_b_i, dim_marginal_, dim_offset, X_v_b_i);
+
+                dim_offset += dim(v_b_i);
+                transform_.forward(N_y_i, dim_marginal_, dim_offset, X_w_y_i);
+
+                X_v_.points().middleRows(dim(v_a) + i * dim(v_b_i), dim(v_b_i)) =
+                    X_v_b_i.points();
+
+                X_w_.points().middleRows(i * dim(w_i), dim(w_i)) =
+                    X_w_y_i.points();
+            }
+
+        }
+
         /*
          * Compute sigma points of part X_a and each of X_b(i)
          */
@@ -459,11 +495,11 @@ public:
     {
         /*                   ugglyness (╯°□°)╯︵ ┻━┻                          */
 
-        auto&& prior_a = std::get<a>(predicted_dist.distributions());
-        auto&& prior_b = std::get<b>(predicted_dist.distributions())
-                            .distributions();
-        (void) prior_a;
-        (void) prior_b;
+//        const auto&& prior_a = std::get<a>(predicted_dist.distributions());
+//        const auto&& prior_b = std::get<b>(predicted_dist.distributions())
+//                            .distributions();
+//        (void) prior_a;
+//        (void) prior_b;
 
         auto&& postr_a = std::get<a>(posterior_dist.distributions());
         auto&& postr_b = std::get<b>(posterior_dist.distributions())
@@ -480,18 +516,17 @@ public:
         const int dim_b_i = dim(b_i);
         const int dim_y_i = dim(y_i);
 
-        auto mu_y = Y_.center();
-        auto mu_x = X_.center();
-        auto mu_x_a = mu_x.topRows(dim(a)).eval();
-        auto mu_x_b = mu_x.bottomRows(dim(b)).eval();
+        const auto mu_y = Y_.center();
+        const auto mu_x = X_.center();
+        const auto mu_x_a = mu_x.topRows(dim(a)).eval();
+        const auto mu_x_b = mu_x.bottomRows(dim(b)).eval();
         split(X_, X_a_, X_b_);
 
-        auto W = X_a_.covariance_weights_vector().asDiagonal();
-
-        auto Y = Y_.points();
-        auto X_a = X_a_.points();
-        auto cov_aa = (X_a * W  * X_a.transpose()).eval();
-        auto cov_aa_inv = cov_aa.inverse().eval();
+        const auto W = X_a_.covariance_weights_vector().asDiagonal();
+        const auto Y = Y_.points();
+        const auto X_a = X_a_.points();
+        const auto cov_aa = (X_a * W  * X_a.transpose()).eval();
+        const auto cov_aa_inv = cov_aa.inverse().eval();
 
         auto C = AxA::Zero(dim_a, dim_a).eval();
         auto D = Ax1::Zero(dim_a, 1).eval();
@@ -523,12 +558,13 @@ public:
             C += (T * A_i).eval();
             D += (T * innov).eval();
 
-
             /* == part b ==================================================== */
             auto X_b_i = X_b_(i).points();
             auto cov_ab = (X_a   * W * X_b_i.transpose()).eval();
             auto cov_bb = (X_b_i * W * X_b_i.transpose()).eval();
             auto cov_by = (X_b_i * W * Y_i.transpose()).eval();
+
+            PV(cov_bb);
 
             AxA L_aa; YxY L_yy; AxY L_ay; YxA L_ya; AYxAY L;
             smw_inverse(cov_aa_inv, cov_ay_i, cov_ay_i.transpose(), cov_yy_i,
@@ -583,18 +619,34 @@ public:
     ProcessModel& process_model() { return f_; }
     ObservationModel& obsrv_model() { return h_; }
     PointSetTransform& point_set_transform() { return transform_; }
-    StateProcessModel& local_process_model() { return f_a_; }
-    JointParamProcessModel& joint_param_model() { return f_b_; }
-    LocalParamModel& local_param_model() { return f_b_i_; }
-    LocalObsrvModel& local_obsrv_model() { return h_i_; }
+    StateProcessModel& local_process_model() { return std::get<0>(f_.models()); }
+    JointParamProcessModel& joint_param_model() { return std::get<1>(f_.models()); }
+    LocalParamModel& local_param_model() { return joint_param_model().local_process_model(); }
+    LocalObsrvModel& local_obsrv_model() { return h_.local_obsrv_model(); }
 
     const ProcessModel& process_model() const { return f_; }
     const ObservationModel& obsrv_model() const { return h_; }
     const PointSetTransform& point_set_transform() const { return transform_; }
-    const StateProcessModel& local_process_model() const { return f_a_; }
-    const JointParamProcessModel& joint_param_model() const { return f_b_; }
-    const LocalParamModel& local_param_model() const { return f_b_i_; }
-    const LocalObsrvModel& local_obsrv_model() const { return h_i_; }
+    const StateProcessModel& local_process_model() const { return std::get<0>(f_.models()); }
+    const JointParamProcessModel& joint_param_model() const  { return std::get<1>(f_.models()); }
+    const LocalParamModel& local_param_model() const { return joint_param_model().local_process_model(); }
+    const LocalObsrvModel& local_obsrv_model() const { return h_.local_obsrv_model(); }
+
+    StateDistribution create_state_distribution() const
+    {
+        typedef from_traits(LocalStateDistr);
+        typedef from_traits(LocalParamDistr);
+        typedef from_traits(JointParamDistr);
+
+        auto state_distr = StateDistribution(
+                               LocalStateDistr(dim(a)),
+                               JointParamDistr(
+                                   LocalParamDistr(dim(b_i)),
+                                   param_count_)
+                            );
+
+        return state_distr;
+    }
 
 public:
     /* == Helpers =========================================================== */
@@ -609,21 +661,21 @@ public:
     {
         switch (variate)
         {
-        case a:     return f_a_.state_dimension();
-        case v_a:   return f_a_.noise_dimension();
-        case b:     return f_b_.state_dimension();
-        case v_b:   return f_b_.noise_dimension();
-        case b_i:   return f_b_i_.state_dimension();
-        case v_b_i: return f_b_i_.noise_dimension();
+        case a:     return local_process_model().state_dimension();
+        case v_a:   return local_process_model().noise_dimension();
+        case b:     return joint_param_model().state_dimension();
+        case v_b:   return joint_param_model().noise_dimension();
+        case b_i:   return local_param_model().state_dimension();
+        case v_b_i: return local_param_model().noise_dimension();
         case v:     return f_.noise_dimension();
         case y:     return h_.obsrv_dimension();
         case w:     return h_.noise_dimension();
-        case y_i:   return h_i_.obsrv_dimension();
-        case w_i:   return h_i_.noise_dimension();
+        case y_i:   return local_obsrv_model().obsrv_dimension();
+        case w_i:   return local_obsrv_model().noise_dimension();
         case x:     return f_.state_dimension();
         case u:     return f_.input_dimension();
-        case u_a:   return f_a_.input_dimension();
-        case u_b_i: return f_b_i_.input_dimension();
+        case u_a:   return local_process_model().input_dimension();
+        case u_b_i: return local_param_model().input_dimension();
 
         default:
             // throw!
@@ -645,17 +697,20 @@ public:
         // transform all X_b(i)
         auto&& prior_b = std::get<b>(distr.distributions());
         const int offset = dim(a) + dim(v_a);
+
         for (int i = 0; i < param_count_; ++i)
         {
             transform_.forward(
                 prior_b.distribution(i), dim_marginal_, offset, x_b(i));
         }
+
     }
 
     template <class Xa, class Xb, class X_>
     void augment(const Xa& x_a, const Xb& x_b, X_& x)
     {
         x.points().topRows(dim(a)) = x_a.points();
+
         for (int i = 0; i < param_count_; ++i)
         {
             x.points().middleRows(dim(a) + i * dim(b_i), dim(b_i)) =
@@ -680,13 +735,13 @@ public:
 private:
     /** \cond INTERNAL */
     /* Model */
-    StateProcessModel f_a_;
-    LocalParamModel f_b_i_;
-    JointParamProcessModel f_b_;
     ProcessModel f_;
-
-    LocalObsrvModel h_i_;
     ObservationModel h_;
+
+//    StateProcessModel f_a_;
+//    LocalParamModel f_b_i_;
+//    LocalObsrvModel h_i_;
+//    JointParamProcessModel f_b_;
 
     PointSetTransform transform_;
     /** \endcond */
@@ -708,6 +763,28 @@ protected:
 };
 
 
+#ifndef GENERATING_DOCUMENTATION
+template <
+    int Count,
+    typename StateProcessModel,
+    typename LocalParamModel,
+    typename LocalObsrvModel,
+    typename PointSetTransform
+>
+#endif
+struct Traits<
+           GaussianFilter<
+               StateProcessModel,
+               Join<MultipleOf<Adaptive<LocalObsrvModel, LocalParamModel>, Count>>,
+               PointSetTransform,
+               Options<FactorizeParams>
+           >
+       >
+    : Traits<GaussianFilter<TEMPLATE_ARGUMENTS>>
+{
+
+};
+
 /**
  * \ingroup gaussian_filter_iid
  *
@@ -719,62 +796,43 @@ protected:
  *
  *   GaussianFilter< JointProcess, JointObsrv >
  */
+# ifndef GENERATING_DOCUMENTATION
+template <
+    int Count,
+    typename StateProcessModel,
+    typename LocalObsrvModel,
+    typename LocalParamModel,
+    typename PointSetTransform
+>
+#endif
+class GaussianFilter<
+          StateProcessModel,
+          Join<MultipleOf<Adaptive<LocalObsrvModel, LocalParamModel>, Count>>,
+          PointSetTransform,
+          Options<FactorizeParams>>
+    : public GaussianFilter<TEMPLATE_ARGUMENTS>
+{
+public:
+    typedef GaussianFilter<TEMPLATE_ARGUMENTS> Base;
 
-//# ifndef GENERATING_DOCUMENTATION
-//template <
-//    int Count,
-//    typename StateProcessModel,
-//    typename ObsrvModel,
-//    typename ParamProcess,
-//    typename PointTransform
-//>
-//#endif
-//class GaussianFilter<
-//          StateProcessModel,
-//          Join<MultipleOf<Adaptive<ObsrvModel, ParamProcess>, Count>>,
-//          PointTransform,
-//          Options<FactorizeParams>>
-//    : public GaussianFilter<
-//                JointProcessModel<
-//                    StateProcessModel,
-//                    JointProcessModel<MultipleOf<ParamProcess, Count>>
-//                >,
-//                Adaptive<JointObservationModel<MultipleOf<ObsrvModel, Count>>>,
-//                PointTransform,
-//                Options<FactorizeParams>>
-//{
-//public:
-//    typedef GaussianFilter<
-//                JointProcessModel<
-//                    StateProcessModel,
-//                    JointProcessModel<MultipleOf<ParamProcess, Count>>
-//                >,
-//                Adaptive<JointObservationModel<MultipleOf<ObsrvModel, Count>>>,
-//                PointTransform,
-//                Options<FactorizeParams>
-//            > Base;
+    GaussianFilter(
+        const StateProcessModel& state_process_model,
+        const LocalParamModel& param_process_model,
+        const LocalObsrvModel& obsrv_model,
+        const PointSetTransform& point_set_transform,
+        int parameter_count = Count)
+            : Base(state_process_model,
+                   param_process_model,
+                   obsrv_model,
+                   point_set_transform,
+                   parameter_count)
+    { }
+};
 
-//    template <typename LocalParamModel,
-//              typename LocalObsrvModel>
-//    GaussianFilter(
-//        const StateProcessModel& state_process_model,
-//        const LocalParamModel& param_process_model,
-//        const LocalObsrvModel& obsrv_model,
-//        const PointTransform& point_set_transform,
-//        int parameter_count = Count)
-//            : Base(state_process_model,
-//                   param_process_model,
-//                   obsrv_model,
-//                   point_set_transform,
-//                   parameter_count)
-//    { }
-//};
-
-#ifdef Template_Parameters
-    #undef Template_Parameters
+#ifdef TEMPLATE_ARGUMENTS
+    #undef TEMPLATE_ARGUMENTS
 #endif
 
 }
 
 #endif
-
