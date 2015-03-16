@@ -24,8 +24,10 @@
 #define FL__UTIL__RANDOM_HPP
 
 #include <ctime>
+#include <chrono>
 #include <random>
-
+#include <iostream>
+#include <iomanip>
 /**
  * \brief global seed
  *
@@ -62,13 +64,17 @@ typedef std::mersenne_twister_engine<
  *
  * \ingroup random
  */
+
+static unsigned int seed_inc = 0;
 inline unsigned int seed()
 {
-#ifdef USE_RANDOM_SEED
-    return (unsigned int) std::time(0);
-#else
-    return 1;
-#endif
+    return std::time(0) + (++seed_inc);
+
+//#ifdef USE_RANDOM_SEED
+//    return (unsigned int) std::time(0);
+//#else
+//    return 1;
+//#endif
 }
 
 }
