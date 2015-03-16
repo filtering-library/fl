@@ -91,9 +91,8 @@ public:
      *
      * \param models    Variadic list of shared pointers of the models
      */
-    template <typename ... Model>
-    JointProcessModel(Model&& ... models)
-        : models_(std::forward<Model>(models)...)
+    JointProcessModel(const Models& ... models)
+        : models_(models...)
     { }
 
     /**
@@ -150,6 +149,16 @@ public:
     virtual constexpr int input_dimension() const
     {
         return expand_input_dimension(CreateIndexSequence<sizeof...(Models)>());
+    }
+
+    std::tuple<Models...>& models()
+    {
+        return models_;
+    }
+
+    const std::tuple<Models...>& models() const
+    {
+        return models_;
     }
 
 protected:
