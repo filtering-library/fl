@@ -215,7 +215,8 @@ public:
      */
     void resize(int points_count)
     {
-        if (int(weights_.size()) == points_count) return;
+        if (int(weights_.size()) == points_count &&
+            int(points_.cols()) == points_count) return;
 
         if (IsFixed<Points_>())
         {
