@@ -31,14 +31,13 @@
 #include <fl/exception/exception.hpp>
 #include <fl/filter/filter_interface.hpp>
 #include <fl/filter/gaussian/point_set.hpp>
+#include <fl/filter/gaussian/feature_policy.hpp>
 
 #include <fl/distribution/gaussian.hpp>
 #include <fl/distribution/joint_distribution.hpp>
 
 #include <fl/model/process/joint_process_model.hpp>
 #include <fl/model/observation/joint_observation_model.hpp>
-
-
 
 namespace fl
 {
@@ -66,19 +65,21 @@ template <typename...> class GaussianFilter;
         > \
     >, \
     PointSetTransform, \
-    Options<FactorizeParams> \
+    FeaturePolicy<>,\
+    Options<FactorizeParams>
 
 /**
  * \ingroup gaussian_filter_iid
  * Traits of Factorized GaussianFilter for IID Parameters
  */
 #ifndef GENERATING_DOCUMENTATION
-template <
-    int Count,
+template <    
     typename StateProcessModel,
     typename LocalParamModel,
     typename LocalObsrvModel,
-    typename PointSetTransform
+    int Count,
+    typename PointSetTransform,
+    template <typename ...> class FeaturePolicy
 >
 #endif
 struct Traits<GaussianFilter<TEMPLATE_ARGUMENTS>>
@@ -130,15 +131,6 @@ struct Traits<GaussianFilter<TEMPLATE_ARGUMENTS>>
             > JointParamDistr;
     /** \endcond ============================================================ */
 
-    /**
-     * \brief Final filter declaration
-     */
-    typedef GaussianFilter<
-                ProcessModel,
-                ObservationModel,
-                PointSetTransform
-            > Filter;
-
     /*
      * Required concept (interface) types
      *
@@ -152,6 +144,7 @@ struct Traits<GaussianFilter<TEMPLATE_ARGUMENTS>>
     typedef typename Traits<ProcessModel>::State State;
     typedef typename Traits<ProcessModel>::Input Input;
     typedef typename Traits<ObservationModel>::Obsrv Obsrv;
+
     /**
      * \brief This represents the joint state distribution.
      * The joint state distribution second centered moment is composed as
@@ -171,6 +164,12 @@ struct Traits<GaussianFilter<TEMPLATE_ARGUMENTS>>
             > StateDistribution;
 
     /** \cond INTERNAL */
+    /**
+     * Feature type of an observaton.
+     */
+    typedef FeaturePolicy<Obsrv> FeatureMapping;
+    typedef typename Traits<FeatureMapping>::ObsrvFeature ObsrvFeature;
+
     typedef typename Traits<ProcessModel>::Noise StateNoise;
     typedef typename Traits<ObservationModel>::Noise ObsrvNoise;
 
@@ -206,6 +205,7 @@ struct Traits<GaussianFilter<TEMPLATE_ARGUMENTS>>
     typedef PointSet<LocalState, NumberOfPoints> LocalStatePointSet;
     typedef PointSet<LocalParam, NumberOfPoints> LocalParamPointSet;
     typedef PointSet<LocalObsrv, NumberOfPoints> LocalObsrvPointSet;
+    typedef PointSet<ObsrvFeature, NumberOfPoints> ObsrvFeaturePointSet;
     typedef PointSet<LocalStateNoise, NumberOfPoints> LocalStateNoisePointSet;
     typedef PointSet<LocalParamNoise, NumberOfPoints> LocalParamNoisePointSet;
     typedef PointSet<LocalObsrvNoise, NumberOfPoints> LocalObsrvNoisePointSet;
@@ -232,25 +232,28 @@ struct Traits<GaussianFilter<TEMPLATE_ARGUMENTS>>
  * \tparam PointSetTransform
  */
 #ifndef GENERATING_DOCUMENTATION
-template <
-    int Count,
+template <    
     typename StateProcessModel,
     typename LocalParamModel,
     typename LocalObsrvModel,
-    typename PointSetTransform
+    int Count,
+    typename PointSetTransform,
+    template <typename...T> class FeaturePolicy
 >
 #endif
 class GaussianFilter<
           JointProcessModel<
               StateProcessModel,
               JointProcessModel<MultipleOf<LocalParamModel, Count>>>,
-              Adaptive<
-                  JointObservationModel<
-                      MultipleOf<LocalObsrvModel, Count>
-                  >
-              >,
+          Adaptive<
+              JointObservationModel<
+                  MultipleOf<LocalObsrvModel, Count>
+              >
+          >,
           PointSetTransform,
-          Options<FactorizeParams>>
+          FeaturePolicy<>,
+          Options<FactorizeParams>
+      >
     :
     /* Implement the filter interface */
     public FilterInterface<GaussianFilter<TEMPLATE_ARGUMENTS>>
@@ -269,6 +272,7 @@ private:
     typedef from_traits(ProcessModel);
     typedef from_traits(ObservationModel);
     typedef from_traits(JointParamProcessModel);
+    typedef from_traits(FeatureMapping);
 
     /* Sigma Point Set types */
     typedef from_traits(StatePointSet);
@@ -277,21 +281,28 @@ private:
     typedef from_traits(ObsrvNoisePointSet);
     typedef from_traits(LocalStatePointSet);
     typedef from_traits(LocalParamPointSets);
+    typedef from_traits(ObsrvFeaturePointSet);
 
-    /* Variate types */
+    /* Variate types */    
     typedef from_traits(LocalState);
-    typedef from_traits(LocalStateNoise);
     typedef from_traits(LocalParam);
-    typedef from_traits(LocalParamNoise);
     typedef from_traits(LocalObsrv);
+    typedef from_traits(ObsrvFeature);
+    typedef from_traits(LocalStateNoise);   
+    typedef from_traits(LocalParamNoise);    
     typedef from_traits(LocalObsrvNoise);
+
+
 
     /* Intermediate compile time dimensions */
     enum : signed int
     {
         CTDim_a     = LocalState::SizeAtCompileTime,
         CTDim_b_i   = LocalParam::SizeAtCompileTime,
-        CTDim_y_i   = LocalObsrv::SizeAtCompileTime,
+        CTDim_y_i   = ExpandSizes<
+                          LocalObsrv::SizeAtCompileTime,
+                          FeatureMapping::feature_dimension(1)
+                      >::Size,
         CTDim_b     = Traits<JointParamProcessModel>::State::SizeAtCompileTime,
         CTDim_a_y_i = JoinSizes<CTDim_a, CTDim_y_i>::Size
     };
@@ -331,7 +342,9 @@ private:
         x,     /**< Dimension of the entire state [a b_1 b_2 ... b_n]*/
         u,
         u_a,
-        u_b_i
+        u_b_i,
+        z,
+        z_i
     };
     /** \endcond  */
 
@@ -351,10 +364,12 @@ public:
             const LocalParamModel& param_process_model,
             const LocalObsrvModel& obsrv_model,
             const PointSetTransform& point_set_transform,
+            const FeatureMapping& feature_mapping = FeatureMapping(),
             int param_count = Count)
         : f_(state_process_model, {param_process_model, param_count}),
           h_(Adaptive<ObservationModel>(obsrv_model, param_count)),
           transform_(point_set_transform),
+          feature_mapping_(feature_mapping),
           param_count_(param_count),
 
           /*
@@ -374,6 +389,7 @@ public:
 
         X_.resize(dim(x), point_count_);
         Y_.resize(dim(y), point_count_);
+        Y_f.resize(dim(z), point_count_);
         X_v_.resize(dim(v), point_count_);
         X_w_.resize(dim(w), point_count_);
 
@@ -483,7 +499,7 @@ public:
         for (int i = 0; i < point_count_; ++i)
         {
             X_[i] = f_.predict_state(dt, X_[i], X_v_[i], u);
-        }
+        }                      
     }
 
     /**
@@ -511,19 +527,28 @@ public:
             Y_[i] = h_.predict_obsrv(X_[i], X_w_[i], 1.0);
         }
 
+        auto&& obsrv_prediction = Y_.mean();
+        for (int i = 0; i < point_count_; ++i)
+        {
+            Y_f[i] = feature_mapping_.extract(Y_[i], obsrv_prediction);
+        }
+
+        ObsrvFeature obsrv_feat
+                = feature_mapping_.extract(obsrv, obsrv_prediction);
+
         // get dimension constants
         const int dim_a   = dim(a);
         const int dim_b_i = dim(b_i);
-        const int dim_y_i = dim(y_i);
+        const int dim_y_i = dim(z_i);
 
-        const auto mu_y = Y_.center();
+        const auto mu_y = Y_f.center();
         const auto mu_x = X_.center();
         const auto mu_x_a = mu_x.topRows(dim(a)).eval();
         const auto mu_x_b = mu_x.bottomRows(dim(b)).eval();
         split(X_, X_a_, X_b_);
 
         const auto W = X_a_.covariance_weights_vector().asDiagonal();
-        const auto Y = Y_.points();
+        const auto Y = Y_f.points();
         const auto X_a = X_a_.points();
         const auto cov_aa = (X_a * W  * X_a.transpose()).eval();
         const auto cov_aa_inv = cov_aa.inverse().eval();
@@ -541,9 +566,8 @@ public:
             auto Y_i = Y.middleRows(i * dim_y_i, dim_y_i);
             auto cov_ay_i = (X_a * W * Y_i.transpose()).eval();
             auto cov_yy_i = (Y_i * W * Y_i.transpose()).eval();
-            auto innov = (obsrv.middleRows(i * dim_y_i, dim_y_i) -
-                           mu_y.middleRows(i * dim_y_i, dim_y_i)).eval();
-
+            auto innov = (obsrv_feat.middleRows(i * dim_y_i, dim_y_i) -
+                          mu_y.middleRows(i * dim_y_i, dim_y_i)).eval();
 
             /* == part a ==================================================== */
             const auto A_i =  (cov_ay_i.transpose() * cov_aa_inv).eval();
@@ -563,8 +587,6 @@ public:
             auto cov_ab = (X_a   * W * X_b_i.transpose()).eval();
             auto cov_bb = (X_b_i * W * X_b_i.transpose()).eval();
             auto cov_by = (X_b_i * W * Y_i.transpose()).eval();
-
-            PV(cov_bb);
 
             AxA L_aa; YxY L_yy; AxY L_ay; YxA L_ya; AYxAY L;
             smw_inverse(cov_aa_inv, cov_ay_i, cov_ay_i.transpose(), cov_yy_i,
@@ -623,6 +645,7 @@ public:
     JointParamProcessModel& joint_param_model() { return std::get<1>(f_.models()); }
     LocalParamModel& local_param_model() { return joint_param_model().local_process_model(); }
     LocalObsrvModel& local_obsrv_model() { return h_.local_obsrv_model(); }
+    FeatureMapping& feature_mapping() { return feature_mapping_; }
 
     const ProcessModel& process_model() const { return f_; }
     const ObservationModel& obsrv_model() const { return h_; }
@@ -631,6 +654,7 @@ public:
     const JointParamProcessModel& joint_param_model() const  { return std::get<1>(f_.models()); }
     const LocalParamModel& local_param_model() const { return joint_param_model().local_process_model(); }
     const LocalObsrvModel& local_obsrv_model() const { return h_.local_obsrv_model(); }
+    const FeatureMapping& feature_mapping() const { return feature_mapping_; }
 
     StateDistribution create_state_distribution() const
     {
@@ -676,6 +700,8 @@ public:
         case u:     return f_.input_dimension();
         case u_a:   return local_process_model().input_dimension();
         case u_b_i: return local_param_model().input_dimension();
+        case z:     return feature_mapping_.feature_dimension(dim(y));
+        case z_i:   return feature_mapping_.feature_dimension(dim(y_i));
 
         default:
             // throw!
@@ -737,13 +763,14 @@ private:
     /* Model */
     ProcessModel f_;
     ObservationModel h_;
+    PointSetTransform transform_;
+    FeatureMapping feature_mapping_;
 
 //    StateProcessModel f_a_;
 //    LocalParamModel f_b_i_;
 //    LocalObsrvModel h_i_;
 //    JointParamProcessModel f_b_;
 
-    PointSetTransform transform_;
     /** \endcond */
 
 protected:
@@ -755,6 +782,7 @@ protected:
 
     StatePointSet X_;
     ObsrvPointSet Y_;
+    ObsrvFeaturePointSet Y_f;
     StateNoisePointSet X_v_;
     ObsrvNoisePointSet X_w_;
     LocalStatePointSet X_a_;
@@ -764,12 +792,13 @@ protected:
 
 
 #ifndef GENERATING_DOCUMENTATION
-template <
-    int Count,
+template <    
     typename StateProcessModel,
     typename LocalParamModel,
     typename LocalObsrvModel,
-    typename PointSetTransform
+    int Count,
+    typename PointSetTransform,
+    template <typename...T> class FeaturePolicy
 >
 #endif
 struct Traits<
@@ -777,13 +806,12 @@ struct Traits<
                StateProcessModel,
                Join<MultipleOf<Adaptive<LocalObsrvModel, LocalParamModel>, Count>>,
                PointSetTransform,
+               FeaturePolicy<>,
                Options<FactorizeParams>
            >
        >
     : Traits<GaussianFilter<TEMPLATE_ARGUMENTS>>
-{
-
-};
+{ };
 
 /**
  * \ingroup gaussian_filter_iid
@@ -797,19 +825,22 @@ struct Traits<
  *   GaussianFilter< JointProcess, JointObsrv >
  */
 # ifndef GENERATING_DOCUMENTATION
-template <
-    int Count,
+template <    
     typename StateProcessModel,
     typename LocalObsrvModel,
     typename LocalParamModel,
-    typename PointSetTransform
+    int Count,
+    typename PointSetTransform,
+    template <typename ...> class FeaturePolicy
 >
 #endif
 class GaussianFilter<
           StateProcessModel,
           Join<MultipleOf<Adaptive<LocalObsrvModel, LocalParamModel>, Count>>,
           PointSetTransform,
-          Options<FactorizeParams>>
+          FeaturePolicy<>,
+          Options<FactorizeParams>
+        >
     : public GaussianFilter<TEMPLATE_ARGUMENTS>
 {
 public:
@@ -820,11 +851,14 @@ public:
         const LocalParamModel& param_process_model,
         const LocalObsrvModel& obsrv_model,
         const PointSetTransform& point_set_transform,
+        const typename Traits<Base>::FeatureMapping& feature_mapping
+            = typename Traits<Base>::FeatureMapping(),
         int parameter_count = Count)
             : Base(state_process_model,
                    param_process_model,
                    obsrv_model,
                    point_set_transform,
+                   feature_mapping,
                    parameter_count)
     { }
 };
