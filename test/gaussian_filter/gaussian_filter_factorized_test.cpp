@@ -32,6 +32,7 @@
 #include <fl/filter/filter_interface.hpp>
 #include <fl/filter/gaussian/unscented_transform.hpp>
 #include <fl/filter/gaussian/monte_carlo_transform.hpp>
+#include <fl/filter/gaussian/feature_policy.hpp>
 #include <fl/filter/gaussian/gaussian_filter_kf.hpp>
 #include <fl/filter/gaussian/gaussian_filter_ukf.hpp>
 #include <fl/filter/gaussian/gaussian_filter_factorized.hpp>
@@ -105,7 +106,9 @@ TEST(GaussianFilterFactorizedTests, vsKF)
 
     // filters sigma point transform
     //typedef UnscentedTransform Transform;
-    typedef MonteCarloTransform<ConstantPointCountPolicy<10000>> Transform;
+    typedef MonteCarloTransform<ConstantPointCountPolicy<1000>> Transform;
+    //typedef IdentityFeaturePolicy<> FeaturePolicy;
+    typedef SquaredFeaturePolicy<> FeaturePolicy;
 
     typedef GaussianFilter<
                 LocalProcessModel,
@@ -115,8 +118,10 @@ TEST(GaussianFilterFactorizedTests, vsKF)
                     >
                 >,
                 Transform,
+                FeaturePolicy,
                 Options<FactorizeParams>
             > FactorizedParamFilter;
+
 
     typedef Traits<FactorizedParamFilter>::State FPFState;
     typedef Traits<FactorizedParamFilter>::Obsrv FPFObsrv;
@@ -125,6 +130,7 @@ TEST(GaussianFilterFactorizedTests, vsKF)
     typedef Traits<FactorizedParamFilter>::LocalParamDistr FPFLocalParamDistr;
     typedef Traits<FactorizedParamFilter>::JointParamDistr FPFJointParamDistr;
     typedef Traits<FactorizedParamFilter>::StateDistribution FPFStateDistribution;
+    typedef Traits<FactorizedParamFilter>::FeatureMapping FeatureMapping;
 
     /* -- Joint Gaussian definitions ---------------------------------------- */
 
@@ -136,6 +142,7 @@ TEST(GaussianFilterFactorizedTests, vsKF)
                     >
                 >,
                 Transform,
+                FeaturePolicy,
                 Options<NoOptions>
             > JointGaussianFilter;
 
@@ -143,22 +150,23 @@ TEST(GaussianFilterFactorizedTests, vsKF)
     typedef Traits<JointGaussianFilter>::Obsrv JGFObsrv;
     typedef Traits<JointGaussianFilter>::Input JGFInput;
     typedef Traits<JointGaussianFilter>::StateDistribution JGFStateDistribution;
+    typedef Traits<JointGaussianFilter>::FeatureMapping FeatureMapping;
 
 
 
 
     /* -- a Gaussian definitions ---------------------------------------------- */
 
-    typedef GaussianFilter<
-                LocalProcessModel,
-                JointObservationModel<MultipleOf<LocalObsrvModel, CTSensorCount>>,
-                Transform
-            > aGaussianFilter;
+//    typedef GaussianFilter<
+//                LocalProcessModel,
+//                JointObservationModel<MultipleOf<LocalObsrvModel, CTSensorCount>>,
+//                Transform
+//            > aGaussianFilter;
 
-    typedef Traits<aGaussianFilter>::State aState;
-    typedef Traits<aGaussianFilter>::Obsrv aObsrv;
-    typedef Traits<aGaussianFilter>::Input aInput;
-    typedef Traits<aGaussianFilter>::StateDistribution aStateDistribution;
+//    typedef Traits<aGaussianFilter>::State aState;
+//    typedef Traits<aGaussianFilter>::Obsrv aObsrv;
+//    typedef Traits<aGaussianFilter>::Input aInput;
+//    typedef Traits<aGaussianFilter>::StateDistribution aStateDistribution;
 
 
     /* -- KalmanFilter definitions ------------------------------------------ */
@@ -227,6 +235,7 @@ TEST(GaussianFilterFactorizedTests, vsKF)
                                           LocalParamModel(Dim_b_i),
                                           LocalObsrvModel(Dim_y_i, Dim_a),
                                           Transform(),
+                                          FeatureMapping(),
                                           SensorCount);
     {
         auto& local_process_model = fpfilter.local_process_model();
@@ -260,6 +269,7 @@ TEST(GaussianFilterFactorizedTests, vsKF)
                                         LocalParamModel(Dim_b_i),
                                         LocalObsrvModel(Dim_y_i, Dim_a),
                                         Transform(),
+                                        FeatureMapping(),
                                         SensorCount);
     {
         auto& local_process_model = std::get<0>(jgfilter.process_model().models());
@@ -283,32 +293,27 @@ TEST(GaussianFilterFactorizedTests, vsKF)
     auto jgf_state = jgfilter.create_state_distribution();
 
 
-    /* ====================================================================== */
-    /* = Create a Gaussian                                                  = */
-    /* ====================================================================== */
+//    /* ====================================================================== */
+//    /* = Create a Gaussian                                                  = */
+//    /* ====================================================================== */
 
-    auto agfilter = aGaussianFilter(LocalProcessModel(Dim_a),
-                                   {LocalObsrvModel(Dim_y_i, Dim_a), SensorCount},
-                                   Transform());
-    {
-        auto& local_process_model = agfilter.process_model();
-        auto& local_obsrv_model = agfilter.obsrv_model().local_obsrv_model();
+//    auto agfilter = aGaussianFilter(LocalProcessModel(Dim_a),
+//                                   {LocalObsrvModel(Dim_y_i, Dim_a), SensorCount},
+//                                   Transform());
+//    {
+//        auto& local_process_model = agfilter.process_model();
+//        auto& local_obsrv_model = agfilter.obsrv_model().local_obsrv_model();
 
-        local_process_model.covariance(local_process_model.covariance() * v_var_a);
-        local_obsrv_model.covariance(local_obsrv_model.covariance() * var_y);
+//        local_process_model.covariance(local_process_model.covariance() * v_var_a);
+//        local_obsrv_model.covariance(local_obsrv_model.covariance() * var_y);
 
-        local_process_model.A(local_process_model.A() * A_a);
+//        local_process_model.A(local_process_model.A() * A_a);
 
-        PV(local_process_model.A());
-        PV(local_process_model.covariance());
-    }
+//        PV(local_process_model.A());
+//        PV(local_process_model.covariance());
+//    }
 
-    auto agf_state = agfilter.create_state_distribution();
-
-
-
-
-
+//    auto agf_state = agfilter.create_state_distribution();
 
 
     std::cout << "======================" << std::endl;
@@ -323,7 +328,6 @@ TEST(GaussianFilterFactorizedTests, vsKF)
     PV(kf_state.mean());
     PV(fpf_state.mean());
     PV(jgf_state.mean());
-
 
     double max_steps = 100;
     double t = 0.0;
@@ -365,9 +369,9 @@ TEST(GaussianFilterFactorizedTests, vsKF)
         jgfilter.predict(1.0, FPFInput(Dim_b + 1, 1), jgf_state, jgf_state);
         jgfilter.update(y, jgf_state, jgf_state);
 
-        /* a gaussian filter */
-        agfilter.predict(1.0, aInput( 1, 1), agf_state, agf_state);
-        agfilter.update(y, agf_state, agf_state);
+//        /* a gaussian filter */
+//        agfilter.predict(1.0, aInput( 1, 1), agf_state, agf_state);
+//        agfilter.update(y, agf_state, agf_state);
 
 
         auto cov = jgf_state.covariance();
@@ -383,7 +387,7 @@ TEST(GaussianFilterFactorizedTests, vsKF)
 
         ASSERT_TRUE(kf_state.covariance().ldlt().isPositive());
         ASSERT_TRUE(jgf_state.covariance().ldlt().isPositive());
-        ASSERT_TRUE(agf_state.covariance().ldlt().isPositive());
+//        ASSERT_TRUE(agf_state.covariance().ldlt().isPositive());
 
 //        EXPECT_TRUE(fpf_state.covariance().isApprox(kf_state.covariance(), 1.e-6));
 //        EXPECT_TRUE(fpf_state.covariance().isApprox(jgf_state.covariance(), 1.e-6));
@@ -407,12 +411,12 @@ TEST(GaussianFilterFactorizedTests, vsKF)
     PV(kf_state.covariance());
     PV(fpf_state.covariance());
     PV(jgf_state.covariance());
-    PV(agf_state.covariance());
+//    PV(agf_state.covariance());
 
     PV(kf_state.mean());
     PV(fpf_state.mean());
     PV(jgf_state.mean());
-    PV(agf_state.mean());
+//    PV(agf_state.mean());
 
 }
 
