@@ -60,17 +60,18 @@ public:
         : dimension_ (dim),
           generator_(fl::seed()),
           gaussian_distribution_(0.0, 1.0)
-    {
+    {        
     }
 
     virtual ~StandardGaussian() { }
 
     virtual StandardVariate sample() const
     {
-        StandardVariate gaussian_sample(dimension());
+        StandardVariate gaussian_sample(dimension(), 1);
+
         for (int i = 0; i < dimension(); i++)
         {
-            gaussian_sample(i) = gaussian_distribution_(generator_);
+            gaussian_sample(i, 0) = gaussian_distribution_(generator_);
         }
 
         return gaussian_sample;
@@ -113,6 +114,9 @@ public:
 
 private:
     int dimension_;
+//   mutable std::default_random_engine generator_;
+//   mutable std::normal_distribution<double> gaussian_distribution_;
+
     mutable fl::mt11213b generator_;
     mutable std::normal_distribution<> gaussian_distribution_;
 };

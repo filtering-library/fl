@@ -39,11 +39,11 @@ struct UpdatePolicy // normal, joseph
 
 };
 
-
 }
 
 #include <fl/filter/gaussian/gaussian_filter_kf.hpp>
 #include <fl/filter/gaussian/gaussian_filter_ukf.hpp>
+#include <fl/filter/gaussian/gaussian_filter_factorized.hpp>
 #include <fl/filter/gaussian/gaussian_filter_ukf_npn_aon.hpp>
 
 #endif

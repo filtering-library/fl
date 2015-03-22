@@ -70,7 +70,7 @@ template <typename...T> struct CollapseAdaptiveJoin;
  */
 template <typename ... S> struct ShowCompilerResult
 {
-  static_assert(sizeof...(S) < 0, "Showing Join result");
+  static_assert(sizeof...(S) < 0, "Showing compiler result");
 };
 
 /**

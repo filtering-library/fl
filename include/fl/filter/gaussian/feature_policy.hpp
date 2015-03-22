@@ -34,8 +34,8 @@ template <typename Obsrv, typename Feature>
 class FeaturePolicyInterface
 {
 public:
-    virtual Feature extract(const Obsrv& obsrv,
-                            const Obsrv& expected_obsrv) = 0;
+//    virtual Feature extract(const Obsrv& obsrv,
+//                            const Obsrv& expected_obsrv) = 0;
 };
 
 
@@ -57,7 +57,8 @@ public:
     typedef from_traits(ObsrvFeature);
 
     virtual ObsrvFeature extract(const Obsrv& obsrv,
-                                 const Obsrv& expected_obsrv)
+                                 const Obsrv& expected_obsrv,
+                                 const Obsrv& var_obsrv)
     {
         ObsrvFeature feature = obsrv; // RVO
         return feature;

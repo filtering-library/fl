@@ -23,13 +23,121 @@
 
 #include <gtest/gtest.h>
 
+#define EIGEN_RUNTIME_NO_MALLOC
 #include <Eigen/Dense>
 
 #include <fl/util/math.hpp>
 #include <fl/util/traits.hpp>
 
 #include <cmath>
+#include <utility>
 // #include <boost/math/special_functions/erf.hpp>
+
+static constexpr int dim = 500;
+static constexpr int iterations = 2;
+
+typedef Eigen::Matrix<double, dim, dim, Eigen::AutoAlign> Mat;
+typedef Eigen::Matrix<double, -1, -1, Eigen::AutoAlign, dim, dim> DMat;
+
+template <typename M>
+struct C
+{
+    C() = default;
+
+    C(const M& m) : m_(m) { }
+    M m_;
+};
+
+template <typename M>
+struct D
+{
+    D(M&& m) { m_.swap(m); }
+
+
+    D(D const&) = delete;
+    D& operator =(D const&) = delete;
+
+    D() = default;
+    D(D&& d) { m_.swap(d.m_); }
+    D& operator =(D&& d)
+    {
+        m_.swap(d.m_);
+
+        return *this;
+    }
+
+    M m_;
+};
+
+Mat R = Mat::Random();
+Mat r = Mat::Zero();
+
+TEST(MoveStuff, copy_stack)
+{
+    Eigen::internal::set_is_malloc_allowed(false);
+
+    r = Mat::Zero();
+    C<Mat> c;
+    for (int i = 0; i < iterations; ++i)
+    {
+        Mat m = R;
+        c = C<Mat>(m);
+        r += (c.m_ * c.m_.transpose()).eval();
+    }
+}
+
+TEST(MoveStuff, move_stack)
+{
+    Eigen::internal::set_is_malloc_allowed(false);
+
+    r = Mat::Zero();
+    D<Mat> d;
+    for (int i = 0; i < iterations; ++i)
+    {
+        Mat m = R;
+        d = D<Mat>(std::move(m));
+        r += (d.m_ * d.m_.transpose()).eval();
+    }
+}
+
+DMat DR = DMat::Random(dim, dim);
+DMat dr = DMat::Zero(dim, dim);
+
+TEST(MoveStuff, copy_heap)
+{
+    Eigen::internal::set_is_malloc_allowed(false);
+
+    dr = DMat::Zero(dim, dim);
+    C<DMat> c;
+    for (int i = 0; i < iterations; ++i)
+    {
+        DMat m = DR;
+        c = C<DMat>(m);
+        dr += (c.m_ * c.m_.transpose()).eval();
+    }
+}
+
+TEST(MoveStuff, move_heap)
+{
+    Eigen::internal::set_is_malloc_allowed(false);
+
+    dr = DMat::Zero(dim, dim);
+    D<DMat> d;
+
+    for (int i = 0; i < iterations; ++i)
+    {
+        DMat m = DR;
+        d = D<DMat>(std::move(m));
+        dr += (d.m_ * d.m_.transpose()).eval();
+    }
+}
+
+
+
+
+
+
+
 
 //static constexpr size_t number_of_points(int dimension)
 //{

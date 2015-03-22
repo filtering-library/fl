@@ -406,12 +406,14 @@ public:
         }
 
         auto obsrv_prediction = X_y.mean();
+        auto centered_prediction = X_y.centered_points();
+        auto var = (centered_prediction.array().pow(2).rowwise().sum() / double(point_count)).eval();
         for (size_t i = 0; i < point_count; ++i)
         {
-            X_fy[i] = feature_mapping_.extract(X_y[i], obsrv_prediction);
+            X_fy[i] = feature_mapping_.extract(X_y[i], obsrv_prediction, var);
         }
 
-        ObsrvFeature y = feature_mapping_.extract(obsrv, obsrv_prediction);
+        ObsrvFeature y = feature_mapping_.extract(obsrv, obsrv_prediction, var);
 
         auto&& prediction = X_fy.center();
         auto&& Y = X_fy.points();

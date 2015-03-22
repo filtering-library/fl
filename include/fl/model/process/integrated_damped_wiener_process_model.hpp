@@ -217,7 +217,7 @@ public:
      * \f$x = [ x_p\ x_v ]^T\f$ with \f$\dim(x_p) = \dim(x_v)\f$. Hence, the
      * state dimension is \f$2 * \dim(x_p)\f$
      */
-    virtual size_t state_dimension() const
+    virtual int state_dimension() const
     {
         return this->standard_variate_dimension() * 2;
     }
@@ -227,7 +227,7 @@ public:
      *
      * The noise dimension is equal to \f$\dim(x_p)\f$.
      */
-    virtual size_t noise_dimension() const
+    virtual int noise_dimension() const
     {
         return this->standard_variate_dimension();
     }
@@ -237,7 +237,7 @@ public:
      *
      * The input dimension is equal to \f$\dim(x_p)\f$.
      */
-    virtual size_t input_dimension() const
+    virtual int input_dimension() const
     {
         return this->standard_variate_dimension();
     }

@@ -46,7 +46,7 @@ public:
      * \param beta      UT Scaling parameter beta  (2.0 is optimal for Gaussian)
      * \param kappa     UT Scaling parameter kappa (higher order parameter)
      */
-    UnscentedTransform(double alpha = 1., double beta = 2., double kappa = 0.)
+    UnscentedTransform(double alpha = 0.5, double beta = 2., double kappa = 0.)
         : PointSetTransform<UnscentedTransform>(this),
           alpha_(alpha),
           beta_(beta),

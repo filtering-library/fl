@@ -111,7 +111,7 @@ public:
      *              argument is deduced automatically
      */
     explicit
-    DampedWienerProcessModel(size_t dim = DimensionOf<State>())
+    DampedWienerProcessModel(int dim = DimensionOf<State>())
         : Traits<This>::GaussianMappingBase(dim),
           gaussian_(dim)
     {
@@ -176,7 +176,7 @@ public:
      *
      * \return dimension of the state or the process variate
      */
-    virtual size_t dimension() const
+    virtual int dimension() const
     {
         return state_dimension();
     }
@@ -184,7 +184,7 @@ public:
     /**
      * \copydoc ProcessModelInterface::state_dimension
      */
-    virtual size_t state_dimension() const
+    virtual int state_dimension() const
     {
         return this->standard_variate_dimension();
     }
@@ -192,7 +192,7 @@ public:
     /**
      * \copydoc ProcessModelInterface::noise_dimension
      */
-    virtual size_t noise_dimension() const
+    virtual int noise_dimension() const
     {
         return this->standard_variate_dimension();
     }
@@ -200,7 +200,7 @@ public:
     /**
      * \copydoc ProcessModelInterface::input_dimension
      */
-    virtual size_t input_dimension() const
+    virtual int input_dimension() const
     {
         return this->standard_variate_dimension();
     }

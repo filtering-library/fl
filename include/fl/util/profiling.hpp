@@ -47,4 +47,6 @@
     #define MEASURE(text)
 #endif
 
+#define PV(mat) std::cout << #mat << "\n" << mat << "\n\n";
+
 #endif

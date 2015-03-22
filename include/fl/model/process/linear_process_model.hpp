@@ -141,7 +141,8 @@ public:
 
     virtual State map_standard_normal(const Noise& sample) const
     {
-        return mean() + delta_time_ * square_root() * sample;
+//        return mean() + delta_time_ * square_root() * sample; // TODO FIX TIME
+        return mean() + square_root() * sample;
     }
 
     virtual const DynamicsMatrix& A() const

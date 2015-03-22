@@ -85,6 +85,9 @@ struct CombineOptions<Value> { typedef fl::Options<Value> Options; };
 template <>
 struct CombineOptions<> { typedef fl::Options<NoOptions> Options; };
 
+template <int ... T>
+struct MakeOptions : CombineOptions<T...> { };
+
 }
 
 #endif

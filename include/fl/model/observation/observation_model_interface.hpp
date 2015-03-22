@@ -96,7 +96,7 @@ public:
      *
      * \param new_id    Model's new ID
      */
-    virtual void id(int) { /* const ID, no actions will be taken. */ }
+    virtual void id(int) { /* const ID */ }
 };
 
 /**

@@ -147,7 +147,7 @@ inline void smw_inverse(const MatrixAInv& A_inv,
                   MatrixLD& L_D,
                   ResultMatrix& L)
 {
-    smw_inverse(A_inv, B, C, D, L_A, L_B, L_C, L_D);
+     smw_inverse(A_inv, B, C, D, L_A, L_B, L_C, L_D);
 
     L.resize(L_A.rows() + L_C.rows(), L_A.cols() + L_B.cols());
 

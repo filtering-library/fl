@@ -132,7 +132,8 @@ public:
             const LocalObsrvModel& local_obsrv_model,
             int count = ToDimension<Count>::Value)
         : local_obsrv_model_(local_obsrv_model),
-          count_(count)
+          count_(count),
+          param_(Param::Zero(param_dimension(), 1))
     {
         assert(count_ > 0);
     }
@@ -140,7 +141,8 @@ public:
     template <typename Model>
     JointObservationModel(const MultipleOf<Model, Count>& mof)
         : local_obsrv_model_(mof.instance),
-          count_(mof.count)
+          count_(mof.count),
+          param_(Param::Zero(param_dimension(), 1))
     {
         assert(count_ > 0);
     }
