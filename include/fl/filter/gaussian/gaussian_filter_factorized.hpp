@@ -402,6 +402,54 @@ public:
             X_b_(i).resize(dim(b_i), point_count_);
         }
 
+        PV(point_count_);
+
+        /* Create noise standard gaussian distributions */
+//        auto N_a = Gaussian<LocalStateNoise>(dim(v_a));
+//        auto N_b_i = Gaussian<LocalParamNoise>(dim(v_b_i));
+//        auto N_y_i = Gaussian<LocalObsrvNoise>(dim(w_i));
+
+//        /* Pre-Compute the sigma points of noise distributions */
+//        typedef from_traits(LocalStateNoisePointSet);
+//        typedef from_traits(LocalParamNoisePointSet);
+//        typedef from_traits(LocalObsrvNoisePointSet);
+
+//        auto X_v_a = LocalStateNoisePointSet(dim(v_a), point_count_);
+//        auto X_v_b_i = LocalParamNoisePointSet(dim(v_b_i), point_count_);
+//        auto X_w_y_i = LocalObsrvNoisePointSet(dim(w_i), point_count_);
+
+//        int dim_offset = dim(a);
+//        transform_.forward(N_a, dim_marginal_, dim_offset, X_v_a);
+
+//        dim_offset += dim(v_a) + dim(b_i);
+//        transform_.forward(N_b_i, dim_marginal_, dim_offset, X_v_b_i);
+
+//        dim_offset += dim(v_b_i);
+//        transform_.forward(N_y_i, dim_marginal_, dim_offset, X_w_y_i);
+
+//        B.resize(param_count_, 1);
+//        c.resize(param_count_, 1);
+//        cov_b_given_ay.resize(param_count_, 1);
+
+//        /* Create X_v and X_w joint sigma points */
+//        X_v_.points().topRows(dim(v_a)) = X_v_a.points();
+//        for (int i = 0; i < param_count; ++i)
+//        {
+//            X_v_.points().middleRows(dim(v_a) + i * dim(v_b_i), dim(v_b_i)) =
+//                X_v_b_i.points();
+
+//            X_w_.points().middleRows(i * dim(w_i), dim(w_i)) =
+//                X_w_y_i.points();
+
+
+//            B(i) = BxA::Zero(dim(b_i), dim(a));
+//            c(i) = LocalParam::Zero(dim(b_i), 1);
+//        }
+
+        B.resize(param_count_, 1);
+        c.resize(param_count_, 1);
+        cov_b_given_ay.resize(param_count_, 1);
+
         /* Create noise standard gaussian distributions */
         auto N_a = Gaussian<LocalStateNoise>(dim(v_a));
         auto N_b_i = Gaussian<LocalParamNoise>(dim(v_b_i));
@@ -419,23 +467,35 @@ public:
         int dim_offset = dim(a);
         transform_.forward(N_a, dim_marginal_, dim_offset, X_v_a);
 
-        dim_offset += dim(v_a) + dim(b_i);
-        transform_.forward(N_b_i, dim_marginal_, dim_offset, X_v_b_i);
-
-        dim_offset += dim(v_b_i);
-        transform_.forward(N_y_i, dim_marginal_, dim_offset, X_w_y_i);
-
         /* Create X_v and X_w joint sigma points */
         X_v_.points().topRows(dim(v_a)) = X_v_a.points();
-        for (int i = 0; i < param_count; ++i)
+        for (int i = 0; i < param_count_; ++i)
         {
+            dim_offset = dim(a);
+
+            dim_offset += dim(v_a) + dim(b_i);
+            transform_.forward(N_b_i, dim_marginal_, dim_offset, X_v_b_i);
+
+            dim_offset += dim(v_b_i);
+            transform_.forward(N_y_i, dim_marginal_, dim_offset, X_w_y_i);
+
             X_v_.points().middleRows(dim(v_a) + i * dim(v_b_i), dim(v_b_i)) =
                 X_v_b_i.points();
 
             X_w_.points().middleRows(i * dim(w_i), dim(w_i)) =
                 X_w_y_i.points();
+
+            B(i) = BxA::Zero(dim(b_i), dim(a));
+            c(i) = LocalParam::Zero(dim(b_i), 1);
         }
+
+        first_run = true;
+        dump_values = false;
     }
+
+
+    bool first_run;
+
 
     /**
      * \copydoc FilterInterface::predict
@@ -445,45 +505,57 @@ public:
                          const StateDistribution& prior_dist,
                          StateDistribution& predicted_dist)
     {
+        if (first_run)
         {
+            first_run = false;
 
-            /* Create noise standard gaussian distributions */
-            auto N_a = Gaussian<LocalStateNoise>(dim(v_a));
-            auto N_b_i = Gaussian<LocalParamNoise>(dim(v_b_i));
-            auto N_y_i = Gaussian<LocalObsrvNoise>(dim(w_i));
-
-            /* Pre-Compute the sigma points of noise distributions */
-            typedef from_traits(LocalStateNoisePointSet);
-            typedef from_traits(LocalParamNoisePointSet);
-            typedef from_traits(LocalObsrvNoisePointSet);
-
-            auto X_v_a = LocalStateNoisePointSet(dim(v_a), point_count_);
-            auto X_v_b_i = LocalParamNoisePointSet(dim(v_b_i), point_count_);
-            auto X_w_y_i = LocalObsrvNoisePointSet(dim(w_i), point_count_);
-
-            int dim_offset = dim(a);
-            transform_.forward(N_a, dim_marginal_, dim_offset, X_v_a);
-
-            /* Create X_v and X_w joint sigma points */
-            X_v_.points().topRows(dim(v_a)) = X_v_a.points();
+            auto& distr_b = std::get<b>(prior_dist.distributions());
             for (int i = 0; i < param_count_; ++i)
             {
-                dim_offset = dim(a);
-
-                dim_offset += dim(v_a) + dim(b_i);
-                transform_.forward(N_b_i, dim_marginal_, dim_offset, X_v_b_i);
-
-                dim_offset += dim(v_b_i);
-                transform_.forward(N_y_i, dim_marginal_, dim_offset, X_w_y_i);
-
-                X_v_.points().middleRows(dim(v_a) + i * dim(v_b_i), dim(v_b_i)) =
-                    X_v_b_i.points();
-
-                X_w_.points().middleRows(i * dim(w_i), dim(w_i)) =
-                    X_w_y_i.points();
+                cov_b_given_ay(i) = distr_b.distribution(i).covariance();
             }
-
         }
+
+//        {
+
+//            /* Create noise standard gaussian distributions */
+//            auto N_a = Gaussian<LocalStateNoise>(dim(v_a));
+//            auto N_b_i = Gaussian<LocalParamNoise>(dim(v_b_i));
+//            auto N_y_i = Gaussian<LocalObsrvNoise>(dim(w_i));
+
+//            /* Pre-Compute the sigma points of noise distributions */
+//            typedef from_traits(LocalStateNoisePointSet);
+//            typedef from_traits(LocalParamNoisePointSet);
+//            typedef from_traits(LocalObsrvNoisePointSet);
+
+//            auto X_v_a = LocalStateNoisePointSet(dim(v_a), point_count_);
+//            auto X_v_b_i = LocalParamNoisePointSet(dim(v_b_i), point_count_);
+//            auto X_w_y_i = LocalObsrvNoisePointSet(dim(w_i), point_count_);
+
+//            int dim_offset = dim(a);
+//            transform_.forward(N_a, dim_marginal_, dim_offset, X_v_a);
+
+//            /* Create X_v and X_w joint sigma points */
+//            X_v_.points().topRows(dim(v_a)) = X_v_a.points();
+//            for (int i = 0; i < param_count_; ++i)
+//            {                                                                                                                                              Been quite
+//                dim_offset = dim(a);
+
+//                dim_offset += dim(v_a) + dim(b_i);
+//                transform_.forward(N_b_i, dim_marginal_, dim_offset, X_v_b_i);
+
+//                dim_offset += dim(v_b_i);
+//                transform_.forward(N_y_i, dim_marginal_, dim_offset, X_w_y_i);
+
+//                X_v_.points().middleRows(dim(v_a) + i * dim(v_b_i), dim(v_b_i)) =
+//                    X_v_b_i.points();
+
+//                X_w_.points().middleRows(i * dim(w_i), dim(w_i)) =
+//                    X_w_y_i.points();
+
+//            }
+
+//        }
 
         /*
          * Compute sigma points of part X_a and each of X_b(i)
@@ -495,13 +567,18 @@ public:
          */
         augment(X_a_, X_b_, X_);
 
+//        PV(X_.points());
+
         /*
          * Predict all sigma points X_[i]
          */
         for (int i = 0; i < point_count_; ++i)
         {
             X_[i] = f_.predict_state(dt, X_[i], X_v_[i], u);
-        }                      
+        }
+
+//        std::cout << "predicted X" << std::endl;
+//        PV(X_.points());
     }
 
     /**
@@ -537,8 +614,6 @@ public:
         auto centered_prediction = Y_.centered_points();
         auto var = (centered_prediction.array().pow(2).rowwise().sum() / double(point_count_)).eval();
 
-//        PV(obsrv_prediction.transpose());
-//        PV(var.transpose());
         for (int i = 0; i < point_count_; ++i)
         {
             Y_f[i] = feature_mapping_.extract(Y_[i], obsrv_prediction, var);
@@ -585,12 +660,13 @@ public:
         MatrixXd D = Ax1::Zero(dim_a, 1);
 
         MatrixXd innov_b_i = AYx1(dim_a + dim_y_i, 1);
-
-        B.resize(param_count_, 1);
-        c.resize(param_count_, 1);
-        cov_b_given_ay.resize(param_count_, 1);
-
         innov_b_i.topRows(dim_a) = -mu_x_a;
+
+//        if (dump_values) PV(mu_y);
+//        if (dump_values) PV(mu_x);
+//        PV(mu_x);
+//        PV(cov_aa);
+//        if (dump_values) PV(cov_aa_inv);
 
 //        for (int i = 0; i < param_count_; ++i)
 //        {
@@ -640,7 +716,7 @@ public:
 //                mu_x_b.middleRows(i * dim_b_i, dim_b_i) + K * innov_b_i);
 //            postr_b(i).covariance(cov_b_given_ay);
 //        }
-
+    
         for (int i = 0; i < param_count_; ++i)
         {
             /* == common ==================================================== */
@@ -661,6 +737,10 @@ public:
 
             C += (T * A_i);
             D += (T * innov);
+
+//            if (dump_values) PV(A_i);
+//            if (dump_values) PV(cov_yy_i_inv_given_a);
+//            if (dump_values) PV(C);
 
             /* == part b ==================================================== */
             MatrixXd X_b_i = X_b_(i).points();
@@ -686,6 +766,23 @@ public:
             c(i) = mu_x_b.middleRows(i * dim_b_i, dim_b_i) + K * innov_b_i;
         }
 
+        if (dump_values)
+        {
+            PV(fl::initial_seed);
+            PV(fl::seed_inc);
+            exit(-1);
+        }
+
+        MatrixXd new_cov_aa = (cov_aa_inv + C).inverse() ;
+        if (not new_cov_aa.ldlt().isPositive())
+        {
+            std::cout << ">>>>>> postr_a.covariance() not positive()" << std::endl;
+
+            dump_values = true;
+            update(obsrv, predicted_dist, posterior_dist);
+            return;
+        }
+
         postr_a.covariance((cov_aa_inv + C).inverse());
         postr_a.mean(mu_x_a + postr_a.covariance() * D);
 
@@ -701,7 +798,23 @@ public:
 
         // TODO REMOVE
         predicted_obsrv = obsrv_prediction;
+
+        auto sv = postr_a.covariance().jacobiSvd();
+
+        std::cout << "condition number "
+                  << sv.singularValues()(0)
+                     /
+                     sv.singularValues()(sv.singularValues().size() - 1)
+                  << std::endl;
+
+        std::cout << "inv condition number "
+                  << sv.singularValues()(sv.singularValues().size() - 1)
+                     /
+                     sv.singularValues()(0)
+                  << std::endl;
     }
+
+    bool dump_values;
 
     /**
      * \copydoc FilterInterface::predict_and_update
@@ -808,6 +921,25 @@ public:
 //                prior_b.distribution(i), dim_marginal_, offset, x_b(i));
 //        }
 
+
+
+        // transform all X_b(i)
+//        auto&& prior_b = std::get<b>(distr.distributions());
+//        const int offset = dim(a) + dim(v_a);
+
+        Gaussian<LocalParam> g_b_i(dim(b_i));
+
+        for (int i = 0; i < param_count_; ++i)
+        {
+            g_b_i.covariance(cov_b_given_ay(i));
+
+            x_b(i).resize(dim(b_i), x_a.count_points());
+            for (int k = 0; k < x_a.count_points(); ++k)
+            {
+                g_b_i.mean(B(i) * x_a[k] + c(i));
+                x_b(i)[k] = g_b_i.sample();
+            }
+        }
     }
 
     template <class Xa, class Xb, class X_>
