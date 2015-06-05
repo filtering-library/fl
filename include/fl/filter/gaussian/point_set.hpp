@@ -248,6 +248,8 @@ public:
      */
     void resize(int dim, int points_count)
     {
+        if (dim == dimension() && points_count == count_points()) return;
+
         points_.setZero(dim, points_count);
 
         weights_.resize(points_count, 1);
