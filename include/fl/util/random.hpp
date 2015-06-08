@@ -65,11 +65,20 @@ typedef std::mersenne_twister_engine<
  * \ingroup random
  */
 
-static unsigned int seed_inc = 0;
+
+
+/*
+ * seeds:
+ * 1428922077: with resampling LPC<3>
+ * 1428922712: no resampling: LPC<3>, LPC<5>
+ */
+static unsigned int initial_seed =  std::time(0);
+//static unsigned int initial_seed =  1428922712;
+static unsigned int seed_inc = initial_seed;
 inline unsigned int seed()
 {
-    return std::time(0) + (++seed_inc);
-
+//    return std::time(0) + (++seed_inc);
+    return (++seed_inc);
 //#ifdef USE_RANDOM_SEED
 //    return (unsigned int) std::time(0);
 //#else
