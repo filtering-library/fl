@@ -178,7 +178,7 @@ public:
         weights_.resize(dim);
     }
 
-    virtual size_t size()
+    virtual size_t size() const
     {
         return locations_.size();
     }
@@ -215,6 +215,20 @@ public:
     virtual int dimension() const
     {
         return locations_[0].rows();
+    }
+
+    virtual Scalar entropy() const
+    {
+        Scalar ent = 0;
+        for(size_t i = 0; i < weights_.size(); i++)
+        {
+            Scalar summand = - std::log(weights_(i)) * weights_(i);
+            if(!std::isfinite(summand))
+                summand = 0; // the limit for weight -> 0 is equal to 0
+            ent += summand;
+        }
+
+        return ent;
     }
 
 protected:

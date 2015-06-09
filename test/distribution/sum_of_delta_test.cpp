@@ -93,5 +93,23 @@ TEST(sum_of_delta, mean_and_covariance)
 
     EXPECT_TRUE((gaussian.square_root().inverse() *
                                     (sum_of_delta.mean()-mean)).norm() < 0.1);
+
+    // check entropy of uniform distribution
+    for(size_t i = 0; i < sum_of_delta.size(); i++)
+    {
+        sum_of_delta.weight(i) = 1. / sum_of_delta.size();
+    }
+
+    EXPECT_TRUE(fabs(std::log(double(sum_of_delta.size()))
+                     - sum_of_delta.entropy()) < 0.0000001);
+
+    // check entropy of certain distribution
+    for(size_t i = 0; i < sum_of_delta.size(); i++)
+    {
+        sum_of_delta.weight(i) = 0;
+    }
+    sum_of_delta.weight(0) = 1;
+
+    EXPECT_TRUE(fabs(sum_of_delta.entropy()) < 0.0000001);
 }
 
