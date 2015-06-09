@@ -55,7 +55,7 @@
 
 
 
-TEST(sum_of_delta, mean_and_covariance)
+TEST(discrete_distribution, sampling)
 {
     typedef Eigen::Vector3d Variate;
     typedef Eigen::Matrix3d Covariance;
@@ -81,7 +81,7 @@ TEST(sum_of_delta, mean_and_covariance)
     for(size_t i = 0; i < sum_of_delta.size(); i++)
     {
         sum_of_delta.location(i) = gaussian.sample();
-        sum_of_delta.log_probability(i) = std::log(1. / sum_of_delta.size());
+        sum_of_delta.weight(i) = 1. / sum_of_delta.size();
     }
 
     // compare mean and covariance
@@ -96,7 +96,7 @@ TEST(sum_of_delta, mean_and_covariance)
     // check entropy of uniform distribution
     for(size_t i = 0; i < sum_of_delta.size(); i++)
     {
-        sum_of_delta.log_probability(i) = std::log(1. / sum_of_delta.size());
+        sum_of_delta.weight(i) = 1. / sum_of_delta.size();
     }
 
     EXPECT_TRUE(fabs(std::log(double(sum_of_delta.size()))
@@ -105,9 +105,9 @@ TEST(sum_of_delta, mean_and_covariance)
     // check entropy of certain distribution
     for(size_t i = 0; i < sum_of_delta.size(); i++)
     {
-        sum_of_delta.log_probability(i) = -std::numeric_limits<double>::max();
+        sum_of_delta.weight(i) = 0;
     }
-    sum_of_delta.log_probability(0) = 0;
+    sum_of_delta.weight(0) = 1;
 
     EXPECT_TRUE(fabs(sum_of_delta.entropy()) < 0.0000001);
 }

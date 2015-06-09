@@ -1,32 +1,29 @@
-/*************************************************************************
-This software allows for filtering in high-dimensional observation and
-state spaces, as described in
+/*
+ * This is part of the FL library, a C++ Bayesian filtering library
+ * (https://github.com/filtering-library)
+ *
+ * Copyright (c) 2014 Jan Issac (jan.issac@gmail.com)
+ * Copyright (c) 2014 Manuel Wuthrich (manuel.wuthrich@gmail.com)
+ *
+ * Max-Planck Institute for Intelligent Systems, AMD Lab
+ * University of Southern California, CLMC Lab
+ *
+ * This Source Code Form is subject to the terms of the MIT License (MIT).
+ * A copy of the license can be found in the LICENSE file distributed with this
+ * source code.
+ */
 
-M. Wuthrich, P. Pastor, M. Kalakrishnan, J. Bohg, and S. Schaal.
-Probabilistic Object Tracking using a Range Camera
-IEEE/RSJ Intl Conf on Intelligent Robots and Systems, 2013
+/**
+ * \file gaussian.hpp
+ * \date October 2014
+ * \author Jan Issac (jan.issac@gmail.com)
+ * \author Manuel Wuthrich (manuel.wuthrich@gmail.com)
+ */
 
-In a publication based on this software pleace cite the above reference.
+#ifndef FL__DISTRIBUTION__DISCRETE_DISTRIBUTION_HPP
+#define FL__DISTRIBUTION__DISCRETE_DISTRIBUTION_HPP
 
 
-Copyright (C) 2014  Manuel Wuthrich
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*************************************************************************/
-
-#ifndef FAST_FILTERING_UTILS_HELPER_FUNCTIONS_HPP
-#define FAST_FILTERING_UTILS_HELPER_FUNCTIONS_HPP
 
 #include <Eigen/Dense>
 
