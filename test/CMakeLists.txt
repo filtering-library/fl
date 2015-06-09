@@ -111,6 +111,14 @@ catkin_add_gtest(gaussian_filter_factorized_test
                  gtest_main.cpp)
 target_link_libraries(gaussian_filter_factorized_test ${catkin_LIBRARIES})
 
+
+# ## Gaussian filter tests ##
+ catkin_add_gtest(particle_filter_test
+                  particle_filter/particle_filter_test.cpp
+                  gtest_main.cpp)
+ target_link_libraries(particle_filter_test
+                       ${catkin_LIBRARIES})
+
 #catkin_add_gtest(adaptive_test
 #                 model/adaptive_test.cpp
 #                 gtest_main.cpp)
