@@ -183,9 +183,19 @@ public:
         return log_probabilities_(i);
     }
 
+    virtual Probabilities log_probabilities() const
+    {
+        return log_probabilities_;
+    }
+
     virtual double probability(const size_t& i) const
     {
-        return std::exp(log_probabilities_(i));
+        return probabilities_(i);
+    }
+
+    virtual Probabilities probabilities() const
+    {
+        return probabilities_;
     }
 
     virtual size_t size() const

@@ -130,27 +130,35 @@ TEST(sum_of_delta, entropy)
 TEST(sum_of_delta, sampling)
 {
     typedef Eigen::Matrix<int, 1, 1> Variate;
-//    typedef Variate::Scalar Scalar;
     typedef fl::SumOfDeltas<Variate> DiscreteDistribution;
     typedef DiscreteDistribution::Probabilities Function;
-
-        typedef std::vector<Variate> Locations;
-
-    Locations bla(3);
-
-    bla[1].cast<double>();
-
-
+    typedef std::vector<Variate> Locations;
 
     int N_locations = 10;
-    int N_samples   = 100000;
+    int N_samples   = 1000000;
 
-    Function log_pmf = Function::Random(N_locations).abs();
+    // random prob mass fct
+    Function pmf = Function::Random(N_locations).abs() + 0.01;
+    pmf /= pmf.sum();
 
+    // create discrete distr
     DiscreteDistribution sum_of_delta;
-    sum_of_delta.log_unnormalized_probabilities(log_pmf);
+    sum_of_delta.log_unnormalized_probabilities(pmf.log());
 
-    std::cout << log_pmf << std::endl;
+    for(int i = 0; i < N_locations; i++)
+        sum_of_delta.location(i)(0) = i;
+
+    // generate empirical pmf
+    Function empirical_pmf = Function::Zero(N_locations);
+    for(int i = 0; i < N_samples; i++)
+    {
+        empirical_pmf(sum_of_delta.sample()(0)) += 1./N_samples;
+    }
+
+    std::cout << "pmf " << pmf.transpose() << std::endl;
+    std::cout << "empirical pmf " << empirical_pmf.transpose() << std::endl;
+
+
 }
 
 
