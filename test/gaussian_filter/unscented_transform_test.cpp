@@ -78,7 +78,7 @@ void test_mean_transform(PointSet<Point, Dim>& point_set, int dim)
 
     //EXPECT_FALSE(a.isApprox(point_set.mean()));
     ut.forward(gaussian, point_set);
-    EXPECT_TRUE(a.isApprox(point_set.mean()));
+    EXPECT_TRUE(fl::are_similar(a, point_set.mean()));
 }
 
 // fixed dimension, fixed number of points
@@ -174,10 +174,12 @@ void test_covariance_transform(PointSet<Point, Dim>& point_set, int dim)
 
     EXPECT_NO_THROW(ut.forward(gaussian, point_set));
 
-    EXPECT_TRUE((point_set.centered_points() *
-                 point_set.covariance_weights_vector().asDiagonal() *
-                 point_set.centered_points().transpose())
-                .isApprox(cov));
+    EXPECT_TRUE(
+        fl::are_similar(
+            ( point_set.centered_points() *
+              point_set.covariance_weights_vector().asDiagonal() *
+              point_set.centered_points().transpose() ),
+            cov));
 }
 
 TEST(UnscentedTransformTest, covariance_recovery_fixed_fixed)

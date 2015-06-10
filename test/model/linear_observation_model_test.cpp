@@ -67,7 +67,7 @@ public:
         EXPECT_EQ(model.standard_variate_dimension(), dim);
         EXPECT_EQ(model.state_dimension(), dim_state);
         EXPECT_TRUE(model.H().isOnes());
-        EXPECT_TRUE(model.covariance().isApprox(cov));
+        EXPECT_TRUE(fl::are_similar(model.covariance(), cov));
     }
 };
 
@@ -115,9 +115,9 @@ TEST_F(LinearObservationModelTests, predict_fixedsize_with_zero_noise)
 
     EXPECT_TRUE(model.map_standard_normal(noise).isZero());
 
-    EXPECT_FALSE(model.map_standard_normal(noise).isApprox(observation));
+    EXPECT_FALSE(fl::are_similar(model.map_standard_normal(noise), observation));
     model.condition(state);
-    EXPECT_FALSE(model.map_standard_normal(noise).isApprox(observation));
+    EXPECT_FALSE(fl::are_similar(model.map_standard_normal(noise), observation));
 }
 
 TEST_F(LinearObservationModelTests, predict_dynamic_with_zero_noise)
@@ -136,9 +136,9 @@ TEST_F(LinearObservationModelTests, predict_dynamic_with_zero_noise)
 
     EXPECT_TRUE(model.map_standard_normal(noise).isZero());
 
-    EXPECT_FALSE(model.map_standard_normal(noise).isApprox(observation));
+    EXPECT_FALSE(fl::are_similar(model.map_standard_normal(noise), observation));
     model.condition(state);
-    EXPECT_FALSE(model.map_standard_normal(noise).isApprox(observation));
+    EXPECT_FALSE(fl::are_similar(model.map_standard_normal(noise), observation));
 }
 
 TEST_F(LinearObservationModelTests, sensor_matrix)
@@ -158,13 +158,15 @@ TEST_F(LinearObservationModelTests, sensor_matrix)
 
     observation.topRows(dim_state) = state;
 
-    EXPECT_TRUE(model.map_standard_normal(noise).isApprox(noise));
-    EXPECT_FALSE(model.map_standard_normal(noise).isApprox(observation));
+    EXPECT_TRUE(fl::are_similar(model.map_standard_normal(noise), noise));
+    EXPECT_FALSE(fl::are_similar(model.map_standard_normal(noise), observation));
 
     model.condition(state);
 
-    EXPECT_TRUE(model.map_standard_normal(noise).isApprox(H * state + noise));
-    EXPECT_FALSE(model.map_standard_normal(noise).isApprox(observation));
+    EXPECT_TRUE(
+        fl::are_similar(model.map_standard_normal(noise), H * state + noise));
+    EXPECT_FALSE(
+        fl::are_similar(model.map_standard_normal(noise), observation));
 
     H = LGModel::SecondMoment::Zero(dim, dim_state);
     H.block(0, 0, dim_state, dim_state)
@@ -173,6 +175,7 @@ TEST_F(LinearObservationModelTests, sensor_matrix)
     model.H(H);
     model.condition(state);
 
-    EXPECT_TRUE(model.map_standard_normal(noise).isApprox(observation + noise));
+    EXPECT_TRUE(
+        fl::are_similar(model.map_standard_normal(noise), observation + noise));
 }
 

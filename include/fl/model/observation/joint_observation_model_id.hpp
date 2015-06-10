@@ -147,7 +147,6 @@ public:
         return prediction;
     }
 
-
     /**
      * \copydoc ObservationModelInterface::state_dimension
      *

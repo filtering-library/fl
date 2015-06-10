@@ -136,15 +136,15 @@ TEST_F(JointObservationModel_IID_Tests, predict_F)
                     LocalObsrvModel_F(
                         LocalCov_F::Identity() * sigma * sigma));
 
-    auto H = model.local_observation_model().H();
+    auto H = model.local_obsrv_model().H();
     H.setIdentity();
-    model.local_observation_model().H(H);
+    model.local_obsrv_model().H(H);
 
     auto x = State_F::Ones();
     auto w = Noise_F::Ones();
 
     auto y = model.predict_obsrv(x, w, 1.);
-    EXPECT_TRUE(y.isApprox(Noise_F::Ones() + sigma * Noise_F::Ones()));
+    EXPECT_TRUE(fl::are_similar(y, Noise_F::Ones() + sigma * Noise_F::Ones()));
 }
 
 TEST_F(JointObservationModel_IID_Tests, predict_F_using_dynamic_interface)
@@ -157,15 +157,15 @@ TEST_F(JointObservationModel_IID_Tests, predict_F_using_dynamic_interface)
                         StateDimension),
                     Factors);
 
-    auto H = model.local_observation_model().H();
+    auto H = model.local_obsrv_model().H();
     H.setIdentity();
-    model.local_observation_model().H(H);
+    model.local_obsrv_model().H(H);
 
     auto x = State_F::Ones(model.state_dimension(), 1);
     auto w = Noise_F::Ones(model.noise_dimension(), 1);
 
     auto y = model.predict_obsrv(x, w, 1.);
-    EXPECT_TRUE(y.isApprox(Noise_F::Ones() + sigma*Noise_F::Ones()));
+    EXPECT_TRUE(fl::are_similar(y, Noise_F::Ones() + sigma*Noise_F::Ones()));
 }
 
 TEST_F(JointObservationModel_IID_Tests, predict_D)
@@ -178,15 +178,15 @@ TEST_F(JointObservationModel_IID_Tests, predict_D)
                          StateDimension),
                      Factors);
 
-    auto H = model.local_observation_model().H();
+    auto H = model.local_obsrv_model().H();
     H.setIdentity();
-    model.local_observation_model().H(H);
+    model.local_obsrv_model().H(H);
 
     auto x = State_D::Ones(model.state_dimension(), 1);
     auto w = Noise_D::Ones(model.noise_dimension(), 1);
 
     auto y = model.predict_obsrv(x, w, 1.);
-    EXPECT_TRUE(y.isApprox(Noise_F::Ones() + sigma*Noise_F::Ones()));
+    EXPECT_TRUE(fl::are_similar(y, Noise_F::Ones() + sigma*Noise_F::Ones()));
 }
 
 TEST_F(JointObservationModel_IID_Tests, predict_F_vs_D)
@@ -203,13 +203,13 @@ TEST_F(JointObservationModel_IID_Tests, predict_F_vs_D)
                        LocalObsrvModel_F(
                             LocalCov_F::Identity() * sigma*sigma));
 
-    auto H_D = model_D.local_observation_model().H();
+    auto H_D = model_D.local_obsrv_model().H();
     H_D.setIdentity();
-    model_D.local_observation_model().H(H_D);
+    model_D.local_obsrv_model().H(H_D);
 
-    auto H_F = model_F.local_observation_model().H();
+    auto H_F = model_F.local_obsrv_model().H();
     H_F.setIdentity();
-    model_F.local_observation_model().H(H_D);
+    model_F.local_obsrv_model().H(H_D);
 
     auto x_D = State_D::Ones(model_D.state_dimension(), 1);
     auto w_D = Noise_D::Ones(model_D.noise_dimension(), 1);
@@ -220,7 +220,7 @@ TEST_F(JointObservationModel_IID_Tests, predict_F_vs_D)
     auto y_D = model_D.predict_obsrv(x_D, w_D, 1.);
     auto y_F = model_F.predict_obsrv(x_F, w_F, 1.);
 
-    EXPECT_TRUE(y_D.isApprox(y_F));
+    EXPECT_TRUE(fl::are_similar(y_D, y_F));
 
 }
 
@@ -242,13 +242,13 @@ TEST_F(JointObservationModel_IID_Tests, predict_F_vs_D_using_dynamic_interface)
                             StateDimension),
                         Factors);
 
-    auto H_D = model_D.local_observation_model().H();
+    auto H_D = model_D.local_obsrv_model().H();
     H_D.setIdentity();
-    model_D.local_observation_model().H(H_D);
+    model_D.local_obsrv_model().H(H_D);
 
-    auto H_F = model_F.local_observation_model().H();
+    auto H_F = model_F.local_obsrv_model().H();
     H_F.setIdentity();
-    model_F.local_observation_model().H(H_F);
+    model_F.local_obsrv_model().H(H_F);
 
     auto x_D = State_D::Ones(model_D.state_dimension(), 1);
     auto w_D = Noise_D::Ones(model_D.noise_dimension(), 1);
@@ -259,7 +259,7 @@ TEST_F(JointObservationModel_IID_Tests, predict_F_vs_D_using_dynamic_interface)
     auto y_D = model_D.predict_obsrv(x_D, w_D, 1.);
     auto y_F = model_F.predict_obsrv(x_F, w_F, 1.);
 
-    EXPECT_TRUE(y_D.isApprox(y_F));
+    EXPECT_TRUE(fl::are_similar(y_D, y_F));
 
 }
 

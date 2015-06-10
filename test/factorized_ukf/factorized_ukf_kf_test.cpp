@@ -154,14 +154,18 @@ template <typename D1, typename D2> void step_assert(D1& kf_state_dist,
                                                            DIM_STATE_B),
                            fukf_state_dist.joint_partitions[0].mean_b));
 
-    ASSERT_TRUE(kf_state_dist
+    ASSERT_TRUE(
+        fl::are_similar(
+            kf_state_dist.Covariance().block(0, 0, DIM_STATE_A, DIM_STATE_A),
+            fukf_state_dist.cov_aa,
+            EPSILON));
+    ASSERT_TRUE(
+        fl::are_similar(
+            kf_state_dist
                 .Covariance()
-                .block(0, 0, DIM_STATE_A, DIM_STATE_A)
-                .isApprox(fukf_state_dist.cov_aa, EPSILON));
-    ASSERT_TRUE(kf_state_dist
-                .Covariance()
-                .block(DIM_STATE_A, DIM_STATE_A, DIM_STATE_B, DIM_STATE_B)
-                .isApprox(fukf_state_dist.joint_partitions[0].cov_bb, EPSILON));
+                .block(DIM_STATE_A, DIM_STATE_A, DIM_STATE_B, DIM_STATE_B),
+            fukf_state_dist.joint_partitions[0].cov_bb,
+            EPSILON));
 
     success = true;
 }

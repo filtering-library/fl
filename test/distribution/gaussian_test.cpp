@@ -147,16 +147,12 @@ protected:
     {
         EXPECT_GT(gaussian.dimension(), 0);
 
-        EXPECT_TRUE(gaussian.covariance().isApprox(covariance));
-        EXPECT_TRUE(gaussian.precision().isApprox(precision));
+        EXPECT_TRUE(fl::are_similar(gaussian.covariance(), covariance));
+        EXPECT_TRUE(fl::are_similar(gaussian.precision(), precision));
         const Covariance temp =
                 gaussian.square_root() * gaussian.square_root().transpose();
         const Covariance temp2 = square_root * square_root.transpose();
 
-        (void) temp;
-        (void) temp2;
-
-        //EXPECT_TRUE(temp.isApprox(temp2));
         EXPECT_TRUE(gaussian.has_full_rank());
     }
 };

@@ -30,6 +30,8 @@
 #include <fl/model/observation/linear_observation_model.hpp>
 #include <fl/filter/filter_interface.hpp>
 #include <fl/filter/gaussian/gaussian_filter.hpp>
+#include <fl/util/math/linear_algebra.hpp>
+
 
 using namespace fl;
 
@@ -66,7 +68,7 @@ TEST(KalmanFilterTests, init_fixed_size_predict)
     filter.predict(1.0, Input(1), state_dist, state_dist);
 
     EXPECT_TRUE(state_dist.mean().isZero());
-    EXPECT_TRUE(state_dist.covariance().isApprox(2. * Q));
+    EXPECT_TRUE(fl::are_similar(state_dist.covariance(), 2. * Q));
 }
 
 TEST(KalmanFilterTests, init_dynamic_size_predict)
@@ -100,7 +102,7 @@ TEST(KalmanFilterTests, init_dynamic_size_predict)
         ProcessModel(Q, dim_state),
         ObservationModel(R, dim_obsrv, dim_state));
 
-    Filter::StateDistribution state_dist(dim_state);
+    Filter::StateDistribution state_dist  = Filter::StateDistribution(dim_state);
 
     EXPECT_TRUE(state_dist.mean().isZero());
     EXPECT_TRUE(state_dist.covariance().isIdentity());
@@ -108,7 +110,7 @@ TEST(KalmanFilterTests, init_dynamic_size_predict)
     filter.predict(1.0, Input(1), state_dist, state_dist);
 
     EXPECT_TRUE(state_dist.mean().isZero());
-    EXPECT_TRUE(state_dist.covariance().isApprox(2. * Q));
+    EXPECT_TRUE(fl::are_similar(state_dist.covariance(), 2. * Q));
 }
 
 TEST(KalmanFilterTests, fixed_size_predict_update)
