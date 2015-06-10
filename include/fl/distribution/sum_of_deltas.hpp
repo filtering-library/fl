@@ -20,8 +20,8 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__DISTRIBUTION__SUM_OF_DELTAS_HPP
-#define FL__DISTRIBUTION__SUM_OF_DELTAS_HPP
+#ifndef FL__DISTRIBUTION__SUM_OF_locations_HPP
+#define FL__DISTRIBUTION__SUM_OF_locations_HPP
 
 #include <Eigen/Dense>
 
@@ -75,13 +75,13 @@ struct Traits<SumOfDeltas<Var>>
                 Scalar,
                 Var::RowsAtCompileTime,
                 Var::RowsAtCompileTime
-            > SecondMoment;
+            > Covariance;
 
     /**
      * \brief Deltas container (Sample container representing this
      * non-parametric distribution)
      */
-    typedef std::vector<Var> Deltas;
+    typedef std::vector<Var> Locations;
 
     /**
      * \brief Weight vector associated with the deltas
@@ -91,7 +91,7 @@ struct Traits<SumOfDeltas<Var>>
     /**
      * \brief Moments interface of the SumOfDeltas distribution
      */
-    typedef Moments<Var, SecondMoment> MomentsBase;
+    typedef Moments<Var, Covariance> MomentsBase;
 };
 
 /**
@@ -109,8 +109,8 @@ public:
     typedef SumOfDeltas<Variate> This;
 
     typedef typename Traits<This>::Scalar       Scalar;
-    typedef typename Traits<This>::SecondMoment SecondMoment;
-    typedef typename Traits<This>::Deltas       Deltas;
+    typedef typename Traits<This>::Covariance Covariance;
+    typedef typename Traits<This>::Locations    Locations;
     typedef typename Traits<This>::Weights      Weights;
 
 public:
@@ -126,7 +126,7 @@ public:
     explicit
     SumOfDeltas(size_t dim = DimensionOf<Variate>())
     {
-        deltas_ = Deltas(1, Variate::Zero(dim));
+        locations_ = Locations(1, Variate::Zero(dim));
         weights_ = Weights::Ones(1);
     }
 
@@ -142,45 +142,56 @@ public:
      * \param [in] deltas    The new set of deltas
      * \param [in] weights   THe weights of deltas
      */
-    virtual void SetDeltas(const Deltas& deltas, const Weights& weights)
+    virtual void set_deltas(const Locations& locations, const Weights& weights)
     {
-        deltas_ = deltas;
+        locations_ = locations;
         weights_ = weights.normalized();
-    }
-
-    /**
-     * Sets the distribution deltas. All weights are set to
-     * \f$\frac{1}{N}\f$, where \f$N\f$ is the number of deltas
-     *
-     * \param [in] deltas    The new set of deltas
-     */
-    virtual void SetDeltas(const Deltas& deltas)
-    {
-        deltas_ = deltas;
-        weights_ = Weights::Ones(deltas_.size())/Scalar(deltas_.size());
     }
 
     /**
      * Accesses the deltas and their weights
      *
-     * \param [out] deltas
+     * \param [out] locations
      * \param [out] weights
      */
-    virtual void GetDeltas(Deltas& deltas, Weights& weights) const
+    virtual void get_deltas(Locations& locations, Weights& weights) const
     {
-        deltas = deltas_;
+        locations = locations_;
         weights = weights_;
     }
 
+    Variate& location(size_t i)
+    {
+        return locations_[i];
+    }
+
+    Scalar& weight(size_t i)
+    {
+        return weights_(i);
+    }
+
+
+
+    virtual void resize(size_t dim)
+    {
+        locations_.resize(dim);
+        weights_.resize(dim);
+    }
+
+    virtual size_t size() const
+    {
+        return locations_.size();
+    }
+
     /**
-     * \return The weighted mean of the deltas, or simply the first moment of
+     * \return The weighted mean of the locations, or simply the first moment of
      *         the distribution.
      */
     virtual Variate mean() const
     {
         Variate mu(Variate::Zero(dimension()));
-        for(size_t i = 0; i < deltas_.size(); i++)
-            mu += weights_[i] * deltas_[i];
+        for(size_t i = 0; i < locations_.size(); i++)
+            mu += weights_[i] * locations_[i];
 
         return mu;
     }
@@ -188,12 +199,12 @@ public:
     /**
      * \return The covariance or the second central moment of the distribution
      */
-    virtual SecondMoment covariance() const
+    virtual Covariance covariance() const
     {
         Variate mu = mean();
-        SecondMoment cov(SecondMoment::Zero(dimension(), dimension()));
-        for(size_t i = 0; i < deltas_.size(); i++)
-            cov += weights_[i] * (deltas_[i]-mu) * (deltas_[i]-mu).transpose();
+        Covariance cov(Covariance::Zero(dimension(), dimension()));
+        for(size_t i = 0; i < locations_.size(); i++)
+            cov += weights_[i] * (locations_[i]-mu) * (locations_[i]-mu).transpose();
 
         return cov;
     }
@@ -203,11 +214,25 @@ public:
      */
     virtual int dimension() const
     {
-        return deltas_[0].rows();
+        return locations_[0].rows();
+    }
+
+    virtual Scalar entropy() const
+    {
+        Scalar ent = 0;
+        for(size_t i = 0; i < weights_.size(); i++)
+        {
+            Scalar summand = - std::log(weights_(i)) * weights_(i);
+            if(!std::isfinite(summand))
+                summand = 0; // the limit for weight -> 0 is equal to 0
+            ent += summand;
+        }
+
+        return ent;
     }
 
 protected:
-    Deltas  deltas_;
+    Locations  locations_;
     Weights weights_;
 };
 

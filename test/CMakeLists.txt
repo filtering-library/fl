@@ -117,6 +117,23 @@ target_link_libraries(gaussian_filter_kf_test ${catkin_LIBRARIES})
 #                 gtest_main.cpp)
 #target_link_libraries(gaussian_filter_factorized_test ${catkin_LIBRARIES})
 
+
+
+
+# sum_of_delta distribution test #
+ catkin_add_gtest(sum_of_delta_test
+                  distribution/sum_of_delta_test.cpp
+                  gtest_main.cpp)
+ target_link_libraries(sum_of_delta_test
+                       ${catkin_LIBRARIES})
+
+# particle filter tests #
+ catkin_add_gtest(particle_filter_test
+                  particle_filter/particle_filter_test.cpp
+                  gtest_main.cpp)
+ target_link_libraries(particle_filter_test
+                       ${catkin_LIBRARIES})
+
 #catkin_add_gtest(adaptive_test
 #                 model/adaptive_test.cpp
 #                 gtest_main.cpp)
