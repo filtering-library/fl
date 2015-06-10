@@ -31,6 +31,7 @@
 #include <fl/util/assertions.hpp>
 #include <fl/util/traits.hpp>
 #include <fl/distribution/interface/moments.hpp>
+#include <fl/distribution/interface/standard_gaussian_mapping.hpp>
 
 namespace fl
 {
@@ -71,11 +72,8 @@ struct Traits<SumOfDeltas<Var>>
     /**
      * \brief Distribution second moment type
      */
-    typedef Eigen::Matrix<
-                Scalar,
-                Var::RowsAtCompileTime,
-                Var::RowsAtCompileTime
-            > Covariance;
+    typedef Eigen::Matrix<Scalar, Dimension, Dimension> Covariance;
+
 
     /**
      * \brief Deltas container (Sample container representing this
@@ -92,6 +90,9 @@ struct Traits<SumOfDeltas<Var>>
      * \brief Moments interface of the SumOfDeltas distribution
      */
     typedef Moments<Var, Covariance> MomentsBase;
+
+    typedef StandardGaussianMapping<Variate, double> GaussianMappingBase;
+
 };
 
 /**
@@ -103,7 +104,8 @@ struct Traits<SumOfDeltas<Var>>
  */
 template <typename Variate>
 class SumOfDeltas
-        : public Traits<SumOfDeltas<Variate>>::MomentsBase
+        : public Traits<SumOfDeltas<Variate>>::MomentsBase,
+          public Traits<SumOfDeltas<Variate>>::GaussianMappingBase
 {
 public:
     typedef SumOfDeltas<Variate> This;
@@ -143,7 +145,6 @@ public:
     // set ---------------------------------------------------------------------
     virtual void log_unnormalized_probabilities(const Probabilities& log_probs)
     {
-        std::cout << "log_probs.size()" << log_probs.size()  << std::endl;
         // rescale for numeric stability
         log_probabilities_ = log_probs;
         set_max(log_probabilities_);
@@ -161,6 +162,9 @@ public:
         cumulative_[0] = probabilities_[0];
         for(int i = 1; i < cumulative_.size(); i++)
             cumulative_[i] = cumulative_[i-1] + probabilities_[i];
+
+        // resize locations
+        locations_.resize(log_probs.size());
     }    
 
     virtual Variate& location(size_t i)

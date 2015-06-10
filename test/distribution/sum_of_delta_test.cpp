@@ -82,8 +82,6 @@ TEST(sum_of_delta, mean_and_covariance)
 
     // generate a sum of delta from gaussian
     DiscreteDistribution sum_of_delta;
-        sum_of_delta.resize(100000);
-
     sum_of_delta.log_unnormalized_probabilities(Function::Zero(100000));
 
     for(size_t i = 0; i < sum_of_delta.size(); i++)
