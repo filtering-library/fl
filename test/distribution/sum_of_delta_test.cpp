@@ -49,6 +49,7 @@
 
 #include <fl/distribution/sum_of_deltas.hpp>
 #include <fl/distribution/gaussian.hpp>
+
 #include <Eigen/Core>
 #include <Eigen/Eigenvalues>
 
@@ -59,6 +60,10 @@ TEST(sum_of_delta, mean_and_covariance)
 {
     typedef Eigen::Vector3d Variate;
     typedef Eigen::Matrix3d Covariance;
+    typedef Variate::Scalar Scalar;
+
+    typedef fl::SumOfDeltas<Variate> DiscreteDistribution;
+    typedef DiscreteDistribution::Probabilities Function;
 
     // pick some mean and covariance
     Covariance covariance;
@@ -76,12 +81,14 @@ TEST(sum_of_delta, mean_and_covariance)
     gaussian.covariance(covariance);
 
     // generate a sum of delta from gaussian
-    fl::SumOfDeltas<Variate> sum_of_delta;
-    sum_of_delta.resize(100000);
+    DiscreteDistribution sum_of_delta;
+        sum_of_delta.resize(100000);
+
+    sum_of_delta.log_unnormalized_probabilities(Function::Zero(100000));
+
     for(size_t i = 0; i < sum_of_delta.size(); i++)
     {
         sum_of_delta.location(i) = gaussian.sample();
-        sum_of_delta.log_probability(i) = std::log(1. / sum_of_delta.size());
     }
 
     // compare mean and covariance
@@ -94,20 +101,17 @@ TEST(sum_of_delta, mean_and_covariance)
                                     (sum_of_delta.mean()-mean)).norm() < 0.1);
 
     // check entropy of uniform distribution
-    for(size_t i = 0; i < sum_of_delta.size(); i++)
-    {
-        sum_of_delta.log_probability(i) = std::log(1. / sum_of_delta.size());
-    }
+    sum_of_delta.log_unnormalized_probabilities(Function::Zero(sum_of_delta.size()));
 
     EXPECT_TRUE(fabs(std::log(double(sum_of_delta.size()))
                      - sum_of_delta.entropy()) < 0.0000001);
 
     // check entropy of certain distribution
-    for(size_t i = 0; i < sum_of_delta.size(); i++)
-    {
-        sum_of_delta.log_probability(i) = -std::numeric_limits<double>::max();
-    }
-    sum_of_delta.log_probability(0) = 0;
+    Function log_pmf = Function::Constant(sum_of_delta.size(),
+                                          -std::numeric_limits<double>::max());
+    log_pmf(0) = 0;
+    sum_of_delta.log_unnormalized_probabilities(log_pmf);
+
 
     EXPECT_TRUE(fabs(sum_of_delta.entropy()) < 0.0000001);
 }

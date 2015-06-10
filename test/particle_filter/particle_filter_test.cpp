@@ -38,9 +38,10 @@
  */
 
 /**
- * @date 2015
- * @author Manuel Wuthrich (manuel.wuthrich@gmail.com)
- * Max-Planck-Institute for Intelligent Systems
+ * @date 2014
+ * @author manuel wuthrich (manuel.wuthrich@gmail.com)
+ * Max-Planck-Institute for Intelligent Systems,
+ * University of Southern California
  */
 
 #include <gtest/gtest.h>
@@ -55,7 +56,7 @@
 
 
 
-TEST(discrete_distribution, sampling)
+TEST(enchilada, some_test)
 {
     typedef Eigen::Vector3d Variate;
     typedef Eigen::Matrix3d Covariance;
@@ -81,7 +82,7 @@ TEST(discrete_distribution, sampling)
     for(size_t i = 0; i < sum_of_delta.size(); i++)
     {
         sum_of_delta.location(i) = gaussian.sample();
-        sum_of_delta.probability(i) = 1. / sum_of_delta.size();
+        sum_of_delta.weight(i) = 1. / sum_of_delta.size();
     }
 
     // compare mean and covariance
@@ -92,23 +93,5 @@ TEST(discrete_distribution, sampling)
 
     EXPECT_TRUE((gaussian.square_root().inverse() *
                                     (sum_of_delta.mean()-mean)).norm() < 0.1);
-
-    // check entropy of uniform distribution
-    for(size_t i = 0; i < sum_of_delta.size(); i++)
-    {
-        sum_of_delta.probability(i) = 1. / sum_of_delta.size();
-    }
-
-    EXPECT_TRUE(fabs(std::log(double(sum_of_delta.size()))
-                     - sum_of_delta.entropy()) < 0.0000001);
-
-    // check entropy of certain distribution
-    for(size_t i = 0; i < sum_of_delta.size(); i++)
-    {
-        sum_of_delta.probability(i) = 0;
-    }
-    sum_of_delta.probability(0) = 1;
-
-    EXPECT_TRUE(fabs(sum_of_delta.entropy()) < 0.0000001);
 }
 

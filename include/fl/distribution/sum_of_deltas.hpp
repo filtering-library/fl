@@ -23,7 +23,7 @@
 #ifndef FL__DISTRIBUTION__SUM_OF_DELTAS_HPP
 #define FL__DISTRIBUTION__SUM_OF_DELTAS_HPP
 
-#include <Eigen/Dense>
+#include <Eigen/Core>
 
 // std
 #include <vector>
@@ -86,7 +86,7 @@ struct Traits<SumOfDeltas<Var>>
     /**
      * \brief Weight vector associated with the deltas
      */
-    typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Probabilities;
+    typedef Eigen::Array<Scalar, Eigen::Dynamic, 1> Probabilities;
 
     /**
      * \brief Moments interface of the SumOfDeltas distribution
@@ -113,7 +113,9 @@ public:
     typedef typename Traits<This>::Locations    Locations;
     typedef typename Traits<This>::Probabilities      Probabilities;
 
+
 public:
+    // constructor and destructor ----------------------------------------------
     /**
      * Creates a dynamic or fixed-size SumOfDeltas.
      *
@@ -128,54 +130,42 @@ public:
     {
         locations_ = Locations(1, Variate::Zero(dim));
         log_probabilities_ = Probabilities::Zero(1);
+        cumulative_ = Probabilities::Ones(1);
     }
 
-    /**
-     * \brief Overridable default constructor
-     */
     virtual ~SumOfDeltas() { }
 
 
 
-//    virtual void set_log_unnormalized_probability(const Weights& log_prob)
-//    {
-//        double max = *(std::max_element(log_prob.begin(), log_prob.end()));
 
-//        Weights prob(log_prob.size());
-//        for(int i = 0; i < int(log_prob.size()); i++)
-//            prob[i] = std::exp(log_prob[i] - max);
+    /// non-const functions ****************************************************
 
-//        set_unnormalized_probability(prob);
-//    }
+    // set ---------------------------------------------------------------------
+    virtual void log_unnormalized_probabilities(const Probabilities& log_probs)
+    {
+        std::cout << "log_probs.size()" << log_probs.size()  << std::endl;
+        // rescale for numeric stability
+        log_probabilities_ = log_probs;
+        set_max(log_probabilities_);
+\
+        // copy to probabilities
+        probabilities_ = log_probabilities_.exp();
+        Scalar sum = probabilities_.sum();
 
-//    virtual void set_unnormalized_probability(const Weights& probs)
-//    {
-//        Scalar sum = 0;
-//        for(size_t i = 0; i < probs.size(); i++)
-//        {
-//            sum += prob[i];
-//        }
+        // normalize
+        probabilities_ /= sum;
+        log_probabilities_ -= std::log(sum);
 
-//        weights_.resize(probs.size());
-//        for(size_t i = 0; i < probs.size(); i++)
-//        {
-//            weights_[i] = prob[i] / sum;
-//        }
-//    }
+        // compute cumulative
+        cumulative_.resize(log_probs.size());
+        cumulative_[0] = probabilities_[0];
+        for(int i = 1; i < cumulative_.size(); i++)
+            cumulative_[i] = cumulative_[i-1] + probabilities_[i];
+    }    
 
     virtual Variate& location(size_t i)
     {
         return locations_[i];
-    }
-
-    virtual Scalar& log_probability(size_t i)
-    {
-        return log_probabilities_(i);
-    }
-
-    virtual Scalar probability(size_t i) const
-    {
-        return std::exp(log_probabilities_(i));
     }
 
     virtual void resize(size_t dim)
@@ -184,15 +174,53 @@ public:
         log_probabilities_.resize(dim);
     }
 
+
+    /// const functions ********************************************************
+     
+    // sampling ----------------------------------------------------------------
+    Variate map_standard_normal(Scalar gaussian_sample) const
+    {
+        Scalar uniform_sample =
+                0.5 * (1.0 + std::erf(gaussian_sample / std::sqrt(2.0)));
+
+        return map_standard_uniform(uniform_sample);
+    }
+
+    Variate map_standard_uniform(Scalar uniform_sample) const
+    {
+        typename std::vector<Scalar>::const_iterator
+                iterator = std::lower_bound(cumulative_.begin(),
+                                            cumulative_.end(),
+                                            uniform_sample);
+
+        int index = iterator - cumulative_.begin();
+        return locations_[index];
+    }
+
+
+    // get ---------------------------------------------------------------------
+    virtual Scalar log_probability(const size_t& i) const
+    {
+        return log_probabilities_(i);
+    }
+
+    virtual Scalar probability(const size_t& i) const
+    {
+        return std::exp(log_probabilities_(i));
+    }
+
     virtual size_t size() const
     {
         return locations_.size();
     }
 
-    /**
-     * \return The weighted mean of the locations, or simply the first moment of
-     *         the distribution.
-     */
+    virtual int dimension() const
+    {
+        return locations_[0].rows();
+    }
+
+
+    // compute properties ------------------------------------------------------
     virtual Variate mean() const
     {
         Variate mu(Variate::Zero(dimension()));
@@ -202,33 +230,25 @@ public:
         return mu;
     }
 
-    /**
-     * \return The covariance or the second central moment of the distribution
-     */
     virtual Covariance covariance() const
     {
         Variate mu = mean();
         Covariance cov(Covariance::Zero(dimension(), dimension()));
         for(size_t i = 0; i < locations_.size(); i++)
-            cov += probability(i) * (locations_[i]-mu) * (locations_[i]-mu).transpose();
+            cov += probability(i) *
+                    (locations_[i]-mu) * (locations_[i]-mu).transpose();
 
         return cov;
-    }
-
-    /**
-     * \return Dimension of the distribution variate
-     */
-    virtual int dimension() const
-    {
-        return locations_[0].rows();
     }
 
     virtual Scalar entropy() const
     {
         Scalar ent = 0;
-        for(size_t i = 0; i < log_probabilities_.size(); i++)
+        for(int i = 0; i < log_probabilities_.size(); i++)
         {
-            Scalar summand = - log_probabilities_(i) * std::exp(log_probabilities_(i));
+            Scalar summand =
+                    - log_probabilities_(i) * std::exp(log_probabilities_(i));
+
             if(!std::isfinite(summand))
                 summand = 0; // the limit for weight -> 0 is equal to 0
             ent += summand;
@@ -237,11 +257,24 @@ public:
         return ent;
     }
 
+
+
+
+
+protected:
+    virtual void set_max(Probabilities& p, const Scalar& max = 0) const
+    {
+        const Scalar old_max = p.maxCoeff();
+        p += max - old_max;
+    }
+
+
 protected:
     Locations  locations_;
-    Probabilities probabilities_;
 
     Probabilities log_probabilities_;
+    Probabilities probabilities_;
+    Probabilities cumulative_;
 };
 
 }
