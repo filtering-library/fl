@@ -76,18 +76,17 @@ TEST(JointDistribution_ID_Tests, fixed_accessing_marginals)
             >::SecondMoment ExpectedCovariance;
 
     EXPECT_EQ(joint_distr.dimension(), 2);
-    EXPECT_TRUE(joint_distr.mean().isApprox(ExpectedMean::Zero()));
-    EXPECT_TRUE(joint_distr
-                    .covariance()
-                    .isApprox(ExpectedCovariance::Identity()));
+    EXPECT_TRUE(fl::are_similar(joint_distr.mean(), ExpectedMean::Zero()));
+    EXPECT_TRUE(fl::are_similar(joint_distr.covariance(),
+                                ExpectedCovariance::Identity()));
 
-    EXPECT_TRUE(std::get<0>(joint_distr.distributions())
-                    .mean()
-                    .isApprox(ExpectedMean::Zero()));
+    EXPECT_TRUE(fl::are_similar(
+                    std::get<0>(joint_distr.distributions()).mean(),
+                    ExpectedMean::Zero()));
 
-    EXPECT_TRUE(std::get<0>(joint_distr.distributions())
-                    .covariance()
-                    .isApprox(ExpectedCovariance::Identity()));
+    EXPECT_TRUE(fl::are_similar(
+                    std::get<0>(joint_distr.distributions()).covariance(),
+                    ExpectedCovariance::Identity()));
 }
 
 
@@ -105,18 +104,17 @@ TEST(JointDistribution_ID_Tests, fixed_single_gaussian)
     typedef Eigen::Matrix<double, dim, dim> ExpectedCovariance;
 
     EXPECT_EQ(joint_distr.dimension(), 2);
-    EXPECT_TRUE(joint_distr.mean().isApprox(ExpectedMean::Zero()));
-    EXPECT_TRUE(joint_distr
-                    .covariance()
-                    .isApprox(ExpectedCovariance::Identity()));
+    EXPECT_TRUE(fl::are_similar(joint_distr.mean(), ExpectedMean::Zero()));
+    EXPECT_TRUE(fl::are_similar(joint_distr.covariance(),
+                                ExpectedCovariance::Identity()));
 
-    EXPECT_TRUE(std::get<0>(joint_distr.distributions())
-                    .mean()
-                    .isApprox(ExpectedMean::Zero()));
+    EXPECT_TRUE(fl::are_similar(
+                    std::get<0>(joint_distr.distributions()).mean(),
+                    ExpectedMean::Zero()));
 
-    EXPECT_TRUE(std::get<0>(joint_distr.distributions())
-                    .covariance()
-                    .isApprox(ExpectedCovariance::Identity()));
+    EXPECT_TRUE(fl::are_similar(
+                    std::get<0>(joint_distr.distributions()).covariance(),
+                    ExpectedCovariance::Identity()));
 }
 
 TEST(JointDistribution_ID_Tests, fixed_two_gaussians)
@@ -138,10 +136,9 @@ TEST(JointDistribution_ID_Tests, fixed_two_gaussians)
     typedef Eigen::Matrix<double, dim, dim> ExpectedCovariance;
 
     EXPECT_EQ(joint_distr.dimension(), dim);
-    EXPECT_TRUE(joint_distr.mean().isApprox(ExpectedMean::Zero()));
-    EXPECT_TRUE(joint_distr
-                    .covariance()
-                    .isApprox(ExpectedCovariance::Identity()));
+    EXPECT_TRUE(fl::are_similar(joint_distr.mean(), ExpectedMean::Zero()));
+    EXPECT_TRUE(fl::are_similar(joint_distr.covariance(),
+                                ExpectedCovariance::Identity()));
 }
 
 TEST(JointDistribution_ID_Tests, fixed_three_gaussians)
@@ -167,10 +164,9 @@ TEST(JointDistribution_ID_Tests, fixed_three_gaussians)
     typedef Eigen::Matrix<double, dim, dim> ExpectedCovariance;
 
     EXPECT_EQ(joint_distr.dimension(), dim);
-    EXPECT_TRUE(joint_distr.mean().isApprox(ExpectedMean::Zero()));
-    EXPECT_TRUE(joint_distr
-                    .covariance()
-                    .isApprox(ExpectedCovariance::Identity()));
+    EXPECT_TRUE(fl::are_similar(joint_distr.mean(), ExpectedMean::Zero()));
+    EXPECT_TRUE(fl::are_similar(joint_distr.covariance(),
+                                ExpectedCovariance::Identity()));
 }
 
 TEST(JointDistribution_ID_Tests, fixed_recursive_definition)
@@ -198,10 +194,9 @@ TEST(JointDistribution_ID_Tests, fixed_recursive_definition)
     typedef Eigen::Matrix<double, dim, dim> ExpectedCovariance;
 
     EXPECT_EQ(joint_distr.dimension(), dim);
-    EXPECT_TRUE(joint_distr.mean().isApprox(ExpectedMean::Zero()));
-    EXPECT_TRUE(joint_distr
-                    .covariance()
-                    .isApprox(ExpectedCovariance::Identity()));
+    EXPECT_TRUE(fl::are_similar(joint_distr.mean(), ExpectedMean::Zero()));
+    EXPECT_TRUE(fl::are_similar(joint_distr.covariance(),
+                                ExpectedCovariance::Identity()));
 }
 
 TEST(JointDistribution_ID_Tests, fixed_deep_recursive_definition)
@@ -236,10 +231,9 @@ TEST(JointDistribution_ID_Tests, fixed_deep_recursive_definition)
     typedef Eigen::Matrix<double, dim, dim> ExpectedCovariance;
 
     EXPECT_EQ(joint_distr.dimension(), dim);
-    EXPECT_TRUE(joint_distr.mean().isApprox(ExpectedMean::Zero()));
-    EXPECT_TRUE(joint_distr
-                    .covariance()
-                    .isApprox(ExpectedCovariance::Identity()));
+    EXPECT_TRUE(fl::are_similar(joint_distr.mean(), ExpectedMean::Zero()));
+    EXPECT_TRUE(fl::are_similar(joint_distr.covariance(),
+                                ExpectedCovariance::Identity()));
 }
 
 TEST(JointDistribution_ID_Tests, dynamic_single_gaussian)
@@ -256,18 +250,18 @@ TEST(JointDistribution_ID_Tests, dynamic_single_gaussian)
     typedef Eigen::Matrix<double, dim, dim> ExpectedCovariance;
 
     EXPECT_EQ(joint_distr.dimension(), 2);
-    EXPECT_TRUE(joint_distr.mean().isApprox(ExpectedMean::Zero(dim, 1)));
-    EXPECT_TRUE(joint_distr
-                    .covariance()
-                    .isApprox(ExpectedCovariance::Identity(dim, dim)));
 
-    EXPECT_TRUE(std::get<0>(joint_distr.distributions())
-                    .mean()
-                    .isApprox(ExpectedMean::Zero(dim, 1)));
+    EXPECT_TRUE(fl::are_similar(joint_distr.mean(), ExpectedMean::Zero(dim, 1)));
+    EXPECT_TRUE(fl::are_similar(joint_distr.covariance(),
+                                ExpectedCovariance::Identity(dim, dim)));
 
-    EXPECT_TRUE(std::get<0>(joint_distr.distributions())
-                    .covariance()
-                    .isApprox(ExpectedCovariance::Identity(dim, dim)));
+    EXPECT_TRUE(fl::are_similar(
+                    std::get<0>(joint_distr.distributions()).mean(),
+                    ExpectedMean::Zero(dim, 1)));
+
+    EXPECT_TRUE(fl::are_similar(
+                    std::get<0>(joint_distr.distributions()).covariance(),
+                    ExpectedCovariance::Identity(dim , dim)));
 }
 
 TEST(JointDistribution_ID_Tests, dynamic_three_gaussians)
@@ -295,8 +289,7 @@ TEST(JointDistribution_ID_Tests, dynamic_three_gaussians)
     typedef Eigen::Matrix<double, dim, dim> ExpectedCovariance;
 
     EXPECT_EQ(joint_distr.dimension(), dim);
-    EXPECT_TRUE(joint_distr.mean().isApprox(ExpectedMean::Zero(dim, 1)));
-    EXPECT_TRUE(joint_distr
-                    .covariance()
-                    .isApprox(ExpectedCovariance::Identity(dim, dim)));
+    EXPECT_TRUE(fl::are_similar(joint_distr.mean(), ExpectedMean::Zero(dim, 1)));
+    EXPECT_TRUE(fl::are_similar(joint_distr.covariance(),
+                                ExpectedCovariance::Identity(dim, dim)));
 }

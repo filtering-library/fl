@@ -152,7 +152,7 @@ TEST_F(JointProcessModel_ID_Tests, predict_fixed)
     expected.middleRows(3, 5) = expected.middleRows(3, 5) * 5;
     expected.bottomRows(7) = expected.bottomRows(7) * 7;
 
-    EXPECT_TRUE(prediction.isApprox(expected));
+    EXPECT_TRUE(fl::are_similar(prediction, expected));
 }
 
 TEST_F(JointProcessModel_ID_Tests, predict_dynamic)
@@ -181,7 +181,7 @@ TEST_F(JointProcessModel_ID_Tests, predict_dynamic)
     expected.middleRows(3, 5) = expected.middleRows(3, 5) * 5;
     expected.bottomRows(7) = expected.bottomRows(7) * 7;
 
-    EXPECT_TRUE(prediction.isApprox(expected));
+    EXPECT_TRUE(fl::are_similar(prediction, expected));
 }
 
 TEST_F(JointProcessModel_ID_Tests, predict_dynamic_fallback)
@@ -210,7 +210,7 @@ TEST_F(JointProcessModel_ID_Tests, predict_dynamic_fallback)
     expected.middleRows(3, 5) = expected.middleRows(3, 5) * 5;
     expected.bottomRows(7) = expected.bottomRows(7) * 7;
 
-    EXPECT_TRUE(prediction.isApprox(expected));
+    EXPECT_TRUE(fl::are_similar(prediction, expected));
 }
 
 

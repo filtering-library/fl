@@ -89,7 +89,7 @@ struct Traits<Gaussian<Var>>
     typedef Moments<Variate, SecondMoment> MomentsBase;
 
     /**
-     * \brief Evalluation interface of a Gaussian
+     * \brief Evaluation interface of a Gaussian
      */
     typedef Evaluation<Variate, Scalar> EvaluationBase;
 

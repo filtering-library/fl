@@ -66,7 +66,7 @@ public:
         EXPECT_EQ(model.dimension(), dim);
         EXPECT_EQ(model.standard_variate_dimension(), dim);
         EXPECT_TRUE(model.A().isIdentity());
-        EXPECT_TRUE(model.covariance().isApprox(cov));
+        EXPECT_TRUE(fl::are_similar(model.covariance(), cov));
     }
 };
 
@@ -106,9 +106,9 @@ TEST_F(LinearGaussianProcessModelTests, predict_fixedsize_with_zero_noise)
 
     EXPECT_TRUE(model.map_standard_normal(sample).isZero());
 
-    EXPECT_FALSE(model.map_standard_normal(sample).isApprox(state));
+    EXPECT_FALSE(fl::are_similar(model.map_standard_normal(sample), state));
     model.condition(1.0, state);
-    EXPECT_TRUE(model.map_standard_normal(sample).isApprox(state));
+    EXPECT_TRUE(fl::are_similar(model.map_standard_normal(sample), state));
 }
 
 TEST_F(LinearGaussianProcessModelTests, predict_dynamic_with_zero_noise)
@@ -124,9 +124,9 @@ TEST_F(LinearGaussianProcessModelTests, predict_dynamic_with_zero_noise)
 
     EXPECT_TRUE(model.map_standard_normal(sample).isZero());
 
-    EXPECT_FALSE(model.map_standard_normal(sample).isApprox(state));
+    EXPECT_FALSE(fl::are_similar(model.map_standard_normal(sample), state));
     model.condition(1.0, state);
-    EXPECT_TRUE(model.map_standard_normal(sample).isApprox(state));
+    EXPECT_TRUE(fl::are_similar(model.map_standard_normal(sample), state));
 }
 
 TEST_F(LinearGaussianProcessModelTests, predict_fixedsize_with_noise)
@@ -140,11 +140,11 @@ TEST_F(LinearGaussianProcessModelTests, predict_fixedsize_with_noise)
     LGModel::SecondMoment cov = LGModel::SecondMoment::Identity(dim, dim);
     LGModel model(cov, dim);
 
-    EXPECT_TRUE(model.map_standard_normal(noise).isApprox(noise));
+    EXPECT_TRUE(fl::are_similar(model.map_standard_normal(noise), noise));
 
-    EXPECT_FALSE(model.map_standard_normal(noise).isApprox(state + noise));
+    EXPECT_FALSE(fl::are_similar(model.map_standard_normal(noise), state + noise));
     model.condition(1.0, state);
-    EXPECT_TRUE(model.map_standard_normal(noise).isApprox(state + noise));
+    EXPECT_TRUE(fl::are_similar(model.map_standard_normal(noise), state + noise));
 }
 
 TEST_F(LinearGaussianProcessModelTests, predict_dynamic_with_noise)
@@ -158,11 +158,11 @@ TEST_F(LinearGaussianProcessModelTests, predict_dynamic_with_noise)
     LGModel::SecondMoment cov = LGModel::SecondMoment::Identity(dim, dim);
     LGModel model(cov, dim);
 
-    EXPECT_TRUE(model.map_standard_normal(noise).isApprox(noise));
+    EXPECT_TRUE(fl::are_similar(model.map_standard_normal(noise), noise));
 
-    EXPECT_FALSE(model.map_standard_normal(noise).isApprox(state + noise));
+    EXPECT_FALSE(fl::are_similar(model.map_standard_normal(noise), state + noise));
     model.condition(1.0, state);
-    EXPECT_TRUE(model.map_standard_normal(noise).isApprox(state + noise));
+    EXPECT_TRUE(fl::are_similar(model.map_standard_normal(noise), state + noise));
 }
 
 TEST_F(LinearGaussianProcessModelTests, dynamics_matrix)
@@ -184,6 +184,6 @@ TEST_F(LinearGaussianProcessModelTests, dynamics_matrix)
 
     model.condition(1.0, state);
 
-    EXPECT_FALSE(model.map_standard_normal(sample).isApprox(state));
-    EXPECT_TRUE(model.map_standard_normal(sample).isApprox(state_expected));
+    EXPECT_FALSE(fl::are_similar(model.map_standard_normal(sample), state));
+    EXPECT_TRUE(fl::are_similar(model.map_standard_normal(sample), state_expected));
 }

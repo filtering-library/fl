@@ -198,7 +198,7 @@ TEST(JointProcessModel_IID_Tests, fixed_fixed_prediction)
     expected.middleRows(5, 5) = expected.middleRows(5, 5) * 3.;
     expected.bottomRows(5) = expected.bottomRows(5) * 3.;
 
-    EXPECT_TRUE(prediction.isApprox(expected));
+    EXPECT_TRUE(fl::are_similar(prediction, expected));
 }
 
 
@@ -228,7 +228,7 @@ TEST(JointProcessModel_IID_Tests, fixed_dynamic_prediction)
     expected.middleRows(5, 5) = expected.middleRows(5, 5) * 3.;
     expected.bottomRows(5) = expected.bottomRows(5) * 3.0;
 
-    EXPECT_TRUE(prediction.isApprox(expected));
+    EXPECT_TRUE(fl::are_similar(prediction, expected));
 }
 
 
@@ -258,7 +258,7 @@ TEST(JointProcessModel_IID_Tests, dynamic_fixed_prediction)
     expected.middleRows(5, 5) = expected.middleRows(5, 5) * 3.;
     expected.bottomRows(5) = expected.bottomRows(5) * 3.0;
 
-    EXPECT_TRUE(prediction.isApprox(expected));
+    EXPECT_TRUE(fl::are_similar(prediction, expected));
 }
 
 TEST(JointProcessModel_IID_Tests, dynamic_dynamic_prediction)
@@ -287,5 +287,5 @@ TEST(JointProcessModel_IID_Tests, dynamic_dynamic_prediction)
     expected.middleRows(5, 5) = expected.middleRows(5, 5) * 3.;
     expected.bottomRows(5) = expected.bottomRows(5) * 3.0;
 
-    EXPECT_TRUE(prediction.isApprox(expected));
+    EXPECT_TRUE(fl::are_similar(prediction, expected));
 }

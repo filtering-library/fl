@@ -142,9 +142,11 @@ TEST(NotAdaptiveTests, Fixed_LinearObsrvModel)
     State state = State::Random();
     Noise noise = Noise::Random();
 
+
     EXPECT_TRUE(
-        obsrv_model.predict_obsrv(state, noise, 1.0)
-            .isApprox(na_obsrv_model.predict_obsrv(state, noise, 1.0)));
+        fl::are_similar(
+            obsrv_model.predict_obsrv(state, noise, 1.0),
+            na_obsrv_model.predict_obsrv(state, noise, 1.0)));
 
     EXPECT_EQ(obsrv_model.predict_obsrv(state, noise, 1.0).rows(),
               na_obsrv_model.predict_obsrv(state, noise, 1.0).rows());
@@ -169,8 +171,9 @@ TEST(NotAdaptiveTests, Dynamic_LinearObsrvModel)
     Noise noise = Noise::Random(2);
 
     EXPECT_TRUE(
-        obsrv_model.predict_obsrv(state, noise, 1.0)
-            .isApprox(na_obsrv_model.predict_obsrv(state, noise, 1.0)));
+        fl::are_similar(
+            obsrv_model.predict_obsrv(state, noise, 1.0),
+            na_obsrv_model.predict_obsrv(state, noise, 1.0)));
 
     EXPECT_EQ(obsrv_model.predict_obsrv(state, noise, 1.0).rows(),
               na_obsrv_model.predict_obsrv(state, noise, 1.0).rows());
@@ -200,8 +203,9 @@ TEST(NotAdaptiveTests, Fixed_JointObsrvModel)
     Noise noise = Noise::Random();
 
     EXPECT_TRUE(
-        obsrv_model.predict_obsrv(state, noise, 1.0)
-            .isApprox(na_obsrv_model.predict_obsrv(state, noise, 1.0)));
+        fl::are_similar(
+            obsrv_model.predict_obsrv(state, noise, 1.0),
+            na_obsrv_model.predict_obsrv(state, noise, 1.0)));
 
     EXPECT_EQ(obsrv_model.predict_obsrv(state, noise, 1.0).rows(),
               na_obsrv_model.predict_obsrv(state, noise, 1.0).rows());

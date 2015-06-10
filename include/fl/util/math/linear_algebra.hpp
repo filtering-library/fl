@@ -305,6 +305,40 @@ void invert_diagonal_Vector(const SrcDiagonalMatrix& diagonal,
     }
 }
 
+
+/**
+ * \ingroup linear_algebra
+ * Computes the Frobenius norm of a given real matrix.
+ *
+ * The Frobenius norm is given by
+ *
+ * \f$
+ *   \| A \|_F := \sqrt{\sum_{i=1}^m \sum_{j=1}^n |a_{ij} |^2 }
+ * \f$
+ */
+template <typename Derived>
+double frobenius_norm(const Eigen::MatrixBase<Derived>& a)
+{
+    return std::sqrt(a.array().abs().square().sum());
+}
+
+
+/**
+ * Checks whether two matrices of the same size are similiar w.r.t. some
+ * \f$\epsilon\f$.
+ *
+ * The similarity check is based of the Frobenius Norm:
+ *
+ * \f$ are_similar(A, B) = \| A - B \|_F < \epsilon\f$
+ */
+template <typename DerivedA, typename DerivedB>
+bool are_similar(const Eigen::MatrixBase<DerivedA>& a,
+               const Eigen::MatrixBase<DerivedB>& b,
+               const double epsilon = 1.e-6)
+{
+    return frobenius_norm(a - b) < epsilon;
+}
+
 }
 
 #endif

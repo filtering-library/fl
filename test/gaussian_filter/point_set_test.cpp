@@ -161,31 +161,31 @@ template <typename Distribution, typename Point>
 void point_setter_tests(Distribution& sigmas, Point& p, int dimension)
 {
     sigmas.point(0, p);
-    EXPECT_TRUE(sigmas.point(0).isApprox(p));
-    EXPECT_FALSE(sigmas.point(1).isApprox(p));
-    EXPECT_FALSE(sigmas.point(2).isApprox(p));
-    EXPECT_FALSE(sigmas.point(3).isApprox(p));
+    EXPECT_TRUE(fl::are_similar(sigmas.point(0), p));
+    EXPECT_FALSE(fl::are_similar(sigmas.point(1), p));
+    EXPECT_FALSE(fl::are_similar(sigmas.point(2), p));
+    EXPECT_FALSE(fl::are_similar(sigmas.point(3), p));
 
     p.setRandom();
     sigmas.point(1, p, 0.);
-    EXPECT_FALSE(sigmas.point(0).isApprox(p));
-    EXPECT_TRUE(sigmas.point(1).isApprox(p));
-    EXPECT_FALSE(sigmas.point(2).isApprox(p));
-    EXPECT_FALSE(sigmas.point(3).isApprox(p));
+    EXPECT_FALSE(fl::are_similar(sigmas.point(0), p));
+    EXPECT_TRUE(fl::are_similar(sigmas.point(1), p));
+    EXPECT_FALSE(fl::are_similar(sigmas.point(2), p));
+    EXPECT_FALSE(fl::are_similar(sigmas.point(3), p));
 
     p.setRandom();
     sigmas.point(2, p, 0., 0.);
-    EXPECT_FALSE(sigmas.point(0).isApprox(p));
-    EXPECT_FALSE(sigmas.point(1).isApprox(p));
-    EXPECT_TRUE(sigmas.point(2).isApprox(p));
-    EXPECT_FALSE(sigmas.point(3).isApprox(p));
+    EXPECT_FALSE(fl::are_similar(sigmas.point(0), p));
+    EXPECT_FALSE(fl::are_similar(sigmas.point(1), p));
+    EXPECT_TRUE(fl::are_similar(sigmas.point(2), p));
+    EXPECT_FALSE(fl::are_similar(sigmas.point(3), p));
 
     p.setRandom();
     sigmas.point(3, p, typename fl::Traits<Distribution>::Weight{0., 0.});
-    EXPECT_FALSE(sigmas.point(0).isApprox(p));
-    EXPECT_FALSE(sigmas.point(1).isApprox(p));
-    EXPECT_FALSE(sigmas.point(2).isApprox(p));
-    EXPECT_TRUE(sigmas.point(3).isApprox(p));
+    EXPECT_FALSE(fl::are_similar(sigmas.point(0), p));
+    EXPECT_FALSE(fl::are_similar(sigmas.point(1), p));
+    EXPECT_FALSE(fl::are_similar(sigmas.point(2), p));
+    EXPECT_TRUE(fl::are_similar(sigmas.point(3), p));
 }
 
 TEST(PointSet, point_setter_fixed)

@@ -157,7 +157,7 @@ struct Traits<PointSet<Point_, Points_>>
  * \tparam Point    Gaussian variable type
  * \tparam Points_  Number of points representing the gaussian
  */
-template <typename Point_, int Points_>
+template <typename Point_, int Points_ = -1>
 class PointSet
 {
 public:
@@ -177,7 +177,7 @@ public:
      * \param dimension      Sample space dimension
      */
     PointSet(int dimension,
-             int points_count)
+             int points_count = ToDimension<Points_>())
         : points_(dimension, points_count),
           weights_(points_count, 1)
     {
