@@ -239,7 +239,7 @@ public:
     }
 
     virtual void param(Param) {  }
-    virtual const Param& param() const { return param_; }
+//    virtual const Param& param() const { return param_; }
     virtual int param_dimension() const { return 0; }
 
 protected:
@@ -363,7 +363,7 @@ public:
     }
 
     virtual void param(Param) {  }
-    virtual const Param& param() const { return param_; }
+//    virtual const Param& param() const { return param_; }
     virtual int param_dimension() const { return 0; }
 
 protected:
