@@ -56,12 +56,13 @@
 
 
 
-TEST(sum_of_delta, mean_and_covariance)
+
+
+TEST(sum_of_delta, moments)
 {
     typedef Eigen::Vector3d Variate;
     typedef Eigen::Matrix3d Covariance;
     typedef Variate::Scalar Scalar;
-
     typedef fl::SumOfDeltas<Variate> DiscreteDistribution;
     typedef DiscreteDistribution::Probabilities Function;
 
@@ -97,20 +98,67 @@ TEST(sum_of_delta, mean_and_covariance)
 
     EXPECT_TRUE((gaussian.square_root().inverse() *
                                     (sum_of_delta.mean()-mean)).norm() < 0.1);
+}
+
+
+TEST(sum_of_delta, entropy)
+{
+    typedef Eigen::Vector3d Variate;
+    typedef Variate::Scalar Scalar;
+    typedef fl::SumOfDeltas<Variate> DiscreteDistribution;
+    typedef DiscreteDistribution::Probabilities Function;
+
+    int N = 100000;
 
     // check entropy of uniform distribution
-    sum_of_delta.log_unnormalized_probabilities(Function::Zero(sum_of_delta.size()));
+    DiscreteDistribution sum_of_delta;
+    sum_of_delta.log_unnormalized_probabilities(Function::Zero(N));
 
     EXPECT_TRUE(fabs(std::log(double(sum_of_delta.size()))
                      - sum_of_delta.entropy()) < 0.0000001);
 
     // check entropy of certain distribution
-    Function log_pmf = Function::Constant(sum_of_delta.size(),
-                                          -std::numeric_limits<double>::max());
+    Function log_pmf = Function::Constant(N,-std::numeric_limits<double>::max());
     log_pmf(0) = 0;
     sum_of_delta.log_unnormalized_probabilities(log_pmf);
 
 
     EXPECT_TRUE(fabs(sum_of_delta.entropy()) < 0.0000001);
 }
+
+
+TEST(sum_of_delta, sampling)
+{
+    typedef Eigen::Matrix<int, 1, 1> Variate;
+//    typedef Variate::Scalar Scalar;
+    typedef fl::SumOfDeltas<Variate> DiscreteDistribution;
+    typedef DiscreteDistribution::Probabilities Function;
+
+        typedef std::vector<Variate> Locations;
+
+    Locations bla(3);
+
+    bla[1].cast<double>();
+
+
+
+    int N_locations = 10;
+    int N_samples   = 100000;
+
+    Function log_pmf = Function::Random(N_locations).abs();
+
+    DiscreteDistribution sum_of_delta;
+    sum_of_delta.log_unnormalized_probabilities(log_pmf);
+
+    std::cout << log_pmf << std::endl;
+}
+
+
+
+
+
+
+
+
+
 
