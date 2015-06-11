@@ -158,6 +158,7 @@ public:
         H_ = sensor_matrix;
     }
 
+    /// \todo: get rid of delta_time
     virtual Obsrv predict_obsrv(const State& state,
                                       const Noise& noise,
                                       double delta_time)
@@ -200,6 +201,8 @@ public:
 protected:
     int state_dimension_;
     SensorMatrix H_;
+
+    /// \todo: get rid of param_ and H_p_
     ParamMatrix H_p_;
     Param param_;
 };

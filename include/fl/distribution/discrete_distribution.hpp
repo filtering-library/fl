@@ -20,8 +20,8 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__DISTRIBUTION__SUM_OF_DELTAS_HPP
-#define FL__DISTRIBUTION__SUM_OF_DELTAS_HPP
+#ifndef FL__DISTRIBUTION__DISCRETE_DISTRIBUTION_HPP
+#define FL__DISTRIBUTION__DISCRETE_DISTRIBUTION_HPP
 
 #include <Eigen/Core>
 

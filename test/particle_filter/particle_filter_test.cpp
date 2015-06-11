@@ -38,11 +38,11 @@
  */
 
 /**
- * @date 2014
- * @author manuel wuthrich (manuel.wuthrich@gmail.com)
- * Max-Planck-Institute for Intelligent Systems,
- * University of Southern California
+ * @date 2015
+ * @author Manuel Wuthrich (manuel.wuthrich@gmail.com)
+ * Max-Planck-Institute for Intelligent Systems
  */
+
 
 #include <gtest/gtest.h>
 
@@ -50,48 +50,26 @@
 
 #include <fl/distribution/discrete_distribution.hpp>
 #include <fl/distribution/gaussian.hpp>
+
 #include <Eigen/Core>
 #include <Eigen/Eigenvalues>
 
 
 
+#include <fl/filter/particle/particle_filter.hpp>
+#include <fl/model/observation/linear_observation_model.hpp>
+#include <fl/model/process/linear_process_model.hpp>
 
-TEST(enchilada, some_test)
-{
-    typedef Eigen::Vector3d Variate;
-    typedef Eigen::Matrix3d Covariance;
 
-    // pick some mean and covariance
-    Covariance covariance;
-    covariance  <<  4.4, 2.1, -1.3,
-                    2.2, 5.6,  1.2,
-                   -1.2, 1.9,  3.9;
-    covariance = covariance * covariance.transpose();
 
-    Variate mean;
-    mean << 2.1, 50.2, 20.1;
 
-    // create gaussian
-    fl::Gaussian<Variate> gaussian;
-    gaussian.mean(mean);
-    gaussian.covariance(covariance);
+TEST(particle_filter, some_test)
+{  
+    typedef Eigen::Matrix<double, 7, 1> State;
+    typedef Eigen::Matrix<double, 7, 1> Observation;
 
-    // generate a sum of delta from gaussian
-    fl::DiscreteDistribution<Variate> sum_of_delta;
-    sum_of_delta.resize(100000);
-    for(size_t i = 0; i < sum_of_delta.size(); i++)
-    {
-        sum_of_delta.location(i) = gaussian.sample();
-        sum_of_delta.weight(i) = 1. / sum_of_delta.size();
-    }
 
-    // compare mean and covariance
-    Covariance covariance_delta =
-            sum_of_delta.covariance().inverse() * gaussian.covariance();
+//    typedef LinearGaussianObservationModel<Observation, State> ObservationModel;
 
-    EXPECT_TRUE(covariance_delta.isApprox(Covariance::Identity(), 0.1));
-
-    EXPECT_TRUE((gaussian.square_root().inverse() *
-                                    (sum_of_delta.mean()-mean)).norm() < 0.1);
 }
 
