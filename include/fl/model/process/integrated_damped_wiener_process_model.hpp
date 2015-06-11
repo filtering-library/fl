@@ -63,7 +63,7 @@ struct Traits<IntegratedDampedWienerProcessModel<State_>>
      * - State
      * - Input
      * - Noise
-     */    
+     */
     typedef State_ State;
     typedef typename State::Scalar Scalar;
     typedef Eigen::Matrix<Scalar, DegreeOfFreedom, 1> Input;
@@ -112,19 +112,18 @@ class IntegratedDampedWienerProcessModel
                     IntegratedDampedWienerProcessModel<State>
                  >::GaussianMappingBase
 {
-protected:
-    /** \cond INTERNAL */
+private:
+    /** Typdef of \c This for #from_traits(TypeName) helper */
     typedef IntegratedDampedWienerProcessModel<State> This;
-    typedef typename Traits<This>::SecondMoment SecondMoment;
-    typedef typename Traits<This>::NoiseGaussian NoiseGaussian;
-    typedef typename Traits<This>::DampedWienerProcess DampedWienerProcess;
-    /** \endcond */
+
+    typedef from_traits(NoiseGaussian);
+    typedef from_traits(DampedWienerProcess);
 
 public:
-    /* public conceptual interface types */
-    typedef typename Traits<This>::Scalar Scalar;
-    typedef typename Traits<This>::Input  Input;
-    typedef typename Traits<This>::Noise  Noise;
+    typedef from_traits(Scalar);
+    typedef from_traits(Input);
+    typedef from_traits(Noise);
+    typedef from_traits(SecondMoment);
 
 public:
     /**

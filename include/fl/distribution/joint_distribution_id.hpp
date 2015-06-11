@@ -70,11 +70,12 @@ class JointDistribution
     : Traits<JointDistribution<Distribution...>>::MomentsInterface
 {
 public:
+    /** Typdef of \c This for #from_traits(TypeName) helper */
     typedef JointDistribution<Distribution...> This;
 
-    typedef typename Traits<This>::Variate Variate;
-    typedef typename Traits<This>::SecondMoment SecondMoment;
-    typedef typename Traits<This>::MarginalDistributions MarginalDistributions;
+    typedef from_traits(Variate);
+    typedef from_traits(SecondMoment);
+    typedef from_traits(MarginalDistributions);
 
 public:
     JointDistribution(Distribution...distributions)

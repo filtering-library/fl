@@ -29,13 +29,14 @@ namespace fl
 
 /**
  * \ingroup traits
+ * \def from_traits
  * \brief Helper macro to import typedefs from the traits of a class
  *
  * typedef from_traits(SomeTypeName);
  *
  * is the short hand for
  *
- * typedef typename Traits<This>::SomeTimeName SomeTimeName;
+ * typedef typename Traits<This>::SomeTypeName SomeTypeName;
  *
  * \note from_this(.) requires the typedef \c This of the current class
  */

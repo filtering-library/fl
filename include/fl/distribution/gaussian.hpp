@@ -49,7 +49,7 @@ template <typename Variate> class Gaussian;
  */
 template <typename Var>
 struct Traits<Gaussian<Var>>
-{    
+{
     enum
     {
         /**
@@ -191,13 +191,15 @@ class Gaussian
           public Traits<Gaussian<Variate>>::GaussianMappingBase
 {
 public:
+    /** Typdef of \c This for #from_traits(TypeName) helper */
     typedef Gaussian<Variate> This;
 
-    typedef typename Traits<This>::Scalar           Scalar;
-    typedef typename Traits<This>::SecondMoment     SecondMoment;
-    typedef typename Traits<This>::StandardVariate  StandardVariate;
+    typedef from_traits(Scalar);
+    typedef from_traits(SecondMoment);
+    typedef from_traits(StandardVariate);
 
-    using Traits<This>::GaussianMappingBase::standard_variate_dimension;
+    typedef from_traits(GaussianMappingBase);
+    using GaussianMappingBase::standard_variate_dimension;
 
 protected:
     /** \cond INTERNAL */
@@ -233,7 +235,7 @@ public:
      *                  initialized to 0.
      */
     explicit Gaussian(int dim = DimensionOf<Variate>()):
-        Traits<This>::GaussianMappingBase(dim),
+        GaussianMappingBase(dim),
         dirty_(Attributes, true)
     {
         static_assert(Variate::SizeAtCompileTime != 0,
@@ -571,6 +573,8 @@ public:
     {
         mean_.resize(dimension());
         covariance_.resize(dimension(), dimension());
+        precision_.resize(dimension(), dimension());
+        square_root_.resize(dimension(), dimension());
 
         mean(Variate::Zero(dimension()));
         covariance(SecondMoment::Identity(dimension(), dimension()));
@@ -692,7 +696,7 @@ public:
 
         precision_ = precision;
         updated_externally(PrecisionMatrix);
-    }    
+    }
 
     /**
      * Sets the covariance matrix as a diagonal matrix
@@ -846,7 +850,7 @@ protected:
     }
     /** \endcond */
 
-protected:    
+protected:
     /** \cond INTERNAL */
     Variate mean_;                     /**< \brief first moment vector */
     mutable SecondMoment covariance_;  /**< \brief cov. form */

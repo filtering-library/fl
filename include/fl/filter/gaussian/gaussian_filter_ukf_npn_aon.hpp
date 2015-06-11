@@ -72,9 +72,8 @@ struct Traits<
      * - Observation
      * - StateDistribution
      */
-    typedef std::shared_ptr<Filter> Ptr;
     typedef typename Traits<ProcessModel>::State State;
-    typedef typename Traits<ProcessModel>::Input Input;    
+    typedef typename Traits<ProcessModel>::Input Input;
     typedef typename Traits<ObservationModel>::Obsrv Obsrv;
 
     /**
@@ -152,24 +151,25 @@ class GaussianFilter<Arguments, Options<AdditiveObsrvNoise>>
               GaussianFilter<Arguments, Options<AdditiveObsrvNoise>>>
 
 {
-protected:
+private:
     /** \cond INTERNAL */
+    /** Typdef of \c This for #from_traits(TypeName) helper */
     typedef GaussianFilter<Arguments, Options<AdditiveObsrvNoise>> This;
 
-    typedef typename Traits<This>::KalmanGain KalmanGain;
-    typedef typename Traits<This>::StateNoise StateNoise;
-    typedef typename Traits<This>::ObsrvNoise ObsrvNoise;
-    typedef typename Traits<This>::StatePointSet StatePointSet;
-    typedef typename Traits<This>::ObsrvPointSet ObsrvPointSet;
-    typedef typename Traits<This>::StateNoisePointSet StateNoisePointSet;
+    typedef from_traits(KalmanGain);
+    typedef from_traits(StateNoise);
+    typedef from_traits(ObsrvNoise);
+    typedef from_traits(StatePointSet);
+    typedef from_traits(ObsrvPointSet);
+    typedef from_traits(StateNoisePointSet);
     /** \endcond */
 
 public:
     /* public concept interface types */
-    typedef typename Traits<This>::State State;    
-    typedef typename Traits<This>::Input Input;
-    typedef typename Traits<This>::Obsrv Obsrv;
-    typedef typename Traits<This>::StateDistribution StateDistribution;    
+    typedef from_traits(State);
+    typedef from_traits(Input);
+    typedef from_traits(Obsrv);
+    typedef from_traits(StateDistribution);
 
 public:
     /**

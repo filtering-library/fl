@@ -72,6 +72,7 @@ class JointDistribution<MultipleOf<MarginalDistribution, Count>>
              >::MomentsInterface
 {
 public:
+    /** Typdef of \c This for #from_traits(TypeName) helper */
     typedef JointDistribution This;
 
     typedef from_traits(Variate);

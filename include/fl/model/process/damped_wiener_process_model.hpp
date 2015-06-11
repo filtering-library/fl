@@ -91,14 +91,16 @@ class DampedWienerProcessModel
         : public Traits<DampedWienerProcessModel<State>>::GaussianMappingBase,
           public Traits<DampedWienerProcessModel<State>>::ProcessInterfaceBase
 {
-public:
+private:
+    /** Typdef of \c This for #from_traits(TypeName) helper */
     typedef DampedWienerProcessModel<State> This;
 
-    typedef typename Traits<This>::Scalar         Scalar;
-    typedef typename Traits<This>::SecondMoment   SecondMoment;
-    typedef typename Traits<This>::Input          Input;
-    typedef typename Traits<This>::Noise          Noise;
-    typedef typename Traits<This>::NoiseGaussian   NoiseGaussian;
+public:
+    typedef from_traits(Scalar);
+    typedef from_traits(SecondMoment);
+    typedef from_traits(Input);
+    typedef from_traits(Noise);
+    typedef from_traits(NoiseGaussian);
 
 public:
 

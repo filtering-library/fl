@@ -45,7 +45,7 @@ template <typename...Models>
 struct Traits<
            JointProcessModel<Models...>
        >
-{        
+{
     enum : signed int
     {
         StateDim = JoinSizes<Traits<Models>::State::SizeAtCompileTime...>::Size,
@@ -77,12 +77,14 @@ class JointProcessModel
                  JointProcessModel<Models...>
              >::ProcessModelBase
 {
-public:
+private:
+    /** Typdef of \c This for #from_traits(TypeName) helper */
     typedef JointProcessModel<Models...> This;
 
-    typedef typename Traits<This>::State State;    
-    typedef typename Traits<This>::Noise Noise;
-    typedef typename Traits<This>::Input Input;
+public:
+    typedef from_traits(State);
+    typedef from_traits(Noise);
+    typedef from_traits(Input);
 
 public:
     /**
@@ -173,7 +175,7 @@ private:
     /** \cond INTERNAL */
     template <int...Indices>
     constexpr int expand_state_dimension(IndexSequence<Indices...>) const
-    {        
+    {
         const auto& dims = { std::get<Indices>(models_).state_dimension()... };
 
         int joint_dim = 0;

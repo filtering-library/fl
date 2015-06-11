@@ -68,7 +68,7 @@ struct Traits<
      * - StateDistribution
      */
     typedef typename Traits<ProcessModel>::State State;
-    typedef typename Traits<ProcessModel>::Input Input;    
+    typedef typename Traits<ProcessModel>::Input Input;
     typedef typename Traits<ObservationModel>::Obsrv Obsrv;
 
     /**
@@ -130,7 +130,7 @@ struct Traits<
  *
  * \tparam ProcessModel
  * \tparam ObservationModel
- * 
+ *
  */
 template<
     typename ProcessModel,
@@ -152,16 +152,14 @@ class GaussianFilter<
                   PointSetTransform,
                   FeaturePolicy<>>>
 {
-protected:
-    /** \cond INTERNAL */
+private:
+    /** Typdef of \c This for #from_traits(TypeName) helper */
     typedef GaussianFilter<
                 ProcessModel,
                 ObservationModel,
                 PointSetTransform,
                 FeaturePolicy<>
             > This;
-
-    typedef from_traits(FeatureMapping);
 
     typedef from_traits(StateNoise);
     typedef from_traits(ObsrvNoise);
@@ -171,14 +169,13 @@ protected:
     typedef from_traits(StateNoisePointSet);
     typedef from_traits(ObsrvNoisePointSet);
     typedef from_traits(ObsrvFeaturePointSet);
-    /** \endcond */
 
 public:
-    /* public concept interface types */
-    typedef typename Traits<This>::State State;    
-    typedef typename Traits<This>::Input Input;
-    typedef typename Traits<This>::Obsrv Obsrv;
-    typedef typename Traits<This>::StateDistribution StateDistribution;    
+    typedef from_traits(State);
+    typedef from_traits(Input);
+    typedef from_traits(Obsrv);
+    typedef from_traits(StateDistribution);
+    typedef from_traits(FeatureMapping);
 
 public:
     /**
@@ -417,16 +414,14 @@ public:
 
         auto&& prediction = X_fy.center();
         auto&& Y = X_fy.points();
-
         auto&& W = X_r.covariance_weights_vector();
         auto&& X = X_r.centered_points();
-        auto&& innovation = (y - prediction);
 
-        auto&& cov_xx = (X * W.asDiagonal() * X.transpose()).eval();
-        auto&& cov_yy = (Y * W.asDiagonal() * Y.transpose()).eval();
-        auto&& cov_xy = (X * W.asDiagonal() * Y.transpose()).eval();
-
-        auto&& K = (cov_xy * cov_yy.inverse()).eval();
+        auto innovation = (y - prediction).eval();
+        auto cov_xx = (X * W.asDiagonal() * X.transpose()).eval();
+        auto cov_yy = (Y * W.asDiagonal() * Y.transpose()).eval();
+        auto cov_xy = (X * W.asDiagonal() * Y.transpose()).eval();
+        auto K = (cov_xy * cov_yy.inverse()).eval();
 
         posterior_dist.mean(X_r.mean() + K * innovation);
         posterior_dist.covariance(cov_xx - K * cov_yy * K.transpose());

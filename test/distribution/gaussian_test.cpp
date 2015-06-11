@@ -77,7 +77,8 @@ protected:
         EXPECT_EQ(gaussian.square_root().cols(), dim);
 
         typename Gaussian::StandardVariate noise =
-                Gaussian::StandardVariate::Random(gaussian.standard_variate_dimension(),1);
+            Gaussian::StandardVariate::Random(
+                gaussian.standard_variate_dimension(),1);
         EXPECT_EQ(gaussian.map_standard_normal(noise).rows(), dim);
     }
 
@@ -149,9 +150,9 @@ protected:
 
         EXPECT_TRUE(fl::are_similar(gaussian.covariance(), covariance));
         EXPECT_TRUE(fl::are_similar(gaussian.precision(), precision));
-        const Covariance temp =
-                gaussian.square_root() * gaussian.square_root().transpose();
-        const Covariance temp2 = square_root * square_root.transpose();
+//        const Covariance temp =
+//                gaussian.square_root() * gaussian.square_root().transpose();
+//        const Covariance temp2 = square_root * square_root.transpose();
 
         EXPECT_TRUE(gaussian.has_full_rank());
     }
@@ -272,4 +273,3 @@ TEST_F(GaussianTests, dynamic_uninitialized_gaussian)
     EXPECT_THROW(gaussian.precision(), fl::GaussianUninitializedException);
     EXPECT_THROW(gaussian.square_root(), fl::GaussianUninitializedException);
 }
-
