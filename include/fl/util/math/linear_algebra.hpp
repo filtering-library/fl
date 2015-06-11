@@ -331,11 +331,13 @@ double frobenius_norm(const Eigen::MatrixBase<Derived>& a)
  * The similarity check is performed based on the Frobenius Norm
  * (\ref frobenius_norm):
  *
- * \f$ \text{are_similar}: (TA \times TB) \mapsto \{0, 1\}\f$
+ * For any real matrix set \f$M \subseteq \mathbb{R}^{m\times n} \f$
  *
- * \f$ \text{are_similar}(A, B)
- *     := \mathbf{1}_{[0, \epsilon)}\left(\| A - B \|_F\right)\f$
- * with the indicator function
+ * \f$ \text{are_similar}: (M \times M) \mapsto \{0, 1\}\f$
+ *
+ * \f$ \text{are_similar}(a, b)
+ *     := \mathbf{1}_{[0, \epsilon)}\left(\| a - b \|_F\right)\f$
+ * with \f$ a, b \in M\f$ and the indicator function
  *
  * \f$ \mathbf{1}_{[0, \epsilon)}(x) :=
  *     \begin{cases} 1 & x \in [0, \epsilon)
