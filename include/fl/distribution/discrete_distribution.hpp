@@ -14,7 +14,7 @@
  */
 
 /**
- * \file sum_of_deltas.hpp
+ * \file discrete_distribution.hpp
  * \date 05/25/2014
  * \author Manuel Wuthrich (manuel.wuthrich@gmail.com)
  * \author Jan Issac (jan.issac@gmail.com)
@@ -95,7 +95,7 @@ public:
     {
         // rescale for numeric stability
         log_prob_mass_ = log_prob_mass - log_prob_mass.maxCoeff();
-\
+
         // copy to prob mass
         prob_mass_ = log_prob_mass_.exp();
         double sum = prob_mass_.sum();

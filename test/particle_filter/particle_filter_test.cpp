@@ -48,7 +48,7 @@
 
 #include <vector>
 
-#include <fl/distribution/sum_of_deltas.hpp>
+#include <fl/distribution/discrete_distribution.hpp>
 #include <fl/distribution/gaussian.hpp>
 #include <Eigen/Core>
 #include <Eigen/Eigenvalues>

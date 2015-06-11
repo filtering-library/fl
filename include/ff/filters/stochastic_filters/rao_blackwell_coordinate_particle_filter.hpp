@@ -39,7 +39,7 @@
 #include <fl/util/assertions.hpp>
 #include <fl/util/discrete_distribution.hpp>
 
-#include <fl/distribution/sum_of_deltas.hpp>
+#include <fl/distribution/discrete_distribution.hpp>
 #include <fl/distribution/standard_gaussian.hpp>
 #include <fl/distribution/interface/standard_gaussian_mapping.hpp>
 #include <fl/model/process/process_model_interface.hpp>

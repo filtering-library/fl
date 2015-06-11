@@ -55,7 +55,6 @@
 
 #include <fl/util/assertions.hpp>
 #include <fl/distribution/interface/standard_gaussian_mapping.hpp>
-#include <fl/distribution/sum_of_deltas.hpp>
 #include <ff/filters/deterministic/composed_state_distribution.hpp>
 
 #include <fl/util/profiling.hpp>

@@ -47,7 +47,7 @@
 
 #include <vector>
 
-#include <fl/distribution/sum_of_deltas.hpp>
+#include <fl/distribution/discrete_distribution.hpp>
 #include <fl/distribution/gaussian.hpp>
 
 #include <Eigen/Core>
@@ -58,7 +58,7 @@
 
 
 
-TEST(sum_of_delta, moments)
+TEST(discrete_distribution, moments)
 {
     typedef Eigen::Vector3d Variate;
     typedef Eigen::Matrix3d Covariance;
@@ -82,26 +82,26 @@ TEST(sum_of_delta, moments)
     gaussian.covariance(covariance);
 
     // generate a sum of delta from gaussian
-    DiscreteDistribution sum_of_delta;
-    sum_of_delta.log_unnormalized_prob_mass(Function::Zero(100000));
+    DiscreteDistribution discrete_distribution;
+    discrete_distribution.log_unnormalized_prob_mass(Function::Zero(100000));
 
-    for(size_t i = 0; i < sum_of_delta.size(); i++)
+    for(size_t i = 0; i < discrete_distribution.size(); i++)
     {
-        sum_of_delta.location(i) = gaussian.sample();
+        discrete_distribution.location(i) = gaussian.sample();
     }
 
     // compare mean and covariance
     Covariance covariance_delta =
-            sum_of_delta.covariance().inverse() * gaussian.covariance();
+           discrete_distribution.covariance().inverse() * gaussian.covariance();
 
     EXPECT_TRUE(covariance_delta.isApprox(Covariance::Identity(), 0.1));
 
     EXPECT_TRUE((gaussian.square_root().inverse() *
-                                    (sum_of_delta.mean()-mean)).norm() < 0.1);
+                             (discrete_distribution.mean()-mean)).norm() < 0.1);
 }
 
 
-TEST(sum_of_delta, entropy)
+TEST(discrete_distribution, entropy)
 {
     typedef Eigen::Vector3d Variate;
     typedef Variate::Scalar Scalar;
@@ -111,23 +111,23 @@ TEST(sum_of_delta, entropy)
     int N = 100000;
 
     // check entropy of uniform distribution
-    DiscreteDistribution sum_of_delta;
-    sum_of_delta.log_unnormalized_prob_mass(Function::Zero(N));
+    DiscreteDistribution discrete_distribution;
+    discrete_distribution.log_unnormalized_prob_mass(Function::Zero(N));
 
-    EXPECT_TRUE(fabs(std::log(double(sum_of_delta.size()))
-                     - sum_of_delta.entropy()) < 0.0000001);
+    EXPECT_TRUE(fabs(std::log(double(discrete_distribution.size()))
+                     - discrete_distribution.entropy()) < 0.0000001);
 
     // check entropy of certain distribution
     Function log_pmf = Function::Constant(N,-std::numeric_limits<double>::max());
     log_pmf(0) = 0;
-    sum_of_delta.log_unnormalized_prob_mass(log_pmf);
+    discrete_distribution.log_unnormalized_prob_mass(log_pmf);
 
 
-    EXPECT_TRUE(fabs(sum_of_delta.entropy()) < 0.0000001);
+    EXPECT_TRUE(fabs(discrete_distribution.entropy()) < 0.0000001);
 }
 
 
-TEST(sum_of_delta, sampling)
+TEST(discrete_distribution, sampling)
 {
     typedef Eigen::Matrix<int, 1, 1> Variate;
     typedef fl::DiscreteDistribution<Variate> DiscreteDistribution;
@@ -142,17 +142,17 @@ TEST(sum_of_delta, sampling)
     pmf /= pmf.sum();
 
     // create discrete distr
-    DiscreteDistribution sum_of_delta;
-    sum_of_delta.log_unnormalized_prob_mass(pmf.log());
+    DiscreteDistribution discrete_distribution;
+    discrete_distribution.log_unnormalized_prob_mass(pmf.log());
 
     for(int i = 0; i < N_locations; i++)
-        sum_of_delta.location(i)(0) = i;
+        discrete_distribution.location(i)(0) = i;
 
     // generate empirical pmf
     Function empirical_pmf = Function::Zero(N_locations);
     for(int i = 0; i < N_samples; i++)
     {
-        empirical_pmf(sum_of_delta.sample()(0)) += 1./N_samples;
+        empirical_pmf(discrete_distribution.sample()(0)) += 1./N_samples;
     }
 
     // make sure that pmf and empirical pmf are similar
