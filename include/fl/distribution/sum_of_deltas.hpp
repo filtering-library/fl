@@ -59,40 +59,15 @@ struct Traits<SumOfDeltas<Var>>
         Dimension = Var::RowsAtCompileTime
     };
 
-    /**
-     * \brief Distribution variate type
-     */
     typedef Var Variate;
+    typedef Eigen::Matrix<double, Dimension, 1> Mean;
+    typedef Eigen::Matrix<double, Dimension, Dimension> Covariance;
 
-    /**
-     * \brief Internal scalar type (e.g. double, float, std::complex, etc)
-     */
-    typedef typename Variate::Scalar Scalar;
+    typedef std::vector<Variate> Locations;
+    typedef Eigen::Array<double, Eigen::Dynamic, 1> Probabilities;
 
-    /**
-     * \brief Distribution second moment type
-     */
-    typedef Eigen::Matrix<Scalar, Dimension, Dimension> Covariance;
-
-
-    /**
-     * \brief Deltas container (Sample container representing this
-     * non-parametric distribution)
-     */
-    typedef std::vector<Var> Locations;
-
-    /**
-     * \brief Weight vector associated with the deltas
-     */
-    typedef Eigen::Array<Scalar, Eigen::Dynamic, 1> Probabilities;
-
-    /**
-     * \brief Moments interface of the SumOfDeltas distribution
-     */
-    typedef Moments<Var, Covariance> MomentsBase;
-
+    typedef Moments<Mean, Covariance> MomentsBase;
     typedef StandardGaussianMapping<Variate, double> GaussianMappingBase;
-
 };
 
 /**
@@ -110,7 +85,7 @@ class SumOfDeltas
 public:
     typedef SumOfDeltas<Variate> This;
 
-    typedef typename Traits<This>::Scalar       Scalar;
+    typedef typename Traits<This>::Mean Mean;
     typedef typename Traits<This>::Covariance Covariance;
     typedef typename Traits<This>::Locations    Locations;
     typedef typename Traits<This>::Probabilities      Probabilities;
@@ -132,7 +107,7 @@ public:
     {
         locations_ = Locations(1, Variate::Zero(dim));
         log_probabilities_ = Probabilities::Zero(1);
-        cumulative_ = Probabilities::Ones(1);
+        cumulative_ = std::vector<double>(1,1);
     }
 
     virtual ~SumOfDeltas() { }
@@ -151,7 +126,7 @@ public:
 \
         // copy to probabilities
         probabilities_ = log_probabilities_.exp();
-        Scalar sum = probabilities_.sum();
+        double sum = probabilities_.sum();
 
         // normalize
         probabilities_ /= sum;
@@ -160,7 +135,7 @@ public:
         // compute cumulative
         cumulative_.resize(log_probs.size());
         cumulative_[0] = probabilities_[0];
-        for(int i = 1; i < cumulative_.size(); i++)
+        for(size_t i = 1; i < cumulative_.size(); i++)
             cumulative_[i] = cumulative_[i-1] + probabilities_[i];
 
         // resize locations
@@ -182,17 +157,17 @@ public:
     /// const functions ********************************************************
      
     // sampling ----------------------------------------------------------------
-    Variate map_standard_normal(Scalar gaussian_sample) const
+    virtual Variate map_standard_normal(const double& gaussian_sample) const
     {
-        Scalar uniform_sample =
+        double uniform_sample =
                 0.5 * (1.0 + std::erf(gaussian_sample / std::sqrt(2.0)));
 
         return map_standard_uniform(uniform_sample);
     }
 
-    Variate map_standard_uniform(Scalar uniform_sample) const
+    virtual Variate map_standard_uniform(const double& uniform_sample) const
     {
-        typename std::vector<Scalar>::const_iterator
+        typename std::vector<double>::const_iterator
                 iterator = std::lower_bound(cumulative_.begin(),
                                             cumulative_.end(),
                                             uniform_sample);
@@ -203,14 +178,24 @@ public:
 
 
     // get ---------------------------------------------------------------------
-    virtual Scalar log_probability(const size_t& i) const
+    virtual double log_probability(const size_t& i) const
     {
         return log_probabilities_(i);
     }
 
-    virtual Scalar probability(const size_t& i) const
+    virtual Probabilities log_probabilities() const
     {
-        return std::exp(log_probabilities_(i));
+        return log_probabilities_;
+    }
+
+    virtual double probability(const size_t& i) const
+    {
+        return probabilities_(i);
+    }
+
+    virtual Probabilities probabilities() const
+    {
+        return probabilities_;
     }
 
     virtual size_t size() const
@@ -225,32 +210,34 @@ public:
 
 
     // compute properties ------------------------------------------------------
-    virtual Variate mean() const
+    virtual Mean mean() const
     {
-        Variate mu(Variate::Zero(dimension()));
+        Mean mu(Mean::Zero(dimension()));
         for(size_t i = 0; i < locations_.size(); i++)
-            mu += probability(i) * locations_[i];
+            mu += probability(i) * locations_[i].template cast<double>();
 
         return mu;
     }
 
     virtual Covariance covariance() const
     {
-        Variate mu = mean();
+        Mean mu = mean();
         Covariance cov(Covariance::Zero(dimension(), dimension()));
         for(size_t i = 0; i < locations_.size(); i++)
-            cov += probability(i) *
-                    (locations_[i]-mu) * (locations_[i]-mu).transpose();
+        {
+            Mean delta = (locations_[i].template cast<double>()-mu);
+            cov += probability(i) * delta * delta.transpose();
+        }
 
         return cov;
     }
 
-    virtual Scalar entropy() const
+    virtual double entropy() const
     {
-        Scalar ent = 0;
+        double ent = 0;
         for(int i = 0; i < log_probabilities_.size(); i++)
         {
-            Scalar summand =
+            double summand =
                     - log_probabilities_(i) * std::exp(log_probabilities_(i));
 
             if(!std::isfinite(summand))
@@ -266,9 +253,9 @@ public:
 
 
 protected:
-    virtual void set_max(Probabilities& p, const Scalar& max = 0) const
+    virtual void set_max(Probabilities& p, const double& max = 0) const
     {
-        const Scalar old_max = p.maxCoeff();
+        const double old_max = p.maxCoeff();
         p += max - old_max;
     }
 
@@ -278,7 +265,7 @@ protected:
 
     Probabilities log_probabilities_;
     Probabilities probabilities_;
-    Probabilities cumulative_;
+    std::vector<double> cumulative_;
 };
 
 }
