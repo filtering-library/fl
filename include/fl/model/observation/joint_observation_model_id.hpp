@@ -47,7 +47,7 @@ struct Traits<
        >
 {
     enum : signed int
-    {        
+    {
         ObsrvDim = JoinSizes<Traits<Models>::Obsrv::SizeAtCompileTime...>::Size,
         NoiseDim = JoinSizes<Traits<Models>::Noise::SizeAtCompileTime...>::Size,
         ParamDim = JoinSizes<Traits<Models>::Param::SizeAtCompileTime...>::Size,
@@ -98,18 +98,20 @@ struct Traits<
  * effecting the model behaviour.
  */
 template <typename ... Models>
-class JointObservationModel<Models...>
+class JointObservationModel
     : public Traits<
                  JointObservationModel<Models...>
              >::ObservationModelBase
 {
-public:
+protected:
+    /** Typdef of \c This for #from_traits(TypeName) helper */
     typedef JointObservationModel<Models...> This;
 
-    typedef typename Traits<This>::State State;
-    typedef typename Traits<This>::Noise Noise;
-    typedef typename Traits<This>::Obsrv Obsrv;
-    typedef typename Traits<This>::Param Param ;
+public:
+    typedef from_traits(State);
+    typedef from_traits(Noise);
+    typedef from_traits(Obsrv);
+    typedef from_traits(Param);
 
 public:
     /**

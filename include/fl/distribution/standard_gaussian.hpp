@@ -50,7 +50,9 @@ class StandardGaussian
       public Traits<StandardGaussian<StandardVariate>>::MomentsBase
 {
 public:
+    /** Typdef of \c This for #from_traits(TypeName) helper */
     typedef StandardGaussian This;
+
     typedef from_traits(Variate);
     typedef from_traits(SecondMoment);
 
@@ -60,7 +62,7 @@ public:
         : dimension_ (dim),
           generator_(fl::seed()),
           gaussian_distribution_(0.0, 1.0)
-    {        
+    {
     }
 
     virtual ~StandardGaussian() { }

@@ -73,7 +73,7 @@ template <typename Point, int Points_> class PointSet;
  */
 template <typename Point_, int Points_>
 struct Traits<PointSet<Point_, Points_>>
-{    
+{
     /**
      * \brief Point type
      */
@@ -161,13 +161,14 @@ template <typename Point_, int Points_ = -1>
 class PointSet
 {
 public:
+    /** Typdef of \c This for #from_traits(TypeName) helper */
     typedef PointSet<Point_, Points_> This;
 
-    typedef typename Traits<This>::Point        Point;
-    typedef typename Traits<This>::PointMatrix  PointMatrix;
-    typedef typename Traits<This>::Weight       Weight;
-    typedef typename Traits<This>::Weights      Weights;
-    typedef typename Traits<This>::WeightVector WeightVector;    
+    typedef from_traits(Point);
+    typedef from_traits(PointMatrix);
+    typedef from_traits(Weight);
+    typedef from_traits(Weights);
+    typedef from_traits(WeightVector);
 
 public:
     /**
@@ -433,7 +434,7 @@ public:
      */
     void point(int i, Point p, double w)
     {
-        point(i, p, Weight{w, w});        
+        point(i, p, Weight{w, w});
     }
 
     /**
@@ -559,7 +560,7 @@ public:
      * \throws Exception
      */
     Point mean() const
-    {        
+    {
         INLINE_CHECK_POINT_SET_DIMENSIONS();
 
         Point weighted_mean;

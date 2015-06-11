@@ -86,12 +86,14 @@ class JointProcessModel<MultipleOf<LocalProcessModel, Count>>
                  JointProcessModel<MultipleOf<LocalProcessModel, Count>>
              >::ProcessModelBase
 {
-public:
+protected:
+    /** Typdef of \c This for #from_traits(TypeName) helper */
     typedef JointProcessModel This;
 
-    typedef typename Traits<This>::State State;
-    typedef typename Traits<This>::Noise Noise;
-    typedef typename Traits<This>::Input Input;
+public:
+    typedef from_traits(State);
+    typedef from_traits(Noise);
+    typedef from_traits(Input);
 
 public:
     JointProcessModel(const LocalProcessModel& local_process_model,

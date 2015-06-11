@@ -73,7 +73,7 @@ template <typename...> class GaussianFilter;
  * Traits of Factorized GaussianFilter for IID Parameters
  */
 #ifndef GENERATING_DOCUMENTATION
-template <    
+template <
     typename StateProcessModel,
     typename LocalParamModel,
     typename LocalObsrvModel,
@@ -232,7 +232,7 @@ struct Traits<GaussianFilter<TEMPLATE_ARGUMENTS>>
  * \tparam PointSetTransform
  */
 #ifndef GENERATING_DOCUMENTATION
-template <    
+template <
     typename StateProcessModel,
     typename LocalParamModel,
     typename LocalObsrvModel,
@@ -260,6 +260,8 @@ class GaussianFilter<
 {
 private:
     /** \cond INTERNAL */
+
+    /** Typdef of \c This for #from_traits(TypeName) helper */
     typedef GaussianFilter This;
 
     /* public concept interface types */
@@ -283,16 +285,14 @@ private:
     typedef from_traits(LocalParamPointSets);
     typedef from_traits(ObsrvFeaturePointSet);
 
-    /* Variate types */    
+    /* Variate types */
     typedef from_traits(LocalState);
     typedef from_traits(LocalParam);
     typedef from_traits(LocalObsrv);
     typedef from_traits(ObsrvFeature);
-    typedef from_traits(LocalStateNoise);   
-    typedef from_traits(LocalParamNoise);    
+    typedef from_traits(LocalStateNoise);
+    typedef from_traits(LocalParamNoise);
     typedef from_traits(LocalObsrvNoise);
-
-
 
     /* Intermediate compile time dimensions */
     enum : signed int
@@ -716,7 +716,7 @@ public:
 //                mu_x_b.middleRows(i * dim_b_i, dim_b_i) + K * innov_b_i);
 //            postr_b(i).covariance(cov_b_given_ay);
 //        }
-    
+
         for (int i = 0; i < param_count_; ++i)
         {
             /* == common ==================================================== */
@@ -1006,7 +1006,7 @@ protected:
 
 
 #ifndef GENERATING_DOCUMENTATION
-template <    
+template <
     typename StateProcessModel,
     typename LocalParamModel,
     typename LocalObsrvModel,
@@ -1039,7 +1039,7 @@ struct Traits<
  *   GaussianFilter< JointProcess, JointObsrv >
  */
 # ifndef GENERATING_DOCUMENTATION
-template <    
+template <
     typename StateProcessModel,
     typename LocalObsrvModel,
     typename LocalParamModel,

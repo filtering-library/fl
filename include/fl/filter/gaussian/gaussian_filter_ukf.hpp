@@ -68,7 +68,7 @@ struct Traits<
      * - StateDistribution
      */
     typedef typename Traits<ProcessModel>::State State;
-    typedef typename Traits<ProcessModel>::Input Input;    
+    typedef typename Traits<ProcessModel>::Input Input;
     typedef typename Traits<ObservationModel>::Obsrv Obsrv;
 
     /**
@@ -130,7 +130,7 @@ struct Traits<
  *
  * \tparam ProcessModel
  * \tparam ObservationModel
- * 
+ *
  */
 template<
     typename ProcessModel,
@@ -154,6 +154,7 @@ class GaussianFilter<
 {
 protected:
     /** \cond INTERNAL */
+    /** Typdef of \c This for #from_traits(TypeName) helper */
     typedef GaussianFilter<
                 ProcessModel,
                 ObservationModel,
@@ -162,7 +163,6 @@ protected:
             > This;
 
     typedef from_traits(FeatureMapping);
-
     typedef from_traits(StateNoise);
     typedef from_traits(ObsrvNoise);
     typedef from_traits(ObsrvFeature);
@@ -174,11 +174,10 @@ protected:
     /** \endcond */
 
 public:
-    /* public concept interface types */
-    typedef typename Traits<This>::State State;    
-    typedef typename Traits<This>::Input Input;
-    typedef typename Traits<This>::Obsrv Obsrv;
-    typedef typename Traits<This>::StateDistribution StateDistribution;    
+    typedef from_traits(State);
+    typedef from_traits(Input);
+    typedef from_traits(Obsrv);
+    typedef from_traits(StateDistribution);
 
 public:
     /**

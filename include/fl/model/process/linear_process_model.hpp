@@ -64,20 +64,23 @@ class LinearGaussianProcessModel:
     public Traits<LinearGaussianProcessModel<State_, Input_>>::ProcessModelBase,
     public Traits<LinearGaussianProcessModel<State_, Input_>>::GaussianBase
 {
-public:
+protected:
+    /** Typdef of \c This for #from_traits(TypeName) helper */
     typedef LinearGaussianProcessModel<State_, Input_> This;
 
-    typedef typename Traits<This>::State State;
-    typedef typename Traits<This>::Input Input;
-    typedef typename Traits<This>::Noise Noise;
-    typedef typename Traits<This>::Scalar Scalar;
-    typedef typename Traits<This>::SecondMoment SecondMoment;
-    typedef typename Traits<This>::DynamicsMatrix DynamicsMatrix;
+public:
+    typedef from_traits(State);
+    typedef from_traits(Input);
+    typedef from_traits(Noise);
+    typedef from_traits(Scalar);
+    typedef from_traits(SecondMoment);
+    typedef from_traits(DynamicsMatrix);
 
-    using Traits<This>::GaussianBase::mean;
-    using Traits<This>::GaussianBase::covariance;
-    using Traits<This>::GaussianBase::dimension;
-    using Traits<This>::GaussianBase::square_root;
+    typedef from_traits(GaussianBase);
+    using GaussianBase::mean;
+    using GaussianBase::covariance;
+    using GaussianBase::dimension;
+    using GaussianBase::square_root;
 
 public:
     explicit
@@ -103,7 +106,7 @@ public:
         covariance(SecondMoment::Identity(dim, dim));
     }
 
-    ~LinearGaussianProcessModel() { }        
+    ~LinearGaussianProcessModel() { }
 
     virtual State predict_state(double delta_time,
                                 const State& state,
@@ -134,7 +137,7 @@ public:
                            const State& x,
                            const Input& u = Input())
     {
-        delta_time_ = delta_time;                
+        delta_time_ = delta_time;
 
         mean(A_ * x);
     }
@@ -157,7 +160,7 @@ public:
 
 protected:
     DynamicsMatrix A_;
-    double delta_time_;    
+    double delta_time_;
 };
 
 }

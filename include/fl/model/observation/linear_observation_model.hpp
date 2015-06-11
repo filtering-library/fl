@@ -49,7 +49,7 @@ template <
 >
 struct Traits<
            LinearGaussianObservationModel<Obsrv_, State_>>
-{    
+{
     typedef State_ State;
     typedef Obsrv_ Obsrv;
 
@@ -62,7 +62,7 @@ struct Traits<
                 Scalar,
                 Obsrv::SizeAtCompileTime,
                 State::SizeAtCompileTime
-            > SensorMatrix;    
+            > SensorMatrix;
 
     typedef ObservationModelInterface<
                 Obsrv,
@@ -95,15 +95,17 @@ class LinearGaussianObservationModel
                  LinearGaussianObservationModel<Obsrv, State>
              >::AdaptiveModelBase
 {
-public:
+protected:
+    /** Typdef of \c This for #from_traits(TypeName) helper */
     typedef LinearGaussianObservationModel<Obsrv, State> This;
 
-    typedef typename Traits<This>::Scalar Scalar;
-    typedef typename Traits<This>::Noise Noise;    
-    typedef typename Traits<This>::Param Param;
-    typedef typename Traits<This>::SecondMoment SecondMoment;
-    typedef typename Traits<This>::SensorMatrix SensorMatrix;
-    typedef typename Traits<This>::ParamMatrix ParamMatrix;
+public:
+    typedef from_traits(Scalar);
+    typedef from_traits(Noise);
+    typedef from_traits(Param);
+    typedef from_traits(SecondMoment);
+    typedef from_traits(SensorMatrix);
+    typedef from_traits(ParamMatrix);
 
     using Traits<This>::GaussianBase::mean;
     using Traits<This>::GaussianBase::covariance;
