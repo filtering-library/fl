@@ -313,7 +313,7 @@ void invert_diagonal_Vector(const SrcDiagonalMatrix& diagonal,
  * The Frobenius norm is given by
  *
  * \f$
- *   \| A \|_F := \sqrt{\sum_{i=1}^m \sum_{j=1}^n |a_{ij} |^2 }
+ *   \| A \|_F := \sqrt{\sum\limits_{i=1}^m \sum\limits_{j=1}^n |a_{ij} |^2 }
  * \f$
  */
 template <typename Derived>
@@ -324,12 +324,22 @@ double frobenius_norm(const Eigen::MatrixBase<Derived>& a)
 
 
 /**
+ * \ingroup linear_algebra
  * Checks whether two matrices of the same size are similiar w.r.t. some
  * \f$\epsilon\f$.
  *
- * The similarity check is based of the Frobenius Norm:
+ * The similarity check is performed based on the Frobenius Norm
+ * (\ref frobenius_norm):
  *
- * \f$ are_similar(A, B) = \| A - B \|_F < \epsilon\f$
+ * \f$ \text{are_similar}: (TA \times TB) \mapsto \{0, 1\}\f$
+ *
+ * \f$ \text{are_similar}(A, B)
+ *     := \mathbf{1}_{[0, \epsilon)}\left(\| A - B \|_F\right)\f$
+ * with the indicator function
+ *
+ * \f$ \mathbf{1}_{[0, \epsilon)}(x) :=
+ *     \begin{cases} 1 & x \in [0, \epsilon)
+ *                  \\ 0, & \text{otherwise} \end{cases}\f$
  */
 template <typename DerivedA, typename DerivedB>
 bool are_similar(const Eigen::MatrixBase<DerivedA>& a,
