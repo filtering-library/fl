@@ -95,7 +95,7 @@ class LinearGaussianObservationModel
                  LinearGaussianObservationModel<Obsrv, State>
              >::AdaptiveModelBase
 {
-protected:
+private:
     /** Typdef of \c This for #from_traits(TypeName) helper */
     typedef LinearGaussianObservationModel<Obsrv, State> This;
 

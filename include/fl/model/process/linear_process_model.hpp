@@ -64,7 +64,7 @@ class LinearGaussianProcessModel:
     public Traits<LinearGaussianProcessModel<State_, Input_>>::ProcessModelBase,
     public Traits<LinearGaussianProcessModel<State_, Input_>>::GaussianBase
 {
-protected:
+private:
     /** Typdef of \c This for #from_traits(TypeName) helper */
     typedef LinearGaussianProcessModel<State_, Input_> This;
 

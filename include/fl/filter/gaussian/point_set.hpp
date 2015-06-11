@@ -160,10 +160,11 @@ struct Traits<PointSet<Point_, Points_>>
 template <typename Point_, int Points_ = -1>
 class PointSet
 {
-public:
+private:
     /** Typdef of \c This for #from_traits(TypeName) helper */
     typedef PointSet<Point_, Points_> This;
 
+public:
     typedef from_traits(Point);
     typedef from_traits(PointMatrix);
     typedef from_traits(Weight);

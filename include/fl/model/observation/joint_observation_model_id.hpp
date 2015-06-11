@@ -103,7 +103,7 @@ class JointObservationModel
                  JointObservationModel<Models...>
              >::ObservationModelBase
 {
-protected:
+private:
     /** Typdef of \c This for #from_traits(TypeName) helper */
     typedef JointObservationModel<Models...> This;
 

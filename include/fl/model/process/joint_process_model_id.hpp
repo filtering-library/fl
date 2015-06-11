@@ -77,7 +77,7 @@ class JointProcessModel
                  JointProcessModel<Models...>
              >::ProcessModelBase
 {
-protected:
+private:
     /** Typdef of \c This for #from_traits(TypeName) helper */
     typedef JointProcessModel<Models...> This;
 

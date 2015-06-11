@@ -112,14 +112,12 @@ class IntegratedDampedWienerProcessModel
                     IntegratedDampedWienerProcessModel<State>
                  >::GaussianMappingBase
 {
-protected:
-    /** \cond INTERNAL */
+private:
     /** Typdef of \c This for #from_traits(TypeName) helper */
     typedef IntegratedDampedWienerProcessModel<State> This;
 
     typedef from_traits(NoiseGaussian);
     typedef from_traits(DampedWienerProcess);
-    /** \endcond */
 
 public:
     typedef from_traits(Scalar);

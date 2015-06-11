@@ -70,7 +70,8 @@ struct Traits<
      * \c State type as the only parameters.
      */
     typedef LinearGaussianObservationModel<
-                Obsrv_, State_
+                Obsrv_,
+                State_
             > ObservationModel;
 
     /**
@@ -92,7 +93,6 @@ struct Traits<
      * - Observation
      * - StateDistribution
      */
-    //typedef std::shared_ptr<Filter> Ptr;
     typedef typename Traits<ProcessModel>::State State;
     typedef typename Traits<ProcessModel>::Input Input;
     typedef typename Traits<ObservationModel>::Obsrv Obsrv;
@@ -129,14 +129,12 @@ class GaussianFilter<
                    LinearGaussianProcessModel<State, Input>,
                    LinearGaussianObservationModel<Obsrv, State>>>
 {
-protected:
-    /** \cond INTERNAL */
+private:
     /** Typdef of \c This for #from_traits(TypeName) helper */
     typedef GaussianFilter<
                 LinearGaussianProcessModel<State, Input>,
                 LinearGaussianObservationModel<Obsrv, State>
             > This;
-    /** \endcond */
 
 public:
     /* public concept interface types */

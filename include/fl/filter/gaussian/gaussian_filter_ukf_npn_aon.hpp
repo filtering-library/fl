@@ -151,7 +151,7 @@ class GaussianFilter<Arguments, Options<AdditiveObsrvNoise>>
               GaussianFilter<Arguments, Options<AdditiveObsrvNoise>>>
 
 {
-protected:
+private:
     /** \cond INTERNAL */
     /** Typdef of \c This for #from_traits(TypeName) helper */
     typedef GaussianFilter<Arguments, Options<AdditiveObsrvNoise>> This;

@@ -86,7 +86,7 @@ class JointProcessModel<MultipleOf<LocalProcessModel, Count>>
                  JointProcessModel<MultipleOf<LocalProcessModel, Count>>
              >::ProcessModelBase
 {
-protected:
+private:
     /** Typdef of \c This for #from_traits(TypeName) helper */
     typedef JointProcessModel This;
 

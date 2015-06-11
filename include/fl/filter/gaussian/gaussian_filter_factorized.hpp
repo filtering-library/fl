@@ -259,11 +259,10 @@ class GaussianFilter<
     public FilterInterface<GaussianFilter<TEMPLATE_ARGUMENTS>>
 {
 private:
-    /** \cond INTERNAL */
-
     /** Typdef of \c This for #from_traits(TypeName) helper */
     typedef GaussianFilter This;
 
+public:
     /* public concept interface types */
     typedef from_traits(State);
     typedef from_traits(Input);
@@ -276,6 +275,7 @@ private:
     typedef from_traits(JointParamProcessModel);
     typedef from_traits(FeatureMapping);
 
+private:
     /* Sigma Point Set types */
     typedef from_traits(StatePointSet);
     typedef from_traits(ObsrvPointSet);

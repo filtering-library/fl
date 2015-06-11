@@ -91,7 +91,7 @@ class DampedWienerProcessModel
         : public Traits<DampedWienerProcessModel<State>>::GaussianMappingBase,
           public Traits<DampedWienerProcessModel<State>>::ProcessInterfaceBase
 {
-protected:
+private:
     /** Typdef of \c This for #from_traits(TypeName) helper */
     typedef DampedWienerProcessModel<State> This;
 

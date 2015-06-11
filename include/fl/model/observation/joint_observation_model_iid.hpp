@@ -119,7 +119,7 @@ class JointObservationModel<MultipleOf<LocalObsrvModel, Count>, Adaptive<>>
                  JointObservationModel<MultipleOf<LocalObsrvModel, Count>>
              >::AdaptiveModelBase
 {
-protected:
+private:
     /** Typdef of \c This for #from_traits(TypeName) helper */
     typedef JointObservationModel<MultipleOf<LocalObsrvModel,Count>> This;
 
