@@ -26,6 +26,7 @@
 
 #include <fl/util/meta.hpp>
 #include <fl/util/traits.hpp>
+#include <fl/util/profiling.hpp>
 
 #include <fl/exception/exception.hpp>
 #include <fl/filter/filter_interface.hpp>
@@ -115,7 +116,7 @@ struct Traits<
  *
  * The KalmanFilter type is represented by the GaussianFilter using
  * the linear Gaussian Models.
- * 
+ *
  */
 template <typename State, typename Input, typename Obsrv>
 class GaussianFilter<
@@ -130,6 +131,7 @@ class GaussianFilter<
 {
 protected:
     /** \cond INTERNAL */
+    /** Typdef of \c This for #from_traits(TypeName) helper */
     typedef GaussianFilter<
                 LinearGaussianProcessModel<State, Input>,
                 LinearGaussianObservationModel<Obsrv, State>
@@ -138,9 +140,9 @@ protected:
 
 public:
     /* public concept interface types */
-    typedef typename Traits<This>::ObservationModel ObservationModel;
-    typedef typename Traits<This>::ProcessModel ProcessModel;
-    typedef typename Traits<This>::StateDistribution StateDistribution;
+    typedef from_traits(ObservationModel);
+    typedef from_traits(ProcessModel);
+    typedef from_traits(StateDistribution);
 
 public:
     /**
@@ -149,10 +151,6 @@ public:
      * \param process_model         Process model instance
      * \param obsrv_model           Obsrv model instance
      */
-//    template <
-//        typename ProcessModel,  // deduce model type for perfect forwarding
-//        typename ObsrvModel     // deduce model type for perfect forwarding
-//    >
     GaussianFilter(const ProcessModel& process_model,
                    const ObservationModel& obsrv_model)
         : process_model_(process_model),
@@ -183,12 +181,11 @@ public:
                          const StateDistribution& prior_dist,
                          StateDistribution& predicted_dist)
     {
-        auto&& A = (process_model_.A() * delta_time).eval();
-        auto&& Q = (process_model_.covariance() * delta_time).eval();
+        auto A = (process_model_.A() * delta_time).eval();
+        auto Q = (process_model_.covariance() * delta_time).eval();
 
         predicted_dist.mean(
             A * prior_dist.mean());
-
         predicted_dist.covariance(
             A * prior_dist.covariance() * A.transpose() + Q);
     }
@@ -219,16 +216,16 @@ public:
                         StateDistribution& posterior_dist)
     {
         auto&& H = obsrv_model_.H();
-        auto&& R = obsrv_model_.covariance();                
+        auto&& R = obsrv_model_.covariance();
 
         auto&& mean = predicted_dist.mean();
         auto&& cov_xx = predicted_dist.covariance();
 
-        auto&& S = (H * cov_xx * H.transpose() + R).eval();
-        auto&& K = (cov_xx * H.transpose() * S.inverse()).eval();
+        auto S = (H * cov_xx * H.transpose() + R).eval();
+        auto K = (cov_xx * H.transpose() * S.inverse()).eval();
 
         posterior_dist.mean(mean + K * (y - H * mean));
-        posterior_dist.covariance(cov_xx - K * H * cov_xx);        
+        posterior_dist.covariance(cov_xx - K * H * cov_xx);
     }
 
     /**
