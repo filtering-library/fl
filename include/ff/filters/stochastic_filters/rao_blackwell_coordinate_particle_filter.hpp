@@ -89,7 +89,7 @@ struct Traits<
     /**
      * Represents the underlying distribution of the estimated state.
      */
-    typedef SumOfDeltas<State> StateDistribution;
+    typedef DiscreteDistribution<State> StateDistribution;
 
     /** \cond INTERNAL */
     typedef typename StateDistribution::Scalar Scalar;

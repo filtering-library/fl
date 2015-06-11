@@ -127,12 +127,6 @@ target_link_libraries(gaussian_filter_kf_test ${catkin_LIBRARIES})
  target_link_libraries(sum_of_delta_test
                        ${catkin_LIBRARIES})
 
-# sum_of_delta distribution test #
- catkin_add_gtest(discrete_distribution_test
-                  distribution/discrete_distribution_test.cpp
-                  gtest_main.cpp)
- target_link_libraries(discrete_distribution_test
-                       ${catkin_LIBRARIES})
 
 # particle filter tests #
  catkin_add_gtest(particle_filter_test

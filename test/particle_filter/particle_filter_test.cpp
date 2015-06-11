@@ -77,7 +77,7 @@ TEST(enchilada, some_test)
     gaussian.covariance(covariance);
 
     // generate a sum of delta from gaussian
-    fl::SumOfDeltas<Variate> sum_of_delta;
+    fl::DiscreteDistribution<Variate> sum_of_delta;
     sum_of_delta.resize(100000);
     for(size_t i = 0; i < sum_of_delta.size(); i++)
     {

@@ -37,80 +37,53 @@ namespace fl
 {
 
 // Forward declarations
-template <typename Variate> class SumOfDeltas;
+template <typename Variate> class DiscreteDistribution;
 
-/**
- * SumOfDeltas distribution traits. This trait definition contains all types
- * used internally within the distribution. Additionally, it provides the types
- * needed externally to use the SumOfDeltas.
- */
+
 template <typename Var>
-struct Traits<SumOfDeltas<Var>>
+struct Traits<DiscreteDistribution<Var>>
 {
     enum
     {
-        /**
-         * \brief Gaussian dimension
-         *
-         * For fixed-size Point type and hence a fixed-size distrobution, the
-         * \c Dimension value is greater zero. Dynamic-size distrobutions have
-         * the dimension Eigen::Dynamic.
-         */
         Dimension = Var::RowsAtCompileTime
     };
 
     typedef Var Variate;
-    typedef Eigen::Matrix<double, Dimension, 1> Mean;
+    typedef Eigen::Matrix<double, Dimension, 1>         Mean;
     typedef Eigen::Matrix<double, Dimension, Dimension> Covariance;
 
-    typedef std::vector<Variate> Locations;
-    typedef Eigen::Array<double, Eigen::Dynamic, 1> Probabilities;
+    typedef std::vector<Variate>                        Locations;
+    typedef Eigen::Array<double, Eigen::Dynamic, 1>     Function;
 
     typedef Moments<Mean, Covariance> MomentsBase;
-    typedef StandardGaussianMapping<Variate, double> GaussianMappingBase;
+    typedef StandardGaussianMapping<Variate, double>    GaussianMappingBase;
 };
 
-/**
- * \todo missing unit tests
- * \ingroup distributions
- *
- * SumOfDeltas represents a non-parametric distribution. The distribution is
- * described by a set of deltas each assiciated with a weight.
- */
+
 template <typename Variate>
-class SumOfDeltas
-        : public Traits<SumOfDeltas<Variate>>::MomentsBase,
-          public Traits<SumOfDeltas<Variate>>::GaussianMappingBase
+class DiscreteDistribution
+        : public Traits<DiscreteDistribution<Variate>>::MomentsBase,
+          public Traits<DiscreteDistribution<Variate>>::GaussianMappingBase
 {
 public:
-    typedef SumOfDeltas<Variate> This;
-
-    typedef typename Traits<This>::Mean Mean;
-    typedef typename Traits<This>::Covariance Covariance;
+    typedef DiscreteDistribution<Variate>       This;
+    typedef typename Traits<This>::Mean         Mean;
+    typedef typename Traits<This>::Covariance   Covariance;
     typedef typename Traits<This>::Locations    Locations;
-    typedef typename Traits<This>::Probabilities      Probabilities;
+    typedef typename Traits<This>::Function     Function;
 
 
 public:
-    // constructor and destructor ----------------------------------------------
-    /**
-     * Creates a dynamic or fixed-size SumOfDeltas.
-     *
-     * \param dimension Dimension of the Variate. The default is defined by the
-     *                  dimension of the variable type \em Vector. If the size
-     *                  of the Vector at compile time is fixed, this will be
-     *                  adapted. For dynamic-sized Variable the dimension is
-     *                  initialized to 0.
-     */
+    /// constructor and destructor *********************************************
     explicit
-    SumOfDeltas(size_t dim = DimensionOf<Variate>())
+    DiscreteDistribution(size_t dim = DimensionOf<Variate>())
     {
         locations_ = Locations(1, Variate::Zero(dim));
-        log_probabilities_ = Probabilities::Zero(1);
-        cumulative_ = std::vector<double>(1,1);
+        log_prob_mass_ = Function::Zero(1);
+        cumul_distr_ = std::vector<double>(1,1);
     }
 
-    virtual ~SumOfDeltas() { }
+    virtual ~DiscreteDistribution() { }
 
 
 
@@ -118,28 +91,27 @@ public:
     /// non-const functions ****************************************************
 
     // set ---------------------------------------------------------------------
-    virtual void log_unnormalized_probabilities(const Probabilities& log_probs)
+    virtual void log_unnormalized_prob_mass(const Function& log_prob_mass)
     {
         // rescale for numeric stability
-        log_probabilities_ = log_probs;
-        set_max(log_probabilities_);
+        log_prob_mass_ = log_prob_mass - log_prob_mass.maxCoeff();
 \
-        // copy to probabilities
-        probabilities_ = log_probabilities_.exp();
-        double sum = probabilities_.sum();
+        // copy to prob mass
+        prob_mass_ = log_prob_mass_.exp();
+        double sum = prob_mass_.sum();
 
         // normalize
-        probabilities_ /= sum;
-        log_probabilities_ -= std::log(sum);
+        prob_mass_ /= sum;
+        log_prob_mass_ -= std::log(sum);
 
-        // compute cumulative
-        cumulative_.resize(log_probs.size());
-        cumulative_[0] = probabilities_[0];
-        for(size_t i = 1; i < cumulative_.size(); i++)
-            cumulative_[i] = cumulative_[i-1] + probabilities_[i];
+        // compute cdf
+        cumul_distr_.resize(log_prob_mass.size());
+        cumul_distr_[0] = prob_mass_[0];
+        for(size_t i = 1; i < cumul_distr_.size(); i++)
+            cumul_distr_[i] = cumul_distr_[i-1] + prob_mass_[i];
 
         // resize locations
-        locations_.resize(log_probs.size());
+        locations_.resize(log_prob_mass.size());
     }    
 
     virtual Variate& location(size_t i)
@@ -147,15 +119,10 @@ public:
         return locations_[i];
     }
 
-    virtual void resize(size_t dim)
-    {
-        locations_.resize(dim);
-        log_probabilities_.resize(dim);
-    }
 
 
     /// const functions ********************************************************
-     
+
     // sampling ----------------------------------------------------------------
     virtual Variate map_standard_normal(const double& gaussian_sample) const
     {
@@ -168,34 +135,34 @@ public:
     virtual Variate map_standard_uniform(const double& uniform_sample) const
     {
         typename std::vector<double>::const_iterator
-                iterator = std::lower_bound(cumulative_.begin(),
-                                            cumulative_.end(),
+                iterator = std::lower_bound(cumul_distr_.begin(),
+                                            cumul_distr_.end(),
                                             uniform_sample);
 
-        int index = iterator - cumulative_.begin();
+        int index = iterator - cumul_distr_.begin();
         return locations_[index];
     }
 
 
     // get ---------------------------------------------------------------------
-    virtual double log_probability(const size_t& i) const
+    virtual double log_prob_mass(const size_t& i) const
     {
-        return log_probabilities_(i);
+        return log_prob_mass_(i);
     }
 
-    virtual Probabilities log_probabilities() const
+    virtual Function log_prob_mass() const
     {
-        return log_probabilities_;
+        return log_prob_mass_;
     }
 
-    virtual double probability(const size_t& i) const
+    virtual double prob_mass(const size_t& i) const
     {
-        return probabilities_(i);
+        return prob_mass_(i);
     }
 
-    virtual Probabilities probabilities() const
+    virtual Function prob_mass() const
     {
-        return probabilities_;
+        return prob_mass_;
     }
 
     virtual size_t size() const
@@ -214,7 +181,7 @@ public:
     {
         Mean mu(Mean::Zero(dimension()));
         for(size_t i = 0; i < locations_.size(); i++)
-            mu += probability(i) * locations_[i].template cast<double>();
+            mu += prob_mass(i) * locations_[i].template cast<double>();
 
         return mu;
     }
@@ -226,7 +193,7 @@ public:
         for(size_t i = 0; i < locations_.size(); i++)
         {
             Mean delta = (locations_[i].template cast<double>()-mu);
-            cov += probability(i) * delta * delta.transpose();
+            cov += prob_mass(i) * delta * delta.transpose();
         }
 
         return cov;
@@ -235,10 +202,10 @@ public:
     virtual double entropy() const
     {
         double ent = 0;
-        for(int i = 0; i < log_probabilities_.size(); i++)
+        for(int i = 0; i < log_prob_mass_.size(); i++)
         {
             double summand =
-                    - log_probabilities_(i) * std::exp(log_probabilities_(i));
+                    - log_prob_mass_(i) * std::exp(log_prob_mass_(i));
 
             if(!std::isfinite(summand))
                 summand = 0; // the limit for weight -> 0 is equal to 0
@@ -249,23 +216,13 @@ public:
     }
 
 
-
-
-
 protected:
-    virtual void set_max(Probabilities& p, const double& max = 0) const
-    {
-        const double old_max = p.maxCoeff();
-        p += max - old_max;
-    }
-
-
-protected:
+    /// member variables *******************************************************
     Locations  locations_;
 
-    Probabilities log_probabilities_;
-    Probabilities probabilities_;
-    std::vector<double> cumulative_;
+    Function log_prob_mass_;
+    Function prob_mass_;
+    std::vector<double> cumul_distr_;
 };
 
 }
