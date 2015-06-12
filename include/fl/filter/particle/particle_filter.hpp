@@ -115,9 +115,9 @@ public:
                    const double& max_kl_divergence = 1.0)
         : process_model_(process_model),
           obsrv_model_(obsrv_model),
-          max_kl_divergence_(max_kl_divergence),
           process_noise_(process_model.noise_dimension()),
-          obsrv_noise_(obsrv_model.noise_dimension())
+          obsrv_noise_(obsrv_model.noise_dimension()),
+          max_kl_divergence_(max_kl_divergence)
     { }
 
 

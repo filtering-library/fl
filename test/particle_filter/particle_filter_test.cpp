@@ -60,15 +60,9 @@ bool moments_are_similar(Vector mean_a, Matrix cov_a,
                          Vector mean_b, Matrix cov_b, double epsilon = 0.1)
 {
     Matrix cov_delta = cov_a.inverse() * cov_b;
-
     bool are_similar = cov_delta.isApprox(Matrix::Identity(), epsilon);
 
-    std::cout << "cov " << cov_a << std::endl;
     Matrix square_root = fl::matrix_sqrt(cov_a);
-    std::cout << "square_root" << square_root << std::endl;
-    std::cout << "square_root * square_root.transpose() "
-              << square_root * square_root.transpose() << std::endl;
-
     double max_mean_delta =
             (square_root.inverse() * (mean_a-mean_b)).cwiseAbs().maxCoeff();
 
@@ -78,10 +72,20 @@ bool moments_are_similar(Vector mean_a, Matrix cov_a,
 }
 
 
+Eigen::Matrix<double, 3, 3> some_rotation()
+{
+    double angle = 2 * M_PI * double(rand()) / double(RAND_MAX);
+
+    Eigen::Matrix<double, 3, 3> R = Eigen::Matrix<double, 3, 3>::Identity();
+
+    R = R * Eigen::AngleAxisd(angle, Eigen::Vector3d::UnitX());
+    R = R * Eigen::AngleAxisd(angle, Eigen::Vector3d::UnitZ());
+    R = R * Eigen::AngleAxisd(angle, Eigen::Vector3d::UnitY());
+    return R;
+}
 
 
-
-TEST(particle_filter, some_test)
+TEST(particle_filter, predict)
 {  
     typedef Eigen::Matrix<double, 3, 1> State;
     typedef Eigen::Matrix<double, 3, 1> Observation;
@@ -101,6 +105,7 @@ TEST(particle_filter, some_test)
     typedef GaussianFilter::StateDistribution GaussianBelief;
 
 
+    srand(0);
     size_t N_particles = 1000;
     size_t N_steps = 10;
     size_t delta_time = 1;
@@ -108,13 +113,21 @@ TEST(particle_filter, some_test)
 
     // create process model
     ProcessModel process_model;
-    process_model.A(Matrix::Identity());
-    process_model.covariance(Matrix::Identity());
+    {
+        process_model.A(some_rotation());
+        Matrix R = some_rotation();
+        Matrix D = Eigen::DiagonalMatrix<double, 3>(1, 1.5, 3.2);
+        process_model.covariance(R*D*R.transpose());
+    }
 
     // create observation model
     ObservationModel observation_model;
-    observation_model.H(Matrix::Identity());
-    observation_model.covariance(Matrix::Identity());
+    {
+        observation_model.H(some_rotation());
+        Matrix R = some_rotation();
+        Matrix D = Eigen::DiagonalMatrix<double, 3>(1.1, 1.0, 3.3);
+        process_model.covariance(R*D*R.transpose());
+    }
 
     // create filters
     ParticleFilter particle_filter(process_model, observation_model);
@@ -122,37 +135,38 @@ TEST(particle_filter, some_test)
 
     // create intial beliefs
     GaussianBelief gaussian_belief;
-    gaussian_belief.mean(State::Zero());
-    gaussian_belief.covariance(Matrix::Identity());
-
-    ParticleBelief particle_belief;
-    particle_belief.log_unnormalized_prob_mass(ParticleBelief::Function::Zero(N_particles));
-    for(size_t i = 0; i < particle_belief.size(); i++)
     {
-        particle_belief.location(i) = gaussian_belief.sample();
+        gaussian_belief.mean(State::Zero());
+        gaussian_belief.covariance(Matrix::Identity());
+    }
+    ParticleBelief particle_belief;
+    {
+        particle_belief.log_unnormalized_prob_mass(
+                    ParticleBelief::Function::Zero(N_particles));
+
+        for(size_t i = 0; i < particle_belief.size(); i++)
+        {   particle_belief.location(i) = gaussian_belief.sample();}
     }
 
-    //
-    ParticleBelief new_particle_belief;
-    particle_filter.predict(delta_time, State::Zero(),
-                            particle_belief, new_particle_belief);
-    particle_belief = new_particle_belief;
 
-    GaussianBelief new_gaussian_belief;
-    gaussian_filter.predict(delta_time, State::Zero(),
-                            gaussian_belief, new_gaussian_belief);
-    gaussian_belief = new_gaussian_belief;
+    // run prediction
+    for(size_t i = 0; i < N_steps; i++)
+    {
+        particle_filter.predict(delta_time, State::Zero(),
+                                particle_belief, particle_belief);
 
-    EXPECT_TRUE(
-    moments_are_similar(particle_belief.mean(), particle_belief.covariance(),
+        gaussian_filter.predict(delta_time, State::Zero(),
+                                gaussian_belief, gaussian_belief);
+
+        EXPECT_TRUE(moments_are_similar(
+                        particle_belief.mean(), particle_belief.covariance(),
                         gaussian_belief.mean(), gaussian_belief.covariance()));
+    }
 
-
-
-
-
-
-
+//    std::cout << "gaussian mean " << gaussian_belief.mean().transpose() << std::endl;
+//    std::cout << "gaussian cov " << std::endl << gaussian_belief.covariance() << std::endl;
+//    std::cout << "particle mean " << particle_belief.mean().transpose() << std::endl;
+//    std::cout << "particle cov " << std::endl << particle_belief.covariance() << std::endl;
 
 }
 
