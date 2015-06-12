@@ -95,6 +95,9 @@ public:
         covariance(noise_covariance);
     }
 
+
+    /// \todo: this model has to be fixed. i needs to implement the solution
+    /// to a linear differential equation
     explicit
     LinearGaussianProcessModel(int dim = DimensionOf<State>())
         : Traits<This>::GaussianBase(dim),

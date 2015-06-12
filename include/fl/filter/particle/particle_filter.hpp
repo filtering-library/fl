@@ -76,11 +76,8 @@ template <typename...> class ParticleFilter;
 /**
  * ParticleFilter Traits
  */
-template <typename ProcessModel,
-          typename ObservationModel>
-
-struct Traits<ParticleFilter<ProcessModel,
-                             ObservationModel>
+template <typename ProcessModel, typename ObservationModel>
+struct Traits<ParticleFilter<ProcessModel, ObservationModel>>
 {
     typedef typename Traits<ProcessModel>::State        State;
     typedef typename Traits<ProcessModel>::Input        Input;
@@ -168,7 +165,7 @@ public:
         return obsrv_model_;
     }
 
-    /// \todo: DO WE NEED THIS?
+    /// \todo: should this function be here?
     virtual StateDistribution create_state_distribution() const
     {
         auto state_distr = StateDistribution(process_model().state_dimension());
@@ -181,6 +178,8 @@ protected:
     ObservationModel obsrv_model_;
     double max_kl_divergence_;
 };
+
+}
 
 
 #endif
