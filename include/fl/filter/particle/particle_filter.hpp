@@ -49,6 +49,7 @@
 
 
 #include <fl/distribution/discrete_distribution.hpp>
+#include <fl/distribution/standard_gaussian.hpp>
 
 
 /// TODO: REMOVE UNNECESSARY INCLUDES
@@ -86,8 +87,8 @@ struct Traits<ParticleFilter<ProcessModel, ObservationModel>>
     typedef DiscreteDistribution<State> StateDistribution;
 
     /** \cond INTERNAL */
-    typedef typename Traits<ProcessModel>::Noise StateNoise;
-    typedef typename Traits<ObservationModel>::Noise ObsrvNoise;
+    typedef typename Traits<ProcessModel>::Noise      ProcessNoise;
+    typedef typename Traits<ObservationModel>::Noise  ObsrvNoise;
 };
 
 
@@ -99,7 +100,7 @@ class ParticleFilter<ProcessModel, ObservationModel>
 private:
     typedef ParticleFilter<ProcessModel, ObservationModel> This;
 
-    typedef from_traits(StateNoise);
+    typedef from_traits(ProcessNoise);
     typedef from_traits(ObsrvNoise);
 
 public:
@@ -107,15 +108,17 @@ public:
     typedef from_traits(Input);
     typedef from_traits(Obsrv);
     typedef from_traits(StateDistribution);
-    typedef from_traits(FeatureMapping);
 
 public:
     ParticleFilter(const ProcessModel& process_model,
                    const ObservationModel& obsrv_model,
-                   const double& max_kl_divergence)
+                   const double& max_kl_divergence = 1.0)
         : process_model_(process_model),
           obsrv_model_(obsrv_model),
-          max_kl_divergence_(max_kl_divergence){ }
+          max_kl_divergence_(max_kl_divergence),
+          process_noise_(process_model.noise_dimension()),
+          obsrv_noise_(obsrv_model.noise_dimension())
+    { }
 
 
     /// predict ****************************************************************
@@ -124,6 +127,15 @@ public:
                          const StateDistribution& prior_dist,
                          StateDistribution& predicted_dist)
     {
+        predicted_dist = prior_dist;
+        for(size_t i = 0; i < predicted_dist.size(); i++)
+        {
+            predicted_dist.location(i) =
+                    process_model_.predict_state(delta_time,
+                                                 prior_dist.location(i),
+                                                 process_noise_.sample(),
+                                                 input);
+        }
     }
 
     /// update *****************************************************************
@@ -131,6 +143,13 @@ public:
                         const StateDistribution& predicted_dist,
                         StateDistribution& posterior_dist)
     {
+
+        posterior_dist.set_uniform(predicted_dist.size());
+
+        for(size_t i = 0; i < predicted_dist.size(); i++)
+        {
+            posterior_dist.location(i) = predicted_dist.sample();
+        }
     }
 
     /// predict and update *****************************************************
@@ -176,6 +195,14 @@ public:
 protected:
     ProcessModel process_model_;
     ObservationModel obsrv_model_;
+
+    StandardGaussian<ProcessNoise> process_noise_;
+    StandardGaussian<ObsrvNoise> obsrv_noise_;
+
+    // when the KL divergence KL(p||u), where p is the particle distribution
+    // and u is the uniform distribution, exceeds max_kl_divergence_, then there
+    // is a resampling step. can be understood as -log(f) where f is the
+    // fraction of nonzero particles.
     double max_kl_divergence_;
 };
 

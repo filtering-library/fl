@@ -136,6 +136,7 @@ public:
         return DimensionOf<Input>();
     }
 
+    /// \todo: can we get rid of this function?
     virtual void condition(const double& delta_time,
                            const State& x,
                            const Input& u = Input())

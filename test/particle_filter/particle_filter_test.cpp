@@ -46,30 +46,113 @@
 
 #include <gtest/gtest.h>
 
-//#include <vector>
+#include <Eigen/Core>
 
-//#include <fl/distribution/discrete_distribution.hpp>
-//#include <fl/distribution/gaussian.hpp>
-
-//#include <Eigen/Core>
-//#include <Eigen/Eigenvalues>
-
-
+#include <fl/util/math/linear_algebra.hpp>
 
 #include <fl/filter/particle/particle_filter.hpp>
+#include <fl/filter/gaussian/gaussian_filter_kf.hpp>
 #include <fl/model/observation/linear_observation_model.hpp>
 #include <fl/model/process/linear_process_model.hpp>
+
+template<typename Vector, typename Matrix>
+bool moments_are_similar(Vector mean_a, Matrix cov_a,
+                         Vector mean_b, Matrix cov_b, double epsilon = 0.1)
+{
+    Matrix cov_delta = cov_a.inverse() * cov_b;
+
+    bool are_similar = cov_delta.isApprox(Matrix::Identity(), epsilon);
+
+    std::cout << "cov " << cov_a << std::endl;
+    Matrix square_root = fl::matrix_sqrt(cov_a);
+    std::cout << "square_root" << square_root << std::endl;
+    std::cout << "square_root * square_root.transpose() "
+              << square_root * square_root.transpose() << std::endl;
+
+    double max_mean_delta =
+            (square_root.inverse() * (mean_a-mean_b)).cwiseAbs().maxCoeff();
+
+    are_similar = are_similar && max_mean_delta < epsilon;
+
+    return are_similar;
+}
+
 
 
 
 
 TEST(particle_filter, some_test)
 {  
-    typedef Eigen::Matrix<double, 7, 1> State;
-    typedef Eigen::Matrix<double, 7, 1> Observation;
+    typedef Eigen::Matrix<double, 3, 1> State;
+    typedef Eigen::Matrix<double, 3, 1> Observation;
+    typedef Eigen::Matrix<double, 3, 1> Input;
+
+    typedef Eigen::Matrix<double, 3, 3> Matrix;
+
+    typedef fl::LinearGaussianProcessModel<State, Input> ProcessModel;
+    typedef fl::LinearGaussianObservationModel<Observation, State> ObservationModel;
+
+    // particle filter
+    typedef fl::ParticleFilter<ProcessModel, ObservationModel> ParticleFilter;
+    typedef ParticleFilter::StateDistribution ParticleBelief;
+
+    // gaussian filter
+    typedef fl::GaussianFilter<ProcessModel, ObservationModel> GaussianFilter;
+    typedef GaussianFilter::StateDistribution GaussianBelief;
 
 
-//    typedef LinearGaussianObservationModel<Observation, State> ObservationModel;
+    size_t N_particles = 1000;
+    size_t N_steps = 10;
+    size_t delta_time = 1;
+
+
+    // create process model
+    ProcessModel process_model;
+    process_model.A(Matrix::Identity());
+    process_model.covariance(Matrix::Identity());
+
+    // create observation model
+    ObservationModel observation_model;
+    observation_model.H(Matrix::Identity());
+    observation_model.covariance(Matrix::Identity());
+
+    // create filters
+    ParticleFilter particle_filter(process_model, observation_model);
+    GaussianFilter gaussian_filter(process_model, observation_model);
+
+    // create intial beliefs
+    GaussianBelief gaussian_belief;
+    gaussian_belief.mean(State::Zero());
+    gaussian_belief.covariance(Matrix::Identity());
+
+    ParticleBelief particle_belief;
+    particle_belief.log_unnormalized_prob_mass(ParticleBelief::Function::Zero(N_particles));
+    for(size_t i = 0; i < particle_belief.size(); i++)
+    {
+        particle_belief.location(i) = gaussian_belief.sample();
+    }
+
+    //
+    ParticleBelief new_particle_belief;
+    particle_filter.predict(delta_time, State::Zero(),
+                            particle_belief, new_particle_belief);
+    particle_belief = new_particle_belief;
+
+    GaussianBelief new_gaussian_belief;
+    gaussian_filter.predict(delta_time, State::Zero(),
+                            gaussian_belief, new_gaussian_belief);
+    gaussian_belief = new_gaussian_belief;
+
+    EXPECT_TRUE(
+    moments_are_similar(particle_belief.mean(), particle_belief.covariance(),
+                        gaussian_belief.mean(), gaussian_belief.covariance()));
+
+
+
+
+
+
+
 
 }
 

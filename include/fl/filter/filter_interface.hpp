@@ -94,6 +94,8 @@ public:
      * convension, the StateDistribution must implement the Moments
      * interface which provides the first two moments.
      */
+
+    /// \todo: rename state distribution to belief? shorter and more expressive
     typedef typename Traits<Derived>::StateDistribution StateDistribution;
 
     /**
@@ -104,6 +106,9 @@ public:
      * \param prior_dist        Prior state distribution
      * \param predicted_dist    Predicted state distribution
      */
+
+    /// \todo: should we have the posterior as the return argument?
+    /// this setup is dangerous if same distribution is passed as prior and predicted
     virtual void predict(double delta_time,
                          const Input& input,
                          const StateDistribution& prior_dist,
@@ -116,6 +121,8 @@ public:
      * \param observation       Latest observation
      * \param posterior_dist    Updated posterior state distribution
      */
+
+    /// \todo: should we have the posterior as the return argument?
     virtual void update(const Obsrv& observation,
                         const StateDistribution& predicted_dist,
                         StateDistribution& posterior_dist) = 0;

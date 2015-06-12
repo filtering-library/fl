@@ -424,6 +424,7 @@ public:
             case CovarianceMatrix:
             case PrecisionMatrix:
             {
+                /// \todo: replace this with the linear_algebra fct matrix_sqrt
                 Eigen::LDLT<SecondMoment> ldlt;
                 ldlt.compute(covariance());
                 Variate D_sqrt = ldlt.vectorD();

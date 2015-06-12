@@ -119,6 +119,9 @@ public:
             const int state_dim = DimensionOf<State>())
         : Traits<This>::GaussianBase(obsrv_dim),
           state_dimension_(state_dim),
+          /// \todo: different initialization. ideally something which
+          /// corresponds to identity when state and observation dimensions
+          /// are identical.
           H_(SensorMatrix::Ones(obsrv_dimension(),
                                 state_dimension())),
           H_p_(ParamMatrix::Ones(obsrv_dimension(),1)),

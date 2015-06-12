@@ -112,7 +112,12 @@ public:
 
         // resize locations
         locations_.resize(log_prob_mass.size());
-    }    
+    }
+
+    virtual void set_uniform(size_t new_size = size())
+    {
+        log_unnormalized_prob_mass(Function::Zero(new_size));
+    }
 
     virtual Variate& location(size_t i)
     {
@@ -145,6 +150,11 @@ public:
 
 
     // get ---------------------------------------------------------------------
+    virtual const Variate& location(size_t i) const
+    {
+        return locations_[i];
+    }
+
     virtual double log_prob_mass(const size_t& i) const
     {
         return log_prob_mass_(i);
@@ -201,18 +211,13 @@ public:
 
     virtual double entropy() const
     {
-        double ent = 0;
-        for(int i = 0; i < log_prob_mass_.size(); i++)
-        {
-            double summand =
-                    - log_prob_mass_(i) * std::exp(log_prob_mass_(i));
+        return - log_prob_mass_.cwiseProduct(prob_mass_).sum();
+    }
 
-            if(!std::isfinite(summand))
-                summand = 0; // the limit for weight -> 0 is equal to 0
-            ent += summand;
-        }
-
-        return ent;
+    // implements KL(p||u) where p is this distr, and u is the uniform distr
+    virtual double kl_given_uniform()
+    {
+        return std::log(double(size())) - entropy();
     }
 
 

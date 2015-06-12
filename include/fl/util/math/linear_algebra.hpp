@@ -351,6 +351,28 @@ bool are_similar(const Eigen::MatrixBase<DerivedA>& a,
     return frobenius_norm(a - b) < epsilon;
 }
 
+/// robust decomposition of M = L*L^T for positive semidefinite matrices
+template <typename Scalar, int Size>
+Eigen::Matrix<Scalar, Size, Size>
+matrix_sqrt(Eigen::Matrix<Scalar, Size, Size> M)
+{
+    typedef Eigen::Matrix<Scalar, Size, Size>   Matrix;
+    typedef Eigen::Matrix<Scalar, Size, 1>      Vector;
+
+    Eigen::LDLT<Matrix> ldlt;
+    ldlt.compute(M);
+    Vector D_sqrt = ldlt.vectorD();
+    for(int i = 0; i < D_sqrt.rows(); ++i)
+    {
+        D_sqrt(i) = std::sqrt(std::fabs(D_sqrt(i)));
+    }
+    return ldlt.transpositionsP().transpose()
+                    * (Matrix)ldlt.matrixL()
+                    * D_sqrt.asDiagonal();
+}
+
+
+
 }
 
 #endif

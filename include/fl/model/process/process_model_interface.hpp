@@ -76,6 +76,9 @@ public:
      *
      * \return State \f$x_{t+1}\sim p(x\mid x_t, u_t)\f$
      */
+
+    /// \todo have a default argument for the input, a default function which
+    /// has to be implemented by the derived classes
     virtual State predict_state(double delta_time,
                                 const State& state,
                                 const Noise& noise,

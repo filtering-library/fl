@@ -117,13 +117,17 @@ TEST(discrete_distribution, entropy)
     EXPECT_TRUE(fabs(std::log(double(discrete_distribution.size()))
                      - discrete_distribution.entropy()) < 0.0000001);
 
+    EXPECT_TRUE(fabs(discrete_distribution.kl_given_uniform()) < 0.0000001);
+
     // check entropy of certain distribution
     Function log_pmf = Function::Constant(N,-std::numeric_limits<double>::max());
     log_pmf(0) = 0;
     discrete_distribution.log_unnormalized_prob_mass(log_pmf);
 
-
     EXPECT_TRUE(fabs(discrete_distribution.entropy()) < 0.0000001);
+
+    EXPECT_TRUE(fabs(std::log(double(discrete_distribution.size()))
+                     - discrete_distribution.kl_given_uniform()) < 0.0000001);
 }
 
 
