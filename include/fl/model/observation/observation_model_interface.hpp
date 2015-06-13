@@ -143,6 +143,144 @@ public:
     virtual Noise noise_covariance_vector() const = 0;
 };
 
+
+
+template <
+    typename Obsrv,
+    typename State,
+    typename Noise,
+    int Id = 0
+>
+class ObservationFunction
+{
+public:
+    /**
+     * Evaluates the model function \f$y = h(x, w)\f$ where \f$x\f$ is the state
+     * and \f$w\sim {\cal N}(0, 1)\f$ is a white noise parameter. Put
+     * differently, \f$y = h(x, w)\f$ is a sample from the conditional model
+     * distribution \f$p(y \mid x)\f$.
+     *
+     * \param state         The state variable \f$x\f$
+     * \param noise         The noise term \f$w\f$
+     * \param delta_time    Prediction time
+     */
+    virtual Obsrv observation(const State& state,
+                              const Noise& noise) = 0;
+
+    /**
+     * \return Dimension of the state variable $\f$x\f$
+     */
+    virtual int state_dimension() const = 0;
+
+    /**
+     * \return Dimension of the noise term \f$w\f$
+     */
+    virtual int noise_dimension() const = 0;
+
+    /**
+     * \return Dimension of the measurement \f$h(x, w)\f$
+     */
+    virtual int obsrv_dimension() const = 0;
+
+    /**
+     * \return Model id number
+     *
+     * In case of multiple sensors of the same kind, this function returns the
+     * id of the individual model.
+     */
+    virtual int id() const { return Id; }
+
+    /**
+     * Sets the model id
+     *
+     * \param new_id    Model's new ID
+     */
+    virtual void id(int) { /* const ID */ }
+};
+
+
+
+template <
+    typename Obsrv,
+    typename State,
+    typename Noise,
+    int Id = 0
+>
+class AdditiveObservationFunction
+    : public ObservationFunction<Obsrv, State, Noise>
+{
+public:
+
+    typedef Eigen::Matrix<Noise::Scalar,
+                          Noise::SizeAtCompileTime,
+                          Noise::SizeAtCompileTime> NoiseModel;
+
+    /**
+     * Evaluates the model function \f$y = h(x, w)\f$ where \f$x\f$ is the state
+     * and \f$w\sim {\cal N}(0, 1)\f$ is a white noise parameter. Put
+     * differently, \f$y = h(x, w)\f$ is a sample from the conditional model
+     * distribution \f$p(y \mid x)\f$.
+     *
+     * \param state         The state variable \f$x\f$
+     * \param noise         The noise term \f$w\f$
+     * \param delta_time    Prediction time
+     */
+    virtual Obsrv expected_observation(const State& state) = 0;
+
+    /**
+     * \brief noise_model
+     *
+     * \return
+     */
+    virtual NoiseModel noise_model() const = 0;
+};
+
+
+
+
+template <
+    typename Obsrv,
+    typename State,
+    int Id = 0
+>
+class ObservationDensity
+{
+public:
+    /**
+     *
+     */
+    virtual double probability(const Obsrv& obsrv,
+                               const State& state) = 0;
+
+    virtual Eigen::Array<double, Eigen::Dynamic, 1> probabilities(
+        const Obsrv& obsrv,
+        const Eigen::Array<State, Eigen::Dynamic, 1>& states)
+    {
+        Eigen::Array<double, Eigen::Dynamic, 1> probs (states.size());
+
+        for (int i = 0; i < states.size(); ++i)
+        {
+            probs[i] = probability(obsrv, states[i]);
+        }
+
+        return probs;
+    }
+
+    /**
+     * \return Dimension of the state variable $\f$x\f$
+     */
+    virtual int state_dimension() const = 0;
+
+    /**
+     * \return Dimension of the measurement \f$h(x, w)\f$
+     */
+    virtual int obsrv_dimension() const = 0;
+};
+
+
+
+
+
 }
 
 #endif
