@@ -144,12 +144,23 @@ public:
                         StateDistribution& posterior_dist)
     {
 
-        posterior_dist.set_uniform(predicted_dist.size());
 
-        for(size_t i = 0; i < predicted_dist.size(); i++)
-        {
-            posterior_dist.location(i) = predicted_dist.sample();
-        }
+//        StateDistribution::Function
+//                log_prob_mass = predicted_dist.log_prob_mass();
+
+//        for(size_t i = 0; i < log_prob_mass.size(); i++)
+//        {
+//            log_prob_mass(i) += obsrv_model.log_probability
+//        }
+
+
+
+//        posterior_dist.set_uniform(predicted_dist.size());
+
+//        for(size_t i = 0; i < predicted_dist.size(); i++)
+//        {
+//            posterior_dist.location(i) = predicted_dist.sample();
+//        }
     }
 
     /// predict and update *****************************************************
