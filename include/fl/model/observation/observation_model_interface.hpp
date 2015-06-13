@@ -256,10 +256,16 @@ public:
     /**
      *
      */
-    virtual double probability(const Obsrv& obsrv,
-                               const State& state) const = 0;
+    virtual double log_probability(const Obsrv& obsrv,
+                                   const State& state) const = 0;
 
-    virtual Eigen::Array<double, Eigen::Dynamic, 1> probabilities(
+    virtual double probability(const Obsrv& obsrv,
+                               const State& state) const
+    {
+        return std::exp(log_probability(obsrv, state));
+    }
+
+    virtual Eigen::Array<double, Eigen::Dynamic, 1> log_probabilities(
         const Obsrv& obsrv,
         const Eigen::Array<State, Eigen::Dynamic, 1>& states)
     {
@@ -267,10 +273,19 @@ public:
 
         for (int i = 0; i < states.size(); ++i)
         {
-            probs[i] = probability(obsrv, states[i]);
+            probs[i] = log_probability(obsrv, states[i]);
         }
 
         return probs;
+    }
+
+
+
+    virtual Eigen::Array<double, Eigen::Dynamic, 1> probabilities(
+        const Obsrv& obsrv,
+        const Eigen::Array<State, Eigen::Dynamic, 1>& states)
+    {
+        return log_probabilities(obsrv, states).exp();
     }
 
     /**

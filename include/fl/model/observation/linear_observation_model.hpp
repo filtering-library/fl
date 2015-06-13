@@ -292,12 +292,12 @@ public:
         return sensor_matrix_ * state;
     }
 
-    virtual double probability(const Obsrv& obsrv,
+    virtual double log_probability(const Obsrv& obsrv,
                                const State& state) const
     {
         density_.mean(expected_observation(state));
 
-        return density_.probability(obsrv);
+        return density_.log_probability(obsrv);
     }
 
     virtual const SensorMatrix& sensor_matrix() const

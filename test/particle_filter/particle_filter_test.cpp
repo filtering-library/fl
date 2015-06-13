@@ -134,7 +134,6 @@ TEST(particle_filter, predict)
         Matrix D = Eigen::DiagonalMatrix<double, 3>(1.1, 1.0, 3.3);
         old_observation_model.covariance(R*D*R.transpose());
     }
-
     ObservationModel observation_model;
     observation_model.sensor_matrix(old_observation_model.H());
     observation_model.noise_matrix(old_observation_model.square_root());
