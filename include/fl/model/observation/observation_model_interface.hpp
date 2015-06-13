@@ -148,12 +148,13 @@ public:
 template <
     typename Obsrv,
     typename State,
-    typename Noise,
+    typename Noise_,
     int Id = 0
 >
 class ObservationFunction
 {
 public:
+        typedef Noise_ Noise;
     /**
      * Evaluates the model function \f$y = h(x, w)\f$ where \f$x\f$ is the state
      * and \f$w\sim {\cal N}(0, 1)\f$ is a white noise parameter. Put
@@ -232,7 +233,7 @@ public:
      *
      * \return
      */
-    virtual NoiseMatrix noise_matrix() const = 0;
+    virtual const NoiseMatrix& noise_matrix() const = 0;
 
     virtual Obsrv observation(const State& state,
                               const Noise& noise) const

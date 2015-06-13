@@ -268,7 +268,7 @@ private:
 
 public:
     typedef from_traits(Scalar);
-    typedef from_traits(Noise);
+//    typedef from_traits(Noise);
     typedef from_traits(NoiseMatrix);
     typedef from_traits(SensorMatrix);
 
@@ -312,7 +312,7 @@ public:
 
     virtual const NoiseMatrix& noise_matrix() const
     {
-        return noise_matrix();
+        return noise_matrix_;
     }
 
     virtual void noise_matrix(const NoiseMatrix& noise_mat)

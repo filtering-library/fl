@@ -94,14 +94,18 @@ TEST(particle_filter, predict)
     typedef Eigen::Matrix<double, 3, 3> Matrix;
 
     typedef fl::LinearGaussianProcessModel<State, Input> ProcessModel;
-    typedef fl::LinearGaussianObservationModel<Observation, State> ObservationModel;
+    typedef fl::LinearObservationModel<Observation, State> ObservationModel;
+
+    typedef fl::LinearGaussianObservationModel<Observation, State>
+                                                        OldObservationModel;
+
 
     // particle filter
     typedef fl::ParticleFilter<ProcessModel, ObservationModel> ParticleFilter;
     typedef ParticleFilter::StateDistribution ParticleBelief;
 
     // gaussian filter
-    typedef fl::GaussianFilter<ProcessModel, ObservationModel> GaussianFilter;
+    typedef fl::GaussianFilter<ProcessModel, OldObservationModel> GaussianFilter;
     typedef GaussianFilter::StateDistribution GaussianBelief;
 
 
@@ -121,17 +125,23 @@ TEST(particle_filter, predict)
     }
 
     // create observation model
-    ObservationModel observation_model;
+    /// \todo this is a hack because the GF does not currently work with the new
+    /// observation model interface
+    OldObservationModel old_observation_model;
     {
-        observation_model.H(some_rotation());
+        old_observation_model.H(some_rotation());
         Matrix R = some_rotation();
         Matrix D = Eigen::DiagonalMatrix<double, 3>(1.1, 1.0, 3.3);
-        observation_model.covariance(R*D*R.transpose());
+        old_observation_model.covariance(R*D*R.transpose());
     }
+
+    ObservationModel observation_model;
+    observation_model.sensor_matrix(old_observation_model.H());
+    observation_model.noise_matrix(old_observation_model.square_root());
 
     // create filters
     ParticleFilter particle_filter(process_model, observation_model);
-    GaussianFilter gaussian_filter(process_model, observation_model);
+    GaussianFilter gaussian_filter(process_model, old_observation_model);
 
     // create intial beliefs
     GaussianBelief gaussian_belief;

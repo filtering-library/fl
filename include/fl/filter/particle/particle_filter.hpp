@@ -88,7 +88,9 @@ struct Traits<ParticleFilter<ProcessModel, ObservationModel>>
 
     /** \cond INTERNAL */
     typedef typename Traits<ProcessModel>::Noise      ProcessNoise;
-    typedef typename Traits<ObservationModel>::Noise  ObsrvNoise;
+
+    /// \todo this should come from traits
+    typedef typename ObservationModel::Noise  ObsrvNoise;
 };
 
 
