@@ -165,7 +165,7 @@ public:
      * \param delta_time    Prediction time
      */
     virtual Obsrv observation(const State& state,
-                              const Noise& noise) = 0;
+                              const Noise& noise) const = 0;
 
     /**
      * \return Dimension of the state variable $\f$x\f$
@@ -213,7 +213,7 @@ public:
 
     typedef Eigen::Matrix<Noise::Scalar,
                           Noise::SizeAtCompileTime,
-                          Noise::SizeAtCompileTime> NoiseModel;
+                          Noise::SizeAtCompileTime> NoiseMatrix;
 
     /**
      * Evaluates the model function \f$y = h(x, w)\f$ where \f$x\f$ is the state
@@ -225,14 +225,20 @@ public:
      * \param noise         The noise term \f$w\f$
      * \param delta_time    Prediction time
      */
-    virtual Obsrv expected_observation(const State& state) = 0;
+    virtual Obsrv expected_observation(const State& state) const = 0;
 
     /**
      * \brief noise_model
      *
      * \return
      */
-    virtual NoiseModel noise_model() const = 0;
+    virtual NoiseMatrix noise_matrix() const = 0;
+
+    virtual Obsrv observation(const State& state,
+                              const Noise& noise) const
+    {
+        return expected_observation(state) + noise_matrix() * noise;
+    }
 };
 
 
@@ -250,7 +256,7 @@ public:
      *
      */
     virtual double probability(const Obsrv& obsrv,
-                               const State& state) = 0;
+                               const State& state) const = 0;
 
     virtual Eigen::Array<double, Eigen::Dynamic, 1> probabilities(
         const Obsrv& obsrv,
