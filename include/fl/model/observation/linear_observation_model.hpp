@@ -310,6 +310,16 @@ public:
         sensor_matrix_ = sensor_mat;
     }
 
+    virtual const NoiseMatrix& noise_matrix() const
+    {
+        return noise_matrix();
+    }
+
+    virtual void noise_matrix(const NoiseMatrix& noise_mat)
+    {
+        noise_matrix_ = noise_mat;
+    }
+
     virtual int obsrv_dimension() const
     {
         return sensor_matrix_.rows();

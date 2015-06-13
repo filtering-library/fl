@@ -211,7 +211,7 @@ class AdditiveObservationFunction
 {
 public:
 
-    typedef Eigen::Matrix<Noise::Scalar,
+    typedef Eigen::Matrix<typename Noise::Scalar,
                           Noise::SizeAtCompileTime,
                           Noise::SizeAtCompileTime> NoiseMatrix;
 

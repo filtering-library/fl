@@ -106,7 +106,7 @@ TEST(particle_filter, predict)
 
 
     srand(0);
-    size_t N_particles = 1000;
+    size_t N_particles = 10000;
     size_t N_steps = 10;
     size_t delta_time = 1;
 
@@ -126,7 +126,7 @@ TEST(particle_filter, predict)
         observation_model.H(some_rotation());
         Matrix R = some_rotation();
         Matrix D = Eigen::DiagonalMatrix<double, 3>(1.1, 1.0, 3.3);
-        process_model.covariance(R*D*R.transpose());
+        observation_model.covariance(R*D*R.transpose());
     }
 
     // create filters
@@ -149,6 +149,12 @@ TEST(particle_filter, predict)
     }
 
 
+
+    std::cout << "gaussian mean " << gaussian_belief.mean().transpose() << std::endl;
+    std::cout << "gaussian cov " << std::endl << gaussian_belief.covariance() << std::endl;
+    std::cout << "particle mean " << particle_belief.mean().transpose() << std::endl;
+    std::cout << "particle cov " << std::endl << particle_belief.covariance() << std::endl;
+
     // run prediction
     for(size_t i = 0; i < N_steps; i++)
     {
@@ -163,10 +169,10 @@ TEST(particle_filter, predict)
                         gaussian_belief.mean(), gaussian_belief.covariance()));
     }
 
-//    std::cout << "gaussian mean " << gaussian_belief.mean().transpose() << std::endl;
-//    std::cout << "gaussian cov " << std::endl << gaussian_belief.covariance() << std::endl;
-//    std::cout << "particle mean " << particle_belief.mean().transpose() << std::endl;
-//    std::cout << "particle cov " << std::endl << particle_belief.covariance() << std::endl;
+    std::cout << "gaussian mean " << gaussian_belief.mean().transpose() << std::endl;
+    std::cout << "gaussian cov " << std::endl << gaussian_belief.covariance() << std::endl;
+    std::cout << "particle mean " << particle_belief.mean().transpose() << std::endl;
+    std::cout << "particle cov " << std::endl << particle_belief.covariance() << std::endl;
 
 }
 
