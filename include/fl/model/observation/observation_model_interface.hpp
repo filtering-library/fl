@@ -256,6 +256,8 @@ public:
     /**
      *
      */
+
+    /// \todo should add the unnormalized log probability interface
     virtual double log_probability(const Obsrv& obsrv,
                                    const State& state) const = 0;
 

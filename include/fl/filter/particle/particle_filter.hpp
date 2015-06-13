@@ -145,24 +145,31 @@ public:
                         const StateDistribution& predicted_dist,
                         StateDistribution& posterior_dist)
     {
+        // if the samples are too concentrated we resample
 
-
-//        StateDistribution::Function
-//                log_prob_mass = predicted_dist.log_prob_mass();
-
-//        for(size_t i = 0; i < log_prob_mass.size(); i++)
-//        {
-//            log_prob_mass(i) += obsrv_model.log_probability
-//        }
-
-
-
+//        if(predicted_dist.kl)
 //        posterior_dist.set_uniform(predicted_dist.size());
 
 //        for(size_t i = 0; i < predicted_dist.size(); i++)
 //        {
 //            posterior_dist.location(i) = predicted_dist.sample();
 //        }
+
+
+        posterior_dist = predicted_dist;
+        typename StateDistribution::Function
+                log_prob_mass = posterior_dist.log_prob_mass();
+
+        for(size_t i = 0; i < log_prob_mass.size(); i++)
+        {
+            log_prob_mass(i) +=
+                obsrv_model_.log_probability(obsrv,predicted_dist.location(i));
+        }
+        posterior_dist.log_unnormalized_prob_mass(log_prob_mass);
+
+
+
+
     }
 
     /// predict and update *****************************************************
