@@ -210,6 +210,134 @@ protected:
     Param param_;
 };
 
+
+
+
+// Forward declarations
+template <
+    typename Obsrv,
+    typename State
+>
+class LinearObservationModel;
+
+
+/**
+ * Linear Gaussian observation model traits. This trait definition contains all
+ * types used internally within the model. Additionally, it provides the types
+ * needed externally to use the linear Gaussian model.
+ */
+template <
+    typename Obsrv_,
+    typename State_
+>
+struct Traits<
+           LinearObservationModel<Obsrv_, State_>>
+{
+    typedef State_ State;
+    typedef Obsrv_ Obsrv;
+
+    typedef typename Obsrv::Scalar Scalar;
+
+    typedef AdditiveObservationFunction<Obsrv, State, Obsrv> FunctionBase;
+    typedef ObservationDensity<Obsrv, State> DensityBase;
+
+    typedef Eigen::Matrix<
+                Scalar,
+                Obsrv::SizeAtCompileTime,
+                State::SizeAtCompileTime
+            > SensorMatrix;
+
+    typedef typename FunctionBase::NoiseMatrix NoiseMatrix;
+};
+
+/**
+ * \ingroup observation_models
+ */
+template <typename Obsrv,typename State>
+class LinearObservationModel
+    : public Traits<
+                 LinearObservationModel<Obsrv, State>
+             >::FunctionBase,
+      public Traits<
+                 LinearObservationModel<Obsrv, State>
+             >::DensityBase
+{
+private:
+    /** Typdef of \c This for #from_traits(TypeName) helper */
+    typedef LinearObservationModel<Obsrv, State> This;
+
+public:
+    typedef from_traits(Scalar);
+    typedef from_traits(Noise);
+    typedef from_traits(NoiseMatrix);
+    typedef from_traits(SensorMatrix);
+
+public:
+    explicit
+    LinearObservationModel(
+            const int obsrv_dim = DimensionOf<Obsrv>(),
+            const int state_dim = DimensionOf<State>())
+        : sensor_matrix_(SensorMatrix::Identity(obsrv_dim, state_dim)),
+          noise_matrix_(NoiseMatrix::Identity(obsrv_dim, obsrv_dim)),
+          density_(obsrv_dim)
+
+    {
+        density_.square_root(noise_matrix_);
+    }
+
+    ~LinearObservationModel() { }
+
+    virtual Obsrv expected_observation(const State& state) const
+    {
+        return sensor_matrix_ * state;
+    }
+
+    virtual double probability(const Obsrv& obsrv,
+                               const State& state) const
+    {
+        density_.mean(expected_observation(state));
+
+        return density_.probability(obsrv);
+    }
+
+    virtual const SensorMatrix& sensor_matrix() const
+    {
+        return sensor_matrix_;
+    }
+
+    virtual void sensor_matrix(const SensorMatrix& sensor_mat)
+    {
+        sensor_matrix_ = sensor_mat;
+    }
+
+    virtual int obsrv_dimension() const
+    {
+        return sensor_matrix_.rows();
+    }
+
+    virtual int noise_dimension() const
+    {
+        return noise_matrix_.cols();
+    }
+
+    virtual int state_dimension() const
+    {
+        return sensor_matrix_.cols();
+    }
+
+protected:
+    SensorMatrix sensor_matrix_;
+    NoiseMatrix noise_matrix_;
+    mutable Gaussian<Obsrv> density_;
+};
+
+
+
+
+
+
+
+
 }
 
 #endif
