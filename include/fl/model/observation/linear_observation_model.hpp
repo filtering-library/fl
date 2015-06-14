@@ -219,6 +219,8 @@ protected:
 template <typename Obsrv, typename State> class LinearObservationModel;
 
 /**
+ * \ingroup observation_models
+ *
  * Linear Gaussian observation model traits. This trait definition contains all
  * types used internally within the model.
  */
@@ -236,11 +238,6 @@ struct Traits<LinearObservationModel<Obsrv_, State_>>
     typedef Obsrv_ Obsrv;
 
     /**
-     * Observation scalar type (fl::FloatingPoint, float, double, long double)
-     */
-    typedef typename Obsrv::Scalar Scalar;
-
-    /**
      * Models ObservationDensity interface type
      */
     typedef ObservationDensity<Obsrv, State> DensityBase;
@@ -251,12 +248,18 @@ struct Traits<LinearObservationModel<Obsrv_, State_>>
     typedef AdditiveObservationFunction<Obsrv, State, Obsrv> FunctionBase;
 
     /**
+     * Linear model density. The density for linear model is the Gaussian over
+     * observation space.
+     */
+    typedef Gaussian<Obsrv> Density;
+
+    /**
      * Observation model sensor matrix \f$H_t\f$ use in
      *
      * \f$ y_t  = H_t x_t + N_t v_t \f$
      */
     typedef Eigen::Matrix<
-                Scalar,
+                typename Obsrv::Scalar,
                 Obsrv::SizeAtCompileTime,
                 State::SizeAtCompileTime
             > SensorMatrix;
@@ -265,8 +268,12 @@ struct Traits<LinearObservationModel<Obsrv_, State_>>
      * Observation model noise matrix \f$N_t\f$ use in
      *
      * \f$ y_t  = H_t x_t + N_t v_t\f$
+     *
+     * In this linear model, the noise model matrix is equivalent to the
+     * square root of the covariance of the model density. Hence, the
+     * NoiseMatrix type is the same type as the second moment of the density.
      */
-    typedef typename FunctionBase::NoiseMatrix NoiseMatrix;
+    typedef typename Traits<Density>::SecondMoment NoiseMatrix;
 };
 
 
@@ -300,7 +307,7 @@ private:
     typedef LinearObservationModel<Obsrv, State> This;
 
 public:
-    typedef from_traits(Scalar);
+    typedef from_traits(Density);
     typedef from_traits(NoiseMatrix);
     typedef from_traits(SensorMatrix);
 
@@ -315,12 +322,9 @@ public:
             const int obsrv_dim = DimensionOf<Obsrv>(),
             const int state_dim = DimensionOf<State>())
         : sensor_matrix_(SensorMatrix::Identity(obsrv_dim, state_dim)),
-          noise_matrix_(NoiseMatrix::Identity(obsrv_dim, obsrv_dim)),
           density_(obsrv_dim)
 
-    {
-        density_.square_root(noise_matrix_);
-    }
+    { }
 
     /**
      * \brief Overridable default constructor
@@ -328,7 +332,7 @@ public:
     virtual ~LinearObservationModel() { }
 
     /**
-     *\@brief expected_observation
+     * \brief expected_observation
      * \param state
      * \return
      */
@@ -357,13 +361,12 @@ public:
 
     virtual const NoiseMatrix& noise_matrix() const
     {
-        return noise_matrix_;
+        return density_.square_root();
     }
 
     virtual void noise_matrix(const NoiseMatrix& noise_mat)
     {
         density_.square_root(noise_mat);
-        noise_matrix_ = noise_mat;
     }
 
     virtual int obsrv_dimension() const
@@ -373,7 +376,7 @@ public:
 
     virtual int noise_dimension() const
     {
-        return noise_matrix_.cols();
+        return density_.square_root().cols();
     }
 
     virtual int state_dimension() const
@@ -383,8 +386,7 @@ public:
 
 protected:
     SensorMatrix sensor_matrix_;
-    NoiseMatrix noise_matrix_;
-    mutable Gaussian<Obsrv> density_;
+    mutable Density density_;
 };
 
 }
