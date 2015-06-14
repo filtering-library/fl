@@ -23,6 +23,7 @@
 #define FL__UTIL__TRAITS_HPP
 
 #include <Eigen/Dense>
+#include "types.hpp"
 
 namespace fl
 {

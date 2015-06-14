@@ -258,20 +258,20 @@ public:
      */
 
     /// \todo should add the unnormalized log probability interface
-    virtual double log_probability(const Obsrv& obsrv,
-                                   const State& state) const = 0;
+    virtual FloatingPoint log_probability(const Obsrv& obsrv,
+                                          const State& state) const = 0;
 
-    virtual double probability(const Obsrv& obsrv,
-                               const State& state) const
+    virtual FloatingPoint probability(const Obsrv& obsrv,
+                                      const State& state) const
     {
         return std::exp(log_probability(obsrv, state));
     }
 
-    virtual Eigen::Array<double, Eigen::Dynamic, 1> log_probabilities(
+    virtual Eigen::Array<FloatingPoint, Eigen::Dynamic, 1> log_probabilities(
         const Obsrv& obsrv,
         const Eigen::Array<State, Eigen::Dynamic, 1>& states)
     {
-        Eigen::Array<double, Eigen::Dynamic, 1> probs (states.size());
+        Eigen::Array<FloatingPoint, Eigen::Dynamic, 1> probs (states.size());
 
         for (int i = 0; i < states.size(); ++i)
         {
@@ -283,7 +283,7 @@ public:
 
 
 
-    virtual Eigen::Array<double, Eigen::Dynamic, 1> probabilities(
+    virtual Eigen::Array<FloatingPoint, Eigen::Dynamic, 1> probabilities(
         const Obsrv& obsrv,
         const Eigen::Array<State, Eigen::Dynamic, 1>& states)
     {

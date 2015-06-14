@@ -25,7 +25,7 @@
 #include <limits>
 #include <cmath>
 
-
+#include <fl/util/types.hpp>
 #include <fl/distribution/interface/evaluation.hpp>
 #include <fl/distribution/interface/standard_gaussian_mapping.hpp>
 
@@ -38,14 +38,14 @@ namespace fl
  * \ingroup distributions
  */
 class ExponentialDistribution:
-        public Evaluation<double, double>,
-        public StandardGaussianMapping<double, double>
+        public Evaluation<FloatingPoint, FloatingPoint>,
+        public StandardGaussianMapping<FloatingPoint, FloatingPoint>
 {
 
 public:
-    ExponentialDistribution(double lambda,
-                            double min = 0,
-                            double max = std::numeric_limits<double>::infinity()):
+    ExponentialDistribution(FloatingPoint lambda,
+                            FloatingPoint min = 0,
+                            FloatingPoint max = std::numeric_limits<FloatingPoint>::infinity()):
                                             lambda_(lambda),
                                             min_(min),
                                             max_(max)
@@ -56,7 +56,7 @@ public:
 
     virtual ~ExponentialDistribution() { }
 
-    virtual double probability(const double& input) const
+    virtual FloatingPoint probability(const FloatingPoint& input) const
     {
         if(input < min_ || input > max_)
             return 0;
@@ -65,15 +65,15 @@ public:
                             (exp_lambda_min_ - exp_lambda_max_);
     }
 
-    virtual double log_probability(const double& input) const
+    virtual FloatingPoint log_probability(const FloatingPoint& input) const
     {
         return std::log(probability(input));
     }
 
-    virtual double map_standard_normal(const double& gaussian_sample) const
+    virtual FloatingPoint map_standard_normal(const FloatingPoint& gaussian_sample) const
     {
         // map from a gaussian to a uniform distribution
-        double uniform_sample = 0.5 *
+        FloatingPoint uniform_sample = 0.5 *
                         (1.0 + std::erf(gaussian_sample / std::sqrt(2.0)));
         // map from a uniform to an exponential distribution
         return -std::log(exp_lambda_min_ - (exp_lambda_min_ - exp_lambda_max_)
@@ -81,13 +81,13 @@ public:
     }
 
 
-    virtual double map_standard_normal(const double& gaussian_sample,
-                                       const double& max) const
+    virtual FloatingPoint map_standard_normal(const FloatingPoint& gaussian_sample,
+                                       const FloatingPoint& max) const
     {
-        double exp_lambda_max = std::exp(-lambda_*max);
+        FloatingPoint exp_lambda_max = std::exp(-lambda_*max);
 
         // map from a gaussian to a uniform distribution
-        double uniform_sample = 0.5 *
+        FloatingPoint uniform_sample = 0.5 *
                         (1.0 + std::erf(gaussian_sample / std::sqrt(2.0)));
         // map from a uniform to an exponential distribution
         return -std::log(exp_lambda_min_ - (exp_lambda_min_ - exp_lambda_max)
@@ -95,11 +95,11 @@ public:
     }
 
 private:
-    double lambda_;
-    double min_;
-    double max_;
-    double exp_lambda_min_;
-    double exp_lambda_max_;
+    FloatingPoint lambda_;
+    FloatingPoint min_;
+    FloatingPoint max_;
+    FloatingPoint exp_lambda_min_;
+    FloatingPoint exp_lambda_max_;
 };
 
 }
