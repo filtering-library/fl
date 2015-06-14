@@ -28,8 +28,9 @@
 // std
 #include <vector>
 
-#include <fl/util/assertions.hpp>
+#include <fl/util/types.hpp>
 #include <fl/util/traits.hpp>
+#include <fl/util/assertions.hpp>
 #include <fl/distribution/interface/moments.hpp>
 #include <fl/distribution/interface/standard_gaussian_mapping.hpp>
 
@@ -49,14 +50,14 @@ struct Traits<DiscreteDistribution<Var>>
     };
 
     typedef Var Variate;
-    typedef Eigen::Matrix<double, Dimension, 1>         Mean;
-    typedef Eigen::Matrix<double, Dimension, Dimension> Covariance;
+    typedef Eigen::Matrix<FloatingPoint, Dimension, 1>         Mean;
+    typedef Eigen::Matrix<FloatingPoint, Dimension, Dimension> Covariance;
 
     typedef std::vector<Variate>                        Locations;
-    typedef Eigen::Array<double, Eigen::Dynamic, 1>     Function;
+    typedef Eigen::Array<FloatingPoint, Eigen::Dynamic, 1>     Function;
 
     typedef Moments<Mean, Covariance> MomentsBase;
-    typedef StandardGaussianMapping<Variate, double>    GaussianMappingBase;
+    typedef StandardGaussianMapping<Variate, FloatingPoint>    GaussianMappingBase;
 };
 
 
@@ -80,7 +81,7 @@ public:
     {
         locations_ = Locations(1, Variate::Zero(dim));
         log_prob_mass_ = Function::Zero(1);
-        cumul_distr_ = std::vector<double>(1,1);
+        cumul_distr_ = std::vector<FloatingPoint>(1,1);
     }
 
     virtual ~DiscreteDistribution() { }
@@ -98,7 +99,7 @@ public:
 
         // copy to prob mass
         prob_mass_ = log_prob_mass_.exp();
-        double sum = prob_mass_.sum();
+        FloatingPoint sum = prob_mass_.sum();
 
         // normalize
         prob_mass_ /= sum;
@@ -129,17 +130,17 @@ public:
     /// const functions ********************************************************
 
     // sampling ----------------------------------------------------------------
-    virtual Variate map_standard_normal(const double& gaussian_sample) const
+    virtual Variate map_standard_normal(const FloatingPoint& gaussian_sample) const
     {
-        double uniform_sample =
+        FloatingPoint uniform_sample =
                 0.5 * (1.0 + std::erf(gaussian_sample / std::sqrt(2.0)));
 
         return map_standard_uniform(uniform_sample);
     }
 
-    virtual Variate map_standard_uniform(const double& uniform_sample) const
+    virtual Variate map_standard_uniform(const FloatingPoint& uniform_sample) const
     {
-        typename std::vector<double>::const_iterator
+        typename std::vector<FloatingPoint>::const_iterator
                 iterator = std::lower_bound(cumul_distr_.begin(),
                                             cumul_distr_.end(),
                                             uniform_sample);
@@ -155,7 +156,7 @@ public:
         return locations_[i];
     }
 
-    virtual double log_prob_mass(const size_t& i) const
+    virtual FloatingPoint log_prob_mass(const size_t& i) const
     {
         return log_prob_mass_(i);
     }
@@ -165,7 +166,7 @@ public:
         return log_prob_mass_;
     }
 
-    virtual double prob_mass(const size_t& i) const
+    virtual FloatingPoint prob_mass(const size_t& i) const
     {
         return prob_mass_(i);
     }
@@ -191,7 +192,7 @@ public:
     {
         Mean mu(Mean::Zero(dimension()));
         for(size_t i = 0; i < locations_.size(); i++)
-            mu += prob_mass(i) * locations_[i].template cast<double>();
+            mu += prob_mass(i) * locations_[i].template cast<FloatingPoint>();
 
         return mu;
     }
@@ -202,22 +203,22 @@ public:
         Covariance cov(Covariance::Zero(dimension(), dimension()));
         for(size_t i = 0; i < locations_.size(); i++)
         {
-            Mean delta = (locations_[i].template cast<double>()-mu);
+            Mean delta = (locations_[i].template cast<FloatingPoint>()-mu);
             cov += prob_mass(i) * delta * delta.transpose();
         }
 
         return cov;
     }
 
-    virtual double entropy() const
+    virtual FloatingPoint entropy() const
     {
         return - log_prob_mass_.cwiseProduct(prob_mass_).sum();
     }
 
     // implements KL(p||u) where p is this distr, and u is the uniform distr
-    virtual double kl_given_uniform()
+    virtual FloatingPoint kl_given_uniform()
     {
-        return std::log(double(size())) - entropy();
+        return std::log(FloatingPoint(size())) - entropy();
     }
 
 
@@ -227,7 +228,7 @@ protected:
 
     Function log_prob_mass_;
     Function prob_mass_;
-    std::vector<double> cumul_distr_;
+    std::vector<FloatingPoint> cumul_distr_;
 };
 
 }
