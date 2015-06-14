@@ -52,7 +52,7 @@ struct Traits<DiscreteDistribution<Var>>
     typedef Eigen::Matrix<double, Dimension, 1>         Mean;
     typedef Eigen::Matrix<double, Dimension, Dimension> Covariance;
 
-    typedef std::vector<Variate>                        Locations;
+    typedef Eigen::Array<Variate, Eigen::Dynamic, 1>    Locations;
     typedef Eigen::Array<double, Eigen::Dynamic, 1>     Function;
 
     typedef Moments<Mean, Covariance> MomentsBase;
@@ -78,7 +78,8 @@ public:
     explicit
     DiscreteDistribution(size_t dim = DimensionOf<Variate>())
     {
-        locations_ = Locations(1, Variate::Zero(dim));
+        locations_ = Locations(1);
+        locations_(0) = Variate::Zero(dim);
         log_prob_mass_ = Function::Zero(1);
         cumul_distr_ = std::vector<double>(1,1);
     }
@@ -124,6 +125,23 @@ public:
         return locations_[i];
     }
 
+    template <typename Distribution>
+    void from_distribution(const Distribution& distribution, const int& new_size)
+    {
+        // we first create a local array to sample to. this way, if this
+        // is passed as an argument the locations and pmf are not overwritten
+        // while sampling
+        Locations new_locations(new_size);
+
+        for(int i = 0; i < new_size; i++)
+        {
+            new_locations[i] = distribution.sample();
+        }
+
+        set_uniform(new_size);
+        locations_ = new_locations;
+    }
+
 
 
     /// const functions ********************************************************
@@ -153,6 +171,11 @@ public:
     virtual const Variate& location(size_t i) const
     {
         return locations_[i];
+    }
+
+    virtual const Locations& locations() const
+    {
+        return locations_;
     }
 
     virtual double log_prob_mass(const size_t& i) const
@@ -190,7 +213,7 @@ public:
     virtual Mean mean() const
     {
         Mean mu(Mean::Zero(dimension()));
-        for(size_t i = 0; i < locations_.size(); i++)
+        for(int i = 0; i < locations_.size(); i++)
             mu += prob_mass(i) * locations_[i].template cast<double>();
 
         return mu;
@@ -200,7 +223,7 @@ public:
     {
         Mean mu = mean();
         Covariance cov(Covariance::Zero(dimension(), dimension()));
-        for(size_t i = 0; i < locations_.size(); i++)
+        for(int i = 0; i < locations_.size(); i++)
         {
             Mean delta = (locations_[i].template cast<double>()-mu);
             cov += prob_mass(i) * delta * delta.transpose();
@@ -215,7 +238,7 @@ public:
     }
 
     // implements KL(p||u) where p is this distr, and u is the uniform distr
-    virtual double kl_given_uniform()
+    virtual double kl_given_uniform() const
     {
         return std::log(double(size())) - entropy();
     }
