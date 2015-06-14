@@ -107,14 +107,20 @@ public:
         log_prob_mass_ -= std::log(sum);
 
         // compute cdf
-        cumul_distr_.resize(log_prob_mass.size());
+        cumul_distr_.resize(log_prob_mass_.size());
         cumul_distr_[0] = prob_mass_[0];
         for(size_t i = 1; i < cumul_distr_.size(); i++)
             cumul_distr_[i] = cumul_distr_[i-1] + prob_mass_[i];
 
         // resize locations
-        locations_.resize(log_prob_mass.size());
+        locations_.resize(log_prob_mass_.size());
     }
+
+    virtual void delta_log_prob_mass(const Function& delta)
+    {
+        log_unnormalized_prob_mass(log_prob_mass_ + delta);
+    }
+
 
     virtual void set_uniform(size_t new_size = size())
     {

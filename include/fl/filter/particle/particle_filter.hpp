@@ -156,18 +156,9 @@ public:
             posterior_dist = predicted_dist;
         }
 
-        // update the likelihoods
-        typename StateDistribution::Function
-                log_prob_mass = posterior_dist.log_prob_mass();
-
-        /// \todo: for a potential parallelization this should be done
-        /// wit the vectorized function
-        for(int i = 0; i < log_prob_mass.size(); i++)
-        {
-            log_prob_mass(i) +=
-                obsrv_model_.log_probability(obsrv, predicted_dist.location(i));
-        }
-        posterior_dist.log_unnormalized_prob_mass(log_prob_mass);
+        // update the weights of the particles with the likelihoods
+        posterior_dist.delta_log_prob_mass(
+             obsrv_model_.log_probabilities(obsrv, predicted_dist.locations()));
     }
 
     /// predict and update *****************************************************
