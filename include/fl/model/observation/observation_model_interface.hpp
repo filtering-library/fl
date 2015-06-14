@@ -211,7 +211,7 @@ class AdditiveObservationFunction
 {
 public:
 
-    typedef Eigen::Matrix<Noise::Scalar,
+    typedef Eigen::Matrix<FloatingPoint,
                           Noise::SizeAtCompileTime,
                           Noise::SizeAtCompileTime> NoiseMatrix;
 
@@ -255,14 +255,14 @@ public:
     /**
      *
      */
-    virtual double probability(const Obsrv& obsrv,
-                               const State& state) const = 0;
+    virtual FloatingPoint probability(const Obsrv& obsrv,
+                                      const State& state) const = 0;
 
-    virtual Eigen::Array<double, Eigen::Dynamic, 1> probabilities(
+    virtual Eigen::Array<FloatingPoint, Eigen::Dynamic, 1> probabilities(
         const Obsrv& obsrv,
         const Eigen::Array<State, Eigen::Dynamic, 1>& states)
     {
-        Eigen::Array<double, Eigen::Dynamic, 1> probs (states.size());
+        Eigen::Array<FloatingPoint, Eigen::Dynamic, 1> probs (states.size());
 
         for (int i = 0; i < states.size(); ++i)
         {
