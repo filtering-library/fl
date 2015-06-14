@@ -292,8 +292,8 @@ public:
         return sensor_matrix_ * state;
     }
 
-    virtual double probability(const Obsrv& obsrv,
-                               const State& state) const
+    virtual FloatingPoint probability(const Obsrv& obsrv,
+                                      const State& state) const
     {
         density_.mean(expected_observation(state));
 
