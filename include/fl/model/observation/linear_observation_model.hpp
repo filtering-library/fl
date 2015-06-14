@@ -293,7 +293,7 @@ public:
     }
 
     virtual FloatingPoint log_probability(const Obsrv& obsrv,
-                                      const State& state) const
+                                          const State& state) const
     {
         density_.mean(expected_observation(state));
 
@@ -317,6 +317,7 @@ public:
 
     virtual void noise_matrix(const NoiseMatrix& noise_mat)
     {
+        density_.square_root(noise_mat);
         noise_matrix_ = noise_mat;
     }
 

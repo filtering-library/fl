@@ -209,7 +209,7 @@ TEST(particle_filter, update)
     {
         process_model.A(some_rotation());
         Matrix R = some_rotation();
-        Matrix D = Eigen::DiagonalMatrix<double, 3>(1, 1.5, 3.2);
+        Matrix D = Eigen::DiagonalMatrix<double, 3>(1, 3.5, 1.2);
         process_model.covariance(R*D*R.transpose());
     }
 
@@ -220,15 +220,9 @@ TEST(particle_filter, update)
     {
         old_observation_model.H(some_rotation());
         Matrix R = some_rotation();
-        Matrix D = Eigen::DiagonalMatrix<double, 3>(1.1, 1.0, 3.3);
+        Matrix D = Eigen::DiagonalMatrix<double, 3>(3.1, 1.0, 1.3);
         old_observation_model.covariance(R*D*R.transpose());
     }
-
-    // remove this
-    old_observation_model.covariance(Eigen::Matrix3d::Identity());
-    old_observation_model.H(Eigen::Matrix3d::Identity());
-
-
 
     ObservationModel observation_model;
     observation_model.sensor_matrix(old_observation_model.H());
@@ -247,13 +241,20 @@ TEST(particle_filter, update)
     ParticleBelief particle_belief;
     particle_belief.from_distribution(gaussian_belief, N_particles);
 
+
     // run prediction
     for(size_t i = 0; i < N_steps; i++)
     {
         Observation observation(0.5, 0.5, 0.5);
 
         particle_filter.update(observation, particle_belief, particle_belief);
+
         gaussian_filter.update(observation, gaussian_belief, gaussian_belief);
+
+        std::cout << "gaussian mean " << gaussian_belief.mean().transpose() << std::endl;
+        std::cout << "gaussian cov " << std::endl << gaussian_belief.covariance() << std::endl;
+        std::cout << "particle mean " << particle_belief.mean().transpose() << std::endl;
+        std::cout << "particle cov " << std::endl << particle_belief.covariance() << std::endl;
 
         EXPECT_TRUE(moments_are_similar(
                         particle_belief.mean(), particle_belief.covariance(),
