@@ -47,13 +47,21 @@ public:
     typedef Eigen::Matrix<fl::FloatingPoint, Eigen::Dynamic, 1> ObsrvX;
     typedef fl::LinearObservationModel<ObsrvX, StateX> LinearModelX;
 
+    typedef typename LinearModel::Noise Noise;
+    typedef typename LinearModelX::Noise NoiseX;
+
     template <typename Model>
     void init_dimension_test(Model&& model)
     {
         EXPECT_EQ(model.obsrv_dimension(), ObsrvDim);
         EXPECT_EQ(model.noise_dimension(), ObsrvDim);
         EXPECT_EQ(model.state_dimension(), StateDim);
-        EXPECT_TRUE(model.sensor_matrix().isIdentity());
+
+        EXPECT_EQ(model.sensor_matrix().rows(), ObsrvDim);
+        EXPECT_EQ(model.sensor_matrix().cols(), StateDim);
+
+        EXPECT_EQ(model.noise_matrix().rows(), ObsrvDim);
+        EXPECT_EQ(model.noise_matrix().cols(), ObsrvDim);
     }
 
     template <typename Model>
@@ -66,6 +74,65 @@ public:
     void init_noise_matrix_value_test(Model&& model)
     {
         EXPECT_TRUE(model.noise_matrix().isIdentity());
+    }
+
+    template <typename Model>
+    void sensor_matrix_value_test(Model&& model)
+    {
+        auto sensor_matrix = model.sensor_matrix();
+        sensor_matrix.setRandom();
+        model.sensor_matrix(sensor_matrix);
+        EXPECT_TRUE(fl::are_similar(model.sensor_matrix(), sensor_matrix));
+    }
+
+    template <typename Model>
+    void noise_matrix_value_test(Model&& model)
+    {
+        auto noise_matrix = model.noise_matrix();
+        noise_matrix.setRandom();
+        model.noise_matrix(noise_matrix);
+        EXPECT_TRUE(fl::are_similar(model.noise_matrix(), noise_matrix));
+    }
+
+    template <typename Model>
+    void expected_observation_test(Model&& model)
+    {
+        auto x = State(model.state_dimension());
+        auto y = Obsrv(model.obsrv_dimension());
+
+        x.setRandom();
+        y.topRows(model.state_dimension()) = x;
+
+        EXPECT_TRUE(fl::are_similar(model.expected_observation(x), y));
+    }
+
+    template <typename Model>
+    void observation_with_zero_noise_test(Model&& model)
+    {
+        auto x = State(model.state_dimension());
+        auto y = Obsrv(model.obsrv_dimension());
+        auto v = Noise(model.noise_dimension());
+
+        x.setRandom();
+        v.setZero();
+        y.topRows(model.state_dimension()) = x;
+
+        EXPECT_TRUE(fl::are_similar(model.observation(x, v), y));
+    }
+
+    template <typename Model>
+    void observation_test(Model&& model)
+    {
+        auto x = State(model.state_dimension());
+        auto y = Obsrv(model.obsrv_dimension());
+        auto v = Noise(model.noise_dimension());
+
+        x.setRandom();
+        v.setRandom();
+        y.topRows(model.state_dimension()) = x;
+        y += v;
+
+        EXPECT_TRUE(fl::are_similar(model.observation(x, v), y));
     }
 };
 
@@ -120,88 +187,89 @@ TEST_F(LinearObservationModelTests, init_dynamic_noise_matrix_value)
     init_noise_matrix_value_test(LinearModelX(ObsrvDim, StateDim));
 }
 
+// == Sensor matrix tests =================================================== //
 
-//TEST_F(LinearObservationModelTests, predict_fixedsize_with_zero_noise)
-//{
-//    typedef Eigen::Matrix<fl::FloatingPoint, 10, 1> State;
-//    typedef Eigen::Matrix<fl::FloatingPoint, 20, 1> Obsrv;
+TEST_F(LinearObservationModelTests, sensor_matrix_fixed)
+{
+    sensor_matrix_value_test(LinearModel());
+}
 
-//    const int ObsrvDim = Obsrv::SizeAtCompileTime;
-//    const int StateDim = State::SizeAtCompileTime;
+TEST_F(LinearObservationModelTests, sensor_matrix_fixed_dynamic_constr)
+{
+    sensor_matrix_value_test(LinearModel(ObsrvDim, StateDim));
+}
 
-//    typedef fl::LinearObservationModel<Obsrv, State> LinearModel;
+TEST_F(LinearObservationModelTests, sensor_matrix_dynamic)
+{
+    sensor_matrix_value_test(LinearModelX(ObsrvDim, StateDim));
+}
 
-//    State state = State::Random(StateDim, 1);
-//    Obsrv observation = Obsrv::Random(ObsrvDim, 1);
+// == Noise matrix tests ==================================================== //
 
-//    LinearModel::Noise noise = LinearModel::Noise::Zero(ObsrvDim, 1);
+TEST_F(LinearObservationModelTests, noise_matrix_fixed)
+{
+    noise_matrix_value_test(LinearModel());
+}
 
-//    LinearModel model;
+TEST_F(LinearObservationModelTests, noise_matrix_fixed_dynamic_constr)
+{
+    noise_matrix_value_test(LinearModel(ObsrvDim, StateDim));
+}
 
-//    model.noise_matrix(
-//        LinearModel::NoiseMatrix::Identity(ObsrvDim, ObsrvDim) * 5.5465);
+TEST_F(LinearObservationModelTests, noise_matrix_dynamic)
+{
+    noise_matrix_value_test(LinearModelX(ObsrvDim, StateDim));
+}
 
-//    EXPECT_FALSE(fl::are_similar(model.map_standard_normal(noise), observation));
-//    model.condition(state);
-//    EXPECT_FALSE(fl::are_similar(model.map_standard_normal(noise), observation));
-//}
+// == expected_observation ================================================== //
 
-//TEST_F(LinearObservationModelTests, predict_dynamic_with_zero_noise)
-//{
-//    const int ObsrvDim = 20;
-//    const int StateDim = 10;
-//    typedef Eigen::Matrix<fl::FloatingPoint, -1, 1> State;
-//    typedef Eigen::Matrix<fl::FloatingPoint, -1, 1> Obsrv;
-//    typedef fl::LinearObservationModel<Obsrv, State> LinearModel;
+TEST_F(LinearObservationModelTests, expected_observation_fixed)
+{
+    expected_observation_test(LinearModel());
+}
 
-//    State state = State::Random(StateDim, 1);
-//    Obsrv observation = Obsrv::Random(ObsrvDim, 1);
-//    LinearModel::Noise noise = LinearModel::Noise::Zero(ObsrvDim, 1);
-//    LinearModel::SecondMoment cov = LinearModel::SecondMoment::Identity(ObsrvDim, ObsrvDim) * 5.5465;
-//    LinearModel model(cov, ObsrvDim, StateDim);
+TEST_F(LinearObservationModelTests, expected_observation_dynamic_constr)
+{
+    expected_observation_test(LinearModel(ObsrvDim, StateDim));
+}
 
-//    EXPECT_TRUE(model.map_standard_normal(noise).isZero());
+TEST_F(LinearObservationModelTests, expected_observation_dynamic)
+{
+    expected_observation_test(LinearModelX(ObsrvDim, StateDim));
+}
 
-//    EXPECT_FALSE(fl::are_similar(model.map_standard_normal(noise), observation));
-//    model.condition(state);
-//    EXPECT_FALSE(fl::are_similar(model.map_standard_normal(noise), observation));
-//}
+// == observation with zero noise =========================================== //
 
-//TEST_F(LinearObservationModelTests, sensor_matrix)
-//{
-//    const int ObsrvDim = 20;
-//    const int StateDim = 10;
-//    typedef Eigen::Matrix<fl::FloatingPoint, -1, 1> State;
-//    typedef Eigen::Matrix<fl::FloatingPoint, -1, 1> Obsrv;
-//    typedef fl::LinearObservationModel<Obsrv, State> LinearModel;
+TEST_F(LinearObservationModelTests, observation_with_zero_noise_fixed)
+{
+    observation_with_zero_noise_test(LinearModel());
+}
 
-//    State state = State::Random(StateDim, 1);
-//    Obsrv observation = Obsrv::Zero(ObsrvDim, 1);
-//    LinearModel::Noise noise = LinearModel::Noise::Random(ObsrvDim, 1);
-//    LinearModel::SecondMoment cov = LinearModel::SecondMoment::Identity(ObsrvDim, ObsrvDim);
-//    LinearModel::SensorMatrix H = LinearModel::SecondMoment::Ones(ObsrvDim, StateDim);
-//    LinearModel model(cov, ObsrvDim, StateDim);
+TEST_F(LinearObservationModelTests, observation_with_zero_noise_dynamic_constr)
+{
+    observation_with_zero_noise_test(LinearModel(ObsrvDim, StateDim));
+}
 
-//    observation.topRows(StateDim) = state;
+TEST_F(LinearObservationModelTests, observation_with_zero_noise_dynamic)
+{
+    observation_with_zero_noise_test(LinearModelX(ObsrvDim, StateDim));
+}
 
-//    EXPECT_TRUE(fl::are_similar(model.map_standard_normal(noise), noise));
-//    EXPECT_FALSE(fl::are_similar(model.map_standard_normal(noise), observation));
+// == observation =========================================================== //
 
-//    model.condition(state);
+TEST_F(LinearObservationModelTests, observation_fixed)
+{
+    observation_test(LinearModel());
+}
 
-//    EXPECT_TRUE(
-//        fl::are_similar(model.map_standard_normal(noise), H * state + noise));
-//    EXPECT_FALSE(
-//        fl::are_similar(model.map_standard_normal(noise), observation));
+TEST_F(LinearObservationModelTests, observation_dynamic_constr)
+{
+    observation_test(LinearModel(ObsrvDim, StateDim));
+}
 
-//    H = LinearModel::SecondMoment::Zero(ObsrvDim, StateDim);
-//    H.block(0, 0, StateDim, StateDim)
-//            = Eigen::MatrixXd::Identity(StateDim, StateDim);
+TEST_F(LinearObservationModelTests, observation_dynamic)
+{
+    observation_test(LinearModelX(ObsrvDim, StateDim));
+}
 
-//    model.H(H);
-//    model.condition(state);
-
-//    EXPECT_TRUE(
-//        fl::are_similar(model.map_standard_normal(noise), observation + noise));
-//}
-
+/// \todo missing probability and log_probability tests
