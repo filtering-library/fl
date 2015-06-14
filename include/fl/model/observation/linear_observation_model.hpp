@@ -268,7 +268,7 @@ private:
 
 public:
     typedef from_traits(Scalar);
-    typedef from_traits(Noise);
+//    typedef from_traits(Noise);
     typedef from_traits(NoiseMatrix);
     typedef from_traits(SensorMatrix);
 
@@ -292,12 +292,12 @@ public:
         return sensor_matrix_ * state;
     }
 
-    virtual FloatingPoint probability(const Obsrv& obsrv,
+    virtual FloatingPoint log_probability(const Obsrv& obsrv,
                                       const State& state) const
     {
         density_.mean(expected_observation(state));
 
-        return density_.probability(obsrv);
+        return density_.log_probability(obsrv);
     }
 
     virtual const SensorMatrix& sensor_matrix() const
@@ -308,6 +308,16 @@ public:
     virtual void sensor_matrix(const SensorMatrix& sensor_mat)
     {
         sensor_matrix_ = sensor_mat;
+    }
+
+    virtual const NoiseMatrix& noise_matrix() const
+    {
+        return noise_matrix_;
+    }
+
+    virtual void noise_matrix(const NoiseMatrix& noise_mat)
+    {
+        noise_matrix_ = noise_mat;
     }
 
     virtual int obsrv_dimension() const

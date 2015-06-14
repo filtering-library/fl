@@ -148,12 +148,13 @@ public:
 template <
     typename Obsrv,
     typename State,
-    typename Noise,
+    typename Noise_,
     int Id = 0
 >
 class ObservationFunction
 {
 public:
+        typedef Noise_ Noise;
     /**
      * Evaluates the model function \f$y = h(x, w)\f$ where \f$x\f$ is the state
      * and \f$w\sim {\cal N}(0, 1)\f$ is a white noise parameter. Put
@@ -211,7 +212,7 @@ class AdditiveObservationFunction
 {
 public:
 
-    typedef Eigen::Matrix<FloatingPoint,
+    typedef Eigen::Matrix<typename Noise::Scalar,
                           Noise::SizeAtCompileTime,
                           Noise::SizeAtCompileTime> NoiseMatrix;
 
@@ -232,7 +233,7 @@ public:
      *
      * \return
      */
-    virtual NoiseMatrix noise_matrix() const = 0;
+    virtual const NoiseMatrix& noise_matrix() const = 0;
 
     virtual Obsrv observation(const State& state,
                               const Noise& noise) const
@@ -255,10 +256,18 @@ public:
     /**
      *
      */
-    virtual FloatingPoint probability(const Obsrv& obsrv,
-                                      const State& state) const = 0;
 
-    virtual Eigen::Array<FloatingPoint, Eigen::Dynamic, 1> probabilities(
+    /// \todo should add the unnormalized log probability interface
+    virtual FloatingPoint log_probability(const Obsrv& obsrv,
+                                          const State& state) const = 0;
+
+    virtual FloatingPoint probability(const Obsrv& obsrv,
+                                      const State& state) const
+    {
+        return std::exp(log_probability(obsrv, state));
+    }
+
+    virtual Eigen::Array<FloatingPoint, Eigen::Dynamic, 1> log_probabilities(
         const Obsrv& obsrv,
         const Eigen::Array<State, Eigen::Dynamic, 1>& states)
     {
@@ -266,10 +275,19 @@ public:
 
         for (int i = 0; i < states.size(); ++i)
         {
-            probs[i] = probability(obsrv, states[i]);
+            probs[i] = log_probability(obsrv, states[i]);
         }
 
         return probs;
+    }
+
+
+
+    virtual Eigen::Array<FloatingPoint, Eigen::Dynamic, 1> probabilities(
+        const Obsrv& obsrv,
+        const Eigen::Array<State, Eigen::Dynamic, 1>& states)
+    {
+        return log_probabilities(obsrv, states).exp();
     }
 
     /**
