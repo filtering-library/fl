@@ -149,20 +149,7 @@ TEST(particle_filter, predict)
         gaussian_belief.covariance(Matrix::Identity());
     }
     ParticleBelief particle_belief;
-    {
-        particle_belief.log_unnormalized_prob_mass(
-                    ParticleBelief::Function::Zero(N_particles));
-
-        for(size_t i = 0; i < particle_belief.size(); i++)
-        {   particle_belief.location(i) = gaussian_belief.sample();}
-    }
-
-
-
-    std::cout << "gaussian mean " << gaussian_belief.mean().transpose() << std::endl;
-    std::cout << "gaussian cov " << std::endl << gaussian_belief.covariance() << std::endl;
-    std::cout << "particle mean " << particle_belief.mean().transpose() << std::endl;
-    std::cout << "particle cov " << std::endl << particle_belief.covariance() << std::endl;
+    particle_belief.from_distribution(gaussian_belief, N_particles);
 
     // run prediction
     for(size_t i = 0; i < N_steps; i++)
@@ -177,12 +164,6 @@ TEST(particle_filter, predict)
                         particle_belief.mean(), particle_belief.covariance(),
                         gaussian_belief.mean(), gaussian_belief.covariance()));
     }
-
-    std::cout << "gaussian mean " << gaussian_belief.mean().transpose() << std::endl;
-    std::cout << "gaussian cov " << std::endl << gaussian_belief.covariance() << std::endl;
-    std::cout << "particle mean " << particle_belief.mean().transpose() << std::endl;
-    std::cout << "particle cov " << std::endl << particle_belief.covariance() << std::endl;
-
 }
 
 
@@ -228,7 +209,7 @@ TEST(particle_filter, update)
     {
         process_model.A(some_rotation());
         Matrix R = some_rotation();
-        Matrix D = Eigen::DiagonalMatrix<double, 3>(1, 1.5, 3.2);
+        Matrix D = Eigen::DiagonalMatrix<double, 3>(1, 3.5, 1.2);
         process_model.covariance(R*D*R.transpose());
     }
 
@@ -239,9 +220,10 @@ TEST(particle_filter, update)
     {
         old_observation_model.H(some_rotation());
         Matrix R = some_rotation();
-        Matrix D = Eigen::DiagonalMatrix<double, 3>(1.1, 1.0, 3.3);
+        Matrix D = Eigen::DiagonalMatrix<double, 3>(3.1, 1.0, 1.3);
         old_observation_model.covariance(R*D*R.transpose());
     }
+
     ObservationModel observation_model;
     observation_model.sensor_matrix(old_observation_model.H());
     observation_model.noise_matrix(old_observation_model.square_root());
@@ -257,39 +239,27 @@ TEST(particle_filter, update)
         gaussian_belief.covariance(Matrix::Identity());
     }
     ParticleBelief particle_belief;
-    {
-        particle_belief.log_unnormalized_prob_mass(
-                    ParticleBelief::Function::Zero(N_particles));
+    particle_belief.from_distribution(gaussian_belief, N_particles);
 
-        for(size_t i = 0; i < particle_belief.size(); i++)
-        {   particle_belief.location(i) = gaussian_belief.sample();}
-    }
-
-
-
-    std::cout << "gaussian mean " << gaussian_belief.mean().transpose() << std::endl;
-    std::cout << "gaussian cov " << std::endl << gaussian_belief.covariance() << std::endl;
-    std::cout << "particle mean " << particle_belief.mean().transpose() << std::endl;
-    std::cout << "particle cov " << std::endl << particle_belief.covariance() << std::endl;
 
     // run prediction
     for(size_t i = 0; i < N_steps; i++)
     {
-        particle_filter.predict(delta_time, State::Zero(),
-                                particle_belief, particle_belief);
+        Observation observation(0.5, 0.5, 0.5);
 
-        gaussian_filter.predict(delta_time, State::Zero(),
-                                gaussian_belief, gaussian_belief);
+        particle_filter.update(observation, particle_belief, particle_belief);
+
+        gaussian_filter.update(observation, gaussian_belief, gaussian_belief);
+
+        std::cout << "gaussian mean " << gaussian_belief.mean().transpose() << std::endl;
+        std::cout << "gaussian cov " << std::endl << gaussian_belief.covariance() << std::endl;
+        std::cout << "particle mean " << particle_belief.mean().transpose() << std::endl;
+        std::cout << "particle cov " << std::endl << particle_belief.covariance() << std::endl;
 
         EXPECT_TRUE(moments_are_similar(
                         particle_belief.mean(), particle_belief.covariance(),
                         gaussian_belief.mean(), gaussian_belief.covariance()));
     }
-
-    std::cout << "gaussian mean " << gaussian_belief.mean().transpose() << std::endl;
-    std::cout << "gaussian cov " << std::endl << gaussian_belief.covariance() << std::endl;
-    std::cout << "particle mean " << particle_belief.mean().transpose() << std::endl;
-    std::cout << "particle cov " << std::endl << particle_belief.covariance() << std::endl;
 
 }
 

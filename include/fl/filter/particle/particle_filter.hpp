@@ -145,31 +145,20 @@ public:
                         const StateDistribution& predicted_dist,
                         StateDistribution& posterior_dist)
     {
-        // if the samples are too concentrated we resample
-
-//        if(predicted_dist.kl)
-//        posterior_dist.set_uniform(predicted_dist.size());
-
-//        for(size_t i = 0; i < predicted_dist.size(); i++)
-//        {
-//            posterior_dist.location(i) = predicted_dist.sample();
-//        }
-
-
-        posterior_dist = predicted_dist;
-        typename StateDistribution::Function
-                log_prob_mass = posterior_dist.log_prob_mass();
-
-        for(size_t i = 0; i < log_prob_mass.size(); i++)
+        // if the samples are too concentrated then resample
+        if(predicted_dist.kl_given_uniform() > max_kl_divergence_)
         {
-            log_prob_mass(i) +=
-                obsrv_model_.log_probability(obsrv,predicted_dist.location(i));
+            posterior_dist.from_distribution(predicted_dist,
+                                             predicted_dist.size());
         }
-        posterior_dist.log_unnormalized_prob_mass(log_prob_mass);
+        else
+        {
+            posterior_dist = predicted_dist;
+        }
 
-
-
-
+        // update the weights of the particles with the likelihoods
+        posterior_dist.delta_log_prob_mass(
+             obsrv_model_.log_probabilities(obsrv, predicted_dist.locations()));
     }
 
     /// predict and update *****************************************************

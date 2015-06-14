@@ -53,8 +53,8 @@ struct Traits<DiscreteDistribution<Var>>
     typedef Eigen::Matrix<FloatingPoint, Dimension, 1>         Mean;
     typedef Eigen::Matrix<FloatingPoint, Dimension, Dimension> Covariance;
 
-    typedef std::vector<Variate>                        Locations;
-    typedef Eigen::Array<FloatingPoint, Eigen::Dynamic, 1>     Function;
+    typedef Eigen::Array<Variate, Eigen::Dynamic, 1>        Locations;
+    typedef Eigen::Array<FloatingPoint, Eigen::Dynamic, 1>  Function;
 
     typedef Moments<Mean, Covariance> MomentsBase;
     typedef StandardGaussianMapping<Variate, FloatingPoint>    GaussianMappingBase;
@@ -79,7 +79,8 @@ public:
     explicit
     DiscreteDistribution(size_t dim = DimensionOf<Variate>())
     {
-        locations_ = Locations(1, Variate::Zero(dim));
+        locations_ = Locations(1);
+        locations_(0) = Variate::Zero(dim);
         log_prob_mass_ = Function::Zero(1);
         cumul_distr_ = std::vector<FloatingPoint>(1,1);
     }
@@ -106,14 +107,20 @@ public:
         log_prob_mass_ -= std::log(sum);
 
         // compute cdf
-        cumul_distr_.resize(log_prob_mass.size());
+        cumul_distr_.resize(log_prob_mass_.size());
         cumul_distr_[0] = prob_mass_[0];
         for(size_t i = 1; i < cumul_distr_.size(); i++)
             cumul_distr_[i] = cumul_distr_[i-1] + prob_mass_[i];
 
         // resize locations
-        locations_.resize(log_prob_mass.size());
+        locations_.resize(log_prob_mass_.size());
     }
+
+    virtual void delta_log_prob_mass(const Function& delta)
+    {
+        log_unnormalized_prob_mass(log_prob_mass_ + delta);
+    }
+
 
     virtual void set_uniform(size_t new_size = size())
     {
@@ -123,6 +130,23 @@ public:
     virtual Variate& location(size_t i)
     {
         return locations_[i];
+    }
+
+    template <typename Distribution>
+    void from_distribution(const Distribution& distribution, const int& new_size)
+    {
+        // we first create a local array to sample to. this way, if this
+        // is passed as an argument the locations and pmf are not overwritten
+        // while sampling
+        Locations new_locations(new_size);
+
+        for(int i = 0; i < new_size; i++)
+        {
+            new_locations[i] = distribution.sample();
+        }
+
+        set_uniform(new_size);
+        locations_ = new_locations;
     }
 
 
@@ -154,6 +178,11 @@ public:
     virtual const Variate& location(size_t i) const
     {
         return locations_[i];
+    }
+
+    virtual const Locations& locations() const
+    {
+        return locations_;
     }
 
     virtual FloatingPoint log_prob_mass(const size_t& i) const
@@ -191,7 +220,8 @@ public:
     virtual Mean mean() const
     {
         Mean mu(Mean::Zero(dimension()));
-        for(size_t i = 0; i < locations_.size(); i++)
+
+        for(int i = 0; i < locations_.size(); i++)
             mu += prob_mass(i) * locations_[i].template cast<FloatingPoint>();
 
         return mu;
@@ -201,7 +231,7 @@ public:
     {
         Mean mu = mean();
         Covariance cov(Covariance::Zero(dimension(), dimension()));
-        for(size_t i = 0; i < locations_.size(); i++)
+        for(int i = 0; i < locations_.size(); i++)
         {
             Mean delta = (locations_[i].template cast<FloatingPoint>()-mu);
             cov += prob_mass(i) * delta * delta.transpose();
@@ -216,7 +246,7 @@ public:
     }
 
     // implements KL(p||u) where p is this distr, and u is the uniform distr
-    virtual FloatingPoint kl_given_uniform()
+    virtual FloatingPoint kl_given_uniform() const
     {
         return std::log(FloatingPoint(size())) - entropy();
     }

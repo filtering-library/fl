@@ -362,6 +362,7 @@ public:
 
     virtual void noise_matrix(const NoiseMatrix& noise_mat)
     {
+        density_.square_root(noise_mat);
         noise_matrix_ = noise_mat;
     }
 
