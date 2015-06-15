@@ -20,8 +20,8 @@
  * \author Manuel Wuthrich (manuel.wuthrich@gmail.com)
  */
 
-#ifndef FL__MODEL__PROCESS__PROCESS_DENSITY_HPP
-#define FL__MODEL__PROCESS__PROCESS_DENSITY_HPP
+#ifndef FL__MODEL__PROCESS__STATE_TRANSITION_DENSITY_HPP
+#define FL__MODEL__PROCESS__STATE_TRANSITION_DENSITY_HPP
 
 #include <fl/util/types.hpp>
 #include <fl/util/traits.hpp>
@@ -34,7 +34,7 @@ template <
     typename Input,
     int BatchSize = Eigen::Dynamic
 >
-class ProcessDensity
+class StateTransitionDensity
 {
 public:
     typedef Eigen::Array<State, BatchSize, 1 > StateArray;
