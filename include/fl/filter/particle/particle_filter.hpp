@@ -80,14 +80,14 @@ template <typename...> class ParticleFilter;
 template <typename ProcessModel, typename ObservationModel>
 struct Traits<ParticleFilter<ProcessModel, ObservationModel>>
 {
-    typedef typename Traits<ProcessModel>::State        State;
-    typedef typename Traits<ProcessModel>::Input        Input;
-    typedef typename Traits<ObservationModel>::Obsrv    Obsrv;
+    typedef typename ProcessModel::State        State;
+    typedef typename ProcessModel::Input        Input;
+    typedef typename ObservationModel::Obsrv    Obsrv;
 
     typedef DiscreteDistribution<State> StateDistribution;
 
     /** \cond INTERNAL */
-    typedef typename Traits<ProcessModel>::Noise      ProcessNoise;
+    typedef typename ProcessModel::Noise      ProcessNoise;
 
     /// \todo this should come from traits
     typedef typename ObservationModel::Noise  ObsrvNoise;
