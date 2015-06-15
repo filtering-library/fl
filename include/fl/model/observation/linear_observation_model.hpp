@@ -232,17 +232,15 @@ protected:
  *
  * \f$ y_t  = H_t x_t + \tilde{v}_t \f$.
  */
-template <typename Obsrv, typename State>
+template <typename Obsrv_, typename State_>
 class LinearObservationModel
-    : public ObservationDensity<Obsrv, State>,                  // p(y|x)
-      public AdditiveObservationFunction<Obsrv, State, Obsrv>   // H*x + N*v
-
+    : public ObservationDensity<Obsrv_, State_>,
+      public AdditiveObservationFunction<Obsrv_, State_, Obsrv_>
 {
-private:
-    /** Typdef of \c This for #from_traits(TypeName) helper */
-    typedef LinearObservationModel<Obsrv, State> This;
-
 public:
+    typedef Obsrv_ Obsrv;
+    typedef State_ State;
+
     /**
      * Linear model density. The density for linear model is the Gaussian over
      * observation space.
@@ -278,13 +276,14 @@ public:
      * \param state_dim     state dimension if dynamic size
      */
     explicit
-    LinearObservationModel(
-            const int obsrv_dim = DimensionOf<Obsrv>(),
-            const int state_dim = DimensionOf<State>())
+    LinearObservationModel(int obsrv_dim = DimensionOf<Obsrv>(),
+                           int state_dim = DimensionOf<State>())
         : sensor_matrix_(SensorMatrix::Identity(obsrv_dim, state_dim)),
           density_(obsrv_dim)
 
-    { }
+    {
+        /// \todo are dimension checks required?
+    }
 
     /**
      * \brief Overridable default constructor
