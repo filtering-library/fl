@@ -143,8 +143,6 @@ public:
     virtual Noise noise_covariance_vector() const = 0;
 };
 
-
-
 template <
     typename Obsrv,
     typename State,
@@ -198,112 +196,6 @@ public:
      */
     virtual void id(int) { /* const ID */ }
 };
-
-
-
-template <
-    typename Obsrv,
-    typename State,
-    typename Noise,
-    int Id = 0
->
-class AdditiveObservationFunction
-    : public ObservationFunction<Obsrv, State, Noise>
-{
-public:
-
-    typedef Eigen::Matrix<typename Noise::Scalar,
-                          Noise::SizeAtCompileTime,
-                          Noise::SizeAtCompileTime> NoiseMatrix;
-
-    /**
-     * Evaluates the model function \f$y = h(x, w)\f$ where \f$x\f$ is the state
-     * and \f$w\sim {\cal N}(0, 1)\f$ is a white noise parameter. Put
-     * differently, \f$y = h(x, w)\f$ is a sample from the conditional model
-     * distribution \f$p(y \mid x)\f$.
-     *
-     * \param state         The state variable \f$x\f$
-     * \param noise         The noise term \f$w\f$
-     * \param delta_time    Prediction time
-     */
-    virtual Obsrv expected_observation(const State& state) const = 0;
-
-    /**
-     * \brief noise_model
-     *
-     * \return
-     */
-    virtual const NoiseMatrix& noise_matrix() const = 0;
-
-    virtual Obsrv observation(const State& state,
-                              const Noise& noise) const
-    {
-        return expected_observation(state) + noise_matrix() * noise;
-    }
-};
-
-
-
-
-template <
-    typename Obsrv,
-    typename State,
-    int Id = 0
->
-class ObservationDensity
-{
-public:
-    /**
-     *
-     */
-
-    /// \todo should add the unnormalized log probability interface
-    virtual FloatingPoint log_probability(const Obsrv& obsrv,
-                                          const State& state) const = 0;
-
-    virtual FloatingPoint probability(const Obsrv& obsrv,
-                                      const State& state) const
-    {
-        return std::exp(log_probability(obsrv, state));
-    }
-
-    virtual Eigen::Array<FloatingPoint, Eigen::Dynamic, 1> log_probabilities(
-        const Obsrv& obsrv,
-        const Eigen::Array<State, Eigen::Dynamic, 1>& states)
-    {
-        Eigen::Array<FloatingPoint, Eigen::Dynamic, 1> probs (states.size());
-
-        for (int i = 0; i < states.size(); ++i)
-        {
-            probs[i] = log_probability(obsrv, states[i]);
-        }
-
-        return probs;
-    }
-
-
-
-    virtual Eigen::Array<FloatingPoint, Eigen::Dynamic, 1> probabilities(
-        const Obsrv& obsrv,
-        const Eigen::Array<State, Eigen::Dynamic, 1>& states)
-    {
-        return log_probabilities(obsrv, states).exp();
-    }
-
-    /**
-     * \return Dimension of the state variable $\f$x\f$
-     */
-    virtual int state_dimension() const = 0;
-
-    /**
-     * \return Dimension of the measurement \f$h(x, w)\f$
-     */
-    virtual int obsrv_dimension() const = 0;
-};
-
-
-
-
 
 }
 
