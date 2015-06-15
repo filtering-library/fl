@@ -234,8 +234,8 @@ protected:
  */
 template <typename Obsrv_, typename State_>
 class LinearObservationModel
-    : public ObservationDensity<Obsrv_, State_>,
-      public AdditiveObservationFunction<Obsrv_, State_, Obsrv_>
+    : public ObservationDensity<Obsrv_, State_>,                  // p(y|x)
+      public AdditiveObservationFunction<Obsrv_, State_, Obsrv_>  // H*x + N*v
 {
 public:
     typedef Obsrv_ Obsrv;
