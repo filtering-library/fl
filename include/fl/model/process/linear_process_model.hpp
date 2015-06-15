@@ -26,6 +26,11 @@
 #include <fl/distribution/gaussian.hpp>
 #include <fl/model/process/process_model_interface.hpp>
 
+#include <fl/model/process/state_transition_density.hpp>
+#include <fl/model/process/additive_state_transition_function.hpp>
+
+
+
 namespace fl
 {
 
@@ -166,6 +171,133 @@ protected:
     DynamicsMatrix A_;
     double delta_time_;
 };
+
+
+
+/**
+ * \ingroup process_models
+ * \todo correct input parameter
+ */
+template <typename State, typename Input = Eigen::Matrix<double, 1, 1>>
+class LinearStateTransitionModel
+    : public StateTransitionDensity<State, Input>,
+      public AdditiveStateTransitionFunction<State, Input, State>
+{
+public:
+    /**
+     * Linear model density. The density for linear model is the Gaussian over
+     * state space.
+     */
+    typedef Gaussian<State> Density;
+
+    typedef Eigen::Matrix<
+                typename State::Scalar,
+                State::SizeAtCompileTime,
+                State::SizeAtCompileTime
+            > DynamicsMatrix;
+
+    typedef Eigen::Matrix<
+                typename State::Scalar,
+                State::SizeAtCompileTime,
+                Input::SizeAtCompileTime
+            > InputMatrix;
+
+    /**
+     * Observation model noise matrix \f$N_t\f$ use in
+     *
+     * \f$ y_t  = H_t x_t + N_t v_t\f$
+     *
+     * In this linear model, the noise model matrix is equivalent to the
+     * square root of the covariance of the model density. Hence, the
+     * NoiseMatrix type is the same type as the second moment of the density.
+     */
+    typedef typename Density::SecondMoment NoiseMatrix;
+public:
+
+    /// \todo: this model has to be fixed. i needs to implement the solution
+    /// to a linear differential equation
+    explicit
+    LinearStateTransitionModel(int state_dim = DimensionOf<State>(),
+                               int input_dim = DimensionOf<Input>())
+        : dynamics_matrix_(DynamicsMatrix::Identity(state_dim, state_dim)),
+          input_matrix_(InputMatrix::Identity(state_dim, input_dim)),
+          density_(state_dim)
+    {
+        /// \todo are dimension checks required?
+    }
+
+    /**
+     * \brief Overridable default constructor
+     */
+    ~LinearStateTransitionModel() { }
+
+    virtual State expected_state(const State& state,
+                                 const Input& input) const
+    {
+        return dynamics_matrix_ * state + input_matrix_ * input;
+    }
+
+    virtual FloatingPoint log_probability(const State& state,
+                                          const State& cond_state,
+                                          const Input& cond_input,
+                                          FloatingPoint dt) const
+    {
+        density_.mean(expected_state(cond_state, cond_input));
+
+        return density_.log_probability(state);
+    }
+
+    virtual const DynamicsMatrix& dynamics_matrix() const
+    {
+        return dynamics_matrix_;
+    }
+
+    virtual void dynamics_matrix(const DynamicsMatrix& dynamics_mat)
+    {
+        dynamics_matrix_ = dynamics_mat;
+    }
+
+    virtual const InputMatrix& input_matrix() const
+    {
+        return input_matrix_;
+    }
+
+    virtual void input_matrix(const InputMatrix& input_mat)
+    {
+        input_matrix_ = input_mat;
+    }
+
+    virtual const NoiseMatrix& noise_matrix() const
+    {
+        return density_.square_root();
+    }
+
+    virtual void noise_matrix(const NoiseMatrix& noise_mat)
+    {
+        density_.square_root(noise_mat);
+    }
+
+    virtual int state_dimension() const
+    {
+        return dynamics_matrix_.rows();
+    }
+
+    virtual int noise_dimension() const
+    {
+        return density_.square_root().cols();
+    }
+
+    virtual int input_dimension() const
+    {
+        return input_matrix_.cols();
+    }
+
+protected:
+    DynamicsMatrix dynamics_matrix_;
+    InputMatrix input_matrix_;
+    mutable Density density_;
+};
+
 
 }
 
