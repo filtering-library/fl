@@ -20,8 +20,8 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__MODEL__OBSERVATION__ADDITIVE_OBSERVATION_FUNCTION_HPP
-#define FL__MODEL__OBSERVATION__ADDITIVE_OBSERVATION_FUNCTION_HPP
+#ifndef FL__MODEL__PROCESS__ADDITIVE_STATE_TRANSITION_FUNCTION_HPP
+#define FL__MODEL__PROCESS__ADDITIVE_STATE_TRANSITION_FUNCTION_HPP
 
 #include <fl/util/traits.hpp>
 
@@ -31,13 +31,13 @@ namespace fl
 {
 
 template <
-    typename Obsrv,
     typename State,
+    typename Input,
     typename Noise,
     int Id = 0
 >
-class AdditiveProcessFunction
-    : public ProcessFunction<Obsrv, State, Noise, Id>
+class AdditiveStateTransitionFunction
+    : public StateTransitionFunction<State, Input, Noise, Id>
 {
 public:
 
@@ -50,17 +50,8 @@ public:
                 Noise::SizeAtCompileTime
             > NoiseMatrix;
 
-    /**
-     * Evaluates the model function \f$y = h(x, w)\f$ where \f$x\f$ is the state
-     * and \f$w\sim {\cal N}(0, 1)\f$ is a white noise parameter. Put
-     * differently, \f$y = h(x, w)\f$ is a sample from the conditional model
-     * distribution \f$p(y \mid x)\f$.
-     *
-     * \param state         The state variable \f$x\f$
-     * \param noise         The noise term \f$w\f$
-     * \param delta_time    Prediction time
-     */
-    virtual Obsrv expected_state(const State& state,
+
+    virtual State expected_state(const State& prev_state,
                                  const Input& input) const = 0;
 
     /**
@@ -70,10 +61,11 @@ public:
      */
     virtual const NoiseMatrix& noise_matrix() const = 0;
 
-    virtual State state(const State& state,
+    virtual State state(const State& prev_state,
+                        const Input& input,
                         const Noise& noise) const
     {
-        return expected_state(state, input) + noise_matrix() * noise;
+        return expected_state(prev_state, input) + noise_matrix() * noise;
     }
 };
 
