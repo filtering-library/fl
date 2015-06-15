@@ -45,10 +45,10 @@ public:
      * Noise model matrix \f$N_t\f$
      */
     typedef Eigen::Matrix<
-                typename Noise::Scalar,
-                Noise::SizeAtCompileTime,
-                Noise::SizeAtCompileTime
-            > NoiseMatrix;
+            typename Noise::Scalar,
+            Noise::SizeAtCompileTime,
+            Noise::SizeAtCompileTime
+        > NoiseMatrix;
 
     /**
      * Evaluates the model function \f$y = h(x, w)\f$ where \f$x\f$ is the state
