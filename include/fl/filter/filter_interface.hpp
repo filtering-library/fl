@@ -45,7 +45,7 @@ namespace fl
  * --------------------- | ---------------------------------- | ---------------
  * \c State              | Used State type                    | -
  * \c Input              | Process control input type         | -
- * \c Obsrv              | Used Obsrv type              | -
+ * \c Obsrv              | Used observation type              | -
  * \c StateDistribution  | Distribution type over the state   | must implement fl::Moments
  * \c Ptr                | Shared pointer of the derived type | must specialize std::shared_ptr<>
  */
@@ -106,9 +106,6 @@ public:
      * \param prior_dist        Prior state distribution
      * \param predicted_dist    Predicted state distribution
      */
-
-    /// \todo: should we have the posterior as the return argument?
-    /// this setup is dangerous if same distribution is passed as prior and predicted
     virtual void predict(double delta_time,
                          const Input& input,
                          const StateDistribution& prior_dist,
@@ -122,7 +119,7 @@ public:
      * \param posterior_dist    Updated posterior state distribution
      */
 
-    /// \todo: should we have the posterior as the return argument?
+    /// \todo: should we have the posterior as the  return argument?
     virtual void update(const Obsrv& observation,
                         const StateDistribution& predicted_dist,
                         StateDistribution& posterior_dist) = 0;
