@@ -23,6 +23,7 @@
 #ifndef FL__MODEL__OBSERVATION__OBSERVATION_DENSITY_HPP
 #define FL__MODEL__OBSERVATION__OBSERVATION_DENSITY_HPP
 
+#include <fl/util/types.hpp>
 #include <fl/util/traits.hpp>
 
 namespace fl
@@ -30,45 +31,20 @@ namespace fl
 
 template <
     typename Obsrv,
-    typename State
+    typename State,
+    int BatchSize = Eigen::Dynamic
 >
 class ObservationDensity
 {
 public:
-    /**
-     *
-     */
+    typedef Eigen::Array<State, BatchSize, 1 > StateArray;
+    typedef Eigen::Array<FloatingPoint, BatchSize, 1 > ValueArray;
 
+public:
     /// \todo should add the unnormalized log probability interface
+
     virtual FloatingPoint log_probability(const Obsrv& obsrv,
                                           const State& state) const = 0;
-
-    virtual FloatingPoint probability(const Obsrv& obsrv,
-                                      const State& state) const
-    {
-        return std::exp(log_probability(obsrv, state));
-    }
-
-    virtual Eigen::Array<FloatingPoint, Eigen::Dynamic, 1> log_probabilities(
-        const Obsrv& obsrv,
-        const Eigen::Array<State, Eigen::Dynamic, 1>& states)
-    {
-        Eigen::Array<FloatingPoint, Eigen::Dynamic, 1> probs (states.size());
-
-        for (int i = 0; i < states.size(); ++i)
-        {
-            probs[i] = log_probability(obsrv, states[i]);
-        }
-
-        return probs;
-    }
-
-    virtual Eigen::Array<FloatingPoint, Eigen::Dynamic, 1> probabilities(
-        const Obsrv& obsrv,
-        const Eigen::Array<State, Eigen::Dynamic, 1>& states)
-    {
-        return log_probabilities(obsrv, states).exp();
-    }
 
     /**
      * \return Dimension of the state variable $\f$x\f$
@@ -79,6 +55,32 @@ public:
      * \return Dimension of the measurement \f$h(x, w)\f$
      */
     virtual int obsrv_dimension() const = 0;
+
+
+    virtual FloatingPoint probability(const Obsrv& obsrv,
+                                      const State& state) const
+    {
+        return std::exp(log_probability(obsrv, state));
+    }
+
+    virtual ValueArray log_probabilities(const Obsrv& obsrv,
+                                         const StateArray& states)
+    {
+        auto probs = ValueArray(states.size());
+
+        for (int i = 0; i < states.size(); ++i)
+        {
+            probs[i] = log_probability(obsrv, states[i]);
+        }
+
+        return probs;
+    }
+
+    virtual ValueArray probabilities(const Obsrv& obsrv,
+                                     const StateArray& states)
+    {
+        return log_probabilities(obsrv, states).exp();
+    }
 };
 
 }
