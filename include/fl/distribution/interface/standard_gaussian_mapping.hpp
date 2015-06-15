@@ -58,7 +58,7 @@ public:
      * \param snv_dimension     Dimension of the standard normal variate
      */
     explicit StandardGaussianMapping(
-            size_t snv_dimension = DimensionOf<StandardVariate>())
+            int snv_dimension = DimensionOf<StandardVariate>())
         : standard_gaussian_(snv_dimension)
     { }
 
@@ -98,7 +98,7 @@ public:
      *
      * \param snv_dimension The new dimension of the SNV
      */
-    virtual void standard_variate_dimension(size_t snv_dimension)
+    virtual void standard_variate_dimension(int snv_dimension)
     {
         standard_gaussian_.dimension(snv_dimension);
     }
