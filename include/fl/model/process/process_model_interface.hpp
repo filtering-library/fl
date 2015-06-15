@@ -109,16 +109,16 @@ template <
     typename Noise_,
     int Id = 0
 >
-class ProcessFunction
+class StateTransitionFunction
 {
 public:
     typedef State_ State;
     typedef Input_ Input;
     typedef Noise_ Noise;
 
-    virtual state(const State& state,
-                  const Noise& noise,
-                  const Input) const = 0;
+    virtual void state(const State& prev_state,
+                       const Noise& noise,
+                       const Input& input) const = 0;
 
     /**
      * \return Dimension of the state variable $\f$x\f$
