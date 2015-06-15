@@ -144,15 +144,18 @@ public:
 };
 
 template <
-    typename Obsrv,
-    typename State,
+    typename Obsrv_,
+    typename State_,
     typename Noise_,
     int Id = 0
 >
 class ObservationFunction
 {
 public:
-        typedef Noise_ Noise;
+    typedef Obsrv_ Obsrv;
+    typedef State_ State;
+    typedef Noise_ Noise;
+
     /**
      * Evaluates the model function \f$y = h(x, w)\f$ where \f$x\f$ is the state
      * and \f$w\sim {\cal N}(0, 1)\f$ is a white noise parameter. Put
