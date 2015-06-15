@@ -100,6 +100,60 @@ public:
     virtual constexpr int input_dimension() const = 0;
 };
 
+
+
+
+template <
+    typename State_,
+    typename Input_,
+    typename Noise_,
+    int Id = 0
+>
+class ProcessFunction
+{
+public:
+    typedef State_ State;
+    typedef Input_ Input;
+    typedef Noise_ Noise;
+
+    virtual state(const State& state,
+                  const Noise& noise,
+                  const Input) const = 0;
+
+    /**
+     * \return Dimension of the state variable $\f$x\f$
+     */
+    virtual int state_dimension() const = 0;
+
+    /**
+     * \return Dimension of the noise term \f$w\f$
+     */
+    virtual int noise_dimension() const = 0;
+
+    /**
+     * \return Dimension of the input \f$u_t\f$
+     */
+    virtual int input_dimension() const = 0;
+
+    /**
+     * \return Model id number
+     *
+     * In case of multiple sensors of the same kind, this function returns the
+     * id of the individual model.
+     */
+    virtual int id() const { return Id; }
+
+    /**
+     * Sets the model id
+     *
+     * \param new_id    Model's new ID
+     */
+    virtual void id(int) { /* const ID */ }
+};
+
+
+
+
 }
 
 #endif
