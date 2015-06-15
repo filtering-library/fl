@@ -213,40 +213,36 @@ protected:
 };
 
 
-
-
-// Forward declarations
-template <typename Obsrv, typename State> class LinearObservationModel;
-
 /**
  * \ingroup observation_models
  *
- * Linear Gaussian observation model traits. This trait definition contains all
- * types used internally within the model.
+ * This represents the linear gaussian observation model \f$p(y_t \mid x_t)\f$
+ * governed by the linear equation
+ *
+ * \f$ y_t  = H_t x_t + N_t v_t \f$
+ *
+ * where \f$ y_t\f$ is the observation, \f$ x_t\f$ is the state. The matrix
+ * \f$H_t\f$ is the sensor model mapping the state into the observation space.
+ * The vector \f$ v_t \sim {\cal N}(v_t; 0, I)\f$ is a standard normal variate
+ * which is mapped into the the observation space via the noise model matrix
+ * \f$N_t\f$. Any Gaussian noise \f$\tilde{v}_t \sim {\cal N}(\tilde{v}_t ; 0,
+ * R_t) \f$ can be represented via \f$\tilde{v}_t = N_t v_t\f$ with\f$N_t
+ * = \sqrt{R_t}\f$. Hence, the linear equation may be restated as the more
+ * familiar but equivalent form
+ *
+ * \f$ y_t  = H_t x_t + \tilde{v}_t \f$.
  */
-template <typename Obsrv_, typename State_>
-struct Traits<LinearObservationModel<Obsrv_, State_>>
+template <typename Obsrv, typename State>
+class LinearObservationModel
+    : public ObservationDensity<Obsrv, State>,                  // p(y|x)
+      public AdditiveObservationFunction<Obsrv, State, Obsrv>   // H*x + N*v
+
 {
-    /**
-     * State (\f$x_t\f$) type
-     */
-    typedef State_ State;
+private:
+    /** Typdef of \c This for #from_traits(TypeName) helper */
+    typedef LinearObservationModel<Obsrv, State> This;
 
-    /**
-     * Observation (\f$y_t\f$) type
-     */
-    typedef Obsrv_ Obsrv;
-
-    /**
-     * Models ObservationDensity interface type
-     */
-    typedef ObservationDensity<Obsrv, State> DensityBase;
-
-    /**
-     * Models AdditiveObservationFunction interface type
-     */
-    typedef AdditiveObservationFunction<Obsrv, State, Obsrv> FunctionBase;
-
+public:
     /**
      * Linear model density. The density for linear model is the Gaussian over
      * observation space.
@@ -273,43 +269,7 @@ struct Traits<LinearObservationModel<Obsrv_, State_>>
      * square root of the covariance of the model density. Hence, the
      * NoiseMatrix type is the same type as the second moment of the density.
      */
-    typedef typename Traits<Density>::SecondMoment NoiseMatrix;
-};
-
-
-/**
- * \ingroup observation_models
- *
- * This represents the linear gaussian observation model \f$p(y_t \mid x_t)\f$
- * governed by the linear equation
- *
- * \f$ y_t  = H_t x_t + N_t v_t \f$
- *
- * where \f$ y_t\f$ is the observation, \f$ x_t\f$ is the state. The matrix
- * \f$H_t\f$ is the sensor model mapping the state into the observation space.
- * The vector \f$ v_t \sim {\cal N}(v_t; 0, I)\f$ is a standard normal variate
- * which is mapped into the the observation space via the noise model matrix
- * \f$N_t\f$. Any Gaussian noise \f$\tilde{v}_t \sim {\cal N}(\tilde{v}_t ; 0,
- * R_t) \f$ can be represented via \f$\tilde{v}_t = N_t v_t\f$ with\f$N_t
- * = \sqrt{R_t}\f$. Hence, the linear equation may be restated as the more
- * familiar but equivalent form
- *
- * \f$ y_t  = H_t x_t + \tilde{v}_t \f$.
- */
-template <typename Obsrv, typename State>
-class LinearObservationModel
-    : public Traits<LinearObservationModel<Obsrv, State>>::DensityBase,
-      public Traits<LinearObservationModel<Obsrv, State>>::FunctionBase
-
-{
-private:
-    /** Typdef of \c This for #from_traits(TypeName) helper */
-    typedef LinearObservationModel<Obsrv, State> This;
-
-public:
-    typedef from_traits(Density);
-    typedef from_traits(NoiseMatrix);
-    typedef from_traits(SensorMatrix);
+    typedef typename Density::SecondMoment NoiseMatrix;
 
 public:
     /**
