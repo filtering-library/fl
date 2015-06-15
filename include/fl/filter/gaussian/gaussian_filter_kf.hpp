@@ -49,59 +49,16 @@ template <typename...> class GaussianFilter;
  *
  * Traits of the Linear GaussianFilter (KalmanFilter)
  */
-template <typename State_,typename Input_,typename Obsrv_>
+template <typename X, typename U, typename Y>
 struct Traits<
            GaussianFilter<
-               LinearGaussianProcessModel<State_, Input_>,
-               LinearGaussianObservationModel<Obsrv_, State_>>>
+               LinearGaussianProcessModel<X, U>,
+               LinearObservationModel<Y, X>>>
 {
-    /**
-     * \brief Process model definition.
-     * The process model of the KalmanFilter is always the
-     * \c LinearGaussianProcessModel taking a \c State and an \c Input type as
-     * the only parameter types.
-     */
-    typedef LinearGaussianProcessModel<State_, Input_> ProcessModel;
+    typedef X State;
+    typedef U Input;
+    typedef Y Obsrv;
 
-    /**
-     * \brief Observation model definition.
-     * The observation model of the KalmanFilter is always the
-     * \c LinearGaussianObservationModel taking an \c Obsrv and a
-     * \c State type as the only parameters.
-     */
-    typedef LinearGaussianObservationModel<
-                Obsrv_,
-                State_
-            > ObservationModel;
-
-    /**
-     * \brief Represents KalmanFilter definition.
-     * The KalmanFilter type is represented by the GaussianFilter using
-     * the linear Gaussian Models.
-     */
-    typedef GaussianFilter<
-                LinearGaussianProcessModel<State_, Input_>,
-                LinearGaussianObservationModel<Obsrv_, State_>
-             > Filter;
-
-    /*
-     * Required concept (interface) types
-     *
-     * - Ptr
-     * - State
-     * - Input
-     * - Observation
-     * - StateDistribution
-     */
-    typedef typename Traits<ProcessModel>::State State;
-    typedef typename Traits<ProcessModel>::Input Input;
-    typedef typename Traits<ObservationModel>::Obsrv Obsrv;
-
-    /**
-     * \brief Represents the underlying distribution of the estimated state.
-     * In the case of the Kalman filter, the distribution is a simple Gaussian
-     * with the dimension of the \c State
-     */
     typedef Gaussian<State> StateDistribution;
 };
 
@@ -121,25 +78,28 @@ struct Traits<
 template <typename State, typename Input, typename Obsrv>
 class GaussianFilter<
           LinearGaussianProcessModel<State, Input>,
-          LinearGaussianObservationModel<Obsrv, State>>
+          LinearObservationModel<Obsrv, State>>
     :
     /* Implement the conceptual filter interface */
     public FilterInterface<
                GaussianFilter<
                    LinearGaussianProcessModel<State, Input>,
-                   LinearGaussianObservationModel<Obsrv, State>>>
+                   LinearObservationModel<Obsrv, State>>>
 {
-private:
-    /** Typdef of \c This for #from_traits(TypeName) helper */
-    typedef GaussianFilter<
-                LinearGaussianProcessModel<State, Input>,
-                LinearGaussianObservationModel<Obsrv, State>
-            > This;
 
 public:
-    /* public concept interface types */
-    typedef from_traits(ObservationModel);
-    typedef from_traits(ProcessModel);
+    typedef LinearGaussianProcessModel<State, Input> ProcessModel;
+    typedef LinearObservationModel<Obsrv, State> ObservationModel;
+
+public:
+    /** Typdef of \c This for #from_traits(TypeName) helper */
+    typedef GaussianFilter<ProcessModel, ObservationModel> This;
+
+    /**
+     * \brief Represents the underlying distribution of the estimated state.
+     * In the case of the Kalman filter, the distribution is a simple Gaussian
+     * with the dimension of the \c State
+     */
     typedef from_traits(StateDistribution);
 
 public:
@@ -213,13 +173,13 @@ public:
                         const StateDistribution& predicted_dist,
                         StateDistribution& posterior_dist)
     {
-        auto&& H = obsrv_model_.H();
-        auto&& R = obsrv_model_.covariance();
+        auto&& H = obsrv_model_.sensor_matrix();
+        auto&& N = obsrv_model_.noise_matrix();
 
         auto&& mean = predicted_dist.mean();
         auto&& cov_xx = predicted_dist.covariance();
 
-        auto S = (H * cov_xx * H.transpose() + R).eval();
+        auto S = (H * cov_xx * H.transpose() + N * N.transpose()).eval();
         auto K = (cov_xx * H.transpose() * S.inverse()).eval();
 
         posterior_dist.mean(mean + K * (y - H * mean));
