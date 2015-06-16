@@ -247,7 +247,7 @@ public:
         return density_.log_probability(state);
     }
 
-    virtual const DynamicsMatrix& dynamics_matrix() const
+    virtual DynamicsMatrix dynamics_matrix() const
     {
         return dynamics_matrix_;
     }
@@ -257,7 +257,7 @@ public:
         dynamics_matrix_ = dynamics_mat;
     }
 
-    virtual const InputMatrix& input_matrix() const
+    virtual InputMatrix input_matrix() const
     {
         return input_matrix_;
     }
@@ -267,14 +267,24 @@ public:
         input_matrix_ = input_mat;
     }
 
-    virtual const NoiseMatrix& noise_matrix() const
+    virtual NoiseMatrix noise_matrix() const
     {
         return density_.square_root();
+    }
+
+    virtual NoiseMatrix noise_matrix_squared() const
+    {
+        return density_.covariance();
     }
 
     virtual void noise_matrix(const NoiseMatrix& noise_mat)
     {
         density_.square_root(noise_mat);
+    }
+
+    virtual void noise_matrix_squared(const NoiseMatrix& noise_mat_squared)
+    {
+        density_.covariance(noise_mat_squared);
     }
 
     virtual int state_dimension() const

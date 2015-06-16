@@ -54,12 +54,9 @@ public:
     virtual State expected_state(const State& prev_state,
                                  const Input& input) const = 0;
 
-    /**
-     * \brief noise_model
-     *
-     * \return
-     */
-    virtual const NoiseMatrix& noise_matrix() const = 0;
+    virtual NoiseMatrix noise_matrix() const = 0;
+
+    virtual NoiseMatrix noise_matrix_squared() const = 0;
 
     virtual State state(const State& prev_state,
                         const Input& input,
