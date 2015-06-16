@@ -51,6 +51,17 @@ target_link_libraries(particle_filter_test
 
 
 
+
+
+catkin_add_gtest(binary_transition_density_test
+                 model/binary_transition_density_test.cpp
+                 gtest_main.cpp)
+target_link_libraries(binary_transition_density_test
+                      ${catkin_LIBRARIES})
+
+
+
+
 # == require refactoring ===================================================== #
 
 
