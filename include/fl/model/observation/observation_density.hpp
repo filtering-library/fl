@@ -83,6 +83,72 @@ public:
     }
 };
 
+
+
+
+template <
+    typename Obsrv,
+    typename State,
+    int BatchSize = Eigen::Dynamic
+>
+class SwitchingObservationDensity
+{
+public:
+    typedef Eigen::Array<State, BatchSize, 1 >          StateArray;
+    typedef Eigen::Array<FloatingPoint, BatchSize, 1 >  ValueArray;
+    typedef Eigen::Array<int, BatchSize, 1 >            IndexArray;
+
+
+public:
+    /// \todo should add the unnormalized log probability interface
+
+    virtual FloatingPoint log_probability(const Obsrv& obsrv,
+                                          const State& state,
+                                          const int&   index) const = 0;
+
+    /**
+     * \return Dimension of the state variable $\f$x\f$
+     */
+    virtual int state_dimension() const = 0;
+
+    /**
+     * \return Dimension of the measurement \f$h(x, w)\f$
+     */
+    virtual int obsrv_dimension() const = 0;
+
+
+    virtual FloatingPoint probability(const Obsrv& obsrv,
+                                      const State& state,
+                                      const int&   index) const
+    {
+        return std::exp(log_probability(obsrv, state, index));
+    }
+
+    virtual ValueArray log_probabilities(const Obsrv& obsrv,
+                                         const StateArray& states,
+                                         const IndexArray& indices)
+    {
+        auto probs = ValueArray(states.size());
+
+        for (int i = 0; i < states.size(); ++i)
+        {
+            probs[i] = log_probability(obsrv, states[i], indices[i]);
+        }
+
+        return probs;
+    }
+
+    virtual ValueArray probabilities(const Obsrv& obsrv,
+                                     const StateArray& states,
+                                     const IndexArray& indices)
+    {
+        return log_probabilities(obsrv, states, indices).exp();
+    }
+};
+
+
+
+
 }
 
 #endif
