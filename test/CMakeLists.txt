@@ -5,6 +5,12 @@ catkin_add_gtest(linear_observation_models_test
                  gtest_main.cpp)
 target_link_libraries(linear_observation_models_test ${catkin_LIBRARIES})
 
+# == state transition model tests ============================================ #
+catkin_add_gtest(linear_state_transition_model_test
+                 model/state_transition/linear_state_transition_model_test.cpp
+                 gtest_main.cpp)
+target_link_libraries(linear_state_transition_model_test ${catkin_LIBRARIES})
+
 # ==filter interface test ==================================================== #
 catkin_add_gtest(filter_interface_test
                  filter_interface/filter_interface_test.cpp
