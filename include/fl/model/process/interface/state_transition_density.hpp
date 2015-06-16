@@ -44,15 +44,10 @@ public:
 public:
     /// \todo should add the unnormalized log probability interface
 
-    /**
-     * \brief log_probability
-     * \param state
-     * \param input
-     * \param dt
-     * \return
-     */
+
     virtual FloatingPoint log_probability(const State& state,
-                                          const Input& input,
+                                          const State& cond_state,
+                                          const Input& cond_input,
                                           FloatingPoint dt) const = 0;
 
     /**
@@ -67,33 +62,39 @@ public:
 
 
     virtual FloatingPoint probability(const State& state,
-                                      const Input& input,
+                                      const State& cond_state,
+                                      const Input& cond_input,
                                       FloatingPoint dt) const
     {
-        return std::exp(log_probability(state, input, dt));
+        return std::exp(log_probability(state, cond_state, cond_input, dt));
     }
 
     virtual ValueArray log_probabilities(const StateArray& states,
-                                         const InputArray& inputs,
-                                         FloatingPoint dt)
+                                         const StateArray& cond_states,
+                                         const InputArray& cond_inputs,
+                                         FloatingPoint dt) const
     {
-        assert(states.size() == inputs.size());
+        assert(states.size() == cond_inputs.size());
 
         auto probs = ValueArray(states.size());
 
         for (int i = 0; i < states.size(); ++i)
         {
-            probs[i] = log_probability(states[i], inputs[i], dt);
+            probs[i] = log_probability(states[i],
+                                       cond_states[i],
+                                       cond_inputs[i],
+                                       dt);
         }
 
         return probs;
     }
 
     virtual ValueArray probabilities(const StateArray& states,
-                                     const InputArray& inputs,
+                                     const StateArray& cond_states,
+                                     const InputArray& cond_inputs,
                                      FloatingPoint dt)
     {
-        return log_probabilities(states, inputs, dt).exp();
+        return log_probabilities(states, cond_inputs, cond_inputs, dt).exp();
     }
 };
 

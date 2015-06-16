@@ -116,9 +116,9 @@ public:
     typedef Input_ Input;
     typedef Noise_ Noise;
 
-    virtual void state(const State& prev_state,
-                       const Noise& noise,
-                       const Input& input) const = 0;
+    virtual State state(const State& prev_state,
+                        const Input& input,
+                        const Noise& noise) const = 0;
 
     /**
      * \return Dimension of the state variable $\f$x\f$

@@ -178,7 +178,7 @@ protected:
  * \ingroup process_models
  * \todo correct input parameter
  */
-template <typename State, typename Input = Eigen::Matrix<double, 1, 1>>
+template <typename State, typename Input>
 class LinearStateTransitionModel
     : public StateTransitionDensity<State, Input>,
       public AdditiveStateTransitionFunction<State, Input, State>
