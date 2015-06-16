@@ -42,22 +42,20 @@ TEST(KalmanFilterTests, init_fixed_size_predict)
     typedef Eigen::Matrix<Scalar, 1 , 1> Input;
     typedef Eigen::Matrix<Scalar, 20, 1> Obsrv;
 
-    typedef LinearGaussianProcessModel<State, Input> LinearProcess;
+    typedef LinearStateTransitionModel<State, Input> LinearProcess;
     typedef LinearObservationModel<Obsrv, State> LinearObservation;
 
     // the KalmanFilter
-    typedef GaussianFilter<LinearProcess, LinearObservation> Algo;
-    typedef FilterInterface<Algo> Filter;
-
-    LinearProcess::SecondMoment Q = LinearProcess::SecondMoment::Identity();
-    Filter&& filter = Algo(LinearProcess(Q), LinearObservation());
-
+    typedef GaussianFilter<LinearProcess, LinearObservation> Filter;
+    auto filter = Filter(LinearProcess(), LinearObservation());
     Filter::StateDistribution state_dist;
 
     EXPECT_TRUE(state_dist.mean().isZero());
     EXPECT_TRUE(state_dist.covariance().isIdentity());
 
     filter.predict(1.0, Input(1), state_dist, state_dist);
+
+    auto Q = filter.process_model().noise_matrix_squared();
 
     EXPECT_TRUE(state_dist.mean().isZero());
     EXPECT_TRUE(fl::are_similar(state_dist.covariance(), 2. * Q));
@@ -72,23 +70,16 @@ TEST(KalmanFilterTests, init_dynamic_size_predict)
 
     const int dim_state = 10;
     const int dim_obsrv = 20;
+    const int dim_input = 1;
 
-    typedef LinearGaussianProcessModel<State, Input> LinearProcess;
+    typedef LinearStateTransitionModel<State, Input> LinearProcess;
     typedef LinearObservationModel<Obsrv, State> LinearObservation;
 
     // the KalmanFilter
-    typedef GaussianFilter<LinearProcess, LinearObservation> Algo;
-    typedef FilterInterface<Algo> Filter;
+    typedef GaussianFilter<LinearProcess, LinearObservation> Filter;
 
-    LinearProcess::SecondMoment Q =
-        LinearProcess::SecondMoment::Identity(dim_state, dim_state);
-
-//    Traits<ObservationModel>::SecondMoment R =
-//        Traits<ObservationModel>::SecondMoment::Identity(dim_obsrv, dim_obsrv);
-
-    Filter&& filter = Algo(
-        LinearProcess(Q, dim_state),
-        LinearObservation(dim_obsrv, dim_state));
+    auto filter = Filter(LinearProcess(dim_state, dim_input),
+                         LinearObservation(dim_obsrv, dim_state));
 
     auto state_dist  = Filter::StateDistribution(dim_state);
 
@@ -96,6 +87,8 @@ TEST(KalmanFilterTests, init_dynamic_size_predict)
     EXPECT_TRUE(state_dist.covariance().isIdentity());
 
     filter.predict(1.0, Input(1), state_dist, state_dist);
+
+    auto Q = filter.process_model().noise_matrix_squared();
 
     EXPECT_TRUE(state_dist.mean().isZero());
     EXPECT_TRUE(fl::are_similar(state_dist.covariance(), 2. * Q));
