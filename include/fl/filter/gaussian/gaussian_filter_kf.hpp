@@ -52,7 +52,7 @@ template <typename...> class GaussianFilter;
 template <typename X, typename U, typename Y>
 struct Traits<
            GaussianFilter<
-               LinearGaussianProcessModel<X, U>,
+               LinearStateTransitionModel<X, U>,
                LinearObservationModel<Y, X>>>
 {
     typedef X State;
@@ -77,18 +77,18 @@ struct Traits<
  */
 template <typename State, typename Input, typename Obsrv>
 class GaussianFilter<
-          LinearGaussianProcessModel<State, Input>,
+          LinearStateTransitionModel<State, Input>,
           LinearObservationModel<Obsrv, State>>
     :
     /* Implement the conceptual filter interface */
     public FilterInterface<
                GaussianFilter<
-                   LinearGaussianProcessModel<State, Input>,
+                   LinearStateTransitionModel<State, Input>,
                    LinearObservationModel<Obsrv, State>>>
 {
 
 public:
-    typedef LinearGaussianProcessModel<State, Input> ProcessModel;
+    typedef LinearStateTransitionModel<State, Input> ProcessModel;
     typedef LinearObservationModel<Obsrv, State> ObservationModel;
 
 public:
@@ -139,13 +139,14 @@ public:
                          const StateDistribution& prior_dist,
                          StateDistribution& predicted_dist)
     {
-        auto A = (process_model_.A() * delta_time).eval();
-        auto Q = (process_model_.covariance() * delta_time).eval();
+        auto A = process_model_.dynamics_matrix();
+        auto B = process_model_.input_matrix();
+        auto Q = process_model_.noise_matrix_squared();
 
         predicted_dist.mean(
-            A * prior_dist.mean());
+            (A * prior_dist.mean() + B * input) * delta_time);
         predicted_dist.covariance(
-            A * prior_dist.covariance() * A.transpose() + Q);
+            A * prior_dist.covariance() * A.transpose() * delta_time * delta_time  + Q * delta_time);
     }
 
     /**

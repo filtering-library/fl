@@ -54,13 +54,11 @@ catkin_add_gtest(particle_filter_test
 target_link_libraries(particle_filter_test
                       ${catkin_LIBRARIES})
 
-
 catkin_add_gtest(particle_filter_fixture_test
                  particle_filter/particle_filter_fixture_test.cpp
                  gtest_main.cpp)
 target_link_libraries(particle_filter_fixture_test
                       ${catkin_LIBRARIES})
-
 
 
 # == require refactoring ===================================================== #
