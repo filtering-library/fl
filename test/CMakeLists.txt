@@ -62,6 +62,13 @@ target_link_libraries(particle_filter_fixture_test
                       ${catkin_LIBRARIES})
 
 
+catkin_add_gtest(frb_particle_filter_test
+                 particle_filter/frb_particle_filter_test.cpp
+                 gtest_main.cpp)
+target_link_libraries(frb_particle_filter_test
+                      ${catkin_LIBRARIES})
+
+
 
 
 
