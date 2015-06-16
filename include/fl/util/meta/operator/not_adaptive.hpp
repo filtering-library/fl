@@ -29,8 +29,8 @@
 #include <fl/util/traits.hpp>
 #include <fl/util/meta.hpp>
 #include <fl/model/adaptive_model.hpp>
-#include <fl/model/process/process_model_interface.hpp>
-#include <fl/model/observation/observation_model_interface.hpp>
+#include <fl/model/process/interface/process_model_interface.hpp>
+#include <fl/model/observation/interface/observation_model_interface.hpp>
 
 namespace fl
 {
