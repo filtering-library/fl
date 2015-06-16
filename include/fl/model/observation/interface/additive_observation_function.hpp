@@ -25,7 +25,7 @@
 
 #include <fl/util/traits.hpp>
 
-#include <fl/model/observation/observation_model_interface.hpp>
+#include <fl/model/observation/interface/observation_model_interface.hpp>
 
 namespace fl
 {

@@ -25,7 +25,7 @@
 
 #include <fl/util/traits.hpp>
 
-#include <fl/model/process/process_model_interface.hpp>
+#include <fl/model/process/interface/process_model_interface.hpp>
 
 namespace fl
 {

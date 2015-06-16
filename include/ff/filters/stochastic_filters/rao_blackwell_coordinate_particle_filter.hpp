@@ -42,7 +42,7 @@
 #include <fl/distribution/discrete_distribution.hpp>
 #include <fl/distribution/standard_gaussian.hpp>
 #include <fl/distribution/interface/standard_gaussian_mapping.hpp>
-#include <fl/model/process/process_model_interface.hpp>
+#include <fl/model/process/interface/process_model_interface.hpp>
 
 #include <ff/models/observation_models/interfaces/rao_blackwell_observation_model.hpp>
 

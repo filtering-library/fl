@@ -28,7 +28,7 @@
 #include <fl/util/assertions.hpp>
 #include <fl/distribution/gaussian.hpp>
 #include <fl/distribution/interface/standard_gaussian_mapping.hpp>
-#include <fl/model/process/process_model_interface.hpp>
+#include <fl/model/process/interface/process_model_interface.hpp>
 #include <fl/model/process/damped_wiener_process_model.hpp>
 
 namespace fl

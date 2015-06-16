@@ -32,7 +32,7 @@
 #include <fl/distribution/gaussian.hpp>
 
 #include <fl/model/adaptive_model.hpp>
-#include <fl/model/observation/observation_model_interface.hpp>
+#include <fl/model/observation/interface/observation_model_interface.hpp>
 
 namespace fl
 {
