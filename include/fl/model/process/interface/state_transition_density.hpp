@@ -94,7 +94,7 @@ public:
                                      const InputArray& cond_inputs,
                                      FloatingPoint dt)
     {
-        return log_probabilities(states, cond_inputs, cond_inputs, dt).exp();
+        return log_probabilities(states, cond_states, cond_inputs, dt).exp();
     }
 };
 
