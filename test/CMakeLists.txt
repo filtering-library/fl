@@ -11,6 +11,12 @@ catkin_add_gtest(linear_state_transition_model_test
                  gtest_main.cpp)
 target_link_libraries(linear_state_transition_model_test ${catkin_LIBRARIES})
 
+catkin_add_gtest(binary_transition_density_test
+                 model/binary_transition_density_test.cpp
+                 gtest_main.cpp)
+target_link_libraries(binary_transition_density_test
+                      ${catkin_LIBRARIES})
+
 # ==filter interface test ==================================================== #
 catkin_add_gtest(filter_interface_test
                  filter_interface/filter_interface_test.cpp
@@ -59,18 +65,6 @@ catkin_add_gtest(particle_filter_fixture_test
                  gtest_main.cpp)
 target_link_libraries(particle_filter_fixture_test
                       ${catkin_LIBRARIES})
-
-
-
-
-catkin_add_gtest(binary_transition_density_test
-                 model/binary_transition_density_test.cpp
-                 gtest_main.cpp)
-target_link_libraries(binary_transition_density_test
-                      ${catkin_LIBRARIES})
-
-
-
 
 # == require refactoring ===================================================== #
 
