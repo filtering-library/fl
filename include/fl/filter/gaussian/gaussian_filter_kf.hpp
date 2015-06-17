@@ -134,19 +134,41 @@ public:
      *
      * \f$ \bar{\Sigma}_{t} = A\hat{\Sigma}_{t}A^T + Q \f$
      */
-    virtual void predict(double delta_time,
+    virtual void predict(FloatingPoint delta_time,
                          const Input& input,
                          const StateDistribution& prior_dist,
                          StateDistribution& predicted_dist)
     {
+        int integration_steps =
+            std::round(delta_time / process_model_.discretization_time_step());
+
         auto A = process_model_.dynamics_matrix();
         auto B = process_model_.input_matrix();
         auto Q = process_model_.noise_matrix_squared();
 
+        auto A_pow_k = A;
+        auto sum_A_pow_i= A;
+        auto sum_A_pow_i_Q_AT_pow_i = Q;
+
+        A_pow_k.setIdentity();
+        sum_A_pow_i.setZero();
+        sum_A_pow_i_Q_AT_pow_i.setZero();
+
+        for (int i = 0; i < integration_steps; ++i)
+        {
+            sum_A_pow_i += A_pow_k;
+            sum_A_pow_i_Q_AT_pow_i += A_pow_k * Q * A_pow_k.transpose();
+
+            A_pow_k = A_pow_k * A;
+        }
+
         predicted_dist.mean(
-            (A * prior_dist.mean() + B * input) * delta_time);
+            A_pow_k * prior_dist.mean()
+            + sum_A_pow_i * B * input);
+
         predicted_dist.covariance(
-            A * prior_dist.covariance() * A.transpose() * delta_time * delta_time  + Q * delta_time);
+            A_pow_k * prior_dist.covariance() * A_pow_k.transpose()
+            + sum_A_pow_i_Q_AT_pow_i);
     }
 
     /**
@@ -174,13 +196,13 @@ public:
                         const StateDistribution& predicted_dist,
                         StateDistribution& posterior_dist)
     {
-        auto&& H = obsrv_model_.sensor_matrix();
-        auto&& N = obsrv_model_.noise_matrix();
+        auto H = obsrv_model_.sensor_matrix();
+        auto R = obsrv_model_.noise_matrix_squared();
 
         auto&& mean = predicted_dist.mean();
         auto&& cov_xx = predicted_dist.covariance();
 
-        auto S = (H * cov_xx * H.transpose() + N * N.transpose()).eval();
+        auto S = (H * cov_xx * H.transpose() + R).eval();
         auto K = (cov_xx * H.transpose() * S.inverse()).eval();
 
         posterior_dist.mean(mean + K * (y - H * mean));
