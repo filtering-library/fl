@@ -282,7 +282,8 @@ public:
           density_(obsrv_dim)
 
     {
-        /// \todo are dimension checks required?
+        assert(obsrv_dim > 0);
+        assert(state_dim > 0);
     }
 
     /**
@@ -328,6 +329,16 @@ public:
         density_.square_root(noise_mat);
     }
 
+    virtual NoiseMatrix noise_matrix_squared() const
+    {
+        return density_.covariance();
+    }
+
+    virtual void noise_matrix_squared(const NoiseMatrix& noise_mat_squared)
+    {
+        density_.covariance(noise_mat_squared);
+    }
+
     virtual int obsrv_dimension() const
     {
         return sensor_matrix_.rows();
@@ -341,6 +352,20 @@ public:
     virtual int state_dimension() const
     {
         return sensor_matrix_.cols();
+    }
+
+    virtual SensorMatrix create_sensor_matrix() const
+    {
+        auto H = sensor_matrix();
+        H.setIdentity();
+        return H;
+    }
+
+    virtual NoiseMatrix create_noise_matrix() const
+    {
+        auto N = noise_matrix();
+        N.setIdentity();
+        return N;
     }
 
 protected:
