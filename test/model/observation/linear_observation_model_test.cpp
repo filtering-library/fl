@@ -79,7 +79,7 @@ public:
     template <typename Model>
     void sensor_matrix_value_test(Model&& model)
     {
-        auto sensor_matrix = model.sensor_matrix();
+        auto sensor_matrix = model.create_sensor_matrix();
         sensor_matrix.setRandom();
         model.sensor_matrix(sensor_matrix);
         EXPECT_TRUE(fl::are_similar(model.sensor_matrix(), sensor_matrix));
@@ -88,7 +88,7 @@ public:
     template <typename Model>
     void noise_matrix_value_test(Model&& model)
     {
-        auto noise_matrix = model.noise_matrix();
+        auto noise_matrix = model.create_noise_matrix();
         noise_matrix.setRandom();
         model.noise_matrix(noise_matrix);
         EXPECT_TRUE(fl::are_similar(model.noise_matrix(), noise_matrix));
