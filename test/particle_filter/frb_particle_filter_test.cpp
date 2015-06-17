@@ -86,7 +86,7 @@ Eigen::Matrix<double, 3, 3> some_rotation()
 }
 
 
-TEST(particle_filter, predict)
+TEST(frb_particle_filter, predict)
 {
     typedef Eigen::Matrix<double, 3, 1> State;
     typedef Eigen::Matrix<double, 3, 1> Observation;

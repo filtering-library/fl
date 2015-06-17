@@ -201,6 +201,40 @@ public:
             posterior_dist = predicted_dist;
         }
 
+        int global_dim = trans_function_.state_dimension();
+        int local_dim = switch_densities_.size();
+
+        auto delta_log_prob =
+                StateDistribution::Function::Zero(predicted_dist.size());
+
+        for(int s = 0; s < predicted_dist.size(); s++)
+        {
+            Eigen::VectorXd& global_state =
+                    predicted_dist.location(s).topRows(global_dim);
+
+            Eigen::VectorXd& local_state =
+                    predicted_dist.location(s).bottomRows(local_dim);
+
+            for(int o = 0; o < obsrv.size(); o++)
+            {
+                FloatingPoint p_given1 =
+                        obsrv_densities_[o,1].probability(obsrv[o], global_state);
+
+                FloatingPoint p_given0 =
+                        obsrv_densities_[o,0].probability(obsrv[o], global_state);
+
+                FloatingPoint p =   p_given0 * (1. - local_state[o])
+                                  + p_given1 * local_state[o];
+
+            // there is a problem if we want to use this filter for tracking:
+            // in tracking we only update the stuff which needs to be updated,
+            // not all sensors are updated
+            }
+
+
+        }
+
+
         // update the weights of the particles with the likelihoods
         posterior_dist.delta_log_prob_mass(
              obsrv_density_.log_probabilities(obsrv, predicted_dist.locations()));
