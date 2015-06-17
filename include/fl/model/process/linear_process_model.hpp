@@ -202,28 +202,19 @@ public:
                 Input::SizeAtCompileTime
             > InputMatrix;
 
-    /**
-     * Observation model noise matrix \f$N_t\f$ use in
-     *
-     * \f$ y_t  = H_t x_t + N_t v_t\f$
-     *
-     * In this linear model, the noise model matrix is equivalent to the
-     * square root of the covariance of the model density. Hence, the
-     * NoiseMatrix type is the same type as the second moment of the density.
-     */
     typedef typename Density::SecondMoment NoiseMatrix;
 public:
 
-    /// \todo: this model has to be fixed. i needs to implement the solution
-    /// to a linear differential equation
     explicit
     LinearStateTransitionModel(int state_dim = DimensionOf<State>(),
                                int input_dim = DimensionOf<Input>())
         : dynamics_matrix_(DynamicsMatrix::Identity(state_dim, state_dim)),
           input_matrix_(InputMatrix::Identity(state_dim, input_dim)),
-          density_(state_dim)
+          density_(state_dim),
+          discretization_time_step_(1)
     {
-        /// \todo are dimension checks required?
+        assert(state_dim > 0);
+        assert(input_dim > 0);
     }
 
     /**
@@ -247,24 +238,38 @@ public:
         return density_.log_probability(state);
     }
 
+public: /* factory functions */
+    virtual InputMatrix create_input_matrix() const
+    {
+        auto B = input_matrix();
+        B.setIdentity();
+        return B;
+    }
+
+    virtual DynamicsMatrix create_dynamics_matrix() const
+    {
+        auto A = dynamics_matrix();
+        A.setIdentity();
+        return A;
+    }
+
+    virtual NoiseMatrix create_noise_matrix() const
+    {
+        // RVO
+        auto N = noise_matrix();
+        N.setIdentity();
+        return N;
+    }
+
+public: /* accessors & mutators */
     virtual DynamicsMatrix dynamics_matrix() const
     {
         return dynamics_matrix_;
     }
 
-    virtual void dynamics_matrix(const DynamicsMatrix& dynamics_mat)
-    {
-        dynamics_matrix_ = dynamics_mat;
-    }
-
     virtual InputMatrix input_matrix() const
     {
         return input_matrix_;
-    }
-
-    virtual void input_matrix(const InputMatrix& input_mat)
-    {
-        input_matrix_ = input_mat;
     }
 
     virtual NoiseMatrix noise_matrix() const
@@ -275,16 +280,6 @@ public:
     virtual NoiseMatrix noise_matrix_squared() const
     {
         return density_.covariance();
-    }
-
-    virtual void noise_matrix(const NoiseMatrix& noise_mat)
-    {
-        density_.square_root(noise_mat);
-    }
-
-    virtual void noise_matrix_squared(const NoiseMatrix& noise_mat_squared)
-    {
-        density_.covariance(noise_mat_squared);
     }
 
     virtual int state_dimension() const
@@ -302,10 +297,42 @@ public:
         return input_matrix_.cols();
     }
 
+    virtual FloatingPoint discretization_time_step() const
+    {
+        return discretization_time_step_;
+    }
+
+    virtual void dynamics_matrix(const DynamicsMatrix& dynamics_mat)
+    {
+        dynamics_matrix_ = dynamics_mat;
+    }
+
+    virtual void input_matrix(const InputMatrix& input_mat)
+    {
+        input_matrix_ = input_mat;
+    }
+
+    virtual void noise_matrix(const NoiseMatrix& noise_mat)
+    {
+        density_.square_root(noise_mat);
+    }
+
+    virtual void noise_matrix_squared(const NoiseMatrix& noise_mat_squared)
+    {
+        density_.covariance(noise_mat_squared);
+    }
+
+    virtual void discretization_time_step(
+            FloatingPoint new_discretization_time_step)
+    {
+        discretization_time_step_ = new_discretization_time_step;
+    }
+
 protected:
     DynamicsMatrix dynamics_matrix_;
     InputMatrix input_matrix_;
     mutable Density density_;
+    FloatingPoint discretization_time_step_;
 };
 
 
