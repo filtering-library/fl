@@ -37,10 +37,14 @@ using namespace fl;
 
 TEST(KalmanFilterTests, init_fixed_size_predict)
 {
+    constexpr int dim_state = 10;
+    constexpr int dim_obsrv = 20;
+    constexpr int dim_input = 1;
+
     typedef double Scalar;
-    typedef Eigen::Matrix<Scalar, 10, 1> State;
-    typedef Eigen::Matrix<Scalar, 1 , 1> Input;
-    typedef Eigen::Matrix<Scalar, 20, 1> Obsrv;
+    typedef Eigen::Matrix<Scalar, dim_state, 1> State;
+    typedef Eigen::Matrix<Scalar, dim_input, 1> Input;
+    typedef Eigen::Matrix<Scalar, dim_obsrv, 1> Obsrv;
 
     typedef LinearStateTransitionModel<State, Input> LinearProcess;
     typedef LinearObservationModel<Obsrv, State> LinearObservation;
@@ -63,14 +67,14 @@ TEST(KalmanFilterTests, init_fixed_size_predict)
 
 TEST(KalmanFilterTests, init_dynamic_size_predict)
 {
+    constexpr int dim_state = 10;
+    constexpr int dim_obsrv = 20;
+    constexpr int dim_input = 1;
+
     typedef double Scalar;
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> State;
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Input;
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Obsrv;
-
-    const int dim_state = 10;
-    const int dim_obsrv = 20;
-    const int dim_input = 1;
 
     typedef LinearStateTransitionModel<State, Input> LinearProcess;
     typedef LinearObservationModel<Obsrv, State> LinearObservation;
@@ -94,118 +98,106 @@ TEST(KalmanFilterTests, init_dynamic_size_predict)
     EXPECT_TRUE(fl::are_similar(state_dist.covariance(), 2. * Q));
 }
 
-//TEST(KalmanFilterTests, fixed_size_predict_update)
-//{
-//    typedef double Scalar;
-//    typedef Eigen::Matrix<Scalar, 6, 1> State;
-//    typedef Eigen::Matrix<Scalar, 6, 1> Input;
-//    typedef Eigen::Matrix<Scalar, 6, 1> Obsrv;
+TEST(KalmanFilterTests, fixed_size_predict_update)
+{
+    constexpr int dim_state = 6;
+    constexpr int dim_obsrv = 6;
+    constexpr int dim_input = 6;
 
-//    // the KalmanFilter
-//    typedef GaussianFilter<
-//                LinearGaussianProcessModel<State, Input>,
-//                LinearObservationModel<Obsrv, State>
-//            > Algo;
+    typedef double Scalar;
+    typedef Eigen::Matrix<Scalar, dim_state, 1> State;
+    typedef Eigen::Matrix<Scalar, dim_obsrv, 1> Input;
+    typedef Eigen::Matrix<Scalar, dim_input, 1> Obsrv;
 
-//    typedef FilterInterface<Algo> Filter;
+    typedef LinearStateTransitionModel<State, Input> LinearProcess;
+    typedef LinearObservationModel<Obsrv, State> LinearObservation;
 
-//    typedef typename Traits<Algo>::ProcessModel ProcessModel;
-//    typedef typename Traits<Algo>::ObservationModel ObservationModel;
+    // the KalmanFilter
+    typedef GaussianFilter<LinearProcess, LinearObservation> Filter;
 
-//    Traits<ProcessModel>::SecondMoment Q =
-//        Traits<ProcessModel>::SecondMoment::Random() * 1.5;
-////    Traits<ObservationModel>::SecondMoment R =
-////        Traits<ObservationModel>::SecondMoment::Random();
+    auto filter = Filter(LinearProcess(dim_state, dim_input),
+                         LinearObservation(dim_obsrv, dim_state));
 
-//    Q *= Q.transpose();
-//    R *= R.transpose();
+    auto state_dist  = Filter::StateDistribution(dim_state);
 
-//    Traits<ProcessModel>::DynamicsMatrix A =
-//        Traits<ProcessModel>::DynamicsMatrix::Random();
+    auto A = filter.process_model().create_dynamics_matrix();
+    auto Q = filter.process_model().create_noise_matrix();
 
-//    Traits<ObservationModel>::SensorMatrix H =
-//        Traits<ObservationModel>::SensorMatrix::Random();
+    auto H = filter.obsrv_model().create_sensor_matrix();
+    auto R = filter.obsrv_model().create_noise_matrix();
 
-//    ProcessModel process_model = ProcessModel(Q);
-//    ObservationModel obsrv_model = ObservationModel(R);
+    A.setRandom();
+    H.setRandom();
+    Q.setRandom();
+    R.setRandom();
 
-//    process_model.A(A);
-//    obsrv_model.H(H);
+    filter.process_model().dynamics_matrix(A);
+    filter.process_model().noise_matrix(Q);
 
-//    Filter&& filter = Algo(process_model, obsrv_model);
+    filter.obsrv_model().sensor_matrix(H);
+    filter.obsrv_model().noise_matrix(R);
 
-//    Filter::StateDistribution state_dist;
+    EXPECT_TRUE(state_dist.covariance().ldlt().isPositive());
 
-//    EXPECT_TRUE(state_dist.covariance().ldlt().isPositive());
+    for (int i = 0; i < 2000; ++i)
+    {
+        filter.predict(1.0, Input(), state_dist, state_dist);
+        EXPECT_TRUE(state_dist.covariance().ldlt().isPositive());
 
-//    for (int i = 0; i < 2000; ++i)
-//    {
-//        filter.predict(1.0, Input(), state_dist, state_dist);
-//        EXPECT_TRUE(state_dist.covariance().ldlt().isPositive());
+        Obsrv y = Obsrv::Random(dim_obsrv);
+        filter.update(y, state_dist, state_dist);
+        EXPECT_TRUE(state_dist.covariance().ldlt().isPositive());
+    }
+}
 
-//        Obsrv y = Obsrv::Random();
-//        filter.update(y, state_dist, state_dist);
-//        EXPECT_TRUE(state_dist.covariance().ldlt().isPositive());
-//    }
-//}
+TEST(KalmanFilterTests, dynamic_size_predict_update)
+{
+    constexpr int dim_state = 10;
+    constexpr int dim_obsrv = 10;
+    constexpr int dim_input = 10;
 
-//TEST(KalmanFilterTests, dynamic_size_predict_update)
-//{
-//    typedef double Scalar;
-//    typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> State;
-//    typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Input;
-//    typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Obsrv;
+    typedef double Scalar;
+    typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> State;
+    typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Input;
+    typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Obsrv;
 
-//    const int dim_state = 10;
-//    const int dim_obsrv = 10;
+    typedef LinearStateTransitionModel<State, Input> LinearProcess;
+    typedef LinearObservationModel<Obsrv, State> LinearObservation;
 
-//    // the KalmanFilter
-//    typedef GaussianFilter<
-//                LinearGaussianProcessModel<State, Input>,
-//                LinearGaussianObservationModel<Obsrv, State>
-//            > Algo;
+    // the KalmanFilter
+    typedef GaussianFilter<LinearProcess, LinearObservation> Filter;
 
-//    typedef FilterInterface<Algo> Filter;
+    auto filter = Filter(LinearProcess(dim_state, dim_input),
+                         LinearObservation(dim_obsrv, dim_state));
 
-//    typedef typename Traits<Algo>::ProcessModel ProcessModel;
-//    typedef typename Traits<Algo>::ObservationModel ObservationModel;
+    auto state_dist  = Filter::StateDistribution(dim_state);
 
-//    Traits<ProcessModel>::SecondMoment Q =
-//        Traits<ProcessModel>::SecondMoment::Random(dim_state, dim_state) * 1.5;
-//    Q *= Q.transpose();
+    auto A = filter.process_model().create_dynamics_matrix();
+    auto Q = filter.process_model().create_noise_matrix();
 
-//    Traits<ProcessModel>::DynamicsMatrix A =
-//        Traits<ProcessModel>::DynamicsMatrix::Random(dim_state, dim_state);
+    auto H = filter.obsrv_model().create_sensor_matrix();
+    auto R = filter.obsrv_model().create_noise_matrix();
 
-//    Traits<ObservationModel>::SecondMoment R =
-//        Traits<ObservationModel>::SecondMoment::Random(dim_obsrv, dim_obsrv);
-//    R *= R.transpose();
+    A.setRandom();
+    H.setRandom();
+    Q.setRandom();
+    R.setRandom();
 
-//    Traits<ObservationModel>::SensorMatrix H =
-//        Traits<ObservationModel>::SensorMatrix::Random(dim_obsrv, dim_state);
+    filter.process_model().dynamics_matrix(A);
+    filter.process_model().noise_matrix(Q);
 
-//    ProcessModel process_model =
-//        ProcessModel(Q, dim_state);
+    filter.obsrv_model().sensor_matrix(H);
+    filter.obsrv_model().noise_matrix(R);
 
-//    ObservationModel obsrv_model =
-//        ObservationModel(R, dim_obsrv, dim_state);
+    EXPECT_TRUE(state_dist.covariance().ldlt().isPositive());
 
-//    process_model.A(A);
-//    obsrv_model.H(H);
+    for (int i = 0; i < 2000; ++i)
+    {
+        filter.predict(1.0, Input(10), state_dist, state_dist);
+        EXPECT_TRUE(state_dist.covariance().ldlt().isPositive());
 
-//    Filter&& filter = Algo(process_model, obsrv_model);
-
-//    Filter::StateDistribution state_dist(dim_state);
-
-//    EXPECT_TRUE(state_dist.covariance().ldlt().isPositive());
-
-//    for (int i = 0; i < 2000; ++i)
-//    {
-//        filter.predict(1.0, Input(1), state_dist, state_dist);
-//        EXPECT_TRUE(state_dist.covariance().ldlt().isPositive());
-
-//        Obsrv y = Obsrv::Random(dim_obsrv);
-//        filter.update(y, state_dist, state_dist);
-//        EXPECT_TRUE(state_dist.covariance().ldlt().isPositive());
-//    }
-//}
+        Obsrv y = Obsrv::Random(dim_obsrv);
+        filter.update(y, state_dist, state_dist);
+        EXPECT_TRUE(state_dist.covariance().ldlt().isPositive());
+    }
+}
