@@ -124,7 +124,7 @@ private:
  *                          standard normal variate
  */
 template <typename Variate>
-class StandardGaussianMapping<Variate, double>:
+class StandardGaussianMapping<Variate, FloatingPoint>:
         public Sampling<Variate>
 {
 public:
@@ -141,7 +141,7 @@ public:
      *
      * \return A variate according to the underlying distribution
      */
-    virtual Variate map_standard_normal(const double& sample) const = 0;
+    virtual Variate map_standard_normal(const FloatingPoint& sample) const = 0;
 
     /**
      * \return A variate according to the underlying distribution
@@ -163,7 +163,7 @@ private:
     /**
      * \brief One dimensional SNV generator
      */
-    mutable StandardGaussian<double> standard_gaussian_;
+    mutable StandardGaussian<FloatingPoint> standard_gaussian_;
 };
 
 }
