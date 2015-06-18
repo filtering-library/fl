@@ -68,20 +68,15 @@ struct Traits<Gaussian<Var>>
     typedef Var Variate;
 
     /**
-     * \brief Internal scalar type (e.g. double, float, std::complex, etc)
-     */
-    typedef typename Variate::Scalar Scalar;
-
-    /**
      * \brief Random variable type. The Noise type is used in mapping of noise
      * samples into the current Gaussian space.
      */
-    typedef Eigen::Matrix<Scalar, Dimension, 1> StandardVariate;
+    typedef Eigen::Matrix<FloatingPoint, Dimension, 1> StandardVariate;
 
     /**
      * \brief Second moment type
      */
-    typedef Eigen::Matrix<Scalar, Dimension, Dimension> SecondMoment;
+    typedef Eigen::Matrix<FloatingPoint, Dimension, Dimension> SecondMoment;
 
     /**
      * \brief Moments interface of a Gaussian
@@ -91,7 +86,7 @@ struct Traits<Gaussian<Var>>
     /**
      * \brief Evaluation interface of a Gaussian
      */
-    typedef Evaluation<Variate, Scalar> EvaluationBase;
+    typedef Evaluation<Variate, FloatingPoint> EvaluationBase;
 
     /**
      * \brief GaussianMap interface of a Gaussian
@@ -194,7 +189,6 @@ public:
     /** Typdef of \c This for #from_traits(TypeName) helper */
     typedef Gaussian<Variate> This;
 
-    typedef from_traits(Scalar);
     typedef from_traits(SecondMoment);
     typedef from_traits(StandardVariate);
 
@@ -493,25 +487,25 @@ public:
      *       = {Valid Representations} \f$ \cup \f$ {#CovarianceMatrix}
      * \endcond
      */
-    virtual Scalar log_normalizer() const
+    virtual FloatingPoint log_normalizer() const
     {
         if (is_dirty(Normalizer))
         {
             if (has_full_rank())
             {
-                log_normalizer_ = -0.5
-                        * (log(covariance().determinant())
-                           + double(covariance().rows()) * log(2.0 * M_PI));
+                log_norm_ = -0.5
+                    * (log(covariance().determinant())
+                       + FloatingPoint(covariance().rows()) * log(2.0 * M_PI));
             }
             else
             {
-                log_normalizer_ = 0.0; // FIXME
+                log_norm_ = 0.0; // FIXME
             }
 
             updated_internally(Normalizer);
         }
 
-        return log_normalizer_;
+        return log_norm_;
     }
 
     /**
@@ -527,7 +521,7 @@ public:
      *       = {Valid Representations} \f$ \cup \f$ {#PrecisionMatrix}
      * \endcond
      */
-    virtual Scalar log_probability(const Variate& vector) const
+    virtual FloatingPoint log_probability(const Variate& vector) const
     {
         if(has_full_rank())
         {
@@ -537,7 +531,7 @@ public:
                     * (vector - mean());
         }
 
-        return -std::numeric_limits<Scalar>::infinity();
+        return -std::numeric_limits<FloatingPoint>::infinity();
     }
 
     /**
@@ -858,7 +852,7 @@ protected:
     mutable SecondMoment precision_;   /**< \brief cov. inverse form */
     mutable SecondMoment square_root_; /**< \brief cov. square root form */
     mutable bool full_rank_;           /**< \brief full rank flag */
-    mutable Scalar log_normalizer_;    /**< \brief log normalizing constant */
+    mutable FloatingPoint log_norm_;   /**< \brief log normalizing constant */
     mutable std::vector<bool> dirty_;  /**< \brief data validity flags */
     /** \endcond */
 };
