@@ -218,9 +218,9 @@ public:
     }
 
     /**
-     * \brief Overridable default constructor
+     * \brief Overridable default destructor
      */
-    ~LinearStateTransitionModel() { }
+    virtual ~LinearStateTransitionModel() { }
 
     virtual State expected_state(const State& state,
                                  const Input& input) const

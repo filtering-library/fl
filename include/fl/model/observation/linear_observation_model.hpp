@@ -287,8 +287,7 @@ public:
     }
 
     /**
-     * \brief Overridable default constructor
-     */
+     * \brief Overridable default destructor     */
     virtual ~LinearObservationModel() { }
 
     /**
