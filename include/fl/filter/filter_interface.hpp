@@ -41,13 +41,12 @@ namespace fl
  * the State, Obsrv (Observation), and Belief types. Therefore, the
  * traits of each filter implememntation must provide the following types
  *
- * Required Types        | Description                        | Requirements
- * --------------------- | ---------------------------------- | ---------------
- * \c State              | Used State type                    | -
- * \c Input              | Process control input type         | -
- * \c Obsrv              | Used observation type              | -
- * \c Belief  | Distribution type over the state   | must implement fl::Moments
- * \c Ptr                | Shared pointer of the derived type | must specialize std::shared_ptr<>
+ * Required Types | Description                        | Requirements
+ * -------------- | ---------------------------------- | ---------------
+ * \c State       | Used State type                    | -
+ * \c Input       | Process control input type         | -
+ * \c Obsrv       | Used observation type              | -
+ * \c Belief      | Distribution type over the state   | implements fl::Moments
  */
 template <typename Derived>
 class FilterInterface
