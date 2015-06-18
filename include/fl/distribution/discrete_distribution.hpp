@@ -57,7 +57,7 @@ struct Traits<DiscreteDistribution<Var>>
     typedef Eigen::Array<FloatingPoint, Eigen::Dynamic, 1>  Function;
 
     typedef Moments<Mean, Covariance> MomentsBase;
-    typedef StandardGaussianMapping<Variate, FloatingPoint>    GaussianMappingBase;
+    typedef StandardGaussianMapping<Variate, FloatingPoint> GaussianMappingBase;
 };
 
 
@@ -77,7 +77,7 @@ public:
 public:
     /// constructor and destructor *********************************************
     explicit
-    DiscreteDistribution(size_t dim = DimensionOf<Variate>())
+    DiscreteDistribution(int dim = DimensionOf<Variate>())
     {
         locations_ = Locations(1);
         locations_(0) = Variate::Zero(dim);
@@ -109,7 +109,7 @@ public:
         // compute cdf
         cumul_distr_.resize(log_prob_mass_.size());
         cumul_distr_[0] = prob_mass_[0];
-        for(size_t i = 1; i < cumul_distr_.size(); i++)
+        for(int i = 1; i < cumul_distr_.size(); i++)
             cumul_distr_[i] = cumul_distr_[i-1] + prob_mass_[i];
 
         // resize locations
@@ -122,12 +122,12 @@ public:
     }
 
 
-    virtual void set_uniform(size_t new_size = size())
+    virtual void set_uniform(int new_size = size())
     {
         log_unnormalized_prob_mass(Function::Zero(new_size));
     }
 
-    virtual Variate& location(size_t i)
+    virtual Variate& location(int i)
     {
         return locations_[i];
     }
@@ -175,7 +175,7 @@ public:
 
 
     // get ---------------------------------------------------------------------
-    virtual const Variate& location(size_t i) const
+    virtual const Variate& location(int i) const
     {
         return locations_[i];
     }
@@ -185,7 +185,7 @@ public:
         return locations_;
     }
 
-    virtual FloatingPoint log_prob_mass(const size_t& i) const
+    virtual FloatingPoint log_prob_mass(const int& i) const
     {
         return log_prob_mass_(i);
     }
@@ -195,7 +195,7 @@ public:
         return log_prob_mass_;
     }
 
-    virtual FloatingPoint prob_mass(const size_t& i) const
+    virtual FloatingPoint prob_mass(const int& i) const
     {
         return prob_mass_(i);
     }
@@ -205,7 +205,7 @@ public:
         return prob_mass_;
     }
 
-    virtual size_t size() const
+    virtual int size() const
     {
         return locations_.size();
     }
