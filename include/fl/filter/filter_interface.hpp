@@ -53,13 +53,6 @@ class FilterInterface
 {
 public:
     /**
-     * \brief Ptr is the shared pointer type of the filter specialization
-     *
-     * The filter specialization traits must provide the shared pointer type
-     */
-    //typedef typename Traits<Derived>::Ptr Ptr;
-
-    /**
      * \brief State type provided by the filter specialization
      *
      * The filter specialization traits must provide the \c State type. The
@@ -93,8 +86,6 @@ public:
      * convension, the Belief must implement the Moments
      * interface which provides the first two moments.
      */
-
-    /// \todo: rename state distribution to belief? shorter and more expressive
     typedef typename Traits<Derived>::Belief Belief;
 
     /**
@@ -105,7 +96,7 @@ public:
      * \param prior_belief        Prior state distribution
      * \param predicted_belief    Predicted state distribution
      */
-    virtual void predict(double delta_time,
+    virtual void predict(FloatingPoint delta_time,
                          const Input& input,
                          const Belief& prior_belief,
                          Belief& predicted_belief) = 0;
@@ -133,7 +124,7 @@ public:
      * @param prior_belief
      * @param posterior_belief
      */
-    virtual void predict_and_update(double delta_time,
+    virtual void predict_and_update(FloatingPoint delta_time,
                                     const Input& input,
                                     const Obsrv& observation,
                                     const Belief& prior_belief,
