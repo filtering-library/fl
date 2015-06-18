@@ -102,11 +102,11 @@ TEST(frb_particle_filter, predict)
     typedef fl::FRBParticleFilter<ProcessModel,
                                   SwitchingDensity,
                                   ObservationModel> FRBParticleFilter;
-    typedef FRBParticleFilter::StateDistribution FRBParticleBelief;
+    typedef FRBParticleFilter::Belief FRBParticleBelief;
 
     // gaussian filter
     typedef fl::GaussianFilter<ProcessModel, ObservationModel> GaussianFilter;
-    typedef GaussianFilter::StateDistribution GaussianBelief;
+    typedef GaussianFilter::Belief GaussianBelief;
 
 
 }

@@ -70,7 +70,7 @@ struct Traits<
      * - State
      * - Input
      * - Observation
-     * - StateDistribution
+     * - Belief
      */
     typedef typename Traits<ProcessModel>::State State;
     typedef typename Traits<ProcessModel>::Input Input;
@@ -81,7 +81,7 @@ struct Traits<
      * case of a Point Based Kalman filter, the distribution is a simple
      * Gaussian with the dimension of the \c State.
      */
-    typedef Gaussian<State> StateDistribution;
+    typedef Gaussian<State> Belief;
 
     /** \cond INTERNAL */
     typedef typename Traits<ProcessModel>::Noise StateNoise;
@@ -117,7 +117,7 @@ struct Traits<
      * \brief KalmanGain Matrix
      */
     typedef Eigen::Matrix<
-                typename StateDistribution::Scalar,
+                typename Belief::Scalar,
                 State::RowsAtCompileTime,
                 Obsrv::RowsAtCompileTime
             > KalmanGain;
@@ -169,7 +169,7 @@ public:
     typedef from_traits(State);
     typedef from_traits(Input);
     typedef from_traits(Obsrv);
-    typedef from_traits(StateDistribution);
+    typedef from_traits(Belief);
 
 public:
     /**
@@ -247,8 +247,8 @@ public:
      */
     virtual void predict(double delta_time,
                          const Input& input,
-                         const StateDistribution& prior_dist,
-                         StateDistribution& predicted_dist)
+                         const Belief& prior_belief,
+                         Belief& predicted_belief)
     {
         /*
          * Compute the state points from the given prior state Gaussian
@@ -264,7 +264,7 @@ public:
          * The transform takes the global dimension (dim(P) + dim(Q) + dim(R))
          * and the dimension offset 0 as parameters.
          */
-        point_set_transform_->forward(prior_dist,
+        point_set_transform_->forward(prior_belief,
                                       global_dimension_,
                                       0,
                                       X_r);
@@ -316,18 +316,18 @@ public:
          *
          * given that W is the diagonal matrix
          */
-        predicted_dist.mean(X_r.mean());
-        predicted_dist.covariance(X * W.asDiagonal() * X.transpose());
+        predicted_belief.mean(X_r.mean());
+        predicted_belief.covariance(X * W.asDiagonal() * X.transpose());
     }
 
     /**
      * \copydoc FilterInterface::update
      */
     virtual void update(const Obsrv& y,
-                        const StateDistribution& predicted_dist,
-                        StateDistribution& posterior_dist)
+                        const Belief& predicted_belief,
+                        Belief& posterior_belief)
     {
-        point_set_transform_->forward(predicted_dist,
+        point_set_transform_->forward(predicted_belief,
                                       global_dimension_,
                                       0,
                                       X_r);
@@ -362,8 +362,8 @@ public:
 
         correction = X * C * Y.transpose() * inv_R.asDiagonal() * innovation;
 
-        posterior_dist.mean(predicted_dist.mean() +  correction);
-        posterior_dist.covariance(X * C * X.transpose());
+        posterior_belief.mean(predicted_belief.mean() +  correction);
+        posterior_belief.covariance(X * C * X.transpose());
     }
 
     /**
@@ -372,11 +372,11 @@ public:
     virtual void predict_and_update(double delta_time,
                                     const Input& input,
                                     const Obsrv& observation,
-                                    const StateDistribution& prior_dist,
-                                    StateDistribution& posterior_dist)
+                                    const Belief& prior_belief,
+                                    Belief& posterior_belief)
     {
-        predict(delta_time, input, prior_dist, posterior_dist);
-        update(observation, posterior_dist, posterior_dist);
+        predict(delta_time, input, prior_belief, posterior_belief);
+        update(observation, posterior_belief, posterior_belief);
     }
 
     const std::shared_ptr<ProcessModel>& process_model()

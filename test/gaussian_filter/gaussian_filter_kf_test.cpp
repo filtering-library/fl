@@ -52,7 +52,7 @@ TEST(KalmanFilterTests, init_fixed_size_predict)
     // the KalmanFilter
     typedef GaussianFilter<LinearProcess, LinearObservation> Filter;
     auto filter = Filter(LinearProcess(), LinearObservation());
-    Filter::StateDistribution state_dist;
+    Filter::Belief state_dist;
 
     EXPECT_TRUE(state_dist.mean().isZero());
     EXPECT_TRUE(state_dist.covariance().isIdentity());
@@ -85,7 +85,7 @@ TEST(KalmanFilterTests, init_dynamic_size_predict)
     auto filter = Filter(LinearProcess(dim_state, dim_input),
                          LinearObservation(dim_obsrv, dim_state));
 
-    auto state_dist  = Filter::StateDistribution(dim_state);
+    auto state_dist  = Filter::Belief(dim_state);
 
     EXPECT_TRUE(state_dist.mean().isZero());
     EXPECT_TRUE(state_dist.covariance().isIdentity());
@@ -118,7 +118,7 @@ TEST(KalmanFilterTests, fixed_size_predict_update)
     auto filter = Filter(LinearProcess(dim_state, dim_input),
                          LinearObservation(dim_obsrv, dim_state));
 
-    auto state_dist  = Filter::StateDistribution(dim_state);
+    auto state_dist  = Filter::Belief(dim_state);
 
     auto A = filter.process_model().create_dynamics_matrix();
     auto Q = filter.process_model().create_noise_matrix();
@@ -170,7 +170,7 @@ TEST(KalmanFilterTests, dynamic_size_predict_update)
     auto filter = Filter(LinearProcess(dim_state, dim_input),
                          LinearObservation(dim_obsrv, dim_state));
 
-    auto state_dist  = Filter::StateDistribution(dim_state);
+    auto state_dist  = Filter::Belief(dim_state);
 
     auto A = filter.process_model().create_dynamics_matrix();
     auto Q = filter.process_model().create_noise_matrix();

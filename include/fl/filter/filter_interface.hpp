@@ -38,7 +38,7 @@ namespace fl
  * The filtered state, observation and the state distribution are subject to the
  * underlying filtering algorithm and therefore may differ from one to another.
  * This interface, provides these types of the actual algorithm, such as the
- * the State, Obsrv (Observation), and StateDistribution types. Therefore, the
+ * the State, Obsrv (Observation), and Belief types. Therefore, the
  * traits of each filter implememntation must provide the following types
  *
  * Required Types        | Description                        | Requirements
@@ -46,7 +46,7 @@ namespace fl
  * \c State              | Used State type                    | -
  * \c Input              | Process control input type         | -
  * \c Obsrv              | Used observation type              | -
- * \c StateDistribution  | Distribution type over the state   | must implement fl::Moments
+ * \c Belief  | Distribution type over the state   | must implement fl::Moments
  * \c Ptr                | Shared pointer of the derived type | must specialize std::shared_ptr<>
  */
 template <typename Derived>
@@ -88,41 +88,41 @@ public:
     typedef typename Traits<Derived>::Obsrv Obsrv;
 
     /**
-     * \brief StateDistribution type uses by the filter specialization.
+     * \brief Belief type uses by the filter specialization.
      *
      * The filter specialization uses a suitable state distribution. By
-     * convension, the StateDistribution must implement the Moments
+     * convension, the Belief must implement the Moments
      * interface which provides the first two moments.
      */
 
     /// \todo: rename state distribution to belief? shorter and more expressive
-    typedef typename Traits<Derived>::StateDistribution StateDistribution;
+    typedef typename Traits<Derived>::Belief Belief;
 
     /**
      * Predicts the distribution over the state give a delta time in seconds
      *
      * \param delta_time        Delta time of prediction
      * \param input             Control input argument
-     * \param prior_dist        Prior state distribution
-     * \param predicted_dist    Predicted state distribution
+     * \param prior_belief        Prior state distribution
+     * \param predicted_belief    Predicted state distribution
      */
     virtual void predict(double delta_time,
                          const Input& input,
-                         const StateDistribution& prior_dist,
-                         StateDistribution& predicted_dist) = 0;
+                         const Belief& prior_belief,
+                         Belief& predicted_belief) = 0;
 
     /**
      * Updates a predicted state given an observation
      *
-     * \param predicted_dist    Predicted state distribution
+     * \param predicted_belief    Predicted state distribution
      * \param observation       Latest observation
-     * \param posterior_dist    Updated posterior state distribution
+     * \param posterior_belief    Updated posterior state distribution
      */
 
     /// \todo: should we have the posterior as the  return argument?
     virtual void update(const Obsrv& observation,
-                        const StateDistribution& predicted_dist,
-                        StateDistribution& posterior_dist) = 0;
+                        const Belief& predicted_belief,
+                        Belief& posterior_belief) = 0;
 
     /**
      * Predicts the state distribution for a given delta time and subsequently
@@ -131,14 +131,14 @@ public:
      * @param delta_time
      * @param input
      * @param observation
-     * @param prior_dist
-     * @param posterior_dist
+     * @param prior_belief
+     * @param posterior_belief
      */
     virtual void predict_and_update(double delta_time,
                                     const Input& input,
                                     const Obsrv& observation,
-                                    const StateDistribution& prior_dist,
-                                    StateDistribution& posterior_dist) = 0;
+                                    const Belief& prior_belief,
+                                    Belief& posterior_belief) = 0;
 };
 
 }

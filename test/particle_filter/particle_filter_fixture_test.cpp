@@ -100,11 +100,11 @@ protected:
 
     // particle filter
     typedef fl::ParticleFilter<ProcessModel, ObservationModel> ParticleFilter;
-    typedef ParticleFilter::StateDistribution ParticleBelief;
+    typedef ParticleFilter::Belief ParticleBelief;
 
     // gaussian filter
     typedef fl::GaussianFilter<ProcessModel, ObservationModel> GaussianFilter;
-    typedef GaussianFilter::StateDistribution GaussianBelief;
+    typedef GaussianFilter::Belief GaussianBelief;
 
     ParticleFilterTest()
         : process_model(create_process_model()),

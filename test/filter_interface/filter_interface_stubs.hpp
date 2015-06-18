@@ -67,7 +67,7 @@ template <> struct Traits<FilterForFun>
     typedef double State;
     typedef double Input;
     typedef double Obsrv;
-    typedef double StateDistribution;
+    typedef double Belief;
     typedef std::shared_ptr<FilterForFun> Ptr;
 };
 }
@@ -85,31 +85,31 @@ public:
     typedef typename fl::Traits<This>::State State;
     typedef typename fl::Traits<This>::Input Input;
     typedef typename fl::Traits<This>::Obsrv Obsrv;
-    typedef typename fl::Traits<This>::StateDistribution StateDistribution;
+    typedef typename fl::Traits<This>::Belief Belief;
 
     virtual void predict(double delta_time,
                          const Input& input,
-                         const StateDistribution& prior_dist,
-                         StateDistribution& predicted_dist)
+                         const Belief& prior_belief,
+                         Belief& predicted_belief)
     {
-        predicted_dist = (prior_dist * 2) * delta_time;
+        predicted_belief = (prior_belief * 2) * delta_time;
     }
 
-    virtual void update(const StateDistribution& predicted_dist,
+    virtual void update(const Belief& predicted_belief,
                         const Obsrv& observation,
-                        StateDistribution& posterior_dist)
+                        Belief& posterior_belief)
     {
-        posterior_dist = (predicted_dist + observation) / 2.;
+        posterior_belief = (predicted_belief + observation) / 2.;
     }
 
     virtual void predict_and_update(double delta_time,
                                     const Input& input,
                                     const Obsrv& observation,
-                                    const StateDistribution& prior_dist,
-                                    StateDistribution& posterior_dist)
+                                    const Belief& prior_belief,
+                                    Belief& posterior_belief)
     {
-        predict(delta_time, input, prior_dist, posterior_dist);
-        update(observation, posterior_dist, posterior_dist);
+        predict(delta_time, input, prior_belief, posterior_belief);
+        update(observation, posterior_belief, posterior_belief);
     }
 };
 
@@ -132,7 +132,7 @@ struct Traits<FilterForMoreFun<A, B, C>>
     typedef double State;
     typedef double Input;
     typedef double Obsrv;
-    typedef double StateDistribution;
+    typedef double Belief;
     typedef std::shared_ptr<FilterForMoreFun<A, B, C>> Ptr;
 };
 }
@@ -151,30 +151,30 @@ public:
     typedef typename fl::Traits<This>::State State;
     typedef typename fl::Traits<This>::Input Input;
     typedef typename fl::Traits<This>::Obsrv Obsrv;
-    typedef typename fl::Traits<This>::StateDistribution StateDistribution;
+    typedef typename fl::Traits<This>::Belief Belief;
 
     virtual void predict(double delta_time,
                          const Input& input,
-                         const StateDistribution& prior_dist,
-                         StateDistribution& predicted_dist)
+                         const Belief& prior_belief,
+                         Belief& predicted_belief)
     {
-        predicted_dist = (prior_dist * 3) * delta_time;
+        predicted_belief = (prior_belief * 3) * delta_time;
     }
 
-    virtual void update(const StateDistribution& predicted_dist,
+    virtual void update(const Belief& predicted_belief,
                         const Obsrv& observation,
-                        StateDistribution& posterior_dist)
+                        Belief& posterior_belief)
     {
-        posterior_dist = (predicted_dist + observation) / 3.;
+        posterior_belief = (predicted_belief + observation) / 3.;
     }
 
     virtual void predict_and_update(double delta_time,
                                     const Input& input,
                                     const Obsrv& observation,
-                                    const StateDistribution& prior_dist,
-                                    StateDistribution& posterior_dist)
+                                    const Belief& prior_belief,
+                                    Belief& posterior_belief)
     {
-        predict(delta_time, input, prior_dist, posterior_dist);
-        update(observation, posterior_dist, posterior_dist);
+        predict(delta_time, input, prior_belief, posterior_belief);
+        update(observation, posterior_belief, posterior_belief);
     }
 };

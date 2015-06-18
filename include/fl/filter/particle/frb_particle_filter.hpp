@@ -94,7 +94,7 @@ struct Traits<FRBParticleFilter<StateTransitionFunction,
 
     typedef typename StateTransitionFunction::Input        Input;
 
-    typedef DiscreteDistribution<State> StateDistribution;
+    typedef DiscreteDistribution<State> Belief;
 
     /** \cond INTERNAL */
     typedef typename StateTransitionFunction::Noise      ProcessNoise;
@@ -122,7 +122,7 @@ public:
     typedef from_traits(State);
     typedef from_traits(Input);
     typedef from_traits(Obsrv);
-    typedef from_traits(StateDistribution);
+    typedef from_traits(Belief);
 
     typedef typename Eigen::Array<SwitchingDensity,
                                   Eigen::Dynamic, 1> SwitchingDensities;
@@ -145,21 +145,21 @@ public:
     /// predict ****************************************************************
     virtual void predict(double dt,
                          const Input& input,
-                         const StateDistribution& prior_dist,
-                         StateDistribution& predicted_dist)
+                         const Belief& prior_belief,
+                         Belief& predicted_belief)
     {
-        predicted_dist = prior_dist;
+        predicted_belief = prior_belief;
         int global_dim = trans_function_.state_dimension();
         int local_dim = switch_densities_.size();
 
 
         // the global state part is propagated as in the standard particle filter
-        for(size_t i = 0; i < predicted_dist.size(); i++)
+        for(size_t i = 0; i < predicted_belief.size(); i++)
         {
             Eigen::VectorXd& next_state =
-                    predicted_dist.location(i).topRows(global_dim);
+                    predicted_belief.location(i).topRows(global_dim);
 
-            Eigen::VectorXd& state = prior_dist.location(i).topRows(global_dim);
+            Eigen::VectorXd& state = prior_belief.location(i).topRows(global_dim);
 
             next_state = trans_function_.predict_state(dt,
                                                        state,
@@ -168,13 +168,13 @@ public:
         }
 
         // the local state part is propagated analytically
-        for(size_t i = 0; i < predicted_dist.size(); i++)
+        for(size_t i = 0; i < predicted_belief.size(); i++)
         {
             Eigen::VectorXd& next_state =
-                    predicted_dist.location(i).bottomRows(local_dim);
+                    predicted_belief.location(i).bottomRows(local_dim);
 
             Eigen::VectorXd& state =
-                    prior_dist.location(i).bottomRows(local_dim);
+                    prior_belief.location(i).bottomRows(local_dim);
 
             for(int j = 0; j < state.size(); j++)
             {
@@ -187,33 +187,33 @@ public:
 
     /// update *****************************************************************
     virtual void update(const Obsrv& obsrv,
-                        const StateDistribution& predicted_dist,
-                        StateDistribution& posterior_dist)
+                        const Belief& predicted_belief,
+                        Belief& posterior_belief)
     {
         // if the samples are too concentrated then resample
-        if(predicted_dist.kl_given_uniform() > max_kl_divergence_)
+        if(predicted_belief.kl_given_uniform() > max_kl_divergence_)
         {
-            posterior_dist.from_distribution(predicted_dist,
-                                             predicted_dist.size());
+            posterior_belief.from_distribution(predicted_belief,
+                                             predicted_belief.size());
         }
         else
         {
-            posterior_dist = predicted_dist;
+            posterior_belief = predicted_belief;
         }
 
         int global_dim = trans_function_.state_dimension();
         int local_dim = switch_densities_.size();
 
         auto delta_log_prob =
-                StateDistribution::Function::Zero(predicted_dist.size());
+                Belief::Function::Zero(predicted_belief.size());
 
-        for(int s = 0; s < predicted_dist.size(); s++)
+        for(int s = 0; s < predicted_belief.size(); s++)
         {
             Eigen::VectorXd& global_state =
-                    predicted_dist.location(s).topRows(global_dim);
+                    predicted_belief.location(s).topRows(global_dim);
 
             Eigen::VectorXd& local_state =
-                    predicted_dist.location(s).bottomRows(local_dim);
+                    predicted_belief.location(s).bottomRows(local_dim);
 
             for(int o = 0; o < obsrv.size(); o++)
             {
@@ -236,19 +236,19 @@ public:
 
 
         // update the weights of the particles with the likelihoods
-        posterior_dist.delta_log_prob_mass(
-             obsrv_density_.log_probabilities(obsrv, predicted_dist.locations()));
+        posterior_belief.delta_log_prob_mass(
+             obsrv_density_.log_probabilities(obsrv, predicted_belief.locations()));
     }
 
     /// predict and update *****************************************************
     virtual void predict_and_update(double dt,
                                     const Input& input,
                                     const Obsrv& observation,
-                                    const StateDistribution& prior_dist,
-                                    StateDistribution& posterior_dist)
+                                    const Belief& prior_belief,
+                                    Belief& posterior_belief)
     {
-        predict(dt, input, prior_dist, posterior_dist);
-        update(observation, posterior_dist, posterior_dist);
+        predict(dt, input, prior_belief, posterior_belief);
+        update(observation, posterior_belief, posterior_belief);
     }
 
 
@@ -273,9 +273,9 @@ public:
     }
 
     /// \todo: should this function be here?
-    virtual StateDistribution create_state_distribution() const
+    virtual Belief create_state_distribution() const
     {
-        auto state_distr = StateDistribution(trans_function().state_dimension());
+        auto state_distr = Belief(trans_function().state_dimension());
 
         return state_distr;
     }

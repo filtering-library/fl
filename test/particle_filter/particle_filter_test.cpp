@@ -98,11 +98,11 @@ TEST(particle_filter, predict)
 
     // particle filter
     typedef fl::ParticleFilter<ProcessModel, ObservationModel> ParticleFilter;
-    typedef ParticleFilter::StateDistribution ParticleBelief;
+    typedef ParticleFilter::Belief ParticleBelief;
 
     // gaussian filter
     typedef fl::GaussianFilter<ProcessModel, ObservationModel> GaussianFilter;
-    typedef GaussianFilter::StateDistribution GaussianBelief;
+    typedef GaussianFilter::Belief GaussianBelief;
 
 
     srand(0);
@@ -180,11 +180,11 @@ TEST(particle_filter, update)
     typedef fl::LinearObservationModel<Observation, State> ObservationModel;
     // particle filter
     typedef fl::ParticleFilter<ProcessModel, ObservationModel> ParticleFilter;
-    typedef ParticleFilter::StateDistribution ParticleBelief;
+    typedef ParticleFilter::Belief ParticleBelief;
 
     // gaussian filter
     typedef fl::GaussianFilter<ProcessModel, ObservationModel> GaussianFilter;
-    typedef GaussianFilter::StateDistribution GaussianBelief;
+    typedef GaussianFilter::Belief GaussianBelief;
 
 
     srand(0);
@@ -263,11 +263,11 @@ TEST(particle_filter, predict_and_update)
 
     // particle filter
     typedef fl::ParticleFilter<ProcessModel, ObservationModel> ParticleFilter;
-    typedef ParticleFilter::StateDistribution ParticleBelief;
+    typedef ParticleFilter::Belief ParticleBelief;
 
     // gaussian filter
     typedef fl::GaussianFilter<ProcessModel, ObservationModel> GaussianFilter;
-    typedef GaussianFilter::StateDistribution GaussianBelief;
+    typedef GaussianFilter::Belief GaussianBelief;
 
 
     srand(0);

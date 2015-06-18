@@ -85,7 +85,7 @@ public:
     }
 
     Filter filter_;
-    typename FilterAlgorithm::StateDistribution dist_;
+    typename FilterAlgorithm::Belief dist_;
     typename FilterAlgorithm::Input u_;
     typename FilterAlgorithm::Obsrv y_;
 };

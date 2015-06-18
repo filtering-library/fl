@@ -138,7 +138,7 @@ struct Traits<GaussianFilter<TEMPLATE_ARGUMENTS>>
      * - State
      * - Input
      * - Observation
-     * - StateDistribution
+     * - Belief
      */
     //typedef std::shared_ptr<Filter> Ptr;
     typedef typename Traits<ProcessModel>::State State;
@@ -161,7 +161,7 @@ struct Traits<GaussianFilter<TEMPLATE_ARGUMENTS>>
     typedef JointDistribution<
                 LocalStateDistr,
                 JointParamDistr
-            > StateDistribution;
+            > Belief;
 
     /** \cond INTERNAL */
     /**
@@ -267,7 +267,7 @@ public:
     typedef from_traits(State);
     typedef from_traits(Input);
     typedef from_traits(Obsrv);
-    typedef from_traits(StateDistribution);
+    typedef from_traits(Belief);
 
     /* Model types */
     typedef from_traits(ProcessModel);
@@ -502,14 +502,14 @@ public:
      */
     virtual void predict(double dt,
                          const Input& u,
-                         const StateDistribution& prior_dist,
-                         StateDistribution& predicted_dist)
+                         const Belief& prior_belief,
+                         Belief& predicted_belief)
     {
         if (first_run)
         {
             first_run = false;
 
-            auto& distr_b = std::get<b>(prior_dist.distributions());
+            auto& distr_b = std::get<b>(prior_belief.distributions());
             for (int i = 0; i < param_count_; ++i)
             {
                 cov_b_given_ay(i) = distr_b.distribution(i).covariance();
@@ -560,7 +560,7 @@ public:
         /*
          * Compute sigma points of part X_a and each of X_b(i)
          */
-        transform(prior_dist, X_a_, X_b_);
+        transform(prior_belief, X_a_, X_b_);
 
         /*
          * X = [X_a^T  X_b^T]^T
@@ -585,8 +585,8 @@ public:
      * \copydoc FilterInterface::update
      */
     virtual void update(const Obsrv& obsrv,
-                        const StateDistribution& predicted_dist,
-                        StateDistribution& posterior_dist)
+                        const Belief& predicted_belief,
+                        Belief& posterior_belief)
     {
         /* ================================================================== */
         /*                                                                    */
@@ -599,8 +599,8 @@ public:
         /* ================================================================== */
 
 
-        auto&& postr_a = std::get<a>(posterior_dist.distributions());
-        auto&& postr_b = std::get<b>(posterior_dist.distributions())
+        auto&& postr_a = std::get<a>(posterior_belief.distributions());
+        auto&& postr_b = std::get<b>(posterior_belief.distributions())
                             .distributions();
 
         /* predict all observations */
@@ -779,7 +779,7 @@ public:
             std::cout << ">>>>>> postr_a.covariance() not positive()" << std::endl;
 
             dump_values = true;
-            update(obsrv, predicted_dist, posterior_dist);
+            update(obsrv, predicted_belief, posterior_belief);
             return;
         }
 
@@ -822,11 +822,11 @@ public:
     virtual void predict_and_update(double delta_time,
                                     const Input& input,
                                     const Obsrv& observation,
-                                    const StateDistribution& prior_dist,
-                                    StateDistribution& posterior_dist)
+                                    const Belief& prior_belief,
+                                    Belief& posterior_belief)
     {
-        predict(delta_time, input, prior_dist, posterior_dist);
-        update(observation, posterior_dist, posterior_dist);
+        predict(delta_time, input, prior_belief, posterior_belief);
+        update(observation, posterior_belief, posterior_belief);
     }
 
     ProcessModel& process_model() { return f_; }
@@ -847,13 +847,13 @@ public:
     const LocalObsrvModel& local_obsrv_model() const { return h_.local_obsrv_model(); }
     const FeatureMapping& feature_mapping() const { return feature_mapping_; }
 
-    StateDistribution create_state_distribution() const
+    Belief create_state_distribution() const
     {
         typedef from_traits(LocalStateDistr);
         typedef from_traits(LocalParamDistr);
         typedef from_traits(JointParamDistr);
 
-        auto state_distr = StateDistribution(
+        auto state_distr = Belief(
                                LocalStateDistr(dim(a)),
                                JointParamDistr(
                                    LocalParamDistr(dim(b_i)),
@@ -905,7 +905,7 @@ public:
      * state distribution \c distr
      */
     template <class Xa, class Xb>
-    void transform(const StateDistribution& distr, Xa& x_a, Xb& x_b)
+    void transform(const Belief& distr, Xa& x_a, Xb& x_b)
     {
         // transform X_a part
         auto&& prior_a = std::get<a>(distr.distributions());

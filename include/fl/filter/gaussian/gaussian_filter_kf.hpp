@@ -59,7 +59,7 @@ struct Traits<
     typedef U Input;
     typedef Y Obsrv;
 
-    typedef Gaussian<State> StateDistribution;
+    typedef Gaussian<State> Belief;
 };
 
 /**
@@ -100,7 +100,7 @@ public:
      * In the case of the Kalman filter, the distribution is a simple Gaussian
      * with the dimension of the \c State
      */
-    typedef from_traits(StateDistribution);
+    typedef from_traits(Belief);
 
 public:
     /**
@@ -136,8 +136,8 @@ public:
      */
     virtual void predict(FloatingPoint delta_time,
                          const Input& input,
-                         const StateDistribution& prior_dist,
-                         StateDistribution& predicted_dist)
+                         const Belief& prior_belief,
+                         Belief& predicted_belief)
     {
         int integration_steps =
             std::round(delta_time / process_model_.discretization_time_step());
@@ -162,12 +162,12 @@ public:
             A_pow_k = A_pow_k * A;
         }
 
-        predicted_dist.mean(
-            A_pow_k * prior_dist.mean()
+        predicted_belief.mean(
+            A_pow_k * prior_belief.mean()
             + sum_A_pow_i * B * input);
 
-        predicted_dist.covariance(
-            A_pow_k * prior_dist.covariance() * A_pow_k.transpose()
+        predicted_belief.covariance(
+            A_pow_k * prior_belief.covariance() * A_pow_k.transpose()
             + sum_A_pow_i_Q_AT_pow_i);
     }
 
@@ -193,20 +193,20 @@ public:
      * \f$ K = \bar{\Sigma}_{t}H^T (H\bar{\Sigma}_{t}H^T+R)^{-1}\f$.
      */
     virtual void update(const Obsrv& y,
-                        const StateDistribution& predicted_dist,
-                        StateDistribution& posterior_dist)
+                        const Belief& predicted_belief,
+                        Belief& posterior_belief)
     {
         auto H = obsrv_model_.sensor_matrix();
         auto R = obsrv_model_.noise_matrix_squared();
 
-        auto&& mean = predicted_dist.mean();
-        auto&& cov_xx = predicted_dist.covariance();
+        auto&& mean = predicted_belief.mean();
+        auto&& cov_xx = predicted_belief.covariance();
 
         auto S = (H * cov_xx * H.transpose() + R).eval();
         auto K = (cov_xx * H.transpose() * S.inverse()).eval();
 
-        posterior_dist.mean(mean + K * (y - H * mean));
-        posterior_dist.covariance(cov_xx - K * H * cov_xx);
+        posterior_belief.mean(mean + K * (y - H * mean));
+        posterior_belief.covariance(cov_xx - K * H * cov_xx);
     }
 
     /**
@@ -215,11 +215,11 @@ public:
     virtual void predict_and_update(double delta_time,
                                     const Input& input,
                                     const Obsrv& observation,
-                                    const StateDistribution& prior_dist,
-                                    StateDistribution& posterior_dist)
+                                    const Belief& prior_belief,
+                                    Belief& posterior_belief)
     {
-        predict(delta_time, input, prior_dist, posterior_dist);
-        update(observation, posterior_dist, posterior_dist);
+        predict(delta_time, input, prior_belief, posterior_belief);
+        update(observation, posterior_belief, posterior_belief);
     }
 
     ProcessModel& process_model() { return process_model_; }

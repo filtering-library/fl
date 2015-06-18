@@ -84,7 +84,7 @@ struct Traits<ParticleFilter<ProcessModel, ObservationModel>>
     typedef typename ProcessModel::Input        Input;
     typedef typename ObservationModel::Obsrv    Obsrv;
 
-    typedef DiscreteDistribution<State> StateDistribution;
+    typedef DiscreteDistribution<State> Belief;
 
     /** \cond INTERNAL */
     typedef typename ProcessModel::Noise      ProcessNoise;
@@ -109,7 +109,7 @@ public:
     typedef from_traits(State);
     typedef from_traits(Input);
     typedef from_traits(Obsrv);
-    typedef from_traits(StateDistribution);
+    typedef from_traits(Belief);
 
 public:
     ParticleFilter(const ProcessModel& process_model,
@@ -126,15 +126,15 @@ public:
     /// predict ****************************************************************
     virtual void predict(double delta_time,
                          const Input& input,
-                         const StateDistribution& prior_dist,
-                         StateDistribution& predicted_dist)
+                         const Belief& prior_belief,
+                         Belief& predicted_belief)
     {
-        predicted_dist = prior_dist;
-        for(size_t i = 0; i < predicted_dist.size(); i++)
+        predicted_belief = prior_belief;
+        for(size_t i = 0; i < predicted_belief.size(); i++)
         {
-            predicted_dist.location(i) =
+            predicted_belief.location(i) =
                     process_model_.predict_state(delta_time,
-                                                 prior_dist.location(i),
+                                                 prior_belief.location(i),
                                                  process_noise_.sample(),
                                                  input);
         }
@@ -142,34 +142,34 @@ public:
 
     /// update *****************************************************************
     virtual void update(const Obsrv& obsrv,
-                        const StateDistribution& predicted_dist,
-                        StateDistribution& posterior_dist)
+                        const Belief& predicted_belief,
+                        Belief& posterior_belief)
     {
         // if the samples are too concentrated then resample
-        if(predicted_dist.kl_given_uniform() > max_kl_divergence_)
+        if(predicted_belief.kl_given_uniform() > max_kl_divergence_)
         {
-            posterior_dist.from_distribution(predicted_dist,
-                                             predicted_dist.size());
+            posterior_belief.from_distribution(predicted_belief,
+                                             predicted_belief.size());
         }
         else
         {
-            posterior_dist = predicted_dist;
+            posterior_belief = predicted_belief;
         }
 
         // update the weights of the particles with the likelihoods
-        posterior_dist.delta_log_prob_mass(
-             obsrv_model_.log_probabilities(obsrv, predicted_dist.locations()));
+        posterior_belief.delta_log_prob_mass(
+             obsrv_model_.log_probabilities(obsrv, predicted_belief.locations()));
     }
 
     /// predict and update *****************************************************
     virtual void predict_and_update(double delta_time,
                                     const Input& input,
                                     const Obsrv& observation,
-                                    const StateDistribution& prior_dist,
-                                    StateDistribution& posterior_dist)
+                                    const Belief& prior_belief,
+                                    Belief& posterior_belief)
     {
-        predict(delta_time, input, prior_dist, posterior_dist);
-        update(observation, posterior_dist, posterior_dist);
+        predict(delta_time, input, prior_belief, posterior_belief);
+        update(observation, posterior_belief, posterior_belief);
     }
 
 
@@ -194,9 +194,9 @@ public:
     }
 
     /// \todo: should this function be here?
-    virtual StateDistribution create_state_distribution() const
+    virtual Belief create_state_distribution() const
     {
-        auto state_distr = StateDistribution(process_model().state_dimension());
+        auto state_distr = Belief(process_model().state_dimension());
 
         return state_distr;
     }
