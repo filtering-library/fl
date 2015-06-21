@@ -24,6 +24,7 @@
 #define FL__UTIL__MATH__GENERAL_FUNCTIONS_HPP
 
 #include <cmath>
+#include <fl/util/types.hpp>
 
 namespace fl
 {
@@ -32,7 +33,7 @@ namespace fl
  * \brief Sigmoid function
  * \ingroup general_functions
  */
-constexpr double sigmoid(const double& x)
+constexpr FloatingPoint sigmoid(const FloatingPoint& x)
 {
     return 1.0 / (1.0 + std::exp(-x));
 }
@@ -41,9 +42,16 @@ constexpr double sigmoid(const double& x)
  * \brief log odd
  * \ingroup general_functions
  */
-constexpr double logit(const double& x)
+constexpr FloatingPoint logit(const FloatingPoint& x)
 {
     return std::log(x / (1.0 - x));
+}
+
+
+constexpr long timesteps(FloatingPoint discretization_time_step,
+                        FloatingPoint delta_time)
+{
+    return std::round(delta_time/discretization_time_step);
 }
 
 }
