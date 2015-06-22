@@ -51,29 +51,6 @@ namespace fl
  */
 template <typename> struct Traits { };
 
-namespace internal
-{
-
-/**
- * \internal
- * Observation model type identifier
- */
-struct ObsrvModelType { };
-
-/**
- * \internal
- * Process model type identifier
- */
-struct ProcessModelType { };
-
-/**
- * \internal
- * Adaptive model type identifier
- */
-struct AdaptiveModelType { };
-
-}
-
 /**
  * \ingroup traits
  *
@@ -214,25 +191,6 @@ template <int A, int B> struct MinOf
     static constexpr int value = (A < B) ? A : B;
     constexpr operator int () { return value; }
 };
-
-}
-
-namespace fl
-{
-
-namespace internal
-{
-typedef Eigen::Matrix<double, 0, 1> NullVector;
-
-//struct Empty { };
-typedef Eigen::Matrix<double, 0, 0> Empty; // must GO!
-
-enum SpaceType // must GO!
-{
-    Scalar,
-    Vectorial
-};
-}
 
 }
 
