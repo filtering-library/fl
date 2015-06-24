@@ -39,12 +39,12 @@ public:
         InputDim = 10
     };
 
-    typedef Eigen::Matrix<fl::FloatingPoint, StateDim, 1> State;
-    typedef Eigen::Matrix<fl::FloatingPoint, InputDim, 1> Input;
+    typedef Eigen::Matrix<fl::Real, StateDim, 1> State;
+    typedef Eigen::Matrix<fl::Real, InputDim, 1> Input;
     typedef fl::LinearStateTransitionModel<State, Input> LinearModel;
 
-    typedef Eigen::Matrix<fl::FloatingPoint, Eigen::Dynamic, 1> StateX;
-    typedef Eigen::Matrix<fl::FloatingPoint, Eigen::Dynamic, 1> InputX;
+    typedef Eigen::Matrix<fl::Real, Eigen::Dynamic, 1> StateX;
+    typedef Eigen::Matrix<fl::Real, Eigen::Dynamic, 1> InputX;
     typedef fl::LinearStateTransitionModel<StateX, InputX> LinearModelX;
 
     typedef typename LinearModel::Noise Noise;

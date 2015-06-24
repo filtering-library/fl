@@ -37,14 +37,14 @@ template <
 class ObservationDensity
 {
 public:
-    typedef Eigen::Array<State, BatchSize, 1 > StateArray;
-    typedef Eigen::Array<FloatingPoint, BatchSize, 1 > ValueArray;
+    typedef Eigen::Array<State, BatchSize, 1> StateArray;
+    typedef Eigen::Array<Real,  BatchSize, 1>  ValueArray;
 
 public:
     /// \todo should add the unnormalized log probability interface
 
-    virtual FloatingPoint log_probability(const Obsrv& obsrv,
-                                          const State& state) const = 0;
+    virtual Real log_probability(const Obsrv& obsrv,
+                                 const State& state) const = 0;
 
     /**
      * \return Dimension of the state variable $\f$x\f$
@@ -56,9 +56,8 @@ public:
      */
     virtual int obsrv_dimension() const = 0;
 
-
-    virtual FloatingPoint probability(const Obsrv& obsrv,
-                                      const State& state) const
+    virtual Real probability(const Obsrv& obsrv,
+                             const State& state) const
     {
         return std::exp(log_probability(obsrv, state));
     }
@@ -94,15 +93,15 @@ template <
 class SwitchingObservationDensity
 {
 public:
-    typedef Eigen::Array<State, BatchSize, 1 >          StateArray;
-    typedef Eigen::Array<FloatingPoint, BatchSize, 1 >  ValueArray;
-    typedef Eigen::Array<int, BatchSize, 1 >            IndexArray;
+    typedef Eigen::Array<State, BatchSize, 1>  StateArray;
+    typedef Eigen::Array<Real, BatchSize, 1>   ValueArray;
+    typedef Eigen::Array<int, BatchSize, 1>    IndexArray;
 
 
 public:
     /// \todo should add the unnormalized log probability interface
 
-    virtual FloatingPoint log_probability(const Obsrv& obsrv,
+    virtual Real log_probability(const Obsrv& obsrv,
                                           const State& state,
                                           const int&   index) const = 0;
 
@@ -117,9 +116,9 @@ public:
     virtual int obsrv_dimension() const = 0;
 
 
-    virtual FloatingPoint probability(const Obsrv& obsrv,
-                                      const State& state,
-                                      const int&   index) const
+    virtual Real probability(const Obsrv& obsrv,
+                             const State& state,
+                             const int&   index) const
     {
         return std::exp(log_probability(obsrv, state, index));
     }

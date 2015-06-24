@@ -37,6 +37,8 @@ namespace fl
     typedef double FloatingPoint;
 #endif
 
+typedef FloatingPoint Real;
+
 namespace internal
 {
 

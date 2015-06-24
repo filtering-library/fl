@@ -39,12 +39,12 @@ public:
         StateDim = 10
     };
 
-    typedef Eigen::Matrix<fl::FloatingPoint, StateDim, 1> State;
-    typedef Eigen::Matrix<fl::FloatingPoint, ObsrvDim, 1> Obsrv;
+    typedef Eigen::Matrix<fl::Real, StateDim, 1> State;
+    typedef Eigen::Matrix<fl::Real, ObsrvDim, 1> Obsrv;
     typedef fl::LinearObservationModel<Obsrv, State> LinearModel;
 
-    typedef Eigen::Matrix<fl::FloatingPoint, Eigen::Dynamic, 1> StateX;
-    typedef Eigen::Matrix<fl::FloatingPoint, Eigen::Dynamic, 1> ObsrvX;
+    typedef Eigen::Matrix<fl::Real, Eigen::Dynamic, 1> StateX;
+    typedef Eigen::Matrix<fl::Real, Eigen::Dynamic, 1> ObsrvX;
     typedef fl::LinearObservationModel<ObsrvX, StateX> LinearModelX;
 
     typedef typename LinearModel::Noise Noise;

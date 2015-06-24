@@ -217,13 +217,13 @@ public:
 
             for(int o = 0; o < obsrv.size(); o++)
             {
-                FloatingPoint p_given1 =
+                Real p_given1 =
                         obsrv_densities_[o,1].probability(obsrv[o], global_state);
 
-                FloatingPoint p_given0 =
+                Real p_given0 =
                         obsrv_densities_[o,0].probability(obsrv[o], global_state);
 
-                FloatingPoint p =   p_given0 * (1. - local_state[o])
+                Real p =   p_given0 * (1. - local_state[o])
                                   + p_given1 * local_state[o];
 
             // there is a problem if we want to use this filter for tracking:
