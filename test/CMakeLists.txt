@@ -32,11 +32,11 @@ catkin_add_gtest(gaussian_distribution_test
 target_link_libraries(gaussian_distribution_test
                       ${catkin_LIBRARIES})
 
-catkin_add_gtest(discrete_distribution_test
-              distribution/discrete_distribution_test.cpp
-              gtest_main.cpp)
-target_link_libraries(discrete_distribution_test
-                   ${catkin_LIBRARIES})
+#catkin_add_gtest(discrete_distribution_test
+#              distribution/discrete_distribution_test.cpp
+#              gtest_main.cpp)
+#target_link_libraries(discrete_distribution_test
+#                   ${catkin_LIBRARIES})
 
 # == exceptions tests ======================================================== #
 catkin_add_gtest(exception_test
@@ -47,30 +47,32 @@ target_link_libraries(exception_test ${catkin_LIBRARIES})
 # == Gaussian filters tests ================================================== #
 
 # = Kalman filter = #
-catkin_add_gtest(gaussian_filter_kf_test
+catkin_add_gtest(gaussian_filter_kalman_filter_test
+                 typecast.hpp
+                 gaussian_filter/gaussian_filter_test_suite.hpp
                  gaussian_filter/gaussian_filter_kf_test.cpp
                  gtest_main.cpp)
-target_link_libraries(gaussian_filter_kf_test ${catkin_LIBRARIES})
+target_link_libraries(gaussian_filter_kalman_filter_test ${catkin_LIBRARIES})
 
 
 # == Particle filters tests ================================================== #
-catkin_add_gtest(particle_filter_test
-                 particle_filter/particle_filter_test.cpp
-                 gtest_main.cpp)
-target_link_libraries(particle_filter_test
-                      ${catkin_LIBRARIES})
+#catkin_add_gtest(particle_filter_test
+#                 particle_filter/particle_filter_test.cpp
+#                 gtest_main.cpp)
+#target_link_libraries(particle_filter_test
+#                      ${catkin_LIBRARIES})
 
-catkin_add_gtest(particle_filter_fixture_test
-                 particle_filter/particle_filter_fixture_test.cpp
-                 gtest_main.cpp)
-target_link_libraries(particle_filter_fixture_test
-                      ${catkin_LIBRARIES})
+#catkin_add_gtest(particle_filter_fixture_test
+#                 particle_filter/particle_filter_fixture_test.cpp
+#                 gtest_main.cpp)
+#target_link_libraries(particle_filter_fixture_test
+#                      ${catkin_LIBRARIES})
 
-catkin_add_gtest(frb_particle_filter_test
-                 particle_filter/frb_particle_filter_test.cpp
-                 gtest_main.cpp)
-target_link_libraries(frb_particle_filter_test
-                      ${catkin_LIBRARIES})
+#catkin_add_gtest(frb_particle_filter_test
+#                 particle_filter/frb_particle_filter_test.cpp
+#                 gtest_main.cpp)
+#target_link_libraries(frb_particle_filter_test
+#                      ${catkin_LIBRARIES})
 
 
 # == require refactoring ===================================================== #
