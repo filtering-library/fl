@@ -20,184 +20,225 @@
  */
 
 #include <gtest/gtest.h>
+#include "../typecast.hpp"
 
 #include <Eigen/Dense>
 
-#include <cmath>
-#include <iostream>
+#include "gaussian_filter_test_suite.hpp"
 
-#include <fl/model/process/linear_process_model.hpp>
-#include <fl/model/observation/linear_observation_model.hpp>
-#include <fl/filter/filter_interface.hpp>
-#include <fl/filter/gaussian/gaussian_filter.hpp>
-#include <fl/util/math/linear_algebra.hpp>
-
-
-using namespace fl;
-
-TEST(KalmanFilterTests, init_fixed_size_predict)
+template <typename TestType>
+class KalmanFilterTest
+    : public GaussianFilterTest<TestType>
 {
-    constexpr int dim_state = 10;
-    constexpr int dim_obsrv = 20;
-    constexpr int dim_input = 1;
+public:
+    typedef GaussianFilterTest<TestType> Base;
 
-    typedef double Scalar;
-    typedef Eigen::Matrix<Scalar, dim_state, 1> State;
-    typedef Eigen::Matrix<Scalar, dim_input, 1> Input;
-    typedef Eigen::Matrix<Scalar, dim_obsrv, 1> Obsrv;
+    typedef typename Base::LinearStateTransition LinearStateTransition;
+    typedef typename Base::LinearObservation LinearObservation;
 
-    typedef LinearStateTransitionModel<State, Input> LinearProcess;
-    typedef LinearObservationModel<Obsrv, State> LinearObservation;
+    typedef fl::GaussianFilter<LinearStateTransition, LinearObservation> Filter;
 
-    // the KalmanFilter
-    typedef GaussianFilter<LinearProcess, LinearObservation> Filter;
-    auto filter = Filter(LinearProcess(), LinearObservation());
-    Filter::Belief state_dist;
-
-    EXPECT_TRUE(state_dist.mean().isZero());
-    EXPECT_TRUE(state_dist.covariance().isIdentity());
-
-    filter.predict(1.0, Input(1), state_dist, state_dist);
-
-    auto Q = filter.process_model().noise_matrix_squared();
-
-    EXPECT_TRUE(state_dist.mean().isZero());
-    EXPECT_TRUE(fl::are_similar(state_dist.covariance(), 2. * Q));
-}
-
-TEST(KalmanFilterTests, init_dynamic_size_predict)
-{
-    constexpr int dim_state = 10;
-    constexpr int dim_obsrv = 20;
-    constexpr int dim_input = 1;
-
-    typedef double Scalar;
-    typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> State;
-    typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Input;
-    typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Obsrv;
-
-    typedef LinearStateTransitionModel<State, Input> LinearProcess;
-    typedef LinearObservationModel<Obsrv, State> LinearObservation;
-
-    // the KalmanFilter
-    typedef GaussianFilter<LinearProcess, LinearObservation> Filter;
-
-    auto filter = Filter(LinearProcess(dim_state, dim_input),
-                         LinearObservation(dim_obsrv, dim_state));
-
-    auto state_dist  = Filter::Belief(dim_state);
-
-    EXPECT_TRUE(state_dist.mean().isZero());
-    EXPECT_TRUE(state_dist.covariance().isIdentity());
-
-    filter.predict(1.0, Input(1), state_dist, state_dist);
-
-    auto Q = filter.process_model().noise_matrix_squared();
-
-    EXPECT_TRUE(state_dist.mean().isZero());
-    EXPECT_TRUE(fl::are_similar(state_dist.covariance(), 2. * Q));
-}
-
-TEST(KalmanFilterTests, fixed_size_predict_update)
-{
-    constexpr int dim_state = 6;
-    constexpr int dim_obsrv = 6;
-    constexpr int dim_input = 6;
-
-    typedef double Scalar;
-    typedef Eigen::Matrix<Scalar, dim_state, 1> State;
-    typedef Eigen::Matrix<Scalar, dim_obsrv, 1> Input;
-    typedef Eigen::Matrix<Scalar, dim_input, 1> Obsrv;
-
-    typedef LinearStateTransitionModel<State, Input> LinearProcess;
-    typedef LinearObservationModel<Obsrv, State> LinearObservation;
-
-    // the KalmanFilter
-    typedef GaussianFilter<LinearProcess, LinearObservation> Filter;
-
-    auto filter = Filter(LinearProcess(dim_state, dim_input),
-                         LinearObservation(dim_obsrv, dim_state));
-
-    auto state_dist  = Filter::Belief(dim_state);
-
-    auto A = filter.process_model().create_dynamics_matrix();
-    auto Q = filter.process_model().create_noise_matrix();
-
-    auto H = filter.obsrv_model().create_sensor_matrix();
-    auto R = filter.obsrv_model().create_noise_matrix();
-
-    A.setRandom();
-    H.setRandom();
-    Q.setRandom();
-    R.setRandom();
-
-    filter.process_model().dynamics_matrix(A);
-    filter.process_model().noise_matrix(Q);
-
-    filter.obsrv_model().sensor_matrix(H);
-    filter.obsrv_model().noise_matrix(R);
-
-    EXPECT_TRUE(state_dist.covariance().ldlt().isPositive());
-
-    for (int i = 0; i < 2000; ++i)
+    static Filter create_kalman_filter()
     {
-        filter.predict(1.0, Input(), state_dist, state_dist);
-        EXPECT_TRUE(state_dist.covariance().ldlt().isPositive());
+        auto filter = Filter(
+                        LinearStateTransition(Base::StateDim, Base::InputDim),
+                        LinearObservation(Base::ObsrvDim, Base::StateDim));
 
-        Obsrv y = Obsrv::Random(dim_obsrv);
-        filter.update(y, state_dist, state_dist);
-        EXPECT_TRUE(state_dist.covariance().ldlt().isPositive());
+        return filter;
     }
-}
+};
 
-TEST(KalmanFilterTests, dynamic_size_predict_update)
+typedef ::testing::Types<
+            fl::StaticTest,
+            fl::DynamicTest
+        > TestTypes;
+
+TYPED_TEST_CASE(KalmanFilterTest, TestTypes);
+
+TYPED_TEST(KalmanFilterTest, init_predict)
 {
-    constexpr int dim_state = 10;
-    constexpr int dim_obsrv = 10;
-    constexpr int dim_input = 10;
+    auto filter = TestFixture::create_kalman_filter();
+    auto belief = filter.create_belief();
 
-    typedef double Scalar;
-    typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> State;
-    typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Input;
-    typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Obsrv;
-
-    typedef LinearStateTransitionModel<State, Input> LinearProcess;
-    typedef LinearObservationModel<Obsrv, State> LinearObservation;
-
-    // the KalmanFilter
-    typedef GaussianFilter<LinearProcess, LinearObservation> Filter;
-
-    auto filter = Filter(LinearProcess(dim_state, dim_input),
-                         LinearObservation(dim_obsrv, dim_state));
-
-    auto state_dist  = Filter::Belief(dim_state);
-
-    auto A = filter.process_model().create_dynamics_matrix();
-    auto Q = filter.process_model().create_noise_matrix();
-
-    auto H = filter.obsrv_model().create_sensor_matrix();
-    auto R = filter.obsrv_model().create_noise_matrix();
-
-    A.setRandom();
-    H.setRandom();
-    Q.setRandom();
-    R.setRandom();
-
-    filter.process_model().dynamics_matrix(A);
-    filter.process_model().noise_matrix(Q);
-
-    filter.obsrv_model().sensor_matrix(H);
-    filter.obsrv_model().noise_matrix(R);
-
-    EXPECT_TRUE(state_dist.covariance().ldlt().isPositive());
-
-    for (int i = 0; i < 2000; ++i)
-    {
-        filter.predict(1.0, Input(10), state_dist, state_dist);
-        EXPECT_TRUE(state_dist.covariance().ldlt().isPositive());
-
-        Obsrv y = Obsrv::Random(dim_obsrv);
-        filter.update(y, state_dist, state_dist);
-        EXPECT_TRUE(state_dist.covariance().ldlt().isPositive());
-    }
+    predict(filter, belief);
 }
+
+TYPED_TEST(KalmanFilterTest, predict_then_update)
+{
+    auto filter = TestFixture::create_kalman_filter();
+    auto belief = filter.create_belief();
+
+    predict_update(filter, belief);
+}
+
+TYPED_TEST(KalmanFilterTest, predict_and_update)
+{
+    auto filter = TestFixture::create_kalman_filter();
+
+    auto belief_A  = filter.create_belief();
+    auto belief_B  = filter.create_belief();
+
+    predict_and_update(filter, belief_A, belief_B);
+}
+
+//TEST(KalmanFilterTests, fixed_size_predict_loop)
+//{
+//    constexpr int StateDim = 6;
+//    constexpr int ObsrvDim = 6;
+//    constexpr int InputDim = 6;
+
+
+//    typedef Eigen::Matrix<Real, StateDim, 1> State;
+//    typedef Eigen::Matrix<Real, ObsrvDim, 1> Input;
+//    typedef Eigen::Matrix<Real, InputDim, 1> Obsrv;
+
+//    typedef LinearStateTransitionModel<State, Input> LinearStateTransition;
+//    typedef LinearObservationModel<Obsrv, State> LinearObservation;
+
+//    // the KalmanFilter
+//    typedef GaussianFilter<LinearStateTransition, LinearObservation> Filter;
+
+//    auto filter = Filter(LinearStateTransition(StateDim, InputDim),
+//                         LinearObservation(ObsrvDim, StateDim));
+
+//    auto belief  = Filter::Belief(StateDim);
+
+//    auto A = filter.process_model().create_dynamics_matrix();
+//    auto Q = filter.process_model().create_noise_matrix();
+
+//    A.setIdentity();
+//    Q.setIdentity();
+
+//    filter.process_model().dynamics_matrix(A);
+//    filter.process_model().noise_matrix(Q);
+
+//    EXPECT_TRUE(belief.covariance().ldlt().isPositive());
+//    for (int i = 0; i < 100000; ++i)
+//    {
+//        filter.predict(belief, Input(InputDim), belief);
+//    }
+//    EXPECT_TRUE(belief.covariance().ldlt().isPositive());
+//}
+
+//TEST(KalmanFilterTests, fixed_size_predict_multiple_loop)
+//{
+//    constexpr int StateDim = 6;
+//    constexpr int ObsrvDim = 6;
+//    constexpr int InputDim = 6;
+
+
+//    typedef Eigen::Matrix<Real, StateDim, 1> State;
+//    typedef Eigen::Matrix<Real, ObsrvDim, 1> Input;
+//    typedef Eigen::Matrix<Real, InputDim, 1> Obsrv;
+
+//    typedef LinearStateTransitionModel<State, Input> LinearStateTransition;
+//    typedef LinearObservationModel<Obsrv, State> LinearObservation;
+
+//    // the KalmanFilter
+//    typedef GaussianFilter<LinearStateTransition, LinearObservation> Filter;
+
+//    auto filter = Filter(LinearStateTransition(StateDim, InputDim),
+//                         LinearObservation(ObsrvDim, StateDim));
+
+//    auto belief  = Filter::Belief(StateDim);
+
+//    auto A = filter.process_model().create_dynamics_matrix();
+//    auto Q = filter.process_model().create_noise_matrix();
+
+//    A.setIdentity();
+//    Q.setIdentity();
+
+//    filter.process_model().dynamics_matrix(A);
+//    filter.process_model().noise_matrix(Q);
+
+//    EXPECT_TRUE(belief.covariance().ldlt().isPositive());
+//    for (int i = 0; i < 100000; ++i)
+//    {
+//        filter.predict(belief, Input(InputDim), 1, belief);
+//    }
+//    EXPECT_TRUE(belief.covariance().ldlt().isPositive());
+//}
+
+//TEST(KalmanFilterTests, fixed_size_predict_multiple)
+//{
+//    constexpr int StateDim = 6;
+//    constexpr int ObsrvDim = 6;
+//    constexpr int InputDim = 6;
+
+
+//    typedef Eigen::Matrix<Real, StateDim, 1> State;
+//    typedef Eigen::Matrix<Real, ObsrvDim, 1> Input;
+//    typedef Eigen::Matrix<Real, InputDim, 1> Obsrv;
+
+//    typedef LinearStateTransitionModel<State, Input> LinearStateTransition;
+//    typedef LinearObservationModel<Obsrv, State> LinearObservation;
+
+//    // the KalmanFilter
+//    typedef GaussianFilter<LinearStateTransition, LinearObservation> Filter;
+
+//    auto filter = Filter(LinearStateTransition(StateDim, InputDim),
+//                         LinearObservation(ObsrvDim, StateDim));
+
+//    auto belief  = Filter::Belief(StateDim);
+
+//    auto A = filter.process_model().create_dynamics_matrix();
+//    auto Q = filter.process_model().create_noise_matrix();
+
+//    A.setIdentity();
+//    Q.setIdentity();
+
+//    filter.process_model().dynamics_matrix(A);
+//    filter.process_model().noise_matrix(Q);
+
+//    EXPECT_TRUE(belief.covariance().ldlt().isPositive());
+//    filter.predict(belief, Input(InputDim), 100000, belief);
+//    EXPECT_TRUE(belief.covariance().ldlt().isPositive());
+//}
+
+//TEST(KalmanFilterTests, fixed_size_predict_loop_vs_multiple)
+//{
+//    constexpr int StateDim = 6;
+//    constexpr int ObsrvDim = 6;
+//    constexpr int InputDim = 6;
+
+
+//    typedef Eigen::Matrix<Real, StateDim, 1> State;
+//    typedef Eigen::Matrix<Real, ObsrvDim, 1> Input;
+//    typedef Eigen::Matrix<Real, InputDim, 1> Obsrv;
+
+//    typedef LinearStateTransitionModel<State, Input> LinearStateTransition;
+//    typedef LinearObservationModel<Obsrv, State> LinearObservation;
+
+//    // the KalmanFilter
+//    typedef GaussianFilter<LinearStateTransition, LinearObservation> Filter;
+
+//    auto filter = Filter(LinearStateTransition(StateDim, InputDim),
+//                         LinearObservation(ObsrvDim, StateDim));
+
+//    auto belief_A  = Filter::Belief(StateDim);
+//    auto belief_B = Filter::Belief(StateDim);
+
+//    auto A = filter.process_model().create_dynamics_matrix();
+//    auto Q = filter.process_model().create_noise_matrix();
+
+//    A.setIdentity();
+//    Q.setIdentity();
+
+//    filter.process_model().dynamics_matrix(A);
+//    filter.process_model().noise_matrix(Q);
+
+//    EXPECT_TRUE(belief_A.covariance().ldlt().isPositive());
+//    for (int i = 0; i < 2000; ++i)
+//    {
+//        filter.predict(belief_A, Input(InputDim), belief_A);
+//    }
+//    filter.predict(belief_B, Input(InputDim), 2000, belief_B);
+
+//    EXPECT_TRUE(belief_A.covariance().ldlt().isPositive());
+//    EXPECT_TRUE(belief_B.covariance().ldlt().isPositive());
+
+//    EXPECT_TRUE(
+//        fl::are_similar(belief_A.mean(), belief_B.mean()));
+//    EXPECT_TRUE(
+//        fl::are_similar(belief_A.covariance(), belief_B.covariance()));
+//}
