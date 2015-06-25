@@ -27,7 +27,6 @@ namespace fl
 {
 
 /**
- * \interface Sampling
  * \ingroup distribution_interfaces
  *
  * \brief Distribution sampling interface
@@ -37,7 +36,7 @@ namespace fl
 template <typename Variate>
 class Sampling
 {
-public:    
+public:
     /**
      * \brief Overridable default destructor
      */
