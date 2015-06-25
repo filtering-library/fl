@@ -35,7 +35,6 @@
 
 #include <fl/model/process/linear_process_model.hpp>
 #include <fl/model/observation/linear_observation_model.hpp>
-#include <fl/filter/gaussian/gaussian_filter.hpp>
 
 template <typename TestType>
 class GaussianFilterTest
@@ -62,7 +61,7 @@ protected:
     typedef fl::LinearObservationModel<Obsrv, State> LinearObservation;
 
     GaussianFilterTest()
-        : predict_steps_(100000),
+        : predict_steps_(10000),
           predict_update_steps_(2000)
     { }
 
