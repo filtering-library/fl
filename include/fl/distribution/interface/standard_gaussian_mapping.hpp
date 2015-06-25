@@ -37,21 +37,24 @@ namespace fl
 /**
  * \ingroup distribution_interfaces
  *
- * \brief StandardGaussianMapping is the interface which provides a mapping
+ * \brief Represents the interface which provides a mapping
  *        from a standard normal variate onto the underlying distribution which
  *        implements this interface
  *
- * \tparam Variate          The Distribution variate type. This is the type
- *                          which is being returned by the mapping or sampling,
- *                          respectively.
- * \tparam StandardVariate  Type of the source variate type which is the
- *                          standard normal variate \f$x_{SNV}\sim{\cal N}(0, I)\f$
+ * \tparam Variate              The Distribution variate type. This is the type
+ *                              which is being returned by the mapping or
+ *                              sampling, respectively.
+ * \tparam StdVariateDimension  Dimension of the source variate type which is
+ *                              the standard normal variate
+ *                              \f$x_{SNV}\sim{\cal N}(0, I)\f$
  */
-template <typename Variate, typename StandardVariate = internal::Empty>
+template <typename Variate, int StdVariateDimension>
 class StandardGaussianMapping
-        : public Sampling<Variate>
+    : public Sampling<Variate>
 {
 public:
+    typedef Eigen::Matrix<Real, StdVariateDimension, 1> StandardVariate;
+
     /**
      * StandardGaussianMapping constructor. It initializes the mapper
      *
@@ -113,21 +116,21 @@ private:
 /**
  * \ingroup distribution_interfaces
  *
- * \brief StandardGaussianMapping is the interface which provides a mapping
+ * \brief Represents the interface which provides a mapping
  *        from a scalar standard normal variate onto the underlying distribution
  *        which implements this interface.
  *
  * \tparam Variate          The Distribution variate type. This is the type
  *                          which is being returned by the mapping or sampling,
  *                          respectively.
- * \tparam StandardVariate  Type of the source variate type which is the
- *                          standard normal variate
  */
 template <typename Variate>
-class StandardGaussianMapping<Variate, FloatingPoint>:
-        public Sampling<Variate>
+class StandardGaussianMapping<Variate, 1>
+    : public Sampling<Variate>
 {
 public:
+    typedef Real StandardVariate;
+
     /**
      * \brief Overridable default destructor
      */
@@ -141,7 +144,7 @@ public:
      *
      * \return A variate according to the underlying distribution
      */
-    virtual Variate map_standard_normal(const FloatingPoint& sample) const = 0;
+    virtual Variate map_standard_normal(const Real& sample) const = 0;
 
     /**
      * \return A variate according to the underlying distribution
@@ -163,7 +166,7 @@ private:
     /**
      * \brief One dimensional SNV generator
      */
-    mutable StandardGaussian<FloatingPoint> standard_gaussian_;
+    mutable StandardGaussian<Real> standard_gaussian_;
 };
 
 }
