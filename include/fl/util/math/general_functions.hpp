@@ -33,7 +33,7 @@ namespace fl
  * \brief Sigmoid function
  * \ingroup general_functions
  */
-constexpr FloatingPoint sigmoid(const FloatingPoint& x)
+constexpr Real sigmoid(const Real& x)
 {
     return 1.0 / (1.0 + std::exp(-x));
 }
@@ -42,16 +42,21 @@ constexpr FloatingPoint sigmoid(const FloatingPoint& x)
  * \brief log odd
  * \ingroup general_functions
  */
-constexpr FloatingPoint logit(const FloatingPoint& x)
+constexpr Real logit(const Real& x)
 {
     return std::log(x / (1.0 - x));
 }
 
-
-constexpr long timesteps(FloatingPoint discretization_time_step,
-                        FloatingPoint delta_time)
+long timesteps(Real discretization_time_step,
+               Real delta_time)
 {
     return std::round(delta_time/discretization_time_step);
+
+//    // constexpr return function version
+//    return (delta_time/discretization_time_step) -
+//           - int(delta_time/discretization_time_step) > 0.5 ?
+//           int(delta_time/discretization_time_step) + 1 :
+//           int(delta_time/discretization_time_step);
 }
 
 }
