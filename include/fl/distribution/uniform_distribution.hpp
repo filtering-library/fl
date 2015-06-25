@@ -37,13 +37,13 @@ namespace fl
  * \ingroup distributions
  */
 class UniformDistribution
-        : public Evaluation<double, double>,
-          public StandardGaussianMapping<double, double>
+        : public Evaluation<Real>,
+          public StandardGaussianMapping<Real, 1>
 {
 
 public:
-    UniformDistribution(double min = 0.0,
-                        double max = 1.0): min_(min), max_(max)
+    UniformDistribution(Real min = 0.0,
+                        Real max = 1.0): min_(min), max_(max)
     {
         delta_ = max_ - min_;
         density_ = 1.0 / delta_;
@@ -53,7 +53,7 @@ public:
 
     virtual ~UniformDistribution() { }
 
-    virtual double probability(const double& input) const
+    virtual Real probability(const Real& input) const
     {
         if(input < min_ || input > max_)
             return 0;
@@ -61,29 +61,29 @@ public:
         return density_;
     }
 
-    virtual double log_probability(const double& input) const
+    virtual Real log_probability(const Real& input) const
     {
         if(input < min_ || input > max_)
-            return -std::numeric_limits<double>::infinity();
+            return -std::numeric_limits<Real>::infinity();
 
         return log_density_;
     }
 
-    virtual double map_standard_normal(const double& gaussian_sample) const
+    virtual Real map_standard_normal(const Real& gaussian_sample) const
     {
         // map from a gaussian to a uniform distribution
-        double standard_uniform_sample =
+        Real standard_uniform_sample =
                 0.5 * (1.0 + std::erf(gaussian_sample / std::sqrt(2.0)));
         return mean_ + (standard_uniform_sample - 0.5) * delta_;
     }
 
 private:
-    double min_;
-    double max_;
-    double delta_;
-    double mean_;
-    double density_;
-    double log_density_;
+    Real min_;
+    Real max_;
+    Real delta_;
+    Real mean_;
+    Real density_;
+    Real log_density_;
 };
 
 }
