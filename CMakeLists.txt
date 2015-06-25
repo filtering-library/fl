@@ -5,10 +5,10 @@ project(fl)
 # Flags                    #
 ############################
 # Enable c++11 GCC 4.6 or greater required
-add_definitions(-std=c++0x -Wall)
+add_definitions(-std=c++0x -Wall -O3 -g3)
 
 add_definitions(-DPROFILING_ON=1) #print profiling output
-add_definitions(-DUSE_RANDOM_SEED=1)
+add_definitions(-DUSE_RANDOM_SEED=0)
 
 ############################
 # Library Version          #
@@ -35,6 +35,11 @@ message("##############################")
 find_package(cmake_modules REQUIRED)
 find_package(catkin REQUIRED)
 find_package(Eigen REQUIRED)
+find_package(OpenMP)
+if (OPENMP_FOUND)
+    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+endif()
 
 include_directories(${Eigen_INCLUDE_DIRS})
 
