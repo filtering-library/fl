@@ -50,7 +50,7 @@ target_link_libraries(exception_test ${catkin_LIBRARIES})
 catkin_add_gtest(gaussian_filter_kalman_filter_test
                  typecast.hpp
                  gaussian_filter/gaussian_filter_test_suite.hpp
-                 gaussian_filter/gaussian_filter_kf_test.cpp
+                 gaussian_filter/gaussian_filter_kalman_filter_test.cpp
                  gtest_main.cpp)
 target_link_libraries(gaussian_filter_kalman_filter_test ${catkin_LIBRARIES})
 
