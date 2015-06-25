@@ -39,19 +39,18 @@ class StateTransitionDensity
 public:
     typedef Eigen::Array<State, BatchSize, 1 > StateArray;
     typedef Eigen::Array<Input, BatchSize, 1 > InputArray;
-    typedef Eigen::Array<FloatingPoint, BatchSize, 1 > ValueArray;
+    typedef Eigen::Array<Real, BatchSize, 1 > ValueArray;
 
 public:
     /// \todo should add the unnormalized log probability interface
 
 
-    virtual FloatingPoint log_probability(const State& state,
+    virtual Real log_probability(const State& state,
                                           const State& cond_state,
-                                          const Input& cond_input,
-                                          FloatingPoint dt) const = 0;
+                                          const Input& cond_input) const = 0;
 
     /**
-     * \return Dimension of the state variable $\f$x_t\f$
+     * \return Dimension of the state variable $\fx_t\f$
      */
     virtual int state_dimension() const = 0;
 
@@ -61,18 +60,18 @@ public:
     virtual int input_dimension() const = 0;
 
 
-    virtual FloatingPoint probability(const State& state,
+    virtual Real probability(const State& state,
                                       const State& cond_state,
-                                      const Input& cond_input,
-                                      FloatingPoint dt) const
+                                      const Input& cond_input) const
     {
-        return std::exp(log_probability(state, cond_state, cond_input, dt));
+        return std::exp(log_probability(state,
+                                        cond_state,
+                                        cond_input));
     }
 
     virtual ValueArray log_probabilities(const StateArray& states,
                                          const StateArray& cond_states,
-                                         const InputArray& cond_inputs,
-                                         FloatingPoint dt) const
+                                         const InputArray& cond_inputs) const
     {
         assert(states.size() == cond_inputs.size());
 
@@ -82,8 +81,7 @@ public:
         {
             probs[i] = log_probability(states[i],
                                        cond_states[i],
-                                       cond_inputs[i],
-                                       dt);
+                                       cond_inputs[i]);
         }
 
         return probs;
@@ -91,10 +89,9 @@ public:
 
     virtual ValueArray probabilities(const StateArray& states,
                                      const StateArray& cond_states,
-                                     const InputArray& cond_inputs,
-                                     FloatingPoint dt)
+                                     const InputArray& cond_inputs)
     {
-        return log_probabilities(states, cond_states, cond_inputs, dt).exp();
+        return log_probabilities(states, cond_states, cond_inputs).exp();
     }
 };
 
