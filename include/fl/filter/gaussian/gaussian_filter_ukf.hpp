@@ -89,8 +89,8 @@ public:
 
 private:
     /** \cond INTERNAL */
-    typedef typename Traits<ProcessModel>::Noise StateNoise;
-    typedef typename Traits<ObservationModel>::Noise ObsrvNoise;
+    typedef typename ProcessModel::Noise StateNoise;
+    typedef typename ObservationModel::Noise ObsrvNoise;
 
     /**
      * Represents the total number of points required by the point set
@@ -112,9 +112,9 @@ private:
     {
         NumberOfPoints = PointSetTransform::number_of_points(
                              JoinSizes<
-                                 SizeOf<State>(),
-                                 SizeOf<StateNoise>(),
-                                 SizeOf<ObsrvNoise>()
+                                 SizeOf<State>::Value,
+                                 SizeOf<StateNoise>::Value,
+                                 SizeOf<ObsrvNoise>::Value
                              >::Size)
     };
 
@@ -264,7 +264,7 @@ public:
         const int point_count = X_r.count_points();
         for (int i = 0; i < point_count; ++i)
         {
-            X_r[i] = process_model_.state(X_r[i], input, X_Q[i]);
+            X_r[i] = process_model_.state(X_r[i], X_Q[i], input);
         }
 
         /*
@@ -302,6 +302,19 @@ public:
          */
         predicted_belief.mean(X_r.mean());
         predicted_belief.covariance(X * W.asDiagonal() * X.transpose());
+    }
+
+    virtual void predict(const Belief& prior_belief,
+                         const Input& input,
+                         const long steps,
+                         Belief& predicted_belief)
+    {
+        predicted_belief = prior_belief;
+
+        for (int i = 0; i < steps; ++i)
+        {
+            predict(predicted_belief, input, predicted_belief);
+        }
     }
 
     /**
