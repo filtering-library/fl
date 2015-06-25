@@ -24,15 +24,15 @@
 #define FL__DISTRIBUTION__INTERFACE__UNNORMALIZED_EVAUATION_HPP
 
 #include <cmath>
+#include <fl/util/types.hpp>
 
 namespace fl
 {
 
 /**
- * \interface UnnormalizedEvaluation
  * \ingroup distribution_interfaces
  *
- * UnnormalizedEvaluation represents the part of a distribution interface
+ * \brief Represents the part of a distribution interface
  * which evaluates the unnormalized probability \f$\tilde{p}(x)\f$ of a sample
  * \f$x\f$ according to the implemented distribution. Unnormalized in this
  * context means the integral
@@ -41,7 +41,7 @@ namespace fl
  *
  * does not necessarliy integrate to 1.
  */
-template <typename Variate, typename Scalar>
+template <typename Variate>
 class UnnormalizedEvaluation
 {
 public:
@@ -55,7 +55,7 @@ public:
      *
      * \return \f$\tilde{p}(x)\f$
      */
-    virtual Scalar unnormalized_probability(const Variate& variate) const
+    virtual Real unnormalized_probability(const Variate& variate) const
     {
         return std::exp(log_unnormalized_probability(variate));
     }
@@ -67,7 +67,7 @@ public:
      *
      * \return \f$\ln(\tilde{p}(x))\f$
      */
-    virtual Scalar log_unnormalized_probability(const Variate& variate) const = 0;
+    virtual Real log_unnormalized_probability(const Variate& variate) const = 0;
 };
 
 }
