@@ -23,6 +23,9 @@
 
 #include <Eigen/Dense>
 
+#ifndef FL__TEST__TYPECAST_HPP
+#define FL__TEST__TYPECAST_HPP
+
 namespace fl
 {
 
@@ -44,4 +47,5 @@ struct TestSize<Size, DynamicTest>
 };
 
 }
+#endif
 
