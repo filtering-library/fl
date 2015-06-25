@@ -27,6 +27,60 @@
 namespace fl
 {
 
+template <
+    typename State_,
+    typename Noise_,
+    typename Input_,
+    int Id = 0
+>
+class StateTransitionFunction
+{
+public:
+    typedef State_ State;
+    typedef Noise_ Noise;
+    typedef Input_ Input;
+
+    virtual State state(const State& prev_state,
+                        const Noise& noise,
+                        const Input& input) const = 0;
+
+    /**
+     * \return Dimension of the state variable $\f$x\f$
+     */
+    virtual int state_dimension() const = 0;
+
+    /**
+     * \return Dimension of the noise term \f$w\f$
+     */
+    virtual int noise_dimension() const = 0;
+
+    /**
+     * \return Dimension of the input \f$u_t\f$
+     */
+    virtual int input_dimension() const = 0;
+
+    /**
+     * \return Model id number
+     *
+     * In case of multiple sensors of the same kind, this function returns the
+     * id of the individual model.
+     */
+    virtual int id() const { return Id; }
+
+    /**
+     * Sets the model id
+     *
+     * \param new_id    Model's new ID
+     */
+    virtual void id(int) { /* const ID */ }
+};
+
+
+
+
+
+
+
 /**
  * \interface ProcessModelInterface
  * \ingroup process_models
@@ -41,7 +95,7 @@ namespace fl
 template <
     typename State,
     typename Noise,
-    typename Input = internal::Empty
+    typename Input
 >
 class ProcessModelInterface
     : public internal::ProcessModelType
@@ -98,57 +152,6 @@ public:
      * \return \f$\dim(u_t)\f$, dimension of the control input
      */
     virtual constexpr int input_dimension() const = 0;
-};
-
-
-
-
-template <
-    typename State_,
-    typename Input_,
-    typename Noise_,
-    int Id = 0
->
-class StateTransitionFunction
-{
-public:
-    typedef State_ State;
-    typedef Input_ Input;
-    typedef Noise_ Noise;
-
-    virtual State state(const State& prev_state,
-                        const Input& input,
-                        const Noise& noise) const = 0;
-
-    /**
-     * \return Dimension of the state variable $\f$x\f$
-     */
-    virtual int state_dimension() const = 0;
-
-    /**
-     * \return Dimension of the noise term \f$w\f$
-     */
-    virtual int noise_dimension() const = 0;
-
-    /**
-     * \return Dimension of the input \f$u_t\f$
-     */
-    virtual int input_dimension() const = 0;
-
-    /**
-     * \return Model id number
-     *
-     * In case of multiple sensors of the same kind, this function returns the
-     * id of the individual model.
-     */
-    virtual int id() const { return Id; }
-
-    /**
-     * Sets the model id
-     *
-     * \param new_id    Model's new ID
-     */
-    virtual void id(int) { /* const ID */ }
 };
 
 
