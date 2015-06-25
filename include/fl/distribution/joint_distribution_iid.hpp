@@ -36,28 +36,23 @@ namespace fl
 template <typename...Distributions> class JointDistribution;
 
 /**
+ * \internal
  * Traits of JointDistribution<Distribution, Count>
  */
 template <typename Distribution, int Count>
-struct Traits<
-           JointDistribution<MultipleOf<Distribution, Count>>
-       >
+struct Traits<JointDistribution<MultipleOf<Distribution, Count>>>
 {
-    typedef typename Traits<Distribution>::Variate MarginalVariate;
+    typedef typename Distribution::Variate MarginalVariate;
 
     enum : signed int
     {
         MarginalCount = Count,
-        Dimension = ExpandSizes<MarginalVariate::SizeAtCompileTime, Count>::Size
+        JointSize = ExpandSizes<SizeOf<MarginalVariate>(), Count>::Size
     };
 
     typedef typename MarginalVariate::Scalar Scalar;
 
-    typedef Eigen::Matrix<Scalar, Dimension, 1> Variate;
-    typedef Eigen::Matrix<Scalar, Dimension, Dimension> SecondMoment;
-    typedef Eigen::Array<Distribution, Count, 1> MarginalDistributions;
-
-    typedef Moments<Variate, SecondMoment> MomentsInterface;
+    typedef Eigen::Matrix<Scalar, JointSize, 1> Variate;
 };
 
 /**
@@ -65,19 +60,18 @@ struct Traits<
  */
 template <typename MarginalDistribution, int Count>
 class JointDistribution<MultipleOf<MarginalDistribution, Count>>
-    : public Traits<
-                 JointDistribution<
-                     MultipleOf<MarginalDistribution, Count>
-                 >
-             >::MomentsInterface
+    : public Moments<
+                typename Traits<
+                    JointDistribution<MultipleOf<MarginalDistribution, Count>>
+                >::Variate>
 {
 public:
     /** Typdef of \c This for #from_traits(TypeName) helper */
     typedef JointDistribution This;
 
-    typedef from_traits(Variate);
-    typedef from_traits(SecondMoment);
-    typedef from_traits(MarginalDistributions);
+    typedef typename Traits<This>::Variate Variate;
+    typedef typename Moments<Variate>::SecondMoment SecondMoment;
+    typedef Eigen::Array<MarginalDistribution, Count, 1> MarginalDistributions;
 
 public:
     explicit
