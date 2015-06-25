@@ -27,6 +27,65 @@
 namespace fl
 {
 
+
+template <
+    typename Obsrv_,
+    typename State_,
+    typename Noise_,
+    int Id = 0
+>
+class ObservationFunction
+{
+public:
+    typedef Obsrv_ Obsrv;
+    typedef State_ State;
+    typedef Noise_ Noise;
+
+    /**
+     * Evaluates the model function \f$y = h(x, w)\f$ where \f$x\f$ is the state
+     * and \f$w\sim {\cal N}(0, 1)\f$ is a white noise parameter. Put
+     * differently, \f$y = h(x, w)\f$ is a sample from the conditional model
+     * distribution \f$p(y \mid x)\f$.
+     *
+     * \param state         The state variable \f$x\f$
+     * \param noise         The noise term \f$w\f$
+     * \param delta_time    Prediction time
+     */
+    virtual Obsrv observation(const State& state,
+                              const Noise& noise) const = 0;
+
+    /**
+     * \return Dimension of the state variable $\f$x\f$
+     */
+    virtual int state_dimension() const = 0;
+
+    /**
+     * \return Dimension of the noise term \f$w\f$
+     */
+    virtual int noise_dimension() const = 0;
+
+    /**
+     * \return Dimension of the measurement \f$h(x, w)\f$
+     */
+    virtual int obsrv_dimension() const = 0;
+
+    /**
+     * \return Model id number
+     *
+     * In case of multiple sensors of the same kind, this function returns the
+     * id of the individual model.
+     */
+    virtual int id() const { return Id; }
+
+    /**
+     * Sets the model id
+     *
+     * \param new_id    Model's new ID
+     */
+    virtual void id(int) { /* const ID */ }
+};
+
+
 /**
  * \ingroup observation_models
  * \interface ObservationModelInterface
@@ -141,63 +200,6 @@ public:
      * covariance vector type is same as the noise variate type.
      */
     virtual Noise noise_covariance_vector() const = 0;
-};
-
-template <
-    typename Obsrv_,
-    typename State_,
-    typename Noise_,
-    int Id = 0
->
-class ObservationFunction
-{
-public:
-    typedef Obsrv_ Obsrv;
-    typedef State_ State;
-    typedef Noise_ Noise;
-
-    /**
-     * Evaluates the model function \f$y = h(x, w)\f$ where \f$x\f$ is the state
-     * and \f$w\sim {\cal N}(0, 1)\f$ is a white noise parameter. Put
-     * differently, \f$y = h(x, w)\f$ is a sample from the conditional model
-     * distribution \f$p(y \mid x)\f$.
-     *
-     * \param state         The state variable \f$x\f$
-     * \param noise         The noise term \f$w\f$
-     * \param delta_time    Prediction time
-     */
-    virtual Obsrv observation(const State& state,
-                              const Noise& noise) const = 0;
-
-    /**
-     * \return Dimension of the state variable $\f$x\f$
-     */
-    virtual int state_dimension() const = 0;
-
-    /**
-     * \return Dimension of the noise term \f$w\f$
-     */
-    virtual int noise_dimension() const = 0;
-
-    /**
-     * \return Dimension of the measurement \f$h(x, w)\f$
-     */
-    virtual int obsrv_dimension() const = 0;
-
-    /**
-     * \return Model id number
-     *
-     * In case of multiple sensors of the same kind, this function returns the
-     * id of the individual model.
-     */
-    virtual int id() const { return Id; }
-
-    /**
-     * Sets the model id
-     *
-     * \param new_id    Model's new ID
-     */
-    virtual void id(int) { /* const ID */ }
 };
 
 }
