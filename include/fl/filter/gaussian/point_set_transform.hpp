@@ -55,7 +55,7 @@ public:
      */
     explicit PointSetTransform(const Derived* const derived)
     {
-        typedef Eigen::Matrix<double, 1, 1> Point;
+        //typedef Eigen::Matrix<double, 2, 1> Point;
 
         /** \cond INTERNAL */
         /** \remarks */
@@ -64,7 +64,7 @@ public:
          * - Assert the existence of the function
          * \code constexpr size_t number_of_points(int dimension) const \endcode
          */
-        PointSet<Point, Derived::number_of_points(1)> point_set;
+        //PointSet<Point, Derived::number_of_points(1)> point_set;
 
         /**
          * - Asserts the existens of the forward function with the required
@@ -72,7 +72,7 @@ public:
          *   void forward(const Gaussian& src, PointSet& dest) const
          * \endcode
          */
-        derived->forward(Gaussian<Point>(), point_set);
+        //derived->forward(Gaussian<Point>(), point_set);
 
         /**
          * - Asserts the existens of the forward function with the required
@@ -83,7 +83,7 @@ public:
          *                PointSet& dest) const
          * \endcode
          */
-        derived->forward(Gaussian<Point>(), 1, 0, point_set);
+        //derived->forward(Gaussian<Point>(), 1, 0, point_set);
 
         /** \endcond */
     }
@@ -160,6 +160,49 @@ public:
                  PointSet& point_set) const;
 #endif
 };
+
+
+
+//#include <functional>
+
+//class Integrator
+//{
+//public:
+
+//};
+
+
+//class GaussianQuadrature
+//    : Integrator
+//{
+//public:
+
+//};
+
+//class UnscentedGaussianQuadrature
+//{
+//public:
+//    template <typename Integrand, typename...Args, typename Output>
+//    Output expectation(Integrand f)
+//    {
+//        f(Args...);
+//    }
+
+
+//    template <typename Distribution, typename Integrand, typename...Args>
+//    void integrate_mean_expectation(const Distribution& distr,
+//                                    Integrand f)
+//    {
+//        // transform gaussian to points
+//    }
+
+//    template <typename Distribution, typename Integrand, typename...Args>
+//    void integrate_covariance_expectation(const Distribution& distr,
+//                                          Integrand f)
+//    {
+//        // transform gaussian to points
+//    }
+//};
 
 }
 
