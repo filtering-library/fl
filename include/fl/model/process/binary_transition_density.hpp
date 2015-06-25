@@ -33,8 +33,8 @@ namespace fl
 class BinaryTransitionDensity /// \todo not really a density since it is discrete
 {
 public:
-    BinaryTransitionDensity(const FloatingPoint& p_1to1,
-                            const FloatingPoint& p_0to1):   p_1to1_(p_1to1),
+    BinaryTransitionDensity(const Real& p_1to1,
+                            const Real& p_0to1):   p_1to1_(p_1to1),
                                                             p_0to1_(p_0to1)
     {
         /// \todo: this case could be handled properly, but it would be
@@ -46,28 +46,24 @@ public:
         }
     }
 
-    FloatingPoint probability(const bool& next_state,
+    Real probability(const bool& next_state,
                               const bool& state,
-                              const FloatingPoint& dt)
+                              const Real& dt)
     {
-        FloatingPoint a = std::pow(p_1to1_-p_0to1_, dt);
-        FloatingPoint prob_1 =  a * FloatingPoint(state)
+        Real a = std::pow(p_1to1_ - p_0to1_, dt);
+        Real prob_1 =  a * Real(state)
                                 + (a - 1.) * p_0to1_ / (p_1to1_ - 1. - p_0to1_);
 
         // limit of p_0to1_ -> 0 and p_1to1_ -> 1
-        if(!std::isfinite(prob_1))
-            prob_1 = FloatingPoint(state);
+        if(!std::isfinite(prob_1)) prob_1 = Real(state);
 
-        if(next_state == 1)
-            return prob_1;
-        else
-            return 1. - prob_1;
+        return next_state ? prob_1 : 1. - prob_1;
     }
 
 
 private:
-    FloatingPoint p_1to1_;
-    FloatingPoint p_0to1_;
+    Real p_1to1_;
+    Real p_0to1_;
 };
 
 
