@@ -23,16 +23,20 @@
 #ifndef FL__DISTRIBUTION__INTERFACE__MOMENTS_HPP
 #define FL__DISTRIBUTION__INTERFACE__MOMENTS_HPP
 
+#include <fl/util/types.hpp>
+#include <fl/util/traits.hpp>
 #include <fl/distribution/interface/approximate_moments.hpp>
 
 namespace fl
 {
 
+// Forward declaration
+template <typename...> class Moments;
+
 /**
- * \interface Moments
  * \ingroup distribution_interfaces
  *
- * \brief Moments is the interface providing the first two moments
+ * \brief Represents the interface providing the first two moments
  *
  * \tparam Variate        Random variable type. This is equivalent to the first
  *                        moment type.
@@ -46,11 +50,22 @@ namespace fl
  * The Moments interface provides access to the exact first moments of
  * a distribution. The moments represent a subset of the approximate moments.
  */
-template <typename Variate, typename SecondMoment>
-class Moments:
-    public ApproximateMoments<Variate, SecondMoment>
+template <typename Variate_, typename SecondMoment_>
+class Moments<Variate_, SecondMoment_>
+    : public ApproximateMoments<Variate_, SecondMoment_>
 {
-public:    
+public:
+    /**
+     * \brief Variate Random variable type. This is equivalent to the first
+     *        moment type.
+     */
+    typedef Variate_ Variate;
+
+    /**
+     * \brief Second central moment type (e.g. Variance or the Covariance)
+     */
+    typedef SecondMoment_ SecondMoment;
+
     /**
      * \brief Overridable default destructor
      */
@@ -87,6 +102,34 @@ public:
     {
         return covariance();
     }
+};
+
+/**
+ * \ingroup distribution_interfaces
+ */
+template <typename Variate>
+class Moments<Variate>
+    : public Moments<Variate, typename SecondMomentOf<Variate>::Type>
+{
+public:
+    /**
+     * \brief Overridable default destructor
+     */
+    virtual ~Moments() { }
+};
+
+/**
+ * \ingroup distribution_interfaces
+ */
+template <>
+class Moments<Real>
+    : public Moments<Real, Real>
+{
+public:
+    /**
+     * \brief Overridable default destructor
+     */
+    virtual ~Moments() { }
 };
 
 }
