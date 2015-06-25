@@ -89,17 +89,38 @@ public:
     typedef typename Traits<Derived>::Belief Belief;
 
     /**
-     * Predicts the distribution over the state give a delta time in seconds
+     * Predicts the distribution over the state for the next time step
      *
-     * \param delta_time        Delta time of prediction
-     * \param input             Control input argument
      * \param prior_belief        Prior state distribution
+     * \param input               Control input argument
      * \param predicted_belief    Predicted state distribution
      */
-    virtual void predict(FloatingPoint delta_time,
+    virtual void predict(const Belief& prior_belief,
                          const Input& input,
-                         const Belief& prior_belief,
                          Belief& predicted_belief) = 0;
+
+    /**
+     * Predicts the distribution over the state give a number of time steps.
+     * This may provide a more efficient implementation than simply calling
+     * the \c predict function recursively.
+     *
+     * \param prior_belief        Prior state distribution
+     * \param input               Control input argument
+     * \param steps
+     * \param predicted_belief    Predicted state distribution
+     */
+    virtual void predict(const Belief& prior_belief,
+                         const Input& input,
+                         const long steps,
+                         Belief& predicted_belief)
+    {
+        predicted_belief = prior_belief;
+
+        for (int i = 0; i < steps; ++i)
+        {
+            predict(predicted_belief, input, predicted_belief);
+        }
+    }
 
     /**
      * Updates a predicted state given an observation
@@ -108,10 +129,8 @@ public:
      * \param observation       Latest observation
      * \param posterior_belief    Updated posterior state distribution
      */
-
-    /// \todo: should we have the posterior as the  return argument?
-    virtual void update(const Obsrv& observation,
-                        const Belief& predicted_belief,
+    virtual void update(const Belief& predicted_belief,
+                        const Obsrv& observation,
                         Belief& posterior_belief) = 0;
 
     /**
@@ -124,10 +143,9 @@ public:
      * @param prior_belief
      * @param posterior_belief
      */
-    virtual void predict_and_update(FloatingPoint delta_time,
+    virtual void predict_and_update(const Belief& prior_belief,
                                     const Input& input,
-                                    const Obsrv& observation,
-                                    const Belief& prior_belief,
+                                    const Obsrv& obsrv,
                                     Belief& posterior_belief) = 0;
 };
 
