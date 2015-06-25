@@ -23,29 +23,43 @@
 #ifndef FL__DISTRIBUTION__INTERFACE__APPROXIMATE_MOMENTS_HPP
 #define FL__DISTRIBUTION__INTERFACE__APPROXIMATE_MOMENTS_HPP
 
+#include <fl/util/types.hpp>
+#include <fl/util/traits.hpp>
+
 namespace fl
 {
 
+// Forward declaration
+template <typename...> class ApproximateMoments;
+
 /**
- * \interface ApproximateMoments
  * \ingroup distribution_interfaces
  *
- * \brief ApproximateMoments is the interface providing the first two
- *        central moments
+ * \brief Represents the interface providing the first two central moments
  *
  * \tparam Variate          Random variable type. This is equivalent to the
  *                          first moment type.
- * \tparam SecondMoment     Second central moment type (e.g. Variance or the
- *                          Covariance)
  *
  * The ApproximateMoments interface provides access to a numerical approximation
  * of the first moments of a distribution.
  *
  */
-template <typename Variate, typename SecondMoment>
-class ApproximateMoments
+template <typename Variate_, typename SecondMoment_>
+class ApproximateMoments<Variate_, SecondMoment_>
 {
 public:
+    /**
+     * \brief Variate Random variable type. This is equivalent to the first
+     *        moment type.
+     */
+    typedef Variate_ Variate;
+
+    /**
+     * \brief Second central moment type (e.g. Variance or the Covariance)
+     */
+    typedef SecondMoment_ SecondMoment;
+
+
     /**
      * \brief Overridable default destructor
      */
@@ -66,6 +80,36 @@ public:
      */
     virtual SecondMoment approximate_covariance() const = 0;
 };
+
+/**
+ * \ingroup distribution_interfaces
+ */
+template <typename Variate>
+class ApproximateMoments<Variate>
+    : public ApproximateMoments<Variate, typename SecondMomentOf<Variate>::Type>
+{
+public:
+    /**
+     * \brief Overridable default destructor
+     */
+    virtual ~ApproximateMoments() { }
+};
+
+/**
+ * \ingroup distribution_interfaces
+ */
+template <>
+class ApproximateMoments<Real>
+    : public ApproximateMoments<Real, Real>
+{
+public:
+    /**
+     * \brief Overridable default destructor
+     */
+    virtual ~ApproximateMoments() { }
+};
+
+
 
 }
 
