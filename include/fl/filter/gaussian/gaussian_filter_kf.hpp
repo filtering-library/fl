@@ -45,6 +45,7 @@ template <typename...> class GaussianFilter;
  */
 
 /**
+ * \internal
  * \ingroup kalman_filter
  *
  * Traits of the Linear GaussianFilter (KalmanFilter)
@@ -58,7 +59,6 @@ struct Traits<
     typedef X State;
     typedef U Input;
     typedef Y Obsrv;
-
     typedef Gaussian<State> Belief;
 };
 
@@ -86,21 +86,16 @@ class GaussianFilter<
                    LinearStateTransitionModel<State, Input>,
                    LinearObservationModel<Obsrv, State>>>
 {
-
 public:
     typedef LinearStateTransitionModel<State, Input> ProcessModel;
     typedef LinearObservationModel<Obsrv, State> ObservationModel;
-
-public:
-    /** Typdef of \c This for #from_traits(TypeName) helper */
-    typedef GaussianFilter<ProcessModel, ObservationModel> This;
 
     /**
      * \brief Represents the underlying distribution of the estimated state.
      * In the case of the Kalman filter, the distribution is a simple Gaussian
      * with the dimension of the \c State
      */
-    typedef from_traits(Belief);
+    typedef Gaussian<State> Belief;
 
 public:
     /**
@@ -134,13 +129,39 @@ public:
      *
      * \f$ \bar{\Sigma}_{t} = A\hat{\Sigma}_{t}A^T + Q \f$
      */
-    virtual void predict(FloatingPoint delta_time,
+    virtual void predict(const Belief& prior_belief,
                          const Input& input,
-                         const Belief& prior_belief,
                          Belief& predicted_belief)
     {
-        int integration_steps =
-            std::round(delta_time / process_model_.discretization_time_step());
+        auto A = process_model_.dynamics_matrix();
+        auto B = process_model_.input_matrix();
+        auto Q = process_model_.noise_matrix_squared();
+
+        predicted_belief.mean(
+            A * prior_belief.mean() + B * input);
+
+        predicted_belief.covariance(
+            A * prior_belief.covariance() * A.transpose() + Q);
+    }
+
+    /**
+     * \copydoc FilterInterface::predict(const Belief&,
+     *                                   const Input&,
+     *                                   long,
+     *                                   Belief&)
+     *
+     *
+     */
+    virtual void predict(const Belief& prior_belief,
+                         const Input& input,
+                         const long steps,
+                         Belief& predicted_belief)
+    {
+        if (steps == 1)
+        {
+            predict(prior_belief, input, predicted_belief);
+            return;
+        }
 
         auto A = process_model_.dynamics_matrix();
         auto B = process_model_.input_matrix();
@@ -154,7 +175,7 @@ public:
         sum_A_pow_i.setZero();
         sum_A_pow_i_Q_AT_pow_i.setZero();
 
-        for (int i = 0; i < integration_steps; ++i)
+        for (int i = 0; i < steps; ++i)
         {
             sum_A_pow_i += A_pow_k;
             sum_A_pow_i_Q_AT_pow_i += A_pow_k * Q * A_pow_k.transpose();
@@ -192,8 +213,8 @@ public:
      *
      * \f$ K = \bar{\Sigma}_{t}H^T (H\bar{\Sigma}_{t}H^T+R)^{-1}\f$.
      */
-    virtual void update(const Obsrv& y,
-                        const Belief& predicted_belief,
+    virtual void update(const Belief& predicted_belief,
+                        const Obsrv& y,
                         Belief& posterior_belief)
     {
         auto H = obsrv_model_.sensor_matrix();
@@ -212,14 +233,19 @@ public:
     /**
      * \copydoc FilterInterface::predict_and_update
      */
-    virtual void predict_and_update(double delta_time,
+    virtual void predict_and_update(const Belief& prior_belief,
                                     const Input& input,
                                     const Obsrv& observation,
-                                    const Belief& prior_belief,
                                     Belief& posterior_belief)
     {
-        predict(delta_time, input, prior_belief, posterior_belief);
-        update(observation, posterior_belief, posterior_belief);
+        predict(prior_belief, input, posterior_belief);
+        update(posterior_belief, observation, posterior_belief);
+    }
+
+    virtual Belief create_belief() const
+    {
+        auto belief = Belief(process_model().state_dimension());
+        return belief;
     }
 
     ProcessModel& process_model() { return process_model_; }
