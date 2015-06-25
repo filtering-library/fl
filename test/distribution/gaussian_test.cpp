@@ -1,49 +1,22 @@
-
-
 /*
- * Software License Agreement (BSD License)
+ * This is part of the FL library, a C++ Bayesian filtering library
+ * (https://github.com/filtering-library)
  *
- *  Copyright (c) 2014 Max-Planck-Institute for Intelligent Systems,
- *                     University of Southern California
- *    Jan Issac (jan.issac@gmail.com)
- *    Manuel Wuthrich (manuel.wuthrich@gmail.com)
+ * Copyright (c) 2014 Jan Issac (jan.issac@gmail.com)
+ * Copyright (c) 2014 Manuel Wuthrich (manuel.wuthrich@gmail.com)
  *
+ * Max-Planck Institute for Intelligent Systems, AMD Lab
+ * University of Southern California, CLMC Lab
  *
- *
- *  Redistribution and use in source and binary forms, with or without
- *  modification, are permitted provided that the following conditions
- *  are met:
- *
- *   * Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above
- *     copyright notice, this list of conditions and the following
- *     disclaimer in the documentation and/or other materials provided
- *     with the distribution.
- *   * Neither the name of Willow Garage, Inc. nor the names of its
- *     contributors may be used to endorse or promote products derived
- *     from this software without specific prior written permission.
- *
- *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- *  POSSIBILITY OF SUCH DAMAGE.
- *
+ * This Source Code Form is subject to the terms of the MIT License (MIT).
+ * A copy of the license can be found in the LICENSE file distributed with this
+ * source code.
  */
 
 /**
- * \date 2014
+ * \file gaussian_test.cpp
+ * \date October 2014
  * \author Jan Issac (jan.issac@gmail.com)
- * Max-Planck-Institute for Intelligent Systems,
- * University of Southern California
  */
 
 #include <gtest/gtest.h>
@@ -79,13 +52,14 @@ protected:
         typename Gaussian::StandardVariate noise =
             Gaussian::StandardVariate::Random(
                 gaussian.standard_variate_dimension(),1);
+
         EXPECT_EQ(gaussian.map_standard_normal(noise).rows(), dim);
     }
 
     template <typename Gaussian>
     void test_gaussian_covariance(Gaussian& gaussian)
     {
-        typedef typename fl::Traits<Gaussian>::SecondMoment Covariance;
+        typedef typename Gaussian::SecondMoment Covariance;
 
         Covariance covariance = Eigen::MatrixXd::Identity(
                                     gaussian.dimension(),
@@ -164,7 +138,6 @@ protected:
 //    bool expect_false = (m * m).isApprox(m * m.transpose());
 //}
 
-
 TEST_F(GaussianTests, fixed_dimension)
 {
     typedef Eigen::Matrix<double, 10, 1> Vector;
@@ -176,7 +149,7 @@ TEST_F(GaussianTests, fixed_dimension)
 TEST_F(GaussianTests, dynamic_dimension)
 {
     const int dim = 10;
-    typedef Eigen::Matrix<double, Eigen::Dynamic, 1> Vector;
+    typedef Eigen::Matrix<fl::Real, Eigen::Dynamic, 1> Vector;
     fl::Gaussian<Vector> gaussian(dim);
 
     test_gaussian_dimension(gaussian, dim);
@@ -185,12 +158,11 @@ TEST_F(GaussianTests, dynamic_dimension)
 TEST_F(GaussianTests, fixed_standard_covariance)
 {
     typedef fl::Gaussian<FVector> Gaussian;
-    typedef typename fl::Traits<Gaussian>::SecondMoment Covariance;
+    typedef typename Gaussian::SecondMoment Covariance;
 
     Gaussian gaussian;
-    Covariance covariance = Eigen::MatrixXd::Identity(
-                                gaussian.dimension(),
-                                gaussian.dimension());
+    Covariance covariance = Covariance::Identity(gaussian.dimension(),
+                                                 gaussian.dimension());
 
     test_gaussian_attributes(gaussian, covariance, covariance, covariance);
     gaussian.set_standard();
@@ -198,15 +170,14 @@ TEST_F(GaussianTests, fixed_standard_covariance)
     // gaussian.SetStandard(10); // causes compile time error as expected
 }
 
-
 TEST_F(GaussianTests, dynamic_standard_covariance)
 {
     typedef fl::Gaussian<DVector> Gaussian;
-    typedef typename fl::Traits<Gaussian>::SecondMoment Covariance;
+    typedef typename Gaussian::SecondMoment Covariance;
 
     Gaussian gaussian(6);
-    Covariance covariance = Eigen::MatrixXd::Identity(gaussian.dimension(),
-                                                      gaussian.dimension());
+    Covariance covariance = Covariance::Identity(gaussian.dimension(),
+                                                 gaussian.dimension());
 
     {
         SCOPED_TRACE("Unchanged");
@@ -228,8 +199,8 @@ TEST_F(GaussianTests, dynamic_standard_covariance)
 
         gaussian.dimension(10);
         EXPECT_EQ(gaussian.dimension(), 10);
-        covariance = Eigen::MatrixXd::Identity(gaussian.dimension(),
-                                               gaussian.dimension());
+        covariance = Covariance::Identity(gaussian.dimension(),
+                                          gaussian.dimension());
         //test_gaussian_attributes(gaussian, covariance, covariance, covariance);
     }
 }
