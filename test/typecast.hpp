@@ -29,19 +29,24 @@
 namespace fl
 {
 
-struct DynamicTest { };
-struct StaticTest { };
+struct NoParameter { };
+
+template <typename Param = NoParameter>
+struct DynamicTest { typedef Param Parameter; };
+
+template <typename Param = NoParameter>
+struct StaticTest  { typedef Param Parameter; };
 
 template <int, typename> struct TestSize;
 
-template <int Size>
-struct TestSize<Size, StaticTest>
+template <int Size, typename Param>
+struct TestSize<Size, StaticTest<Param>>
 {
     enum : signed int { Value = Size };
 };
 
-template <int Size>
-struct TestSize<Size, DynamicTest>
+template <int Size, typename Param>
+struct TestSize<Size, DynamicTest<Param>>
 {
     enum : signed int { Value = Eigen::Dynamic };
 };
