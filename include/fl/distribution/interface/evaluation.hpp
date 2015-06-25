@@ -26,13 +26,13 @@
 
 #include <cmath>
 
+#include <fl/util/types.hpp>
 #include <fl/distribution/interface/unnormalized_evaluation.hpp>
 
 namespace fl
 {
 
 /**
- * \interface Evaluation
  * \ingroup distribution_interfaces
  *
  * \brief Distribution evaulation interface
@@ -45,9 +45,9 @@ namespace fl
  * unnormalized distributions. Normalized in this context means
  * \f[ \int\limits_{-\infty}^{\infty} p(x) dx = 1. \f]
  */
-template <typename Variate, typename Scalar>
+template <typename Variate>
 class Evaluation:
-        public UnnormalizedEvaluation<Variate, Scalar>
+        public UnnormalizedEvaluation<Variate>
 {
 public:
     /**
@@ -62,7 +62,7 @@ public:
      *
      * \return \f$p(x)\f$
      */
-    virtual Scalar probability(const Variate& variate) const
+    virtual Real probability(const Variate& variate) const
     {
         return std::exp(log_probability(variate));
     }
@@ -74,12 +74,12 @@ public:
      *
      * \return \f$\ln(p(x))\f$
      */
-    virtual Scalar log_probability(const Variate& variate) const = 0;
+    virtual Real log_probability(const Variate& variate) const = 0;
 
     /**
      * \copydoc UnnormalizedEvaluation::log_unnormalized_probability
      */
-    virtual Scalar log_unnormalized_probability(const Variate& variate) const
+    virtual Real log_unnormalized_probability(const Variate& variate) const
     {
         return log_probability(variate);
     }
