@@ -305,9 +305,9 @@ void invert_diagonal_Vector(const SrcDiagonalMatrix& diagonal,
     }
 }
 
-
 /**
  * \ingroup linear_algebra
+ *
  * Computes the Frobenius norm of a given real matrix.
  *
  * The Frobenius norm is given by
@@ -321,7 +321,6 @@ double frobenius_norm(const Eigen::MatrixBase<Derived>& a)
 {
     return std::sqrt(a.array().abs().square().sum());
 }
-
 
 /**
  * \ingroup linear_algebra
@@ -345,13 +344,17 @@ double frobenius_norm(const Eigen::MatrixBase<Derived>& a)
  */
 template <typename DerivedA, typename DerivedB>
 bool are_similar(const Eigen::MatrixBase<DerivedA>& a,
-               const Eigen::MatrixBase<DerivedB>& b,
-               const double epsilon = 1.e-6)
+                 const Eigen::MatrixBase<DerivedB>& b,
+                 const double epsilon = 1.e-6)
 {
     return frobenius_norm(a - b) < epsilon;
 }
 
-/// robust decomposition of M = L*L^T for positive semidefinite matrices
+/**
+ * \ingroup linear_algebra
+ *
+ * Robust decomposition of M = L*L^T for positive semidefinite matrices
+ */
 template <typename Scalar, int Size>
 Eigen::Matrix<Scalar, Size, Size>
 matrix_sqrt(Eigen::Matrix<Scalar, Size, Size> M)
