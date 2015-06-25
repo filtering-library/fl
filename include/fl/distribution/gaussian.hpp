@@ -39,61 +39,6 @@
 namespace fl
 {
 
-// Forward declarations
-template <typename Variate> class Gaussian;
-
-/**
- * Gaussian distribution traits. This trait definition contains all types used
- * internally within the distribution. Additionally, it provides the types
- * needed externally to use the Gaussian.
- */
-template <typename Var>
-struct Traits<Gaussian<Var>>
-{
-    enum
-    {
-        /**
-         * \brief Gaussian dimension
-         *
-         * For fixed-size Point type and hence a fixed-size Gaussian, the
-         * \c Dimension value is greater zero. Dynamic-size Gaussians have the
-         * dymension Eigen::Dynamic.
-         */
-        Dimension = Var::RowsAtCompileTime
-    };
-
-    /**
-     * \brief Gaussian variable type
-     */
-    typedef Var Variate;
-
-    /**
-     * \brief Random variable type. The Noise type is used in mapping of noise
-     * samples into the current Gaussian space.
-     */
-    typedef Eigen::Matrix<FloatingPoint, Dimension, 1> StandardVariate;
-
-    /**
-     * \brief Second moment type
-     */
-    typedef Eigen::Matrix<FloatingPoint, Dimension, Dimension> SecondMoment;
-
-    /**
-     * \brief Moments interface of a Gaussian
-     */
-    typedef Moments<Variate, SecondMoment> MomentsBase;
-
-    /**
-     * \brief Evaluation interface of a Gaussian
-     */
-    typedef Evaluation<Variate, FloatingPoint> EvaluationBase;
-
-    /**
-     * \brief GaussianMap interface of a Gaussian
-     */
-    typedef StandardGaussianMapping<Variate, StandardVariate> GaussianMappingBase;
-};
-
 /**
  * \ingroup exceptions
  *
@@ -101,7 +46,7 @@ struct Traits<Gaussian<Var>>
  * without initializing the Gaussian using a dimension greater 0.
  */
 class GaussianUninitializedException
-        : public Exception
+    : public Exception
 {
 public:
     /**
@@ -128,7 +73,7 @@ public:
  * Exception representing a unsupported representation ID
  */
 class InvalidGaussianRepresentationException
-        : public Exception
+    : public Exception
 {
 public:
     /**
@@ -161,8 +106,10 @@ public:
  *
  *  - the covariance matrix \f$\Sigma\f$,
  *  - the precision matrix \f$\Sigma^{-1} = \Lambda\f$,
- *  - the covariance square root matrix (Cholesky decomposition or LDLT) \f$\sqrt{\Sigma} = L\sqrt{D}\f$,
- *  - or the diagonal form of the previous three options \f$diag(\sigma_1, \ldots, \sigma_n)\f$.
+ *  - the covariance square root matrix (Cholesky decomposition or LDLT)
+ *    \f$\sqrt{\Sigma} = L\sqrt{D}\f$,
+ *  - or the diagonal form of the previous three options
+ *    \f$diag(\sigma_1, \ldots, \sigma_n)\f$.
  *
  * A change in one representation results in change of all other
  * representations.
@@ -181,19 +128,30 @@ public:
  */
 template <typename Variate>
 class Gaussian
-        : public Traits<Gaussian<Variate>>::MomentsBase,
-          public Traits<Gaussian<Variate>>::EvaluationBase,
-          public Traits<Gaussian<Variate>>::GaussianMappingBase
+    : public Moments<Variate>,
+      public Evaluation<Variate>,
+      public StandardGaussianMapping<Variate, SizeOf<Variate>::Value>
 {
+private:
+    typedef StandardGaussianMapping<
+                Variate,
+                SizeOf<Variate>::Value
+            > StdGaussianMappingBase;
+
 public:
-    /** Typdef of \c This for #from_traits(TypeName) helper */
-    typedef Gaussian<Variate> This;
+    /**
+     * \brief Second moment matrix type, i.e covariance matrix, precision
+     *        matrix, and their diagonal and square root representations
+     */
+    typedef typename Moments<Variate>::SecondMoment SecondMoment;
 
-    typedef from_traits(SecondMoment);
-    typedef from_traits(StandardVariate);
-
-    typedef from_traits(GaussianMappingBase);
-    using GaussianMappingBase::standard_variate_dimension;
+    /**
+     * \brief Represents the StandardGaussianMapping standard variate type which
+     *        is of the same dimension as the Gaussian Variate. The
+     *        StandardVariate type is used to sample from a standard normal
+     *        Gaussian and map it to this Gaussian
+     */
+    typedef typename StdGaussianMappingBase::StandardVariate StandardVariate;
 
 protected:
     /** \cond INTERNAL */
@@ -229,7 +187,7 @@ public:
      *                  initialized to 0.
      */
     explicit Gaussian(int dim = DimensionOf<Variate>()):
-        GaussianMappingBase(dim),
+        StdGaussianMappingBase(dim),
         dirty_(Attributes, true)
     {
         static_assert(Variate::SizeAtCompileTime != 0,
@@ -247,7 +205,7 @@ public:
      */
     virtual constexpr int dimension() const
     {
-        return standard_variate_dimension();
+        return StdGaussianMappingBase::standard_variate_dimension();
     }
 
     /**
@@ -487,7 +445,7 @@ public:
      *       = {Valid Representations} \f$ \cup \f$ {#CovarianceMatrix}
      * \endcond
      */
-    virtual FloatingPoint log_normalizer() const
+    virtual Real log_normalizer() const
     {
         if (is_dirty(Normalizer))
         {
@@ -495,7 +453,7 @@ public:
             {
                 log_norm_ = -0.5
                     * (log(covariance().determinant())
-                       + FloatingPoint(covariance().rows()) * log(2.0 * M_PI));
+                       + Real(covariance().rows()) * log(2.0 * M_PI));
             }
             else
             {
@@ -521,7 +479,7 @@ public:
      *       = {Valid Representations} \f$ \cup \f$ {#PrecisionMatrix}
      * \endcond
      */
-    virtual FloatingPoint log_probability(const Variate& vector) const
+    virtual Real log_probability(const Variate& vector) const
     {
         if(has_full_rank())
         {
@@ -531,7 +489,7 @@ public:
                     * (vector - mean());
         }
 
-        return -std::numeric_limits<FloatingPoint>::infinity();
+        return -std::numeric_limits<Real>::infinity();
     }
 
     /**
@@ -596,7 +554,7 @@ public:
      */
     virtual void dimension(int new_dimension)
     {
-        standard_variate_dimension(new_dimension);
+        StdGaussianMappingBase::standard_variate_dimension(new_dimension);
         set_standard();
     }
 
@@ -852,7 +810,7 @@ protected:
     mutable SecondMoment precision_;   /**< \brief cov. inverse form */
     mutable SecondMoment square_root_; /**< \brief cov. square root form */
     mutable bool full_rank_;           /**< \brief full rank flag */
-    mutable FloatingPoint log_norm_;   /**< \brief log normalizing constant */
+    mutable Real log_norm_;   /**< \brief log normalizing constant */
     mutable std::vector<bool> dirty_;  /**< \brief data validity flags */
     /** \endcond */
 };
