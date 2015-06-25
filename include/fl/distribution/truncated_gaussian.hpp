@@ -38,14 +38,14 @@ namespace fl
  * \ingroup distributions
  */
 class TruncatedGaussian
-        : public Evaluation<double, double>,
-          public StandardGaussianMapping<double, double>
+        : public Evaluation<Real>,
+          public StandardGaussianMapping<Real, 1>
 {
 public:
-    TruncatedGaussian(double mean = 0.0,
-                      double sigma = 1.0,
-                      double min = -std::numeric_limits<double>::infinity(),
-                      double max = std::numeric_limits<double>::infinity())
+    TruncatedGaussian(Real mean = 0.0,
+                      Real sigma = 1.0,
+                      Real min = -std::numeric_limits<Real>::infinity(),
+                      Real max = std::numeric_limits<Real>::infinity())
         : mean_(mean),
           sigma_(sigma),
           min_(min),
@@ -56,7 +56,7 @@ public:
 
     virtual ~TruncatedGaussian() { }
 
-    virtual void parameters(double mean, double sigma, double min, double max)
+    virtual void parameters(Real mean, Real sigma, Real min, Real max)
     {
         mean_ =  mean;
         sigma_ = sigma;
@@ -66,7 +66,7 @@ public:
         ComputeAuxiliaryParameters();
     }
 
-    virtual double probability(const double& input) const
+    virtual Real probability(const Real& input) const
     {
         if(input < min_ || input > max_)
             return 0;
@@ -75,18 +75,18 @@ public:
                 std::exp(-0.5 * std::pow((input-mean_)/sigma_, 2));
     }
 
-    virtual double log_probability(const double& input) const
+    virtual Real log_probability(const Real& input) const
     {
         return std::log(probability(input));
     }
 
-    virtual double map_standard_normal(const double& gaussian_sample) const
+    virtual Real map_standard_normal(const Real& gaussian_sample) const
     {
         // map from a gaussian to a uniform distribution
-        double standard_uniform_sample = 0.5 *
+        Real standard_uniform_sample = 0.5 *
                 (1.0 + std::erf(gaussian_sample / std::sqrt(2.0)));
         // map onto truncated uniform distribution
-        double truncated_uniform_sample = cumulative_min_ +
+        Real truncated_uniform_sample = cumulative_min_ +
                   standard_uniform_sample * (cumulative_max_ - cumulative_min_);
         // map onto truncated gaussian
 
@@ -107,14 +107,14 @@ private:
     }
 
 private:
-    double mean_;
-    double sigma_;
-    double min_;
-    double max_;
+    Real mean_;
+    Real sigma_;
+    Real min_;
+    Real max_;
 
-    double cumulative_min_;
-    double cumulative_max_;
-    double normalization_factor_;
+    Real cumulative_min_;
+    Real cumulative_max_;
+    Real normalization_factor_;
 };
 
 }
