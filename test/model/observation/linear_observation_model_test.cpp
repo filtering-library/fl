@@ -37,8 +37,8 @@ class LinearObservationModelTest:
 public:
     enum: signed int
     {
-        StateDim = 10,
-        ObsrvDim = 20,
+        StateDim = TestType::Parameter::StateDim,
+        ObsrvDim = TestType::Parameter::ObsrvDim,
 
         StateSize = fl::TestSize<StateDim, TestType>::Value,
         ObsrvSize = fl::TestSize<ObsrvDim, TestType>::Value
@@ -100,7 +100,10 @@ public:
 
         x.setRandom();
         y.setZero();
-        y.topRows(model.state_dimension()) = x;
+
+        auto H = model.create_sensor_matrix();
+        H.setIdentity();
+        y = H * x;
 
         EXPECT_TRUE(fl::are_similar(model.expected_observation(x), y));
     }
@@ -113,8 +116,10 @@ public:
 
         x.setRandom();
         v.setZero();
-        y.setZero();
-        y.topRows(model.state_dimension()) = x;
+
+        auto H = model.create_sensor_matrix();
+        H.setIdentity();
+        y = H * x;
 
         EXPECT_TRUE(fl::are_similar(model.observation(x, v), y));
     }
@@ -127,8 +132,11 @@ public:
 
         x.setRandom();
         v.setRandom();
-        y.setZero();
-        y.topRows(model.state_dimension()) = x;
+
+        auto H = model.create_sensor_matrix();
+        H.setIdentity();
+        y = H * x;
+
         y += v;
 
         EXPECT_TRUE(fl::are_similar(model.observation(x, v), y));
@@ -138,9 +146,33 @@ protected:
     LinearModel model;
 };
 
+template <int ObsrvDimension, int StateDimension>
+struct Dimensions
+{
+    enum: signed int
+    {
+        ObsrvDim = ObsrvDimension,
+        StateDim = StateDimension
+    };
+};
+
 typedef ::testing::Types<
-            fl::StaticTest,
-            fl::DynamicTest
+            fl::StaticTest<Dimensions<2, 1>>,
+            fl::StaticTest<Dimensions<2, 2>>,
+            fl::StaticTest<Dimensions<3, 3>>,
+            fl::StaticTest<Dimensions<10, 10>>,
+            fl::StaticTest<Dimensions<10, 20>>,
+            fl::StaticTest<Dimensions<100, 10>>,
+            fl::StaticTest<Dimensions<3, 100>>,
+            fl::StaticTest<Dimensions<100, 100>>,
+            fl::DynamicTest<Dimensions<2, 1>>,
+            fl::DynamicTest<Dimensions<2, 2>>,
+            fl::DynamicTest<Dimensions<3, 3>>,
+            fl::DynamicTest<Dimensions<10, 10>>,
+            fl::DynamicTest<Dimensions<10, 20>>,
+            fl::DynamicTest<Dimensions<100, 10>>,
+            fl::DynamicTest<Dimensions<3, 100>>,
+            fl::DynamicTest<Dimensions<100, 100>>
         > TestTypes;
 
 TYPED_TEST_CASE(LinearObservationModelTest, TestTypes);
