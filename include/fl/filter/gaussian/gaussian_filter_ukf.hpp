@@ -48,43 +48,49 @@ template <typename...> class GaussianFilter;
 template <
     typename ProcessModel,
     typename ObservationModel,
-    typename PointSetTransform,
-    template <typename...T> class FeaturePolicy
+    typename PointSetTransform
 >
-struct Traits<
-           GaussianFilter<
-               ProcessModel,
-               ObservationModel,
-               PointSetTransform,
-               FeaturePolicy<>>>
+struct Traits<GaussianFilter<ProcessModel, ObservationModel, PointSetTransform>>
 {
-    /*
-     * Required concept (interface) types
-     *
-     * - Ptr
-     * - State
-     * - Input
-     * - Observation
-     * - Belief
-     */
-    typedef typename Traits<ProcessModel>::State State;
-    typedef typename Traits<ProcessModel>::Input Input;
-    typedef typename Traits<ObservationModel>::Obsrv Obsrv;
+    typedef typename ProcessModel::State State;
+    typedef typename ProcessModel::Input Input;
+    typedef typename ObservationModel::Obsrv Obsrv;
+    typedef Gaussian<State> Belief;
+};
 
-    /**
-     * Represents the underlying distribution of the estimated state. In
-     * case of a Point Based Kalman filter, the distribution is a simple
-     * Gaussian with the dimension of the \c State.
-     */
+/**
+ * \ingroup sigma_point_kalman_filters
+ * \ingroup unscented_kalman_filter
+ *
+ * GaussianFilter represents all filters based on Gaussian distributed systems.
+ * This includes the Kalman Filter and filters using non-linear models such as
+ * Sigma Point Kalman Filter family.
+ *
+ * \tparam ProcessModel
+ * \tparam ObservationModel
+ *
+ */
+template<
+    typename ProcessModel,
+    typename ObservationModel,
+    typename PointSetTransform
+>
+class GaussianFilter<ProcessModel, ObservationModel, PointSetTransform>
+    :
+    /* Implement the filter interface */
+    public FilterInterface<
+              GaussianFilter<ProcessModel, ObservationModel, PointSetTransform>>
+{
+public:
+    typedef typename ProcessModel::State State;
+    typedef typename ProcessModel::Input Input;
+    typedef typename ObservationModel::Obsrv Obsrv;
     typedef Gaussian<State> Belief;
 
+private:
     /** \cond INTERNAL */
     typedef typename Traits<ProcessModel>::Noise StateNoise;
     typedef typename Traits<ObservationModel>::Noise ObsrvNoise;
-
-
-    typedef FeaturePolicy<Obsrv> FeatureMapping;
-    typedef typename Traits<FeatureMapping>::ObsrvFeature ObsrvFeature;
 
     /**
      * Represents the total number of points required by the point set
@@ -106,9 +112,9 @@ struct Traits<
     {
         NumberOfPoints = PointSetTransform::number_of_points(
                              JoinSizes<
-                                 State::RowsAtCompileTime,
-                                 StateNoise::RowsAtCompileTime,
-                                 ObsrvNoise::RowsAtCompileTime
+                                 SizeOf<State>(),
+                                 SizeOf<StateNoise>(),
+                                 SizeOf<ObsrvNoise>()
                              >::Size)
     };
 
@@ -116,66 +122,7 @@ struct Traits<
     typedef PointSet<Obsrv, NumberOfPoints> ObsrvPointSet;
     typedef PointSet<StateNoise, NumberOfPoints> StateNoisePointSet;
     typedef PointSet<ObsrvNoise, NumberOfPoints> ObsrvNoisePointSet;
-    typedef PointSet<ObsrvFeature, NumberOfPoints> ObsrvFeaturePointSet;
     /** \endcond */
-};
-
-/**
- * \ingroup sigma_point_kalman_filters
- * \ingroup unscented_kalman_filter
- *
- * GaussianFilter represents all filters based on Gaussian distributed systems.
- * This includes the Kalman Filter and filters using non-linear models such as
- * Sigma Point Kalman Filter family.
- *
- * \tparam ProcessModel
- * \tparam ObservationModel
- *
- */
-template<
-    typename ProcessModel,
-    typename ObservationModel,
-    typename PointSetTransform,
-    template <typename...T> class FeaturePolicy
->
-class GaussianFilter<
-          ProcessModel,
-          ObservationModel,
-          PointSetTransform,
-          FeaturePolicy<>>
-    :
-    /* Implement the filter interface */
-    public FilterInterface<
-              GaussianFilter<
-                  ProcessModel,
-                  ObservationModel,
-                  PointSetTransform,
-                  FeaturePolicy<>>>
-{
-private:
-    /** Typdef of \c This for #from_traits(TypeName) helper */
-    typedef GaussianFilter<
-                ProcessModel,
-                ObservationModel,
-                PointSetTransform,
-                FeaturePolicy<>
-            > This;
-
-    typedef from_traits(StateNoise);
-    typedef from_traits(ObsrvNoise);
-    typedef from_traits(ObsrvFeature);
-    typedef from_traits(StatePointSet);
-    typedef from_traits(ObsrvPointSet);
-    typedef from_traits(StateNoisePointSet);
-    typedef from_traits(ObsrvNoisePointSet);
-    typedef from_traits(ObsrvFeaturePointSet);
-
-public:
-    typedef from_traits(State);
-    typedef from_traits(Input);
-    typedef from_traits(Obsrv);
-    typedef from_traits(Belief);
-    typedef from_traits(FeatureMapping);
 
 public:
     /**
@@ -188,12 +135,10 @@ public:
      */
     GaussianFilter(const ProcessModel& process_model,
                    const ObservationModel& obsrv_model,
-                   const PointSetTransform& point_set_transform,
-                   const FeatureMapping& feature_mapping = FeatureMapping())
+                   const PointSetTransform& point_set_transform)
         : process_model_(process_model),
           obsrv_model_(obsrv_model),
           point_set_transform_(point_set_transform),
-          feature_mapping_(feature_mapping),
           /*
            * Set the augmented Gaussian dimension.
            *
@@ -269,15 +214,11 @@ public:
         /*
          * Setup the point set of the observation predictions
          */
-        const size_t point_count =
-                PointSetTransform::number_of_points(global_dimension_);
+        const int point_count =
+            PointSetTransform::number_of_points(global_dimension_);
 
         X_y.resize(point_count);
         X_y.dimension(obsrv_model_.obsrv_dimension());
-
-        X_fy.resize(point_count);
-        X_fy.dimension(
-            feature_mapping_.feature_dimension(obsrv_model_.obsrv_dimension()));
 
         /*
          * Setup the point set of the state predictions
@@ -289,18 +230,15 @@ public:
     /**
      * \copydoc FilterInterface::predict
      */
-    virtual void predict(double delta_time,
+    virtual void predict(const Belief& prior_belief,
                          const Input& input,
-                         const Belief& prior_belief,
                          Belief& predicted_belief)
     {
-        {
-            point_set_transform_.forward(
-                Gaussian<StateNoise>(process_model_.noise_dimension()),
-                global_dimension_,
-                process_model_.state_dimension(),
-                X_Q);
-        }
+        point_set_transform_.forward(
+            Gaussian<StateNoise>(process_model_.noise_dimension()),
+            global_dimension_,
+            process_model_.state_dimension(),
+            X_Q);
 
         /*
          * Compute the state points from the given prior state Gaussian
@@ -316,23 +254,17 @@ public:
          * The transform takes the global dimension (dim(P) + dim(Q) + dim(R))
          * and the dimension offset 0 as parameters.
          */
-        point_set_transform_.forward(prior_belief,
-                                      global_dimension_,
-                                      0,
-                                      X_r);
+        point_set_transform_.forward(prior_belief, global_dimension_, 0, X_r);
 
         /*
          * Predict each point X_r[i] and store the prediction back in X_r[i]
          *
          * X_r[i] = f(X_r[i], X_Q[i], u)
          */
-        const size_t point_count = X_r.count_points();
-        for (size_t i = 0; i < point_count; ++i)
+        const int point_count = X_r.count_points();
+        for (int i = 0; i < point_count; ++i)
         {
-            X_r[i] = process_model_.predict_state(delta_time,
-                                                  X_r[i],
-                                                  X_Q[i],
-                                                  input);
+            X_r[i] = process_model_.state(X_r[i], input, X_Q[i]);
         }
 
         /*
@@ -346,7 +278,7 @@ public:
          *
          * mu_r = Sum w_mean[i] X_r[i]
          */
-//        auto&& X = X_r.centered_points();
+        auto&& X = X_r.centered_points();
 
         /*
          * Obtain the weights of point as a vector
@@ -355,7 +287,7 @@ public:
          *
          * Note that the covariance weights are used.
          */
-//        auto&& W = X_r.covariance_weights_vector();
+        auto&& W = X_r.covariance_weights_vector();
 
         /*
          * Compute and set the moments
@@ -368,56 +300,42 @@ public:
          *
          * given that W is the diagonal matrix
          */
-//        predicted_belief.mean(X_r.mean());
-//        predicted_belief.covariance(X * W.asDiagonal() * X.transpose());
+        predicted_belief.mean(X_r.mean());
+        predicted_belief.covariance(X * W.asDiagonal() * X.transpose());
     }
 
     /**
      * \copydoc FilterInterface::update
      */
-    virtual void update(const Obsrv& obsrv,
-                        const Belief& predicted_belief,
+    virtual void update(const Belief& predicted_belief,
+                        const Obsrv& obsrv,
                         Belief& posterior_belief)
     {
-//        point_set_transform_.forward(predicted_belief,
-//                                     global_dimension_,
-//                                     0,
-//                                     X_r);
+        point_set_transform_.forward(predicted_belief,
+                                     global_dimension_,
+                                     0,
+                                     X_r);
 
+        point_set_transform_.forward(
+            Gaussian<ObsrvNoise>(obsrv_model_.noise_dimension()),
+            global_dimension_,
+            process_model_.state_dimension()
+            + process_model_.noise_dimension(),
+            X_R);
+
+        const int point_count = X_r.count_points();
+
+        for (int i = 0; i < point_count; ++i)
         {
-            point_set_transform_.forward(
-                Gaussian<ObsrvNoise>(obsrv_model_.noise_dimension()),
-                global_dimension_,
-                process_model_.state_dimension()
-                + process_model_.noise_dimension(),
-                X_R);
+            X_y[i] = obsrv_model_.observation(X_r[i], X_R[i]);
         }
 
-        const size_t point_count = X_r.count_points();
-
-        for (size_t i = 0; i < point_count; ++i)
-        {
-            X_y[i] = obsrv_model_.predict_obsrv(X_r[i],
-                                                X_R[i],
-                                                1.0 /* delta time */);
-        }
-
-        auto obsrv_prediction = X_y.mean();
-        auto centered_prediction = X_y.centered_points();
-        auto var = (centered_prediction.array().pow(2).rowwise().sum() / double(point_count)).eval();
-        for (size_t i = 0; i < point_count; ++i)
-        {
-            X_fy[i] = feature_mapping_.extract(X_y[i], obsrv_prediction, var);
-        }
-
-        ObsrvFeature y = feature_mapping_.extract(obsrv, obsrv_prediction, var);
-
-        auto&& prediction = X_fy.center();
-        auto&& Y = X_fy.points();
+        auto&& prediction = X_y.center();
+        auto&& Y = X_y.points();
         auto&& W = X_r.covariance_weights_vector();
         auto&& X = X_r.centered_points();
 
-        auto innovation = (y - prediction).eval();
+        auto innovation = (obsrv - prediction).eval();
         auto cov_xx = (X * W.asDiagonal() * X.transpose()).eval();
         auto cov_yy = (Y * W.asDiagonal() * Y.transpose()).eval();
         auto cov_xy = (X * W.asDiagonal() * Y.transpose()).eval();
@@ -430,20 +348,38 @@ public:
     /**
      * \copydoc FilterInterface::predict_and_update
      */
-    virtual void predict_and_update(double delta_time,
+    virtual void predict_and_update(const Belief& prior_belief,
                                     const Input& input,
                                     const Obsrv& observation,
-                                    const Belief& prior_belief,
                                     Belief& posterior_belief)
     {
-        predict(delta_time, input, prior_belief, posterior_belief);
-        update(observation, posterior_belief, posterior_belief);
+        predict(prior_belief, input, posterior_belief);
+        update(posterior_belief, observation, posterior_belief);
     }
 
-    ProcessModel& process_model() { return process_model_; }
-    ObservationModel& obsrv_model() { return obsrv_model_; }
-    PointSetTransform& point_set_transform() { return point_set_transform_; }
-    FeatureMapping& feature_mapping() { return feature_mapping_; }
+public: /* factory functions */
+    virtual Belief create_belief() const
+    {
+        // note: do not simplify!
+        auto belief = Belief(process_model().state_dimension());
+        return belief;
+    }
+
+public: /* accessors & mutators */
+    ProcessModel& process_model()
+    {
+        return process_model_;
+    }
+
+    ObservationModel& obsrv_model()
+    {
+        return obsrv_model_;
+    }
+
+    PointSetTransform& point_set_transform()
+    {
+        return point_set_transform_;
+    }
 
     const ProcessModel& process_model() const
     {
@@ -460,36 +396,19 @@ public:
         return point_set_transform_;
     }
 
-    const FeatureMapping& feature_mapping() const
-    {
-        return feature_mapping_;
-    }
-
-    virtual Belief create_state_distribution() const
-    {
-        auto state_distr = Belief(process_model().state_dimension());
-
-        return state_distr;
-    }
-
-public:
-    double threshold;
-    double inv_sigma;
-    bool print_details;
-
 public:
     ProcessModel process_model_;
     ObservationModel obsrv_model_;
     PointSetTransform point_set_transform_;
-    FeatureMapping feature_mapping_;
 
+protected:
     /** \cond INTERNAL */
     /**
      * \brief The global dimension is dimension of the augmented Gaussian which
      * consists of state Gaussian, state noise Gaussian and the
      * observation noise Gaussian.
      */
-    const size_t global_dimension_;
+    int global_dimension_;
 
     /**
      * \brief Represents the point-set of the state
@@ -500,11 +419,6 @@ public:
      * \brief Represents the point-set of the observation
      */
     ObsrvPointSet X_y;
-
-    /**
-     * \brief Represents the point-set of the feature of observations
-     */
-    ObsrvFeaturePointSet X_fy;
 
     /**
      * \brief Represents the points-set Gaussian (e.g. sigma points) of the
@@ -520,89 +434,82 @@ public:
      */
     ObsrvNoisePointSet X_R;
     /** \endcond */
-
-public:
-    /** \cond INTERNAL */
-    /* Dungeon - keep put! */
-    decltype(X_y.mean()) prediction;
-    decltype(prediction) innovation;
-    /** \endcond */
 };
 
-#ifdef TEMPLATE_ARGUMENTS
-    #undef TEMPLATE_ARGUMENTS
-#endif
+//#ifdef TEMPLATE_ARGUMENTS
+//    #undef TEMPLATE_ARGUMENTS
+//#endif
 
 
-#define TEMPLATE_ARGUMENTS \
-    JointProcessModel< \
-       ProcessModel, \
-       JointProcessModel<MultipleOf<LocalParamModel, Count>>>, \
-    Adaptive<JointObservationModel<MultipleOf<LocalObsrvModel, Count>>>, \
-    PointSetTransform,\
-    FeaturePolicy<>
+//#define TEMPLATE_ARGUMENTS \
+//    JointProcessModel< \
+//       ProcessModel, \
+//       JointProcessModel<MultipleOf<LocalParamModel, Count>>>, \
+//    Adaptive<JointObservationModel<MultipleOf<LocalObsrvModel, Count>>>, \
+//    PointSetTransform,\
+//    FeaturePolicy<>
 
-#ifndef GENERATING_DOCUMENTATION
-template <
-    typename ProcessModel,
-    typename LocalObsrvModel,
-    typename LocalParamModel,
-    int Count,
-    typename PointSetTransform,
-    template <typename...T> class FeaturePolicy
->
-#endif
-struct Traits<
-           GaussianFilter<
-               ProcessModel,
-               Join<MultipleOf<Adaptive<LocalObsrvModel, LocalParamModel>, Count>>,
-               PointSetTransform,
-               FeaturePolicy<>,
-               Options<NoOptions>
-            >
-        >
-    : Traits<GaussianFilter<TEMPLATE_ARGUMENTS>>
-{ };
+//#ifndef GENERATING_DOCUMENTATION
+//template <
+//    typename ProcessModel,
+//    typename LocalObsrvModel,
+//    typename LocalParamModel,
+//    int Count,
+//    typename PointSetTransform,
+//    template <typename...T> class FeaturePolicy
+//>
+//#endif
+//struct Traits<
+//           GaussianFilter<
+//               ProcessModel,
+//               Join<MultipleOf<Adaptive<LocalObsrvModel, LocalParamModel>, Count>>,
+//               PointSetTransform,
+//               FeaturePolicy<>,
+//               Options<NoOptions>
+//            >
+//        >
+//    : Traits<GaussianFilter<TEMPLATE_ARGUMENTS>>
+//{ };
 
-#ifndef GENERATING_DOCUMENTATION
-template <
-    typename ProcessModel,
-    typename LocalObsrvModel,
-    typename LocalParamModel,
-    int Count,
-    typename PointSetTransform,
-    template <typename...T> class FeaturePolicy
->
-#endif
-class GaussianFilter<
-          ProcessModel,
-          Join<MultipleOf<Adaptive<LocalObsrvModel, LocalParamModel>, Count>>,
-          PointSetTransform,
-          FeaturePolicy<>,
-          Options<NoOptions>
-      >
-    : public GaussianFilter<TEMPLATE_ARGUMENTS>
-{
-public:
-    typedef GaussianFilter<TEMPLATE_ARGUMENTS> Base;
+//#ifndef GENERATING_DOCUMENTATION
+//template <
+//    typename ProcessModel,
+//    typename LocalObsrvModel,
+//    typename LocalParamModel,
+//    int Count,
+//    typename PointSetTransform,
+//    template <typename...T> class FeaturePolicy
+//>
+//#endif
+//class GaussianFilter<
+//          ProcessModel,
+//          Join<MultipleOf<Adaptive<LocalObsrvModel, LocalParamModel>, Count>>,
+//          PointSetTransform,
+//          FeaturePolicy<>,
+//          Options<NoOptions>
+//      >
+//    : public GaussianFilter<TEMPLATE_ARGUMENTS>
+//{
+//public:
+//    typedef GaussianFilter<TEMPLATE_ARGUMENTS> Base;
 
-    GaussianFilter(
-        const ProcessModel& state_process_model,
-        const LocalParamModel& param_process_model,
-        const LocalObsrvModel& obsrv_model,
-        const PointSetTransform& point_set_transform,
-        const typename Traits<Base>::FeatureMapping& feature_mapping
-            = typename Traits<Base>::FeatureMapping(),
-        int parameter_count = Count)
-            : Base(
-                { state_process_model, {param_process_model, parameter_count} },
-                { obsrv_model, parameter_count },
-                point_set_transform,
-                feature_mapping)
-    { }
-};
+//    GaussianFilter(
+//        const ProcessModel& state_process_model,
+//        const LocalParamModel& param_process_model,
+//        const LocalObsrvModel& obsrv_model,
+//        const PointSetTransform& point_set_transform,
+//        const typename Traits<Base>::FeatureMapping& feature_mapping
+//            = typename Traits<Base>::FeatureMapping(),
+//        int parameter_count = Count)
+//            : Base(
+//                { state_process_model, {param_process_model, parameter_count} },
+//                { obsrv_model, parameter_count },
+//                point_set_transform,
+//                feature_mapping)
+//    { }
+//};
 
-#undef TEMPLATE_ARGUMENTS
+//#undef TEMPLATE_ARGUMENTS
 
 }
 
