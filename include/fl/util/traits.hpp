@@ -157,18 +157,36 @@ template <> struct IsFixed<Eigen::Dynamic>
 template <typename Matrix> struct DimensionOf
 {
     enum : signed int { Value = IsFixed<Matrix::SizeAtCompileTime>()
-                                    ? Matrix::RowsAtCompileTime
+                                    ? Matrix::SizeAtCompileTime
                                     : 0 };
 
-    constexpr operator size_t () { return Value; }
+    constexpr operator int () { return Value; }
 };
 
+/**
+ * \ingroup traits
+ * \brief Returns the compile time size of a matrix or vector.
+ *
+ * SizeOf<M>() is shorthand for M::SizeAtCompileTime
+ */
+template <typename Matrix> struct SizeOf
+{
+    enum : signed int { Value = Matrix::SizeAtCompileTime };
+
+    constexpr operator int () { return Value; }
+};
+
+/**
+ * \ingroup traits
+ *
+ */
 template <int Dimension> struct ToDimension
 {
     enum : signed int { Value = Dimension == Eigen::Dynamic ? 0 : Dimension };
 
     constexpr operator int () { return Value; }
 };
+
 
 /**
  * \ingroup traits
@@ -191,6 +209,29 @@ template <int A, int B> struct MinOf
     static constexpr int value = (A < B) ? A : B;
     constexpr operator int () { return value; }
 };
+
+/**
+ * Defines the second moment type of a given variate
+ */
+template <typename Variate>
+struct SecondMomentOf
+{
+    typedef Eigen::Matrix<
+                Real,
+                Variate::SizeAtCompileTime,
+                Variate::SizeAtCompileTime
+            > Type;
+};
+
+/**
+ * Defines the second moment type of a given variate
+ */
+template <>
+struct SecondMomentOf<Real>
+{
+    typedef Real Type;
+};
+
 
 }
 
