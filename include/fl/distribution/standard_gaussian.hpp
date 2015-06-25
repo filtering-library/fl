@@ -23,38 +23,17 @@
 namespace fl
 {
 
-// Forward declaration
-template <typename StandardVariate> class StandardGaussian;
-
-/**
- * \ingroup distributions
- * Traits fo StandardGaussian<StandardVariate>
- */
-template <typename StandardVariate>
-struct Traits<
-           StandardGaussian<StandardVariate>
-       >
-{
-    typedef StandardVariate Variate;
-    typedef typename Variate::Scalar Scalar;
-    typedef Eigen::Matrix<Scalar, Variate::SizeAtCompileTime, 1> SecondMoment;
-    typedef Moments<StandardVariate, SecondMoment> MomentsBase;
-};
-
 /**
  * \ingroup distributions
  */
 template <typename StandardVariate>
 class StandardGaussian
     : public Sampling<StandardVariate>,
-      public Traits<StandardGaussian<StandardVariate>>::MomentsBase
+      public Moments<StandardVariate>
 {
 public:
-    /** Typdef of \c This for #from_traits(TypeName) helper */
-    typedef StandardGaussian This;
-
-    typedef from_traits(Variate);
-    typedef from_traits(SecondMoment);
+    typedef StandardVariate Variate;
+    typedef typename Moments<StandardVariate>::SecondMoment SecondMoment;
 
 public:
     explicit
@@ -116,109 +95,42 @@ public:
 
 private:
     int dimension_;
-//   mutable std::default_random_engine generator_;
-//   mutable std::normal_distribution<double> gaussian_distribution_;
-
     mutable fl::mt11213b generator_;
     mutable std::normal_distribution<> gaussian_distribution_;
 };
 
-
-/** \cond IMPL_DETAILS */
 /**
  * Floating point implementation for Scalar types float, double and long double
  */
-template <typename Scalar>
-class StandardGaussianFloatingPointScalarImpl
-    : Moments<Scalar, Scalar>
+template <>
+class StandardGaussian<Real>
+    : public Sampling<Real>,
+      public Moments<Real, Real>
 {
-    static_assert(
-        std::is_floating_point<Scalar>::value,
-        "Scalar must be a floating point (float, double, long double)");
-
 public:
-    StandardGaussianFloatingPointScalarImpl()
+    StandardGaussian()
         : generator_(fl::seed()),
-          gaussian_distribution_(Scalar(0.), Scalar(1.))
+          gaussian_distribution_(Real(0.), Real(1.))
     { }
 
-    Scalar sample_impl() const
+    Real sample() const
     {
         return gaussian_distribution_(generator_);
     }
 
-    virtual Scalar mean() const
+    virtual Real mean() const
     {
         return 0.;
     }
 
-    virtual Scalar covariance() const
+    virtual Real covariance() const
     {
         return 1.;
     }
 
 protected:
     mutable fl::mt11213b generator_;
-    mutable std::normal_distribution<Scalar> gaussian_distribution_;
-};
-/** \endcond */
-
-
-/**
- * Float floating point StandardGaussian specialization
- * \ingroup distributions
- */
-template <>
-class StandardGaussian<float>
-        : public Sampling<float>,
-          public StandardGaussianFloatingPointScalarImpl<float>
-{
-public:
-    /**
-     * \copydoc Sampling::sample
-     */
-    virtual float sample() const
-    {
-        return this->sample_impl();
-    }
-};
-
-/**
- * Double floating point StandardGaussian specialization
- * \ingroup distributions
- */
-template <>
-class StandardGaussian<double>
-        : public Sampling<double>,
-          public StandardGaussianFloatingPointScalarImpl<double>
-{
-public:
-    /**
-     * \copydoc Sampling::sample
-     */
-    virtual double sample() const
-    {
-        return this->sample_impl();
-    }
-};
-
-/**
- * Long double floating point StandardGaussian specialization
- * \ingroup distributions
- */
-template <>
-class StandardGaussian<long double>
-        : public Sampling<long double>,
-          public StandardGaussianFloatingPointScalarImpl<long double>
-{
-public:
-    /**
-     * \copydoc Sampling::sample
-     */
-    virtual long double sample() const
-    {
-        return this->sample_impl();
-    }
+    mutable std::normal_distribution<Real> gaussian_distribution_;
 };
 
 }
