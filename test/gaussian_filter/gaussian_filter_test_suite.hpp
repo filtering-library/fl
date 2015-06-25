@@ -19,6 +19,8 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
+#ifndef FL__TEST__GAUSSIAN_FILTER__GAUSSIAN_FILTER_TEST_SUITE_HPP
+#define FL__TEST__GAUSSIAN_FILTER__GAUSSIAN_FILTER_TEST_SUITE_HPP
 
 #include <gtest/gtest.h>
 #include "../typecast.hpp"
@@ -51,6 +53,7 @@ protected:
         ObsrvSize = fl::TestSize<ObsrvDim, TestType>::Value
     };
 
+
     typedef Eigen::Matrix<fl::Real, StateSize, 1> State;
     typedef Eigen::Matrix<fl::Real, InputSize, 1> Input;
     typedef Eigen::Matrix<fl::Real, ObsrvSize, 1> Obsrv;
@@ -58,8 +61,13 @@ protected:
     typedef fl::LinearStateTransitionModel<State, Input> LinearStateTransition;
     typedef fl::LinearObservationModel<Obsrv, State> LinearObservation;
 
+    GaussianFilterTest()
+        : predict_steps_(100000),
+          predict_update_steps_(2000)
+    { }
+
     template <typename Filter>
-    void setup_models(Filter& filter)
+    void setup_models_randomly(Filter& filter)
     {
         auto A = filter.process_model().create_dynamics_matrix();
         auto Q = filter.process_model().create_noise_matrix();
@@ -79,6 +87,27 @@ protected:
         filter.obsrv_model().noise_matrix(R);
     }
 
+    template <typename Filter>
+    void setup_identity_models(Filter& filter)
+    {
+        auto A = filter.process_model().create_dynamics_matrix();
+        auto Q = filter.process_model().create_noise_matrix();
+
+        auto H = filter.obsrv_model().create_sensor_matrix();
+        auto R = filter.obsrv_model().create_noise_matrix();
+
+        A.setIdentity();
+        H.setIdentity();
+        Q.setIdentity();
+        R.setIdentity();
+
+        filter.process_model().dynamics_matrix(A);
+        filter.process_model().noise_matrix(Q);
+
+        filter.obsrv_model().sensor_matrix(H);
+        filter.obsrv_model().noise_matrix(R);
+    }
+
     State zero_state() { return State::Zero(StateDim); }
     Input zero_input() { return Input::Zero(InputDim); }
     Obsrv zero_obsrv() { return Obsrv::Zero(ObsrvDim); }
@@ -87,9 +116,11 @@ protected:
     Input rand_input() { return Input::Random(InputDim); }
     Obsrv rand_obsrv() { return Obsrv::Random(ObsrvDim); }
 
-    template <typename Filter, typename Belief>
-    void predict(Filter& filter, Belief& belief)
+    template <typename Filter>
+    void predict(Filter& filter)
     {
+        auto belief = filter.create_belief();
+
         EXPECT_TRUE(belief.mean().isZero());
         EXPECT_TRUE(belief.covariance().isIdentity());
 
@@ -101,14 +132,16 @@ protected:
         EXPECT_TRUE(fl::are_similar(belief.covariance(), 2. * Q));
     }
 
-    template <typename Filter, typename Belief>
-    void predict_update(Filter& filter, Belief& belief)
+    template <typename Filter>
+    void predict_update(Filter& filter)
     {
-        setup_models(filter);
+        setup_models_randomly(filter);
+
+        auto belief = filter.create_belief();
 
         EXPECT_TRUE(belief.covariance().ldlt().isPositive());
 
-        for (int i = 0; i < 2000; ++i)
+        for (int i = 0; i < predict_update_steps_; ++i)
         {
             filter.predict(belief, zero_input(), belief);
             ASSERT_TRUE(belief.covariance().ldlt().isPositive());
@@ -118,15 +151,18 @@ protected:
         }
     }
 
-    template <typename Filter, typename Belief>
-    void predict_and_update(Filter& filter, Belief& belief_A, Belief& belief_B)
+    template <typename Filter>
+    void predict_and_update(Filter& filter)
     {
-        setup_models(filter);
+        setup_models_randomly(filter);
+
+        auto belief_A = filter.create_belief();
+        auto belief_B = filter.create_belief();
 
         EXPECT_TRUE(belief_A.covariance().ldlt().isPositive());
         EXPECT_TRUE(belief_B.covariance().ldlt().isPositive());
 
-        for (int i = 0; i < 2000; ++i)
+        for (int i = 0; i < predict_update_steps_; ++i)
         {
             const auto y = rand_obsrv();
             const auto u = zero_input();
@@ -145,4 +181,76 @@ protected:
             ASSERT_TRUE(belief_B.covariance().ldlt().isPositive());
         }
     }
+
+    template <typename Filter>
+    void predict_loop(Filter& filter)
+    {
+        setup_identity_models(filter);
+
+        auto belief = filter.create_belief();
+
+        EXPECT_TRUE(belief.covariance().ldlt().isPositive());
+        for (int i = 0; i < predict_steps_; ++i)
+        {
+            filter.predict(belief, zero_input(), belief);
+        }
+        EXPECT_TRUE(belief.covariance().ldlt().isPositive());
+    }
+
+    template <typename Filter>
+    void predict_multiple_function_loop(Filter& filter)
+    {
+        setup_identity_models(filter);
+
+        auto belief = filter.create_belief();
+
+        EXPECT_TRUE(belief.covariance().ldlt().isPositive());
+        for (int i = 0; i < predict_steps_; ++i)
+        {
+            filter.predict(belief, zero_input(), 1, belief);
+        }
+        EXPECT_TRUE(belief.covariance().ldlt().isPositive());
+    }
+
+    template <typename Filter>
+    void predict_multiple(Filter& filter)
+    {
+        setup_identity_models(filter);
+
+        auto belief = filter.create_belief();
+
+        EXPECT_TRUE(belief.covariance().ldlt().isPositive());
+        filter.predict(belief, zero_input(), predict_steps_, belief);
+        EXPECT_TRUE(belief.covariance().ldlt().isPositive());
+    }
+
+    template <typename Filter>
+    void predict_loop_vs_predict_multiple(Filter& filter)
+    {
+        setup_identity_models(filter);
+
+        auto belief_A = filter.create_belief();
+        auto belief_B = filter.create_belief();
+
+        EXPECT_TRUE(belief_A.covariance().ldlt().isPositive());
+        for (int i = 0; i < predict_update_steps_; ++i)
+        {
+            filter.predict(belief_A, zero_input(), belief_A);
+        }
+        filter.predict(belief_B, zero_input(), predict_update_steps_, belief_B);
+
+        EXPECT_TRUE(belief_A.covariance().ldlt().isPositive());
+        EXPECT_TRUE(belief_B.covariance().ldlt().isPositive());
+
+        EXPECT_TRUE(
+            fl::are_similar(belief_A.mean(), belief_B.mean()));
+        EXPECT_TRUE(
+            fl::are_similar(belief_A.covariance(), belief_B.covariance()));
+    }
+
+protected:
+    int predict_steps_;
+    int predict_update_steps_;
 };
+
+#endif
