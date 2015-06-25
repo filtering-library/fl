@@ -36,30 +36,23 @@ namespace fl
 template <typename...Distribution> class JointDistribution;
 
 /**
+ * \internal
+ *
  * Traits of JointDistribution<Distribution...>
  */
 template <typename...Distribution>
-struct Traits<
-           JointDistribution<Distribution...>
-       >
+struct Traits<JointDistribution<Distribution...>>
 {
     enum : signed int
     {
-        MarginalCount = sizeof...(Distribution),
-        Dimension = JoinSizes<
-                        Traits<Distribution>::Variate::SizeAtCompileTime...
-                    >::Size
+        JointSize = JoinSizes<SizeOf<typename Distribution::Variate>()...>::Size
     };
 
     typedef typename FirstTypeIn<
-                        typename Traits<Distribution>::Variate...
-                     >::Type::Scalar Scalar;
+                typename Distribution::Variate...
+            >::Type::Scalar Scalar;
 
-    typedef Eigen::Matrix<Scalar, Dimension, 1> Variate;
-    typedef Eigen::Matrix<Scalar, Dimension, Dimension> SecondMoment;
-    typedef std::tuple<Distribution...> MarginalDistributions;
-
-    typedef Moments<Variate, SecondMoment> MomentsInterface;
+    typedef Eigen::Matrix<Scalar, JointSize, 1> Variate;
 };
 
 /**
@@ -67,15 +60,12 @@ struct Traits<
  */
 template <typename...Distribution>
 class JointDistribution
-    : Traits<JointDistribution<Distribution...>>::MomentsInterface
+    : public Moments<Traits<JointDistribution<Distribution...>>::Variate>
 {
 public:
-    /** Typdef of \c This for #from_traits(TypeName) helper */
-    typedef JointDistribution<Distribution...> This;
-
-    typedef from_traits(Variate);
-    typedef from_traits(SecondMoment);
-    typedef from_traits(MarginalDistributions);
+    typedef Traits<JointDistribution<Distribution...>>::Variate Variate;
+    typedef typename Moments<Variate>::SecondMoment SecondMoment;
+    typedef std::tuple<Distribution...> MarginalDistributions;
 
 public:
     JointDistribution(Distribution...distributions)
