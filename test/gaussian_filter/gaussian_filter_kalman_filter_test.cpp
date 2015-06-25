@@ -52,8 +52,8 @@ public:
 };
 
 typedef ::testing::Types<
-            fl::StaticTest,
-            fl::DynamicTest
+            fl::StaticTest<>,
+            fl::DynamicTest<>
         > TestTypes;
 
 TYPED_TEST_CASE(KalmanFilterTest, TestTypes);
