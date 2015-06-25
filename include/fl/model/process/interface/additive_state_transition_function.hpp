@@ -32,12 +32,12 @@ namespace fl
 
 template <
     typename State,
-    typename Input,
     typename Noise,
+    typename Input,
     int Id = 0
 >
 class AdditiveStateTransitionFunction
-    : public StateTransitionFunction<State, Input, Noise, Id>
+    : public StateTransitionFunction<State, Noise, Input, Id>
 {
 public:
 
@@ -59,8 +59,8 @@ public:
     virtual NoiseMatrix noise_matrix_squared() const = 0;
 
     virtual State state(const State& prev_state,
-                        const Input& input,
-                        const Noise& noise) const
+                        const Noise& noise,
+                        const Input& input) const
     {
         return expected_state(prev_state, input) + noise_matrix() * noise;
     }
