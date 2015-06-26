@@ -27,83 +27,46 @@
 #include "gaussian_filter_test_suite.hpp"
 
 #include <fl/filter/gaussian/unscented_transform.hpp>
+#include <fl/filter/gaussian/monte_carlo_transform.hpp>
 #include <fl/filter/gaussian/gaussian_filter_ukf.hpp>
 
-/**
- * Customize the GaussianFilterTest fixture by defining the Kalman filter
- */
-template <typename TestType>
-class UnscentedKalmanFilterTest
-    : public GaussianFilterTest<TestType>
+template <int StateDimension, int InputDimension, int ObsrvDimension>
+struct UnscentedKalmanFilterTestConfiguration
 {
-public:
-    typedef GaussianFilterTest<TestType> Base;
-
-    typedef typename Base::LinearStateTransition LinearStateTransition;
-    typedef typename Base::LinearObservation LinearObservation;
-
-    typedef fl::GaussianFilter<
-                LinearStateTransition,
-                LinearObservation,
-                fl::UnscentedTransform
-            > Filter;
-
-    static Filter create_unscented_kalman_filter()
+    enum: signed int
     {
-        auto filter = Filter(
-                        LinearStateTransition(Base::StateDim, Base::InputDim),
-                        LinearObservation(Base::ObsrvDim, Base::StateDim),
-                        fl::UnscentedTransform());
+        StateDim = StateDimension,
+        InputDim = InputDimension,
+        ObsrvDim = ObsrvDimension
+    };
 
-        return filter;
+    template <typename StateTransitionModel, typename ObservationModel>
+    struct FilterDefinition
+    {
+        typedef fl::GaussianFilter<
+                    StateTransitionModel,
+                    ObservationModel,
+                    fl::UnscentedTransform
+                > Type;
+    };
+
+    template <typename F, typename H>
+    static typename FilterDefinition<F, H>::Type create_filter(F&& f, H&& h)
+    {
+        return typename FilterDefinition<F, H>::Type(f, h, fl::UnscentedTransform());
     }
 };
 
 typedef ::testing::Types<
-            fl::StaticTest<>,
-            fl::DynamicTest<>
+            fl::StaticTest<UnscentedKalmanFilterTestConfiguration<3, 1, 2>>,
+            fl::StaticTest<UnscentedKalmanFilterTestConfiguration<3, 3, 10>>,
+            fl::StaticTest<UnscentedKalmanFilterTestConfiguration<10, 10, 20>>,
+
+            fl::DynamicTest<UnscentedKalmanFilterTestConfiguration<3, 1, 2>>,
+            fl::DynamicTest<UnscentedKalmanFilterTestConfiguration<3, 3, 10>>,
+            fl::DynamicTest<UnscentedKalmanFilterTestConfiguration<10, 10, 20>>
         > TestTypes;
 
-TYPED_TEST_CASE(UnscentedKalmanFilterTest, TestTypes);
-
-TYPED_TEST(UnscentedKalmanFilterTest, init_predict)
-{
-    auto filter = TestFixture::create_unscented_kalman_filter();
-    predict(filter);
-}
-
-TYPED_TEST(UnscentedKalmanFilterTest, predict_then_update)
-{
-    auto filter = TestFixture::create_unscented_kalman_filter();
-    predict_update(filter);
-}
-
-TYPED_TEST(UnscentedKalmanFilterTest, predict_and_update)
-{
-    auto filter = TestFixture::create_unscented_kalman_filter();
-    predict_and_update(filter);
-}
-
-TYPED_TEST(UnscentedKalmanFilterTest, predict_loop)
-{
-    auto filter = TestFixture::create_unscented_kalman_filter();
-    predict_loop(filter);
-}
-
-TYPED_TEST(UnscentedKalmanFilterTest, predict_multiple_function_loop)
-{
-    auto filter = TestFixture::create_unscented_kalman_filter();
-    predict_multiple_function_loop(filter);
-}
-
-TYPED_TEST(UnscentedKalmanFilterTest, predict_multiple)
-{
-    auto filter = TestFixture::create_unscented_kalman_filter();
-    predict_multiple(filter);
-}
-
-TYPED_TEST(UnscentedKalmanFilterTest, predict_loop_vs_predict_multiple)
-{
-    auto filter = TestFixture::create_unscented_kalman_filter();
-    predict_loop_vs_predict_multiple(filter);
-}
+INSTANTIATE_TYPED_TEST_CASE_P(UnscentedKalmanFilterTest,
+                              GaussianFilterTest,
+                              TestTypes);
