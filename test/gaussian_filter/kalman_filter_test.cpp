@@ -26,76 +26,44 @@
 
 #include "gaussian_filter_test_suite.hpp"
 
-/**
- * Customize the GaussianFilterTest fixture by defining the Kalman filter
- */
-template <typename TestType>
-class KalmanFilterTest
-    : public GaussianFilterTest<TestType>
+#include <fl/filter/gaussian/gaussian_filter_kf.hpp>
+
+template <int StateDimension, int InputDimension, int ObsrvDimension>
+struct KalmanFilterTestConfiguration
 {
-public:
-    typedef GaussianFilterTest<TestType> Base;
-
-    typedef typename Base::LinearStateTransition LinearStateTransition;
-    typedef typename Base::LinearObservation LinearObservation;
-
-    typedef fl::GaussianFilter<LinearStateTransition, LinearObservation> Filter;
-
-    static Filter create_kalman_filter()
+    enum: signed int
     {
-        auto filter = Filter(
-                        LinearStateTransition(Base::StateDim, Base::InputDim),
-                        LinearObservation(Base::ObsrvDim, Base::StateDim));
+        StateDim = StateDimension,
+        InputDim = InputDimension,
+        ObsrvDim = ObsrvDimension
+    };
 
-        return filter;
+    template <typename StateTransitionModel, typename ObservationModel>
+    struct FilterDefinition
+    {
+        typedef fl::GaussianFilter<
+                    StateTransitionModel,
+                    ObservationModel
+                > Type;
+    };
+
+    template <typename F, typename H>
+    static typename FilterDefinition<F, H>::Type create_filter(F&& f, H&& h)
+    {
+        return typename FilterDefinition<F, H>::Type(f, h);
     }
 };
 
 typedef ::testing::Types<
-            fl::StaticTest<>,
-            fl::DynamicTest<>
+            fl::StaticTest<KalmanFilterTestConfiguration<3, 1, 2>>,
+            fl::StaticTest<KalmanFilterTestConfiguration<3, 3, 10>>,
+            fl::StaticTest<KalmanFilterTestConfiguration<10, 10, 20>>,
+
+            fl::DynamicTest<KalmanFilterTestConfiguration<3, 1, 2>>,
+            fl::DynamicTest<KalmanFilterTestConfiguration<3, 3, 10>>,
+            fl::DynamicTest<KalmanFilterTestConfiguration<10, 10, 20>>
         > TestTypes;
 
-TYPED_TEST_CASE(KalmanFilterTest, TestTypes);
-
-TYPED_TEST(KalmanFilterTest, init_predict)
-{
-    auto filter = TestFixture::create_kalman_filter();
-    predict(filter);
-}
-
-TYPED_TEST(KalmanFilterTest, predict_then_update)
-{
-    auto filter = TestFixture::create_kalman_filter();
-    predict_update(filter);
-}
-
-TYPED_TEST(KalmanFilterTest, predict_and_update)
-{
-    auto filter = TestFixture::create_kalman_filter();
-    predict_and_update(filter);
-}
-
-TYPED_TEST(KalmanFilterTest, predict_loop)
-{
-    auto filter = TestFixture::create_kalman_filter();
-    predict_loop(filter);
-}
-
-TYPED_TEST(KalmanFilterTest, predict_multiple_function_loop)
-{
-    auto filter = TestFixture::create_kalman_filter();
-    predict_multiple_function_loop(filter);
-}
-
-TYPED_TEST(KalmanFilterTest, predict_multiple)
-{
-    auto filter = TestFixture::create_kalman_filter();
-    predict_multiple(filter);
-}
-
-TYPED_TEST(KalmanFilterTest, predict_loop_vs_predict_multiple)
-{
-    auto filter = TestFixture::create_kalman_filter();
-    predict_loop_vs_predict_multiple(filter);
-}
+INSTANTIATE_TYPED_TEST_CASE_P(KalmanFilterTest,
+                              GaussianFilterTest,
+                              TestTypes);
