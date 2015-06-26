@@ -32,11 +32,11 @@ catkin_add_gtest(gaussian_distribution_test
 target_link_libraries(gaussian_distribution_test
                       ${catkin_LIBRARIES})
 
-#catkin_add_gtest(discrete_distribution_test
-#              distribution/discrete_distribution_test.cpp
-#              gtest_main.cpp)
-#target_link_libraries(discrete_distribution_test
-#                   ${catkin_LIBRARIES})
+catkin_add_gtest(discrete_distribution_test
+              distribution/discrete_distribution_test.cpp
+              gtest_main.cpp)
+target_link_libraries(discrete_distribution_test
+                   ${catkin_LIBRARIES})
 
 # == exceptions tests ======================================================== #
 catkin_add_gtest(exception_test
