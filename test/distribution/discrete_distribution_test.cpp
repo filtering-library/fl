@@ -55,7 +55,7 @@ TEST(discrete_distribution, moments)
     DiscreteDistribution discrete_distribution;
     discrete_distribution.log_unnormalized_prob_mass(Function::Zero(100000));
 
-    for(size_t i = 0; i < discrete_distribution.size(); i++)
+    for(int i = 0; i < discrete_distribution.size(); i++)
     {
         discrete_distribution.location(i) = gaussian.sample();
     }
