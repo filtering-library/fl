@@ -46,8 +46,8 @@ public:
 
 
     virtual Real log_probability(const State& state,
-                                          const State& cond_state,
-                                          const Input& cond_input) const = 0;
+                                 const State& cond_state,
+                                 const Input& cond_input) const = 0;
 
     /**
      * \return Dimension of the state variable $\fx_t\f$
@@ -61,8 +61,8 @@ public:
 
 
     virtual Real probability(const State& state,
-                                      const State& cond_state,
-                                      const Input& cond_input) const
+                             const State& cond_state,
+                             const Input& cond_input) const
     {
         return std::exp(log_probability(state,
                                         cond_state,
