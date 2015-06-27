@@ -109,7 +109,7 @@ public:
         // compute cdf
         cumul_distr_.resize(log_prob_mass_.size());
         cumul_distr_[0] = prob_mass_[0];
-        for(int i = 1; i < cumul_distr_.size(); i++)
+        for(size_t i = 1; i < cumul_distr_.size(); i++)
             cumul_distr_[i] = cumul_distr_[i-1] + prob_mass_[i];
 
         // resize locations

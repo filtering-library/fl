@@ -273,7 +273,7 @@ public:
     }
 
     /// \todo: should this function be here?
-    virtual Belief create_state_distribution() const
+    virtual Belief create_belief() const
     {
         auto state_distr = Belief(trans_function().state_dimension());
 
