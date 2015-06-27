@@ -88,9 +88,8 @@ struct Traits<ParticleFilter<ProcessModel, ObservationModel>>
 
     /** \cond INTERNAL */
     typedef typename ProcessModel::Noise      ProcessNoise;
-
-    /// \todo this should come from traits
     typedef typename ObservationModel::Noise  ObsrvNoise;
+    /** \endcond */
 };
 
 
@@ -114,7 +113,7 @@ public:
 public:
     ParticleFilter(const ProcessModel& process_model,
                    const ObservationModel& obsrv_model,
-                   const double& max_kl_divergence = 1.0)
+                   const fl::Real& max_kl_divergence = 1.0)
         : process_model_(process_model),
           obsrv_model_(obsrv_model),
           process_noise_(process_model.noise_dimension()),
@@ -124,32 +123,30 @@ public:
 
 
     /// predict ****************************************************************
-    virtual void predict(double delta_time,
+    virtual void predict(const Belief& prior_belief,
                          const Input& input,
-                         const Belief& prior_belief,
                          Belief& predicted_belief)
     {
         predicted_belief = prior_belief;
         for(size_t i = 0; i < predicted_belief.size(); i++)
         {
             predicted_belief.location(i) =
-                    process_model_.predict_state(delta_time,
-                                                 prior_belief.location(i),
-                                                 process_noise_.sample(),
-                                                 input);
+                    process_model_.state(prior_belief.location(i),
+                                         process_noise_.sample(),
+                                         input);
         }
     }
 
     /// update *****************************************************************
-    virtual void update(const Obsrv& obsrv,
-                        const Belief& predicted_belief,
+    virtual void update(const Belief& predicted_belief,
+                        const Obsrv& obsrv,
                         Belief& posterior_belief)
     {
         // if the samples are too concentrated then resample
         if(predicted_belief.kl_given_uniform() > max_kl_divergence_)
         {
             posterior_belief.from_distribution(predicted_belief,
-                                             predicted_belief.size());
+                                               predicted_belief.size());
         }
         else
         {
@@ -162,14 +159,13 @@ public:
     }
 
     /// predict and update *****************************************************
-    virtual void predict_and_update(double delta_time,
+    virtual void predict_and_update(const Belief& prior_belief,
                                     const Input& input,
                                     const Obsrv& observation,
-                                    const Belief& prior_belief,
                                     Belief& posterior_belief)
     {
-        predict(delta_time, input, prior_belief, posterior_belief);
-        update(observation, posterior_belief, posterior_belief);
+        predict(prior_belief, input, posterior_belief);
+        update(posterior_belief, observation, posterior_belief);
     }
 
 
@@ -194,11 +190,11 @@ public:
     }
 
     /// \todo: should this function be here?
-    virtual Belief create_state_distribution() const
+    virtual Belief create_belief() const
     {
-        auto state_distr = Belief(process_model().state_dimension());
+        auto belief = Belief(process_model().state_dimension());
 
-        return state_distr;
+        return belief;
     }
 
 protected:
@@ -212,7 +208,7 @@ protected:
     // and u is the uniform distribution, exceeds max_kl_divergence_, then there
     // is a resampling step. can be understood as -log(f) where f is the
     // fraction of nonzero particles.
-    double max_kl_divergence_;
+    fl::Real max_kl_divergence_;
 };
 
 }
