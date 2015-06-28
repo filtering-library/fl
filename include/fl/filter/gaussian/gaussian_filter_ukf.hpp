@@ -138,7 +138,7 @@ public:
                    const PointSetTransform& point_set_transform)
         : process_model_(process_model),
           obsrv_model_(obsrv_model),
-          point_set_transform_(point_set_transform),
+          transform_(point_set_transform),
           /*
            * Set the augmented Gaussian dimension.
            *
@@ -146,23 +146,23 @@ public:
            * consists of state Gaussian, state noise Gaussian and the
            * observation noise Gaussian.
            */
-          global_dimension_(process_model_.state_dimension()
-                            + process_model_.noise_dimension()
-                            + obsrv_model_.noise_dimension()),
+          augmented_dimension_(process_model_.state_dimension()
+                               + process_model_.noise_dimension()
+                               + obsrv_model_.noise_dimension()),
           /*
            * Initialize the points-set Gaussian (e.g. sigma points) of the
            * \em state noise. The number of points is determined by the
            * augmented Gaussian with the dimension  global_dimension_
            */
           X_Q(process_model_.noise_dimension(),
-              PointSetTransform::number_of_points(global_dimension_)),
+              PointSetTransform::number_of_points(augmented_dimension_)),
           /*
            * Initialize the points-set Gaussian (e.g. sigma points) of the
            * \em observation noise. The number of points is determined by the
            * augmented Gaussian with the dimension global_dimension_
            */
           X_R(obsrv_model_.noise_dimension(),
-              PointSetTransform::number_of_points(global_dimension_))
+              PointSetTransform::number_of_points(augmented_dimension_))
     {
         /*
          * pre-compute the state noise points from the standard Gaussian
@@ -181,11 +181,10 @@ public:
          * The transform takes the global dimension (dim(P) + dim(Q) + dim(R))
          * and the dimension offset dim(P) as parameters.
          */
-        point_set_transform_.forward(
-            Gaussian<StateNoise>(process_model_.noise_dimension()),
-            global_dimension_,
-            process_model_.state_dimension(),
-            X_Q);
+        transform_(Gaussian<StateNoise>(process_model_.noise_dimension()),
+                   augmented_dimension_,
+                   process_model_.state_dimension(),
+                   X_Q);
 
         /*
          * pre-compute the observation noise points from the standard Gaussian
@@ -204,18 +203,17 @@ public:
          * The transform takes the global dimension (dim(P) + dim(Q) + dim(R))
          * and the dimension offset dim(P) + dim(Q) as parameters.
          */
-        point_set_transform_.forward(
-            Gaussian<ObsrvNoise>(obsrv_model_.noise_dimension()),
-            global_dimension_,
-            process_model_.state_dimension()
-            + process_model_.noise_dimension(),
-            X_R);
+        transform_(Gaussian<ObsrvNoise>(obsrv_model_.noise_dimension()),
+                   augmented_dimension_,
+                   process_model_.state_dimension()
+                   + process_model_.noise_dimension(),
+                   X_R);
 
         /*
          * Setup the point set of the observation predictions
          */
         const int point_count =
-            PointSetTransform::number_of_points(global_dimension_);
+            PointSetTransform::number_of_points(augmented_dimension_);
 
         X_y.resize(point_count);
         X_y.dimension(obsrv_model_.obsrv_dimension());
@@ -234,11 +232,10 @@ public:
                          const Input& input,
                          Belief& predicted_belief)
     {
-        point_set_transform_.forward(
-            Gaussian<StateNoise>(process_model_.noise_dimension()),
-            global_dimension_,
-            process_model_.state_dimension(),
-            X_Q);
+        transform_(Gaussian<StateNoise>(process_model_.noise_dimension()),
+                   augmented_dimension_,
+                   process_model_.state_dimension(),
+                   X_Q);
 
         /*
          * Compute the state points from the given prior state Gaussian
@@ -254,7 +251,7 @@ public:
          * The transform takes the global dimension (dim(P) + dim(Q) + dim(R))
          * and the dimension offset 0 as parameters.
          */
-        point_set_transform_.forward(prior_belief, global_dimension_, 0, X_r);
+        transform_(prior_belief, augmented_dimension_, 0, X_r);
 
         /*
          * Predict each point X_r[i] and store the prediction back in X_r[i]
@@ -324,17 +321,13 @@ public:
                         const Obsrv& obsrv,
                         Belief& posterior_belief)
     {
-        point_set_transform_.forward(predicted_belief,
-                                     global_dimension_,
-                                     0,
-                                     X_r);
+        transform_(predicted_belief, augmented_dimension_, 0, X_r);
 
-        point_set_transform_.forward(
-            Gaussian<ObsrvNoise>(obsrv_model_.noise_dimension()),
-            global_dimension_,
-            process_model_.state_dimension()
-            + process_model_.noise_dimension(),
-            X_R);
+        transform_(Gaussian<ObsrvNoise>(obsrv_model_.noise_dimension()),
+                   augmented_dimension_,
+                   process_model_.state_dimension()
+                   + process_model_.noise_dimension(),
+                   X_R);
 
         const int point_count = X_r.count_points();
 
@@ -391,7 +384,7 @@ public: /* accessors & mutators */
 
     PointSetTransform& point_set_transform()
     {
-        return point_set_transform_;
+        return transform_;
     }
 
     const ProcessModel& process_model() const
@@ -406,13 +399,13 @@ public: /* accessors & mutators */
 
     const PointSetTransform& point_set_transform() const
     {
-        return point_set_transform_;
+        return transform_;
     }
 
 public:
     ProcessModel process_model_;
     ObservationModel obsrv_model_;
-    PointSetTransform point_set_transform_;
+    PointSetTransform transform_;
 
 protected:
     /** \cond INTERNAL */
@@ -421,7 +414,7 @@ protected:
      * consists of state Gaussian, state noise Gaussian and the
      * observation noise Gaussian.
      */
-    int global_dimension_;
+    int augmented_dimension_;
 
     /**
      * \brief Represents the point-set of the state
