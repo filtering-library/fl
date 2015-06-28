@@ -70,6 +70,20 @@ public:
 
     /**
      * \copydoc PointSetTransform::forward(const Gaussian&,
+     *                                     PointSet&) const
+     *
+     * \throws WrongSizeException
+     * \throws ResizingFixedSizeEntityException
+     */
+    template <typename Gaussian_, typename PointSet_>
+    void operator()(const Gaussian_& gaussian,
+                    PointSet_& point_set) const
+    {
+        forward(gaussian, gaussian.dimension(), 0, point_set);
+    }
+
+    /**
+     * \copydoc PointSetTransform::forward(const Gaussian&,
      *                                     int global_dimension,
      *                                     int dimension_offset,
      *                                     PointSet&) const
@@ -144,6 +158,24 @@ public:
             point_set.point(i, mean, weight_i);
             point_set.point(global_dimension + i, mean, weight_i);
         }
+    }
+
+    /**
+     * \copydoc PointSetTransform::forward(const Gaussian&,
+     *                                     int global_dimension,
+     *                                     int dimension_offset,
+     *                                     PointSet&) const
+     *
+     * \throws WrongSizeException
+     * \throws ResizingFixedSizeEntityException
+     */
+    template <typename Gaussian_, typename PointSet_>
+    void operator()(const Gaussian_& gaussian,
+                    int global_dimension,
+                    int dimension_offset,
+                    PointSet_& point_set) const
+    {
+        forward(gaussian, global_dimension, dimension_offset, point_set);
     }
 
     /**
