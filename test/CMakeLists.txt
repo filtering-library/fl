@@ -1,4 +1,23 @@
 
+# == Util tests ============================================================== #
+
+# = trait tests = #
+catkin_add_gtest(traits_test utils/traits_test.cpp gtest_main.cpp)
+target_link_libraries(traits_test ${catkin_LIBRARIES})
+
+# = meta tests = #
+catkin_add_gtest(meta_test utils/meta_test.cpp gtest_main.cpp)
+target_link_libraries(meta_test ${catkin_LIBRARIES})
+
+# = options test = #
+catkin_add_gtest(options_test utils/options_test.cpp gtest_main.cpp)
+target_link_libraries(options_test ${catkin_LIBRARIES})
+
+# = join tests = #
+catkin_add_gtest(join_test utils/join_test.cpp gtest_main.cpp)
+target_link_libraries(join_test ${catkin_LIBRARIES})
+
+
 # == observation model tests ================================================= #
 catkin_add_gtest(linear_observation_models_test
                  model/observation/linear_observation_model_test.cpp
@@ -62,6 +81,7 @@ catkin_add_gtest(gaussian_filter_unscented_kalman_filter_test
 target_link_libraries(gaussian_filter_unscented_kalman_filter_test ${catkin_LIBRARIES})
 
 
+
 # == Particle filters tests ================================================== #
 #catkin_add_gtest(particle_filter_test
 #                 particle_filter/particle_filter_test.cpp
@@ -92,23 +112,10 @@ target_link_libraries(gaussian_filter_unscented_kalman_filter_test ${catkin_LIBR
 ##target_link_libraries(some_test
 ##                      ${catkin_LIBRARIES})
 
-### trait tests ##
-#catkin_add_gtest(traits_test
-#                 utils/traits_test.cpp
-#                 gtest_main.cpp)
-#target_link_libraries(traits_test
-#                      ${catkin_LIBRARIES})
 
 
-### meta tests##
-#catkin_add_gtest(meta_test utils/meta_test.cpp gtest_main.cpp)
-#target_link_libraries(meta_test ${catkin_LIBRARIES})
 
-#catkin_add_gtest(options_test utils/options_test.cpp gtest_main.cpp)
-#target_link_libraries(options_test ${catkin_LIBRARIES})
 
-#catkin_add_gtest(join_test utils/join_test.cpp gtest_main.cpp)
-#target_link_libraries(join_test ${catkin_LIBRARIES})
 
 #catkin_add_gtest(not_adaptive_test utils/not_adaptive_test.cpp gtest_main.cpp)
 #target_link_libraries(not_adaptive_test ${catkin_LIBRARIES})
