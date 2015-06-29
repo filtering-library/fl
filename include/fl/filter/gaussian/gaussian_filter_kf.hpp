@@ -135,7 +135,7 @@ public:
     {
         auto A = process_model_.dynamics_matrix();
         auto B = process_model_.input_matrix();
-        auto Q = process_model_.noise_matrix_squared();
+        auto Q = process_model_.noise_covariance();
 
         predicted_belief.mean(
             A * prior_belief.mean() + B * input);
@@ -165,7 +165,7 @@ public:
 
         auto A = process_model_.dynamics_matrix();
         auto B = process_model_.input_matrix();
-        auto Q = process_model_.noise_matrix_squared();
+        auto Q = process_model_.noise_covariance();
 
         auto A_pow_k = A;
         auto sum_A_pow_i= A;
@@ -218,7 +218,7 @@ public:
                         Belief& posterior_belief)
     {
         auto H = obsrv_model_.sensor_matrix();
-        auto R = obsrv_model_.noise_matrix_squared();
+        auto R = obsrv_model_.noise_covariance();
 
         auto&& mean = predicted_belief.mean();
         auto&& cov_xx = predicted_belief.covariance();
