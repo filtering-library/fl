@@ -39,12 +39,20 @@ namespace fl
  * linear or linearized system of the form
  * \f$ x_{t+1} =F_tx_t + G_tu_t + N_tv_t \f$.
  */
-template <typename State, typename Input>
+template <typename State_, typename Input_>
 class LinearStateTransitionModel
-    : public StateTransitionDensity<State, Input>,
-      public AdditiveStateTransitionFunction<State, State, Input>
+    : public StateTransitionDensity<State_, Input_>,
+      public AdditiveStateTransitionFunction<State_, State_, Input_>
 {
 public:
+    typedef State_ State;
+    typedef Input_ Input;
+
+    typedef StateTransitionDensity<State, Input> DensityInterface;
+    typedef AdditiveStateTransitionFunction<State, State, Input> AdditiveInterface;
+    typedef typename AdditiveInterface::FunctionInterface FunctionInterface;
+
+
     /**
      * \brief Linear model density. The density for linear model is the Gaussian
      * over state space.
@@ -56,8 +64,8 @@ public:
      */
     typedef Eigen::Matrix<
                 typename State::Scalar,
-                State::SizeAtCompileTime,
-                State::SizeAtCompileTime
+                SizeOf<State>::Value,
+                SizeOf<State>::Value
             > DynamicsMatrix;
 
     /**
@@ -65,14 +73,14 @@ public:
      */
     typedef Eigen::Matrix<
                 typename Input::Scalar,
-                State::SizeAtCompileTime,
-                Input::SizeAtCompileTime
+                SizeOf<State>::Value,
+                SizeOf<Input>::Value
             > InputMatrix;
 
     /**
      * \brief Noise (effect) model matrix \f$N_t\f$
      */
-    typedef typename Density::SecondMoment NoiseMatrix;
+    typedef typename AdditiveInterface::NoiseMatrix NoiseMatrix;
 
 public:
     explicit LinearStateTransitionModel(int state_dim = DimensionOf<State>(),
@@ -139,12 +147,12 @@ public: /* accessors & mutators */
         return input_matrix_;
     }
 
-    virtual NoiseMatrix noise_matrix() const
+    virtual const NoiseMatrix& noise_matrix() const
     {
         return density_.square_root();
     }
 
-    virtual NoiseMatrix noise_matrix_squared() const
+    virtual const NoiseMatrix& noise_covariance() const
     {
         return density_.covariance();
     }
@@ -184,7 +192,7 @@ public: /* accessors & mutators */
         density_.square_root(noise_mat);
     }
 
-    virtual void noise_matrix_squared(const NoiseMatrix& noise_mat_squared)
+    virtual void noise_covariance(const NoiseMatrix& noise_mat_squared)
     {
         density_.covariance(noise_mat_squared);
     }
