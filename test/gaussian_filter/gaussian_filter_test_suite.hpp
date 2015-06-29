@@ -145,7 +145,7 @@ TYPED_TEST_P(GaussianFilterTest, init_predict)
 
     filter.predict(belief, This::zero_input(), belief);
 
-    auto Q = filter.process_model().noise_matrix_squared();
+    auto Q = filter.process_model().noise_covariance();
 
     EXPECT_TRUE(belief.mean().isZero());
     EXPECT_TRUE(fl::are_similar(belief.covariance(), 2. * Q));
