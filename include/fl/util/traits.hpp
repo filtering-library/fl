@@ -23,6 +23,7 @@
 #define FL__UTIL__TRAITS_HPP
 
 #include <Eigen/Dense>
+
 #include "types.hpp"
 
 namespace fl
@@ -157,7 +158,7 @@ template <> struct IsFixed<Eigen::Dynamic>
 template <typename Matrix> struct DimensionOf
 {
     enum : signed int { Value = IsFixed<Matrix::SizeAtCompileTime>()
-                                    ? Matrix::SizeAtCompileTime
+                                    ? Matrix::RowsAtCompileTime
                                     : 0 };
 
     constexpr operator int () { return Value; }
@@ -211,19 +212,42 @@ template <int A, int B> struct MinOf
 };
 
 /**
+ * \ingroup traits
+ *
  * Defines the second moment type of a given variate
  */
 template <typename Variate>
 struct SecondMomentOf
 {
-    typedef Eigen::Matrix<
-                Real,
-                Variate::SizeAtCompileTime,
-                Variate::SizeAtCompileTime
-            > Type;
+    enum: signed int { Dimension = SizeOf<Variate>::Value };
+    typedef Eigen::Matrix<Real, Dimension, Dimension> Type;
 };
 
 /**
+ * \ingroup traits
+ */
+template <typename Variate>
+struct FirstMomentOf
+{
+    enum: signed int { Dimension = SizeOf<Variate>::Value };
+    typedef Eigen::Matrix<Real, Dimension, 1> Type;
+};
+
+/**
+ * \ingroup traits
+ *
+ * Defines the second moment type of a given variate
+ */
+template <typename Variate>
+struct DiagonalSecondMomentOf
+{
+    enum: signed int { Dimension = SizeOf<Variate>::Value };
+    typedef Eigen::DiagonalMatrix<Real, Dimension> Type;
+};
+
+/**
+ * \ingroup traits
+ *
  * Defines the second moment type of a given variate
  */
 template <>
@@ -232,6 +256,14 @@ struct SecondMomentOf<Real>
     typedef Real Type;
 };
 
+/**
+ * \ingroup traits
+ */
+template <>
+struct FirstMomentOf<Real>
+{
+    typedef Real Type;
+};
 
 }
 
