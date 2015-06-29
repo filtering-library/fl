@@ -37,25 +37,37 @@ namespace fl
     typedef double FloatingPoint;
 #endif
 
+/**
+ * \ingroup types
+ */
 typedef FloatingPoint Real;
 
+/**
+ * \internal
+ */
 namespace internal
 {
 
 /**
  * \internal
+ * \ingroup types
+ *
  * Observation model type identifier
  */
 struct ObsrvModelType { };
 
 /**
  * \internal
+ * \ingroup types
+ *
  * Process model type identifier
  */
 struct ProcessModelType { };
 
 /**
  * \internal
+ * \ingroup types
+ *
  * Adaptive model type identifier
  */
 struct AdaptiveModelType { };
