@@ -76,7 +76,7 @@ public:
      *
      * \f$ \mu = \sum\limits_i x_i p(x_i)\f$
      */
-    virtual Variate mean() const = 0;
+    virtual const Variate& mean() const = 0;
 
     /**
      * \return Second centered moment of the underlying distribution,
@@ -85,12 +85,12 @@ public:
      * \f$ \Sigma =
      *     \sum\limits_i (x_i - \mu)(x_i - \mu)^T \f$
      */
-    virtual SecondMoment covariance() const = 0;
+    virtual const SecondMoment& covariance() const = 0;
 
     /**
      * \copydoc ApproximateMoments::approximate_mean
      */
-    virtual Variate approximate_mean() const
+    virtual const Variate& approximate_mean() const
     {
         return mean();
     }
@@ -98,7 +98,7 @@ public:
     /**
      * \copydoc ApproximateMoments::approximate_covariance
      */
-    virtual SecondMoment approximate_covariance() const
+    virtual const SecondMoment& approximate_covariance() const
     {
         return covariance();
     }
