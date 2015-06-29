@@ -40,15 +40,16 @@ class AdditiveObservationFunction
     : public ObservationFunction<Obsrv, State, Noise, Id>
 {
 public:
+    typedef ObservationFunction<Obsrv, State, Noise, Id> FunctionInterface;
 
     /**
      * Noise model matrix \f$N_t\f$
      */
     typedef Eigen::Matrix<
-            typename Noise::Scalar,
-            Noise::SizeAtCompileTime,
-            Noise::SizeAtCompileTime
-        > NoiseMatrix;
+                typename Noise::Scalar,
+                SizeOf<Noise>::Value,
+                SizeOf<Noise>::Value
+            > NoiseMatrix;
 
     /**
      * Evaluates the model function \f$y = h(x, w)\f$ where \f$x\f$ is the state
@@ -62,12 +63,8 @@ public:
      */
     virtual Obsrv expected_observation(const State& state) const = 0;
 
-    /**
-     * \brief noise_model
-     *
-     * \return
-     */
     virtual const NoiseMatrix& noise_matrix() const = 0;
+    virtual const NoiseMatrix& noise_covariance() const = 0;
 
     virtual Obsrv observation(const State& state,
                               const Noise& noise) const
