@@ -37,56 +37,33 @@
 namespace fl
 {
 
-// Forward declarations
-template <typename Variate> class DiscreteDistribution;
-
-
-template <typename Var>
-struct Traits<DiscreteDistribution<Var>>
-{
-    enum
-    {
-        Dimension = Var::SizeAtCompileTime
-    };
-
-    typedef Var Variate;
-    typedef Eigen::Matrix<Real, Dimension, 1>         Mean;
-    typedef Eigen::Matrix<Real, Dimension, Dimension> Covariance;
-
-    typedef Eigen::Array<Variate, Eigen::Dynamic, 1>        Locations;
-    typedef Eigen::Array<Real, Eigen::Dynamic, 1>  Function;
-
-    typedef Moments<Mean> MomentsBase;
-    typedef StandardGaussianMapping<Variate, 1> GaussianMappingBase;
-};
-
-
-template <typename Variate>
+template <typename Variate, int Locations = Eigen::Dynamic>
 class DiscreteDistribution
-        : public Traits<DiscreteDistribution<Variate>>::MomentsBase,
-          public Traits<DiscreteDistribution<Variate>>::GaussianMappingBase
+    : public Moments<typename FirstMomentOf<Variate>::Type>,
+      public StandardGaussianMapping<Variate, 1>
 {
 public:
-    typedef DiscreteDistribution<Variate>       This;
-    typedef typename Traits<This>::Mean         Mean;
-    typedef typename Traits<This>::Covariance   Covariance;
-    typedef typename Traits<This>::Locations    Locations;
-    typedef typename Traits<This>::Function     Function;
+    typedef Moments<typename FirstMomentOf<Variate>::Type> MomentsInterface;
+    typedef StandardGaussianMapping<Variate,1> StandardGaussianMappingInterface;
 
+    typedef typename MomentsInterface::Variate      Mean;
+    typedef typename MomentsInterface::SecondMoment Covariance;
+    typedef Eigen::Array<Real,    Locations, 1> Function;
+    typedef Eigen::Array<Variate, Locations, 1> LocationArray;
 
 public:
     /// constructor and destructor *********************************************
     explicit
-    DiscreteDistribution(int dim = DimensionOf<Variate>())
+    DiscreteDistribution(int dim = DimensionOf<Variate>(),
+                         int locations = MaxOf<Locations, 1>::value)
     {
-        locations_ = Locations(1);
+        locations_ = LocationArray(locations);
         locations_(0) = Variate::Zero(dim);
-        log_prob_mass_ = Function::Zero(1);
-        cumul_distr_ = std::vector<Real>(1,1);
+        log_prob_mass_ = Function::Zero(locations);
+        cumul_distr_ = std::vector<Real>(locations,1);
     }
 
     virtual ~DiscreteDistribution() { }
-
 
 
 
@@ -138,7 +115,7 @@ public:
         // we first create a local array to sample to. this way, if this
         // is passed as an argument the locations and pmf are not overwritten
         // while sampling
-        Locations new_locations(new_size);
+        LocationArray new_locations(new_size);
 
         for(int i = 0; i < new_size; i++)
         {
@@ -180,7 +157,7 @@ public:
         return locations_[i];
     }
 
-    virtual const Locations& locations() const
+    virtual const LocationArray& locations() const
     {
         return locations_;
     }
@@ -217,27 +194,29 @@ public:
 
 
     // compute properties ------------------------------------------------------
-    virtual Mean mean() const
+    virtual const Mean& mean() const
     {
-        Mean mu(Mean::Zero(dimension()));
+        mu_ = Mean::Zero(dimension());
 
         for(int i = 0; i < locations_.size(); i++)
-            mu += prob_mass(i) * locations_[i].template cast<Real>();
+        {
+            mu_ += prob_mass(i) * locations_[i].template cast<Real>();
+        }
 
-        return mu;
+        return mu_;
     }
 
-    virtual Covariance covariance() const
+    virtual const Covariance& covariance() const
     {
         Mean mu = mean();
-        Covariance cov(Covariance::Zero(dimension(), dimension()));
+        cov_ = Covariance::Zero(dimension(), dimension());
         for(int i = 0; i < locations_.size(); i++)
         {
             Mean delta = (locations_[i].template cast<Real>()-mu);
-            cov += prob_mass(i) * delta * delta.transpose();
+            cov_ += prob_mass(i) * delta * delta.transpose();
         }
 
-        return cov;
+        return cov_;
     }
 
     virtual Real entropy() const
@@ -254,11 +233,14 @@ public:
 
 protected:
     /// member variables *******************************************************
-    Locations  locations_;
+    LocationArray  locations_;
 
     Function log_prob_mass_;
     Function prob_mass_;
     std::vector<Real> cumul_distr_;
+
+    mutable Mean mu_;
+    mutable Covariance cov_;
 };
 
 }
