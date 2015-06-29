@@ -211,7 +211,7 @@ public:
     /**
      * \return Gaussian first moment
      */
-    virtual Variate mean() const
+    virtual const Variate& mean() const
     {
         return mean_;
     }
@@ -232,7 +232,7 @@ public:
      *       = {Valid Representations} \f$ \cup \f$ {#CovarianceMatrix}
      * \endcond
      */
-    virtual SecondMoment covariance() const
+    virtual const SecondMoment& covariance() const
     {
         if (dimension() == 0)
         {
@@ -810,7 +810,7 @@ protected:
     mutable SecondMoment precision_;   /**< \brief cov. inverse form */
     mutable SecondMoment square_root_; /**< \brief cov. square root form */
     mutable bool full_rank_;           /**< \brief full rank flag */
-    mutable Real log_norm_;   /**< \brief log normalizing constant */
+    mutable Real log_norm_;            /**< \brief log normalizing constant */
     mutable std::vector<bool> dirty_;  /**< \brief data validity flags */
     /** \endcond */
 };
