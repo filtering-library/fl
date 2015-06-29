@@ -60,6 +60,10 @@ public:
     typedef Obsrv_ Obsrv;
     typedef State_ State;
 
+    typedef ObservationDensity<Obsrv, State> DensityInterface;
+    typedef AdditiveObservationFunction<Obsrv, State, Obsrv> AdditiveInterface;
+    typedef typename AdditiveInterface::FunctionInterface FunctionInterface;
+
     /**
      * Linear model density. The density for linear model is the Gaussian over
      * observation space.
@@ -72,9 +76,9 @@ public:
      * \f$ y_t  = H_t x_t + N_t v_t \f$
      */
     typedef Eigen::Matrix<
-                typename Obsrv::Scalar,
-                Obsrv::SizeAtCompileTime,
-                State::SizeAtCompileTime
+                typename State::Scalar,
+                SizeOf<Obsrv>::Value,
+                SizeOf<State>::Value
             > SensorMatrix;
 
     /**
@@ -85,8 +89,11 @@ public:
      * In this linear model, the noise model matrix is equivalent to the
      * square root of the covariance of the model density. Hence, the
      * NoiseMatrix type is the same type as the second moment of the density.
+     *
+     * This is equivalent to
+     *  > typedef typename Gaussian<Obsrv>::SecondMoment NoiseMatrix;
      */
-    typedef typename Density::SecondMoment NoiseMatrix;
+    typedef typename AdditiveInterface::NoiseMatrix NoiseMatrix;
 
 public:
     /**
@@ -99,14 +106,14 @@ public:
                            int state_dim = DimensionOf<State>())
         : sensor_matrix_(SensorMatrix::Identity(obsrv_dim, state_dim)),
           density_(obsrv_dim)
-
     {
         assert(obsrv_dim > 0);
         assert(state_dim > 0);
     }
 
     /**
-     * \brief Overridable default destructor     */
+     * \brief Overridable default destructor
+     */
     virtual ~LinearObservationModel() { }
 
     /**
@@ -132,29 +139,14 @@ public:
         return sensor_matrix_;
     }
 
-    virtual void sensor_matrix(const SensorMatrix& sensor_mat)
-    {
-        sensor_matrix_ = sensor_mat;
-    }
-
     virtual const NoiseMatrix& noise_matrix() const
     {
         return density_.square_root();
     }
 
-    virtual void noise_matrix(const NoiseMatrix& noise_mat)
-    {
-        density_.square_root(noise_mat);
-    }
-
-    virtual NoiseMatrix noise_matrix_squared() const
+    virtual const NoiseMatrix& noise_covariance() const
     {
         return density_.covariance();
-    }
-
-    virtual void noise_matrix_squared(const NoiseMatrix& noise_mat_squared)
-    {
-        density_.covariance(noise_mat_squared);
     }
 
     virtual int obsrv_dimension() const
@@ -170,6 +162,21 @@ public:
     virtual int state_dimension() const
     {
         return sensor_matrix_.cols();
+    }
+
+    virtual void sensor_matrix(const SensorMatrix& sensor_mat)
+    {
+        sensor_matrix_ = sensor_mat;
+    }
+
+    virtual void noise_matrix(const NoiseMatrix& noise_mat)
+    {
+        density_.square_root(noise_mat);
+    }
+
+    virtual void noise_covariance(const NoiseMatrix& noise_mat_squared)
+    {
+        density_.covariance(noise_mat_squared);
     }
 
     virtual SensorMatrix create_sensor_matrix() const
