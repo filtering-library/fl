@@ -13,9 +13,10 @@
 #include <random>
 #include <type_traits>
 
+#include <fl/util/math.hpp>
 #include <fl/util/random.hpp>
 #include <fl/util/traits.hpp>
-#include <fl/util/math.hpp>
+#include <fl/util/types.hpp>
 #include <fl/distribution/interface/sampling.hpp>
 #include <fl/distribution/interface/moments.hpp>
 #include <fl/exception/exception.hpp>
@@ -29,19 +30,31 @@ namespace fl
 template <typename StandardVariate>
 class StandardGaussian
     : public Sampling<StandardVariate>,
-      public Moments<StandardVariate>
+      public Moments<
+                StandardVariate,
+                typename DiagonalSecondMomentOf<StandardVariate>::Type>
 {
 public:
     typedef StandardVariate Variate;
-    typedef typename Moments<StandardVariate>::SecondMoment SecondMoment;
+
+    typedef Moments<
+                StandardVariate,
+                typename DiagonalSecondMomentOf<StandardVariate>::Type
+            > MomentsBase;
+
+    typedef typename MomentsBase::SecondMoment SecondMoment;
+    typedef typename MomentsBase::SecondMoment DiagonalSecondMoment;
 
 public:
     explicit
     StandardGaussian(int dim = DimensionOf<StandardVariate>())
         : dimension_ (dim),
+          mu_(Variate::Zero(dim, 1)),
+          cov_(DiagonalSecondMoment(dim)),
           generator_(fl::seed()),
           gaussian_distribution_(0.0, 1.0)
     {
+        cov_.setIdentity();
     }
 
     virtual ~StandardGaussian() { }
@@ -50,7 +63,7 @@ public:
     {
         StandardVariate gaussian_sample(dimension(), 1);
 
-        for (int i = 0; i < dimension(); i++)
+        for (int i = 0; i < dimension_; i++)
         {
             gaussian_sample(i, 0) = gaussian_distribution_(generator_);
         }
@@ -78,25 +91,22 @@ public:
         dimension_ = new_dimension;
     }
 
-    virtual Variate mean() const
+    virtual const Variate& mean() const
     {
-        Variate mu;
-        mu.setZero(dimension(), 1);
-        return mu;
+        return mu_;
     }
 
-    virtual SecondMoment covariance() const
+    virtual const DiagonalSecondMoment& covariance() const
     {
-        SecondMoment cov;
-        cov.setIdentity(dimension(), dimension());
-
-        return cov;
+        return cov_;
     }
 
 private:
     int dimension_;
+    Variate mu_;
+    DiagonalSecondMoment cov_;
     mutable fl::mt11213b generator_;
-    mutable std::normal_distribution<> gaussian_distribution_;
+    mutable std::normal_distribution<Real> gaussian_distribution_;
 };
 
 /**
@@ -109,8 +119,10 @@ class StandardGaussian<Real>
 {
 public:
     StandardGaussian()
-        : generator_(fl::seed()),
-          gaussian_distribution_(Real(0.), Real(1.))
+        : mu_(0),
+          var_(1),
+          generator_(fl::seed()),
+          gaussian_distribution_(mu_, var_)
     { }
 
     Real sample() const
@@ -118,17 +130,19 @@ public:
         return gaussian_distribution_(generator_);
     }
 
-    virtual Real mean() const
+    virtual const Real& mean() const
     {
-        return 0.;
+        return mu_;
     }
 
-    virtual Real covariance() const
+    virtual const Real& covariance() const
     {
-        return 1.;
+        return var_;
     }
 
 protected:
+    const Real mu_;
+    const Real var_;
     mutable fl::mt11213b generator_;
     mutable std::normal_distribution<Real> gaussian_distribution_;
 };
