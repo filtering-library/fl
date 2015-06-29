@@ -40,23 +40,22 @@ class AdditiveStateTransitionFunction
     : public StateTransitionFunction<State, Noise, Input, Id>
 {
 public:
+    typedef StateTransitionFunction<State, Noise, Input, Id> FunctionInterface;
 
     /**
      * Noise model matrix \f$N_t\f$
      */
     typedef Eigen::Matrix<
                 typename Noise::Scalar,
-                Noise::SizeAtCompileTime,
-                Noise::SizeAtCompileTime
+                SizeOf<Noise>::Value,
+                SizeOf<State>::Value
             > NoiseMatrix;
-
 
     virtual State expected_state(const State& prev_state,
                                  const Input& input) const = 0;
 
-    virtual NoiseMatrix noise_matrix() const = 0;
-
-    virtual NoiseMatrix noise_matrix_squared() const = 0;
+    virtual const NoiseMatrix& noise_matrix() const = 0;
+    virtual const NoiseMatrix& noise_covariance() const = 0;
 
     virtual State state(const State& prev_state,
                         const Noise& noise,
