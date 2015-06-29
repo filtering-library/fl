@@ -38,7 +38,7 @@ class ObservationDensity
 {
 public:
     typedef Eigen::Array<State, BatchSize, 1> StateArray;
-    typedef Eigen::Array<Real,  BatchSize, 1>  ValueArray;
+    typedef Eigen::Array<Real,  BatchSize, 1> ValueArray;
 
 public:
     /// \todo should add the unnormalized log probability interface
@@ -144,9 +144,6 @@ public:
         return log_probabilities(obsrv, states, indices).exp();
     }
 };
-
-
-
 
 }
 
