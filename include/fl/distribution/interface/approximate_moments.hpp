@@ -70,7 +70,7 @@ public:
      *
      * \f$ \mu_{approx} \approx \sum\limits_i x_i p(x_i)\f$
      */
-    virtual Variate approximate_mean() const = 0;
+    virtual const Variate& approximate_mean() const = 0;
 
     /**
      * \return Second centeral moment, the covariance
@@ -78,7 +78,7 @@ public:
      * \f$ \Sigma_{approx} \approx
      *     \sum\limits_i (x_i - \mu)(x_i - \mu)^T \f$
      */
-    virtual SecondMoment approximate_covariance() const = 0;
+    virtual const SecondMoment& approximate_covariance() const = 0;
 };
 
 /**
