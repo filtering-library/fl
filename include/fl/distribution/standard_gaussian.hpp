@@ -101,7 +101,7 @@ public:
         return cov_;
     }
 
-private:
+protected:
     int dimension_;
     Variate mu_;
     DiagonalSecondMoment cov_;
@@ -119,8 +119,8 @@ class StandardGaussian<Real>
 {
 public:
     StandardGaussian()
-        : mu_(0),
-          var_(1),
+        : mu_(0.),
+          var_(1.),
           generator_(fl::seed()),
           gaussian_distribution_(mu_, var_)
     { }
@@ -141,8 +141,8 @@ public:
     }
 
 protected:
-    const Real mu_;
-    const Real var_;
+    Real mu_;
+    Real var_;
     mutable fl::mt11213b generator_;
     mutable std::normal_distribution<Real> gaussian_distribution_;
 };
