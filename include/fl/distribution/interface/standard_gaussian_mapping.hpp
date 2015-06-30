@@ -106,7 +106,7 @@ public:
         standard_gaussian_.dimension(snv_dimension);
     }
 
-private:
+protected:
     /**
      * \brief SNV generator
      */
@@ -162,7 +162,7 @@ public:
         return 1;
     }
 
-private:
+protected:
     /**
      * \brief One dimensional SNV generator
      */
