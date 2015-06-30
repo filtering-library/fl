@@ -73,14 +73,14 @@ catkin_add_gtest(gaussian_filter_kalman_filter_test
                  gtest_main.cpp)
 target_link_libraries(gaussian_filter_kalman_filter_test ${catkin_LIBRARIES})
 
+# = Unscented Kalman filter = #
 catkin_add_gtest(gaussian_filter_unscented_kalman_filter_test
                  typecast.hpp
                  gaussian_filter/gaussian_filter_test_suite.hpp
                  gaussian_filter/unscented_kalman_filter_test.cpp
                  gtest_main.cpp)
-target_link_libraries(gaussian_filter_unscented_kalman_filter_test ${catkin_LIBRARIES})
-
-
+target_link_libraries(gaussian_filter_unscented_kalman_filter_test
+                      ${catkin_LIBRARIES})
 
 # == Particle filters tests ================================================== #
 #catkin_add_gtest(particle_filter_test
@@ -89,11 +89,11 @@ target_link_libraries(gaussian_filter_unscented_kalman_filter_test ${catkin_LIBR
 #target_link_libraries(particle_filter_test
 #                      ${catkin_LIBRARIES})
 
-#catkin_add_gtest(particle_filter_fixture_test
-#                 particle_filter/particle_filter_fixture_test.cpp
-#                 gtest_main.cpp)
-#target_link_libraries(particle_filter_fixture_test
-#                      ${catkin_LIBRARIES})
+catkin_add_gtest(particle_filter_fixture_test
+                 particle_filter/particle_filter_fixture_test.cpp
+                 gtest_main.cpp)
+target_link_libraries(particle_filter_fixture_test
+                      ${catkin_LIBRARIES})
 
 #catkin_add_gtest(frb_particle_filter_test
 #                 particle_filter/frb_particle_filter_test.cpp
