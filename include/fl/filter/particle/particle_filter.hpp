@@ -83,37 +83,30 @@ struct Traits<ParticleFilter<ProcessModel, ObservationModel>>
     typedef typename ProcessModel::State        State;
     typedef typename ProcessModel::Input        Input;
     typedef typename ObservationModel::Obsrv    Obsrv;
-
-    typedef DiscreteDistribution<State> Belief;
-
-    /** \cond INTERNAL */
-    typedef typename ProcessModel::Noise      ProcessNoise;
-    typedef typename ObservationModel::Noise  ObsrvNoise;
-    /** \endcond */
+    typedef DiscreteDistribution<State>         Belief;
 };
 
 
 template<typename ProcessModel, typename ObservationModel>
 class ParticleFilter<ProcessModel, ObservationModel>
-    :
-    public FilterInterface<ParticleFilter<ProcessModel, ObservationModel>>
+    : public FilterInterface<ParticleFilter<ProcessModel, ObservationModel>>
 {
 private:
-    typedef ParticleFilter<ProcessModel, ObservationModel> This;
-
-    typedef from_traits(ProcessNoise);
-    typedef from_traits(ObsrvNoise);
+    /** \cond INTERNAL */
+    typedef typename ProcessModel::Noise      ProcessNoise;
+    typedef typename ObservationModel::Noise  ObsrvNoise;
+    /** \endcond */
 
 public:
-    typedef from_traits(State);
-    typedef from_traits(Input);
-    typedef from_traits(Obsrv);
-    typedef from_traits(Belief);
+    typedef typename ProcessModel::State        State;
+    typedef typename ProcessModel::Input        Input;
+    typedef typename ObservationModel::Obsrv    Obsrv;
+    typedef DiscreteDistribution<State>         Belief;
 
 public:
     ParticleFilter(const ProcessModel& process_model,
                    const ObservationModel& obsrv_model,
-                   const fl::Real& max_kl_divergence = 1.0)
+                   const Real& max_kl_divergence = 1.0)
         : process_model_(process_model),
           obsrv_model_(obsrv_model),
           process_noise_(process_model.noise_dimension()),
@@ -128,7 +121,7 @@ public:
                          Belief& predicted_belief)
     {
         predicted_belief = prior_belief;
-        for(size_t i = 0; i < predicted_belief.size(); i++)
+        for(int i = 0; i < predicted_belief.size(); i++)
         {
             predicted_belief.location(i) =
                     process_model_.state(prior_belief.location(i),
@@ -189,11 +182,9 @@ public:
         return obsrv_model_;
     }
 
-    /// \todo: should this function be here?
     virtual Belief create_belief() const
     {
         auto belief = Belief(process_model().state_dimension());
-
         return belief;
     }
 
