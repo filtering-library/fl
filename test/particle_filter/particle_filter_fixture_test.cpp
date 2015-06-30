@@ -32,13 +32,13 @@
 
 template<typename Vector, typename Matrix>
 bool moments_are_similar(Vector mean_a, Matrix cov_a,
-                         Vector mean_b, Matrix cov_b, double epsilon = 0.1)
+                         Vector mean_b, Matrix cov_b, fl::Real epsilon = 0.1)
 {
     Matrix cov_delta = cov_a.inverse() * cov_b;
     bool are_similar = cov_delta.isApprox(Matrix::Identity(), epsilon);
 
     Matrix square_root = fl::matrix_sqrt(cov_a);
-    double max_mean_delta =
+    fl::Real max_mean_delta =
             (square_root.inverse() * (mean_a-mean_b)).cwiseAbs().maxCoeff();
 
     are_similar = are_similar && max_mean_delta < epsilon;
@@ -46,11 +46,11 @@ bool moments_are_similar(Vector mean_a, Matrix cov_a,
     return are_similar;
 }
 
-Eigen::Matrix<double, 3, 3> some_rotation()
+Eigen::Matrix<fl::Real, 3, 3> some_rotation()
 {
-    double angle = 2 * M_PI * double(rand()) / double(RAND_MAX);
+    fl::Real angle = 2 * M_PI * fl::Real(rand()) / fl::Real(RAND_MAX);
 
-    Eigen::Matrix<double, 3, 3> R = Eigen::Matrix<double, 3, 3>::Identity();
+    Eigen::Matrix<fl::Real, 3, 3> R = Eigen::Matrix<fl::Real, 3, 3>::Identity();
 
     R = R * Eigen::AngleAxisd(angle, Eigen::Vector3d::UnitX());
     R = R * Eigen::AngleAxisd(angle, Eigen::Vector3d::UnitZ());
@@ -63,13 +63,13 @@ class ParticleFilterTest
 {
 protected:
 
-    typedef Eigen::Matrix<double, 3, 1> State;
-    typedef Eigen::Matrix<double, 3, 1> Observation;
-    typedef Eigen::Matrix<double, 3, 1> Input;
+    typedef Eigen::Matrix<fl::Real, 3, 1> State;
+    typedef Eigen::Matrix<fl::Real, 3, 1> Observation;
+    typedef Eigen::Matrix<fl::Real, 3, 1> Input;
 
-    typedef Eigen::Matrix<double, 3, 3> Matrix;
+    typedef Eigen::Matrix<fl::Real, 3, 3> Matrix;
 
-    typedef fl::LinearGaussianProcessModel<State, Input> ProcessModel;
+    typedef fl::LinearStateTransitionModel<State, Input> ProcessModel;
     typedef fl::LinearObservationModel<Observation, State> ObservationModel;
 
     // particle filter
@@ -102,10 +102,12 @@ protected:
 
         ProcessModel process_model;
 
-        process_model.A(some_rotation());
+        process_model.dynamics_matrix(some_rotation());
+
         Matrix R = some_rotation();
-        Matrix D = Eigen::DiagonalMatrix<double, 3>(1, 3.5, 1.2);
-        process_model.covariance(R*D*R.transpose());
+        Matrix D = Eigen::DiagonalMatrix<fl::Real, 3>(1, 3.5, 1.2);
+
+        process_model.noise_covariance(R*D*R.transpose());
 
         return process_model;
     }
@@ -117,10 +119,11 @@ protected:
         ObservationModel observation_model;
 
         observation_model.sensor_matrix(some_rotation());
+
         Matrix R = some_rotation();
-        Matrix D = Eigen::DiagonalMatrix<double, 3>(3.1, 1.0, 1.3);
-        D = D.cwiseSqrt();
-        observation_model.noise_matrix(R*D);
+        Matrix D = Eigen::DiagonalMatrix<fl::Real, 3>(3.1, 1.0, 1.3);
+
+        observation_model.noise_covariance(R*D*R.transpose());
 
         return observation_model;
     }
@@ -145,11 +148,8 @@ TEST_F(ParticleFilterTest, predict)
     // run prediction
     for(size_t i = 0; i < N_steps; i++)
     {
-        particle_filter.predict(delta_time, State::Zero(),
-                                particle_belief, particle_belief);
-
-        gaussian_filter.predict(delta_time, State::Zero(),
-                                gaussian_belief, gaussian_belief);
+        particle_filter.predict(particle_belief, Input::Zero(), particle_belief);
+        gaussian_filter.predict(gaussian_belief, Input::Zero(), gaussian_belief);
 
         EXPECT_TRUE(moments_are_similar(
                         particle_belief.mean(), particle_belief.covariance(),
@@ -164,8 +164,8 @@ TEST_F(ParticleFilterTest, update)
     {
         Observation observation(0.5, 0.5, 0.5);
 
-        particle_filter.update(observation, particle_belief, particle_belief);
-        gaussian_filter.update(observation, gaussian_belief, gaussian_belief);
+        particle_filter.update(particle_belief, observation, particle_belief);
+        gaussian_filter.update(gaussian_belief, observation, gaussian_belief);
 
         EXPECT_TRUE(moments_are_similar(
                         particle_belief.mean(), particle_belief.covariance(),
@@ -181,26 +181,23 @@ TEST_F(ParticleFilterTest, predict_and_update)
     for(size_t i = 0; i < N_steps; i++)
     {
         // simulate system
-        state = process_model.predict_state(delta_time,
-                                            state,
-                                            standard_gaussian.sample(),
-                                            State::Zero());
+        state = process_model.state(state,
+                                    standard_gaussian.sample(),
+                                    Input::Zero());
         Observation observation =
                 observation_model.observation(state, standard_gaussian.sample());
 
         // predict
-        particle_filter.predict(delta_time, State::Zero(),
-                                particle_belief, particle_belief);
-        gaussian_filter.predict(delta_time, State::Zero(),
-                                gaussian_belief, gaussian_belief);
+        particle_filter.predict(particle_belief, State::Zero(), particle_belief);
+        gaussian_filter.predict(gaussian_belief, State::Zero(), gaussian_belief);
 
         // update
-        particle_filter.update(observation, particle_belief, particle_belief);
-        gaussian_filter.update(observation, gaussian_belief, gaussian_belief);
+        particle_filter.update(particle_belief, observation, particle_belief);
+        gaussian_filter.update(gaussian_belief, observation, gaussian_belief);
     }
 
     State delta = particle_belief.mean() - gaussian_belief.mean();
-    double mh_distance = delta.transpose() * gaussian_belief.precision() * delta;
+    fl::Real mh_distance = delta.transpose() * gaussian_belief.precision() * delta;
 
     // make sure that the estimate of the pf is within one std dev
     EXPECT_TRUE(std::sqrt(mh_distance) <= 1.0);
