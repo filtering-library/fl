@@ -43,6 +43,7 @@ class DiscreteDistribution
       public StandardGaussianMapping<Variate, 1>
 {
 public:
+    typedef DiscreteDistribution<Variate, Locations> This;
     typedef Moments<typename FirstMomentOf<Variate>::Type> MomentsInterface;
     typedef StandardGaussianMapping<Variate,1> StandardGaussianMappingInterface;
 
@@ -50,22 +51,21 @@ public:
     typedef typename MomentsInterface::SecondMoment Covariance;
     typedef Eigen::Array<Real,    Locations, 1> Function;
     typedef Eigen::Array<Variate, Locations, 1> LocationArray;
+    typedef Eigen::Array<Real,    Locations, 1> CommulativeDistribution;
 
 public:
     /// constructor and destructor *********************************************
     explicit
     DiscreteDistribution(int dim = DimensionOf<Variate>(),
                          int locations = MaxOf<Locations, 1>::value)
+        : locations_(locations),
+          log_prob_mass_(Function::Zero(locations)),
+          cumul_distr_(CommulativeDistribution(locations))
     {
-        locations_ = LocationArray(locations);
         locations_(0) = Variate::Zero(dim);
-        log_prob_mass_ = Function::Zero(locations);
-        cumul_distr_ = std::vector<Real>(locations,1);
     }
 
     virtual ~DiscreteDistribution() { }
-
-
 
     /// non-const functions ****************************************************
 
@@ -85,9 +85,12 @@ public:
 
         // compute cdf
         cumul_distr_.resize(log_prob_mass_.size());
+
         cumul_distr_[0] = prob_mass_[0];
-        for(size_t i = 1; i < cumul_distr_.size(); i++)
+        for(int i = 1; i < cumul_distr_.size(); i++)
+        {
             cumul_distr_[i] = cumul_distr_[i-1] + prob_mass_[i];
+        }
 
         // resize locations
         locations_.resize(log_prob_mass_.size());
@@ -141,13 +144,13 @@ public:
 
     virtual Variate map_standard_uniform(const Real& uniform_sample) const
     {
-        typename std::vector<Real>::const_iterator
-                iterator = std::lower_bound(cumul_distr_.begin(),
-                                            cumul_distr_.end(),
-                                            uniform_sample);
+        int i = 0;
+        for (i = 0; i < cumul_distr_.size(); ++i)
+        {
+            if (cumul_distr_[i] >= uniform_sample) break;
+        }
 
-        int index = iterator - cumul_distr_.begin();
-        return locations_[index];
+        return locations_[i];
     }
 
 
@@ -233,11 +236,11 @@ public:
 
 protected:
     /// member variables *******************************************************
-    LocationArray  locations_;
+    LocationArray locations_;
 
     Function log_prob_mass_;
     Function prob_mass_;
-    std::vector<Real> cumul_distr_;
+    CommulativeDistribution cumul_distr_;
 
     mutable Mean mu_;
     mutable Covariance cov_;
