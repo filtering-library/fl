@@ -63,6 +63,9 @@ public:
           cumul_distr_(CommulativeDistribution(locations))
     {
         locations_(0) = Variate::Zero(dim);
+
+        cumul_distr_.setOnes();
+        cumul_distr_ /= Real(cumul_distr_.size());
     }
 
     virtual ~DiscreteDistribution() { }
@@ -100,7 +103,6 @@ public:
     {
         log_unnormalized_prob_mass(log_prob_mass_ + delta);
     }
-
 
     virtual void set_uniform(int new_size = size())
     {
