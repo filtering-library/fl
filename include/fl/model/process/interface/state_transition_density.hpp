@@ -30,13 +30,16 @@ namespace fl
 {
 
 template <
-    typename State,
-    typename Input,
+    typename State_,
+    typename Input_,
     int BatchSize = Eigen::Dynamic
 >
 class StateTransitionDensity
 {
 public:
+    typedef State_ State;
+    typedef Input_ Input;
+
     typedef Eigen::Array<State, BatchSize, 1 > StateArray;
     typedef Eigen::Array<Input, BatchSize, 1 > InputArray;
     typedef Eigen::Array<Real, BatchSize, 1 > ValueArray;
