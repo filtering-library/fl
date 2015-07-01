@@ -37,12 +37,14 @@
 namespace fl
 {
 
-template <typename...> class GaussianFilter;
-
 /**
- * \defgroup kalman_filter KalmanFilter
+ * \defgroup kalman_filter Kalman Filter
  * \ingroup filters
  */
+
+// Gaussian filter forward declaration
+template <typename...> class GaussianFilter;
+
 
 /**
  * \internal
@@ -75,7 +77,11 @@ struct Traits<
  * the linear Gaussian Models.
  *
  */
-template <typename State, typename Input, typename Obsrv>
+template <
+    typename State,
+    typename Input,
+    typename Obsrv
+>
 class GaussianFilter<
           LinearStateTransitionModel<State, Input>,
           LinearObservationModel<Obsrv, State>>
@@ -149,8 +155,6 @@ public:
      *                                   const Input&,
      *                                   long,
      *                                   Belief&)
-     *
-     *
      */
     virtual void predict(const Belief& prior_belief,
                          const Input& input,
