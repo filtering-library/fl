@@ -21,27 +21,10 @@
 #ifndef FL__FILTER__PARTICLE__PARTICLE_FILTER_HPP
 #define FL__FILTER__PARTICLE__PARTICLE_FILTER_HPP
 
-
+#include <fl/util/traits.hpp>
+#include <fl/filter/filter_interface.hpp>
 #include <fl/distribution/discrete_distribution.hpp>
 #include <fl/distribution/standard_gaussian.hpp>
-
-
-/// TODO: REMOVE UNNECESSARY INCLUDES
-
-#include <map>
-#include <tuple>
-#include <memory>
-
-#include <fl/util/meta.hpp>
-#include <fl/util/traits.hpp>
-#include <fl/util/profiling.hpp>
-
-#include <fl/exception/exception.hpp>
-#include <fl/filter/filter_interface.hpp>
-#include <fl/filter/gaussian/point_set.hpp>
-#include <fl/filter/gaussian/feature_policy.hpp>
-
-#include <fl/model/observation/joint_observation_model.hpp>
 
 namespace fl
 {
