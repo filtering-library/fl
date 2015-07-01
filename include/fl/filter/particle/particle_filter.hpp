@@ -29,12 +29,24 @@
 namespace fl
 {
 
+/**
+ * \defgroup particle_filter Particle Filter
+ * \ingroup filters
+ */
+
+// Particle filter forward declaration
 template <typename...> class ParticleFilter;
 
 /**
+ * \internal
+ * \ingroup particle_filter
+ *
  * ParticleFilter Traits
  */
-template <typename ProcessModel, typename ObservationModel>
+template <
+    typename ProcessModel,
+    typename ObservationModel
+>
 struct Traits<ParticleFilter<ProcessModel, ObservationModel>>
 {
     typedef typename ProcessModel::State        State;
@@ -43,8 +55,15 @@ struct Traits<ParticleFilter<ProcessModel, ObservationModel>>
     typedef DiscreteDistribution<State>         Belief;
 };
 
-
-template<typename ProcessModel, typename ObservationModel>
+/**
+ * \ingroup particle_filter
+ *
+ * \brief Represents the general particle filter
+ */
+template<
+    typename ProcessModel,
+    typename ObservationModel
+>
 class ParticleFilter<ProcessModel, ObservationModel>
     : public FilterInterface<ParticleFilter<ProcessModel, ObservationModel>>
 {
@@ -71,8 +90,9 @@ public:
           max_kl_divergence_(max_kl_divergence)
     { }
 
-
-    /// predict ****************************************************************
+    /**
+     * \copydoc FilterInterface::predict
+     */
     virtual void predict(const Belief& prior_belief,
                          const Input& input,
                          Belief& predicted_belief)
@@ -87,7 +107,9 @@ public:
         }
     }
 
-    /// update *****************************************************************
+    /**
+     * \copydoc FilterInterface::update
+     */
     virtual void update(const Belief& predicted_belief,
                         const Obsrv& obsrv,
                         Belief& posterior_belief)
@@ -108,7 +130,9 @@ public:
              obsrv_model_.log_probabilities(obsrv, predicted_belief.locations()));
     }
 
-    /// predict and update *****************************************************
+    /**
+     * \copydoc FilterInterface::predict_and_update
+     */
     virtual void predict_and_update(const Belief& prior_belief,
                                     const Input& input,
                                     const Obsrv& observation,
@@ -118,8 +142,14 @@ public:
         update(posterior_belief, observation, posterior_belief);
     }
 
+public: /* factory functions */
+    virtual Belief create_belief() const
+    {
+        auto belief = Belief(process_model().state_dimension());
+        return belief;
+    }
 
-    /// set and get ************************************************************
+public: /* accessors */
     ProcessModel& process_model()
     {
         return process_model_;
@@ -139,12 +169,6 @@ public:
         return obsrv_model_;
     }
 
-    virtual Belief create_belief() const
-    {
-        auto belief = Belief(process_model().state_dimension());
-        return belief;
-    }
-
 protected:
     ProcessModel process_model_;
     ObservationModel obsrv_model_;
@@ -152,10 +176,12 @@ protected:
     StandardGaussian<ProcessNoise> process_noise_;
     StandardGaussian<ObsrvNoise> obsrv_noise_;
 
-    // when the KL divergence KL(p||u), where p is the particle distribution
-    // and u is the uniform distribution, exceeds max_kl_divergence_, then there
-    // is a resampling step. can be understood as -log(f) where f is the
-    // fraction of nonzero particles.
+    /**
+     * when the KL divergence KL(p||u), where p is the particle distribution
+     * and u is the uniform distribution, exceeds max_kl_divergence_, then there
+     * is a resampling step. can be understood as -log(f) where f is the
+     * fraction of nonzero particles.
+     */
     fl::Real max_kl_divergence_;
 };
 
