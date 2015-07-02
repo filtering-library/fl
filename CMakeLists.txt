@@ -65,7 +65,7 @@ catkin_package(
 #
 # The documentation will be generated within /path/to/fl/build/doc
 #
-set(MIN_DOXYGEN_VERSION 1.8.9)
+set(MIN_DOXYGEN_VERSION 1.8.8)
 find_package(Doxygen ${MIN_DOXYGEN_VERSION})
 
 set(TARGET_FAILED_SCRIPT_TEMPLATE
@@ -90,17 +90,15 @@ if(DOXYGEN_FOUND)
         set(DOXYGEN_WARN_MSG "\n${DOXYGEN_WARN_MSG_OLD}\n")
         set(DOXYGEN_WARN_MSG "${DOXYGEN_WARN_MSG} (${DOXYGEN_WARN_MSG_FOUND}")
         set(DOXYGEN_WARN_MSG "${DOXYGEN_WARN_MSG} ${DOXYGEN_WARN_MSG_REQ})")
+        message(WARNING ${DOXYGEN_WARN_MSG})
 
         set(FATAL_ERROR_MESSAGE ${DOXYGEN_WARN_MSG})
-
         configure_file(
             ${TARGET_FAILED_SCRIPT_TEMPLATE}
             ${TARGET_FAILED_SCRIPT} @ONLY)
 
         add_custom_target(doc_fl
             COMMAND ${CMAKE_COMMAND} -P ${TARGET_FAILED_SCRIPT})
-
-        message(WARNING ${DOXYGEN_WARN_MSG})
     else(DOXYGEN_TOO_OLD)
         configure_file(
             ${CMAKE_CURRENT_SOURCE_DIR}/doc/Doxyfile.in
@@ -112,8 +110,10 @@ if(DOXYGEN_FOUND)
             COMMENT "Generating API documentation with Doxygen" VERBATIM)
     endif(DOXYGEN_TOO_OLD)
 else(DOXYGEN_FOUND)
-    set(FATAL_ERROR_MESSAGE "Doxygen not found.")
+    set(DOXYGEN_WARN_MSG "Doxygen not found.")
+    message(WARNING ${DOXYGEN_WARN_MSG})
 
+    set(FATAL_ERROR_MESSAGE ${DOXYGEN_WARN_MSG})
     configure_file(
         ${TARGET_FAILED_SCRIPT_TEMPLATE}
         ${TARGET_FAILED_SCRIPT} @ONLY)
