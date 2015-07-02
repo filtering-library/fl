@@ -30,7 +30,7 @@ message("# Version ${FL_MAJOR_VERSION}.${FL_MINOR_VERSION}.${FL_BUILD_VERSION}")
 message("##############################")
 
 ############################
-# Dependecies              #
+# Dependecies
 ############################
 find_package(catkin REQUIRED)
 find_package(Eigen REQUIRED)
@@ -74,12 +74,18 @@ if(DOXYGEN_FOUND)
         set(DOXYGEN_WARN_MSG_FOUND "Found Doxygen ${DOXYGEN_VERSION}.")
         set(DOXYGEN_WARN_MSG_REQ   "Required is at least ${MIN_DOXYGEN_VERSION}")
 
-        set(DOXYGEN_WARN_MSG "${DOXYGEN_WARN_MSG_OLD}\n")
+        set(DOXYGEN_WARN_MSG "\n${DOXYGEN_WARN_MSG_OLD}\n")
         set(DOXYGEN_WARN_MSG "${DOXYGEN_WARN_MSG} (${DOXYGEN_WARN_MSG_FOUND}")
         set(DOXYGEN_WARN_MSG "${DOXYGEN_WARN_MSG} ${DOXYGEN_WARN_MSG_REQ})")
 
+        configure_file(
+            ${CMAKE_CURRENT_SOURCE_DIR}/cmake/doc_fl.cmake.in
+            ${CMAKE_CURRENT_BINARY_DIR}/doc_fl.cmake @ONLY)
+
+        add_custom_target(doc_fl
+            COMMAND ${CMAKE_COMMAND} -P "${CMAKE_CURRENT_BINARY_DIR}/doc_fl.cmake")
+
         message(WARNING ${DOXYGEN_WARN_MSG})
-        add_custom_target(doc_fl COMMENT ${DOXYGEN_WARN_MSG})
     else(DOXYGEN_TOO_OLD)
         configure_file(
             ${CMAKE_CURRENT_SOURCE_DIR}/doc/Doxyfile.in
