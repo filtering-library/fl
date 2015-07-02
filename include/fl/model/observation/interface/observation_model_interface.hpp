@@ -42,6 +42,11 @@ public:
     typedef Noise_ Noise;
 
     /**
+     * \brief Overridable default destructor
+     */
+    virtual ~ObservationFunction() { }
+
+    /**
      * Evaluates the model function \f$y = h(x, w)\f$ where \f$x\f$ is the state
      * and \f$w\sim {\cal N}(0, 1)\f$ is a white noise parameter. Put
      * differently, \f$y = h(x, w)\f$ is a sample from the conditional model
