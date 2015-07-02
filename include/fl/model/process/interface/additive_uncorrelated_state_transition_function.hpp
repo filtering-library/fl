@@ -48,6 +48,12 @@ public:
                 SizeOf<State>::Value
             > NoiseDiagonal;
 
+public:
+    /**
+     * \brief Overridable default destructor
+     */
+    virtual ~AdditiveUncorrelatedStateTransitionFunction() { }
+
     virtual const NoiseDiagonal& noise_matrix_diagonal() const = 0;
     virtual const NoiseDiagonal& noise_covariance_diagonal() const = 0;
 };
