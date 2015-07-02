@@ -50,6 +50,11 @@ public:
                 SizeOf<Noise>::Value,
                 SizeOf<Noise>::Value
             > NoiseMatrix;
+public:
+    /**
+     * \brief Overridable default destructor
+     */
+    virtual ~AdditiveObservationFunction() { }
 
     /**
      * Evaluates the model function \f$y = h(x, w)\f$ where \f$x\f$ is the state
