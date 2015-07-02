@@ -161,49 +161,6 @@ public:
 #endif
 };
 
-
-
-//#include <functional>
-
-//class Integrator
-//{
-//public:
-
-//};
-
-
-//class GaussianQuadrature
-//    : Integrator
-//{
-//public:
-
-//};
-
-//class UnscentedGaussianQuadrature
-//{
-//public:
-//    template <typename Integrand, typename...Args, typename Output>
-//    Output expectation(Integrand f)
-//    {
-//        f(Args...);
-//    }
-
-
-//    template <typename Distribution, typename Integrand, typename...Args>
-//    void integrate_mean_expectation(const Distribution& distr,
-//                                    Integrand f)
-//    {
-//        // transform gaussian to points
-//    }
-
-//    template <typename Distribution, typename Integrand, typename...Args>
-//    void integrate_covariance_expectation(const Distribution& distr,
-//                                          Integrand f)
-//    {
-//        // transform gaussian to points
-//    }
-//};
-
 }
 
 #endif
