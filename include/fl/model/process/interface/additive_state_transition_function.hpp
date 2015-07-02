@@ -51,6 +51,12 @@ public:
                 SizeOf<State>::Value
             > NoiseMatrix;
 
+public:
+    /**
+     * \brief Overridable default destructor
+     */
+    virtual ~AdditiveStateTransitionFunction() { }
+
     virtual State expected_state(const State& prev_state,
                                  const Input& input) const = 0;
 
