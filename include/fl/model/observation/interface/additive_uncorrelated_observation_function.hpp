@@ -47,6 +47,11 @@ public:
                 typename Noise::Scalar,
                 SizeOf<Obsrv>::Value
             > NoiseDiagonal;
+public:
+    /**
+     * \brief Overridable default destructor
+     */
+    virtual ~AdditiveUncorrelatedObservationFunction() { }
 
     virtual const NoiseDiagonal& noise_matrix_diagonal() const = 0;
     virtual const NoiseDiagonal& noise_covariance_diagonal() const = 0;
