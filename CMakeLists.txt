@@ -65,7 +65,7 @@ catkin_package(
 #
 # The documentation will be generated within /path/to/fl/build/doc
 #
-set(MIN_DOXYGEN_VERSION 1.8.8)
+set(MIN_DOXYGEN_VERSION 1.8.4)
 find_package(Doxygen ${MIN_DOXYGEN_VERSION})
 
 set(TARGET_FAILED_SCRIPT_TEMPLATE
