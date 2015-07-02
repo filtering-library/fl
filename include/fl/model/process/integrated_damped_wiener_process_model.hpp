@@ -52,7 +52,7 @@ struct Traits<IntegratedDampedWienerProcessModel<State_>>
          * components, e.g. xyz-coordinates
          */
         DegreeOfFreedom = IsFixed<State_::RowsAtCompileTime>()
-                             ? State_::RowsAtCompileTime/2
+                             ? State_::RowsAtCompileTime / 2
                              : Eigen::Dynamic
     };
 

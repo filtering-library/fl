@@ -394,7 +394,6 @@ TEST(GaussianFilterFactorizedTests, vsKF)
 //        EXPECT_TRUE(fpf_state.mean().isApprox(kf_state.mean(), 1.e-6));
 //        EXPECT_TRUE(fpf_state.mean().isApprox(jgf_state.mean(), 1.e-6));
 
-
 //        PV(kf_state.covariance());
 //        PV(fpf_state.covariance());
 //        PV(jgf_state.covariance());
