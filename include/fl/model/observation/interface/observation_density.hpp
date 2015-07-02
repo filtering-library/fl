@@ -41,6 +41,11 @@ public:
     typedef Eigen::Array<Real,  BatchSize, 1> ValueArray;
 
 public:
+    /**
+     * \brief Overridable default destructor
+     */
+    virtual ~ObservationDensity() { }
+
     /// \todo should add the unnormalized log probability interface
 
     virtual Real log_probability(const Obsrv& obsrv,
@@ -97,8 +102,12 @@ public:
     typedef Eigen::Array<Real, BatchSize, 1>   ValueArray;
     typedef Eigen::Array<int, BatchSize, 1>    IndexArray;
 
-
 public:
+    /**
+     * \brief Overridable default destructor
+     */
+    virtual ~SwitchingObservationDensity() { }
+
     /// \todo should add the unnormalized log probability interface
 
     virtual Real log_probability(const Obsrv& obsrv,
