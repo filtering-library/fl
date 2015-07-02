@@ -44,15 +44,15 @@ template <typename...> class ParticleFilter;
  * ParticleFilter Traits
  */
 template <
-    typename ProcessModel,
-    typename ObservationModel
+    typename StateTransitionFunction,
+    typename ObservationDensity
 >
-struct Traits<ParticleFilter<ProcessModel, ObservationModel>>
+struct Traits<ParticleFilter<StateTransitionFunction, ObservationDensity>>
 {
-    typedef typename ProcessModel::State        State;
-    typedef typename ProcessModel::Input        Input;
-    typedef typename ObservationModel::Obsrv    Obsrv;
-    typedef DiscreteDistribution<State>         Belief;
+    typedef typename StateTransitionFunction::State State;
+    typedef typename StateTransitionFunction::Input Input;
+    typedef typename ObservationDensity::Obsrv      Obsrv;
+    typedef DiscreteDistribution<State>             Belief;
 };
 
 /**
@@ -61,27 +61,28 @@ struct Traits<ParticleFilter<ProcessModel, ObservationModel>>
  * \brief Represents the general particle filter
  */
 template<
-    typename ProcessModel,
-    typename ObservationModel
+    typename StateTransitionFunction,
+    typename ObservationDensity
 >
-class ParticleFilter<ProcessModel, ObservationModel>
-    : public FilterInterface<ParticleFilter<ProcessModel, ObservationModel>>
+class ParticleFilter<StateTransitionFunction, ObservationDensity>
+    : public FilterInterface<
+                 ParticleFilter<StateTransitionFunction, ObservationDensity>>
 {
 private:
     /** \cond INTERNAL */
-    typedef typename ProcessModel::Noise      ProcessNoise;
-    typedef typename ObservationModel::Noise  ObsrvNoise;
+    typedef typename StateTransitionFunction::Noise StateNoise;
+    typedef typename ObservationDensity::Noise      ObsrvNoise;
     /** \endcond */
 
 public:
-    typedef typename ProcessModel::State        State;
-    typedef typename ProcessModel::Input        Input;
-    typedef typename ObservationModel::Obsrv    Obsrv;
-    typedef DiscreteDistribution<State>         Belief;
+    typedef typename StateTransitionFunction::State     State;
+    typedef typename StateTransitionFunction::Input     Input;
+    typedef typename ObservationDensity::Obsrv          Obsrv;
+    typedef DiscreteDistribution<State>                 Belief;
 
 public:
-    ParticleFilter(const ProcessModel& process_model,
-                   const ObservationModel& obsrv_model,
+    ParticleFilter(const StateTransitionFunction& process_model,
+                   const ObservationDensity& obsrv_model,
                    const Real& max_kl_divergence = 1.0)
         : process_model_(process_model),
           obsrv_model_(obsrv_model),
@@ -89,6 +90,11 @@ public:
           obsrv_noise_(obsrv_model.noise_dimension()),
           max_kl_divergence_(max_kl_divergence)
     { }
+
+    /**
+     * \brief Overridable default destructor
+     */
+    virtual ~ParticleFilter() { }
 
     /**
      * \copydoc FilterInterface::predict
@@ -150,30 +156,30 @@ public: /* factory functions */
     }
 
 public: /* accessors */
-    ProcessModel& process_model()
+    StateTransitionFunction& process_model()
     {
         return process_model_;
     }
-    ObservationModel& obsrv_model()
+    ObservationDensity& obsrv_model()
     {
         return obsrv_model_;
     }
 
-    const ProcessModel& process_model() const
+    const StateTransitionFunction& process_model() const
     {
         return process_model_;
     }
 
-    const ObservationModel& obsrv_model() const
+    const ObservationDensity& obsrv_model() const
     {
         return obsrv_model_;
     }
 
 protected:
-    ProcessModel process_model_;
-    ObservationModel obsrv_model_;
+    StateTransitionFunction process_model_;
+    ObservationDensity obsrv_model_;
 
-    StandardGaussian<ProcessNoise> process_noise_;
+    StandardGaussian<StateNoise> process_noise_;
     StandardGaussian<ObsrvNoise> obsrv_noise_;
 
     /**
@@ -186,6 +192,5 @@ protected:
 };
 
 }
-
 
 #endif
