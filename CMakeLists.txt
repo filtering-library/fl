@@ -59,16 +59,37 @@ catkin_package(
 #
 # The documentation will be generated within /path/to/fl/build/doc
 #
-find_package(Doxygen)
+set(MIN_DOXYGEN_VERSION 1.8.8)
+find_package(Doxygen ${MIN_DOXYGEN_VERSION})
 if(DOXYGEN_FOUND)
-    configure_file(
-        ${CMAKE_CURRENT_SOURCE_DIR}/doc/Doxyfile.in
-        ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
-    add_custom_target(doc_fl
-        ${CMAKE_COMMAND} ${CMAKE_CURRENT_SOURCE_DIR}
-        COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
-        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-        COMMENT "Generating API documentation with Doxygen" VERBATIM)
+    execute_process(COMMAND "${DOXYGEN_EXECUTABLE}" "--version"
+                    OUTPUT_VARIABLE DOXYGEN_VERSION
+                    OUTPUT_STRIP_TRAILING_WHITESPACE)
+    string(COMPARE
+        LESS "${DOXYGEN_VERSION}" "${MIN_DOXYGEN_VERSION}"
+        DOXYGEN_TOO_OLD)
+
+    if(DOXYGEN_TOO_OLD)
+        set(DOXYGEN_WARN_MSG_OLD   "Doxygen version is too old!")
+        set(DOXYGEN_WARN_MSG_FOUND "Found Doxygen ${DOXYGEN_VERSION}.")
+        set(DOXYGEN_WARN_MSG_REQ   "Required is at least ${MIN_DOXYGEN_VERSION}")
+
+        set(DOXYGEN_WARN_MSG "${DOXYGEN_WARN_MSG_OLD}\n")
+        set(DOXYGEN_WARN_MSG "${DOXYGEN_WARN_MSG} (${DOXYGEN_WARN_MSG_FOUND}")
+        set(DOXYGEN_WARN_MSG "${DOXYGEN_WARN_MSG} ${DOXYGEN_WARN_MSG_REQ})")
+
+        message(WARNING ${DOXYGEN_WARN_MSG})
+        add_custom_target(doc_fl COMMENT ${DOXYGEN_WARN_MSG})
+    else(DOXYGEN_TOO_OLD)
+        configure_file(
+            ${CMAKE_CURRENT_SOURCE_DIR}/doc/Doxyfile.in
+            ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
+        add_custom_target(doc_fl
+            ${CMAKE_COMMAND} ${CMAKE_CURRENT_SOURCE_DIR}
+            COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+            COMMENT "Generating API documentation with Doxygen" VERBATIM)
+    endif(DOXYGEN_TOO_OLD)
 endif(DOXYGEN_FOUND)
 
 set(PROJECT_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
