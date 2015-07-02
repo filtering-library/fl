@@ -47,7 +47,9 @@ constexpr Real logit(const Real& x)
     return std::log(x / (1.0 - x));
 }
 
-long timesteps(Real discretization_time_step,
+
+
+inline long timesteps(Real discretization_time_step,
                Real delta_time)
 {
     return std::round(delta_time/discretization_time_step);
