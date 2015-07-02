@@ -117,6 +117,11 @@ public:
     { }
 
     /**
+     * \brief Overridable default destructor
+     */
+    virtual ~GaussianFilter() { }
+
+    /**
      * \copydoc FilterInterface::predict
      *
      * KalmanFilter prediction step
