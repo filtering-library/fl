@@ -1,3 +1,0 @@
-
-message(FATAL_ERROR "@DOXYGEN_WARN_MSG@")
-

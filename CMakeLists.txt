@@ -30,6 +30,12 @@ message("# Version ${FL_MAJOR_VERSION}.${FL_MINOR_VERSION}.${FL_BUILD_VERSION}")
 message("##############################")
 
 ############################
+# Setup                    #
+############################
+set(PROJECT_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
+set(CMAKE_MODULE_PATH ${PROJECT_MODULE_PATH})
+
+############################
 # Dependecies
 ############################
 find_package(catkin REQUIRED)
@@ -59,8 +65,15 @@ catkin_package(
 #
 # The documentation will be generated within /path/to/fl/build/doc
 #
-set(MIN_DOXYGEN_VERSION 1.8.8)
+set(MIN_DOXYGEN_VERSION 1.8.9)
 find_package(Doxygen ${MIN_DOXYGEN_VERSION})
+
+set(TARGET_FAILED_SCRIPT_TEMPLATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/cmake/target_failed.cmake.in)
+
+set(TARGET_FAILED_SCRIPT
+    ${CMAKE_CURRENT_BINARY_DIR}/cmake/target_failed.cmake.in)
+
 if(DOXYGEN_FOUND)
     execute_process(COMMAND "${DOXYGEN_EXECUTABLE}" "--version"
                     OUTPUT_VARIABLE DOXYGEN_VERSION
@@ -78,12 +91,14 @@ if(DOXYGEN_FOUND)
         set(DOXYGEN_WARN_MSG "${DOXYGEN_WARN_MSG} (${DOXYGEN_WARN_MSG_FOUND}")
         set(DOXYGEN_WARN_MSG "${DOXYGEN_WARN_MSG} ${DOXYGEN_WARN_MSG_REQ})")
 
+        set(FATAL_ERROR_MESSAGE ${DOXYGEN_WARN_MSG})
+
         configure_file(
-            ${CMAKE_CURRENT_SOURCE_DIR}/cmake/doc_fl.cmake.in
-            ${CMAKE_CURRENT_BINARY_DIR}/doc_fl.cmake @ONLY)
+            ${TARGET_FAILED_SCRIPT_TEMPLATE}
+            ${TARGET_FAILED_SCRIPT} @ONLY)
 
         add_custom_target(doc_fl
-            COMMAND ${CMAKE_COMMAND} -P "${CMAKE_CURRENT_BINARY_DIR}/doc_fl.cmake")
+            COMMAND ${CMAKE_COMMAND} -P ${TARGET_FAILED_SCRIPT})
 
         message(WARNING ${DOXYGEN_WARN_MSG})
     else(DOXYGEN_TOO_OLD)
@@ -96,10 +111,17 @@ if(DOXYGEN_FOUND)
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
             COMMENT "Generating API documentation with Doxygen" VERBATIM)
     endif(DOXYGEN_TOO_OLD)
+else(DOXYGEN_FOUND)
+    set(FATAL_ERROR_MESSAGE "Doxygen not found.")
+
+    configure_file(
+        ${TARGET_FAILED_SCRIPT_TEMPLATE}
+        ${TARGET_FAILED_SCRIPT} @ONLY)
+
+    add_custom_target(doc_fl
+        COMMAND ${CMAKE_COMMAND} -P ${TARGET_FAILED_SCRIPT})
 endif(DOXYGEN_FOUND)
 
-set(PROJECT_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
-set(CMAKE_MODULE_PATH ${PROJECT_MODULE_PATH})
 
 ############################
 # Build                    #
