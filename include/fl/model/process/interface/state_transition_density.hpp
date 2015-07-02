@@ -45,6 +45,12 @@ public:
     typedef Eigen::Array<Real, BatchSize, 1 > ValueArray;
 
 public:
+    /**
+     * \brief Overridable default destructor
+     */
+    virtual ~StateTransitionDensity() { }
+
+
     /// \todo should add the unnormalized log probability interface
 
 
