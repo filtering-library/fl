@@ -131,6 +131,12 @@ class StandardGaussianMapping<Variate, 1>
 public:
     typedef Real StandardVariate;
 
+
+    /// \todo fix this (unused argument)
+    explicit StandardGaussianMapping(int snv_dimension = 1)
+    { }
+
+
     /**
      * \brief Overridable default destructor
      */
@@ -161,6 +167,14 @@ public:
     {
         return 1;
     }
+
+    /// \todo fix this (unused argument)
+    virtual void standard_variate_dimension(int snv_dimension)
+    {
+    }
+
+
+
 
 protected:
     /**
