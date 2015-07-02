@@ -226,6 +226,11 @@ public:
     }
 
     /**
+     * \brief Overridable default destructor
+     */
+    virtual ~GaussianFilter() { }
+
+    /**
      * \copydoc FilterInterface::predict
      */
     virtual void predict(const Belief& prior_belief,
