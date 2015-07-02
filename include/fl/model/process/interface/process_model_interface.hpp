@@ -40,6 +40,12 @@ public:
     typedef Noise_ Noise;
     typedef Input_ Input;
 
+public:
+    /**
+     * \brief Overridable default destructor
+     */
+    virtual ~StateTransitionFunction() { }
+
     virtual State state(const State& prev_state,
                         const Noise& noise,
                         const Input& input) const = 0;
