@@ -261,88 +261,62 @@ protected:
 
 
 
-//template <typename Transform>
-//class SigmaPointQuadrature
-//{
-//public:
-//    SigmaPointQuadrature(const Transform& transform)
-//        : transform_(transform)
-//    {
+template <typename Transform>
+class SigmaPointQuadrature
+{
+public:
+    explicit
+    SigmaPointQuadrature(const Transform& transform)
+        : transform_(transform)
+    { }
 
-//        Gaussian<Eigen::VectorXd> a;
-//        Gaussian<Eigen::VectorXd> b;
+    template <typename Integrand, typename GaussianA, typename GaussianB>
+    auto expectation(
+            Integrand f,
+            const GaussianA& distr_a,
+            const GaussianB& distr_b)
+    -> decltype(f(distr_a.mean(), distr_b.mean()))
+    {
+        typedef typename GaussianA::Variate VariateA;
+        typedef typename GaussianB::Variate VariateB;
 
-//        auto mu = expectation(
-//            [=](Eigen::VectorXd s, Eigen::VectorXd v) -> Eigen::VectorXd { return g(s, v); },
-//            a, b);
+        enum : signed int
+        {
+            NumberOfPoints = Transform::number_of_points(
+                                 JoinSizes<
+                                     SizeOf<VariateA>::Value,
+                                     SizeOf<VariateB>::Value
+                                 >::Size)
+        };
 
-//        auto cov = expectation(
-//            [mu](Eigen::VectorXd s, Eigen::VectorXd v) -> Eigen::MatrixXd { return (g(s, v)-mu) * (g(s, v)-mu).transpose(); },
-//            a, b);
+        typedef PointSet<VariateA, NumberOfPoints> PointSetA;
+        typedef PointSet<VariateB, NumberOfPoints> PointSetB;
 
-//        auto mu = expectation(
-//            [=](Eigen::VectorXd s, Eigen::VectorXd v) -> Eigen::VectorXd { return g(s, v); },
-//            a, b);
+        int augmented_dim = distr_a.dimension() + distr_b.dimension();
+        int point_count = Transform::number_of_points(augmented_dim);
 
-//        auto cov = expectation(
-//            [=](Eigen::VectorXd s, Eigen::VectorXd v) -> Eigen::VectorXd { return g(s, v); },
-//            a, b);
-//    }
+        PointSetA X_a(distr_a.dimension(), augmented_dim);
+        PointSetB X_b(distr_b.dimension(), augmented_dim);
 
+        transform_(distr_a, augmented_dim, 0, X_a);
+        transform_(distr_b, augmented_dim, distr_a.dimension(), X_b);
 
+        decltype(f(distr_a.mean(), distr_b.mean())) E = f(X_a[0], X_b[0]);
+        E *= X_a.weight(0);
+        for (int i = 1; i < point_count; ++i)
+        {
+            E += X_a.weight(i) * f(X_a[i], X_b[i]);
+        }
 
+        return E;
+    }
 
+    Eigen::VectorXd integrate_mean();
+    Eigen::MatrixXd integrate_covariance();
 
-//    template <typename Integrand, typename GaussianA, typename GaussianB>
-//    auto expectation(
-//            Integrand f,
-//            const GaussianA& distr_a,
-//            const GaussianB& distr_b)
-//    -> decltype(f(distr_a.mean(), distr_b.mean()))
-//    {
-//        typedef typename GaussianA::Variate VariateA;
-//        typedef typename GaussianB::Variate VariateB;
-
-//        enum : signed int
-//        {
-//            NumberOfPoints = PointSetTransform::number_of_points(
-//                                 JoinSizes<
-//                                     SizeOf<VariateA>::Value,
-//                                     SizeOf<VariateB>::Value
-//                                 >::Size)
-//        };
-
-//        typedef PointSet<VariateA, NumberOfPoints> PointSetA;
-//        typedef PointSet<VariateB, NumberOfPoints> PointSetB;
-
-//        int augmented_dim = distr_a.dimension() + distr_b.dimension();
-//        int point_count = PointSetTransform::number_of_points(augmented_dim);
-
-//        PointSetA X_a(distr_a.dimension(), augmented_dim);
-//        PointSetB X_b(distr_b.dimension(), augmented_dim);
-
-//        transform_(distr_a, augmented_dim, 0, X_a);
-//        transform_(distr_b, augmented_dim, distr_a.dimension(), X_b);
-
-//        decltype(f(distr_a.mean(), distr_b.mean())) E = f(X_a[0], X_b[0]);
-//        E *= X_a.weight(0);
-//        for (int i = 1; i < point_count; ++i)
-//        {
-//            E += X_a.weight(i) * f(X_a[i], X_b[i]);
-//        }
-
-//        return E;
-//    }
-
-
-//    Eigen::VectorXd integrate_mean();
-//    Eigen::MatrixXd integrate_covariance();
-
-
-
-//protected:
-//    Transform transform_;
-//};
+protected:
+    Transform transform_;
+};
 
 }
 
