@@ -39,7 +39,7 @@ namespace fl
  * \cite wan2000unscented . It implememnts the PointSetTransform interface.
  */
 class UnscentedTransform
-        : public PointSetTransform<UnscentedTransform>
+    : public PointSetTransform<UnscentedTransform>
 {
 public:
     /**
@@ -49,7 +49,7 @@ public:
      * \param beta      UT Scaling parameter beta  (2.0 is optimal for Gaussian)
      * \param kappa     UT Scaling parameter kappa (higher order parameter)
      */
-    UnscentedTransform(double alpha = 1.0, double beta = 2., double kappa = 0.)
+    UnscentedTransform(Real alpha = 1.0, Real beta = 2., Real kappa = 0.)
         : PointSetTransform<UnscentedTransform>(this),
           alpha_(alpha),
           beta_(beta),
@@ -103,7 +103,7 @@ public:
         typedef typename Traits<PointSet_>::Point  Point;
         typedef typename Traits<PointSet_>::Weight Weight;
 
-        const double dim = double(global_dimension);
+        const Real dim = Real(global_dimension);
         const int point_count = number_of_points(dim);
 
         assert(point_count > 0);
@@ -188,7 +188,7 @@ public:
      */
     static constexpr int number_of_points(int dimension)
     {
-        return (dimension != Eigen::Dynamic) ? 2 * dimension + 1 : -1;
+        return (dimension != Eigen::Dynamic) ? 2 * dimension + 1 : Eigen::Dynamic;
     }
 
 public:
@@ -199,7 +199,7 @@ public:
      *
      * \param dim Dimension of the Gaussian
      */
-    double weight_mean_0(double dim) const
+    Real weight_mean_0(Real dim) const
     {
         return lambda_scalar(dim) / (dim + lambda_scalar(dim));
     }
@@ -209,7 +209,7 @@ public:
      *
      * \param dim Dimension of the Gaussian
      */
-    double weight_cov_0(double dim) const
+    Real weight_cov_0(Real dim) const
     {
         return weight_mean_0(dim) + (1 - alpha_ * alpha_ + beta_);
     }
@@ -219,7 +219,7 @@ public:
      *
      * \param dimension Dimension of the Gaussian
      */
-    double weight_mean_i(double dim) const
+    Real weight_mean_i(Real dim) const
     {
         return 1. / (2. * (dim + lambda_scalar(dim)));
     }
@@ -229,7 +229,7 @@ public:
      *
      * \param dimension Dimension of the Gaussian
      */
-    double weight_cov_i(double dim) const
+    Real weight_cov_i(Real dim) const
     {
         return weight_mean_i(dim);
     }
@@ -237,7 +237,7 @@ public:
     /**
      * \param dim Dimension of the Gaussian
      */
-    double lambda_scalar(double dim) const
+    Real lambda_scalar(Real dim) const
     {
         return alpha_ * alpha_ * (dim + kappa_) - dim;
     }
@@ -245,7 +245,7 @@ public:
     /**
      * \param dim  Dimension of the Gaussian
      */
-    double gamma_factor(double dim) const
+    Real gamma_factor(Real dim) const
     {
         return std::sqrt(dim + lambda_scalar(dim));
     }
@@ -253,9 +253,9 @@ public:
 
 protected:
     /** \cond INTERNAL */
-    double alpha_;
-    double beta_;
-    double kappa_;
+    Real alpha_;
+    Real beta_;
+    Real kappa_;
     /** \endcond */
 };
 
@@ -311,8 +311,18 @@ public:
         return E;
     }
 
-    Eigen::VectorXd integrate_mean();
-    Eigen::MatrixXd integrate_covariance();
+
+    template <typename Integrand, typename GaussianA, typename GaussianB, typename PointSet>
+    auto expected_points(
+            Integrand f,
+            const GaussianA& distr_a,
+            const GaussianB& distr_b,
+            PointSet points)
+    {
+
+    }
+
+
 
 protected:
     Transform transform_;
