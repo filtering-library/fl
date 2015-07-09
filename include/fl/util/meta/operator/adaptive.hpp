@@ -25,7 +25,7 @@
 #include <fl/util/meta/size_deduction.hpp>
 #include <fl/util/meta/operator/not_adaptive.hpp>
 #include <fl/model/adaptive_model.hpp>
-#include <fl/model/process/interface/process_model_interface.hpp>
+#include <fl/model/process/interface/state_transition_function.hpp>
 #include <fl/model/observation/interface/observation_model_interface.hpp>
 
 namespace fl

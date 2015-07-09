@@ -24,7 +24,7 @@
 
 #include <fl/util/traits.hpp>
 #include <fl/distribution/gaussian.hpp>
-#include <fl/model/process/interface/process_model_interface.hpp>
+#include <fl/model/process/interface/state_transition_function.hpp>
 
 #include <fl/model/process/interface/state_transition_density.hpp>
 #include <fl/model/process/interface/additive_state_transition_function.hpp>

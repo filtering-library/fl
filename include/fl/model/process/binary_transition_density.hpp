@@ -14,7 +14,7 @@
  */
 
 /**
- * \file linear_process_model.hpp
+ * \file linear_state_transition_model.hpp
  * \date June 2015
  * \author Manuel Wuthrich (manuel.wuthrich@gmail.com)
  */
