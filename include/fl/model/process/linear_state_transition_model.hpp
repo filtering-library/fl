@@ -137,12 +137,12 @@ public: /* factory functions */
     }
 
 public: /* accessors & mutators */
-    virtual DynamicsMatrix dynamics_matrix() const
+    virtual const DynamicsMatrix& dynamics_matrix() const
     {
         return dynamics_matrix_;
     }
 
-    virtual InputMatrix input_matrix() const
+    virtual const InputMatrix& input_matrix() const
     {
         return input_matrix_;
     }
