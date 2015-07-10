@@ -22,16 +22,13 @@
 #ifndef FL__MODEL__PROCESS__ORIENTATION_STATE_TRANSITION_FUNCTION_HPP
 #define FL__MODEL__PROCESS__ORIENTATION_STATE_TRANSITION_FUNCTION_HPP
 
-#include <fl/util/traits.hpp>
-//#include <fl/distribution/gaussian.hpp>
-#include <fl/model/process/interface/state_transition_function.hpp>
+#include <Eigen/Dense>
 
-//#include <fl/model/process/interface/state_transition_density.hpp>
-//#include <fl/model/process/interface/additive_state_transition_function.hpp>
+#include <fl/util/traits.hpp>
 #include <fl/util/math/euler_vector.hpp>
 
+#include <fl/model/process/interface/state_transition_function.hpp>
 #include <fl/model/process/linear_state_transition_model.hpp>
-#include <Eigen/Dense>
 
 namespace fl
 {
@@ -74,6 +71,7 @@ public:
     virtual ~OrientationStateTransitionFunction() { }
 
 public:
+    // state format: (euler_vector, angular_velocity)
     virtual State state(const State& prev_state,
                         const Noise& noise,
                         const Input& input) const

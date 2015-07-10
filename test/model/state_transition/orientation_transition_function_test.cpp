@@ -24,7 +24,7 @@
 #include <Eigen/Dense>
 
 #include <fl/util/types.hpp>
-#include <fl/model/process/orientation_state_transition_function.hpp>
+#include <fl/model/process/orientation_transition_function.hpp>
 
 
 

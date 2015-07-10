@@ -34,10 +34,10 @@ catkin_add_gtest(linear_state_transition_model_test
                  gtest_main.cpp)
 target_link_libraries(linear_state_transition_model_test ${catkin_LIBRARIES})
 
-catkin_add_gtest(orientation_state_transition_function_test
-                 model/state_transition/orientation_state_transition_function_test.cpp
+catkin_add_gtest(orientation_transition_function_test
+                 model/state_transition/orientation_transition_function_test.cpp
                  gtest_main.cpp)
-target_link_libraries(orientation_state_transition_function_test ${catkin_LIBRARIES})
+target_link_libraries(orientation_transition_function_test ${catkin_LIBRARIES})
 
 
 catkin_add_gtest(binary_transition_density_test
