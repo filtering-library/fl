@@ -41,6 +41,27 @@ TEST(euler_vector, zero_angle)
     EXPECT_TRUE(euler_vector.rotation_matrix().isIdentity());
 }
 
+TEST(euler_vector, constructor)
+{
+    Vector vector = Vector::Random();
+    EulerVector euler_vector(vector);
+
+    EXPECT_TRUE( (vector - euler_vector).norm() < epsilon);
+}
+
+
+TEST(euler_vector, equality_operator)
+{
+    Vector vector = Vector::Random();
+    EulerVector euler_vector;
+
+    euler_vector = vector;
+
+    EXPECT_TRUE( (vector - euler_vector).norm() < epsilon);
+}
+
+
+
 TEST(euler_vector, multiplication)
 {
     EulerVector euler_vector_1 = EulerVector::Random();

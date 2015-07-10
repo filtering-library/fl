@@ -22,6 +22,10 @@ catkin_add_gtest(euler_vector_test utils/euler_vector_test.cpp gtest_main.cpp)
 target_link_libraries(euler_vector_test ${catkin_LIBRARIES})
 
 
+catkin_add_gtest(rigid_body_state_test utils/rigid_body_state_test.cpp gtest_main.cpp)
+target_link_libraries(rigid_body_state_test ${catkin_LIBRARIES})
+
+
 # == observation model tests ================================================= #
 catkin_add_gtest(linear_observation_models_test
                  model/observation/linear_observation_model_test.cpp

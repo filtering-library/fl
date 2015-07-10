@@ -28,32 +28,28 @@
 
 namespace fl
 {
-
 class EulerVector: public Eigen::Matrix<Real, 3, 1>
 {
 public:
-    typedef Eigen::Matrix<Real, 3, 1>   Vector;
+    typedef Eigen::Matrix<Real, 3, 1> Base;
+    typedef typename Base::Scalar         Scalar;
+    typedef Eigen::Matrix<Scalar, 3, 1>   Vector;
 
     // rotation types
-    typedef Eigen::AngleAxis<Real>    AngleAxis;
-    typedef Eigen::Quaternion<Real>   Quaternion;
-    typedef Eigen::Matrix<Real, 3, 3> RotationMatrix;
+    typedef Eigen::AngleAxis<Scalar>    AngleAxis;
+    typedef Eigen::Quaternion<Scalar>   Quaternion;
+    typedef Eigen::Matrix<Scalar, 3, 3> RotationMatrix;
 
     // constructor and destructor
     EulerVector() { }
-    template <typename T> EulerVector(const Eigen::MatrixBase<T>& vector)
-    {
-        *this = vector;
-    }
+    template <typename T>
+    EulerVector(const Eigen::MatrixBase<T>& vector): Base(vector) { }
+    EulerVector(const Base& vector): Base(vector) { }
+
 
     virtual ~EulerVector() {}
 
     /// operators *************************************************************
-    template <typename T>
-    void operator = (const Eigen::MatrixBase<T>& vector)
-    {
-        *((Vector*)(this)) = vector;
-    }
     EulerVector operator * (const EulerVector& factor)
     {
         EulerVector product;
@@ -62,7 +58,7 @@ public:
     }
 
     /// accessor **************************************************************
-    virtual Real angle() const
+    virtual Scalar angle() const
     {
         return this->norm();
     }
@@ -88,16 +84,15 @@ public:
     {
         return RotationMatrix(quaternion());
     }
-
     virtual EulerVector inverse() const
     {
         return - (*this);
     }
 
     /// mutators **************************************************************
-    virtual void angle_axis(const Real& angle, const Vector& axis)
+    virtual void angle_axis(const Scalar& angle, const Vector& axis)
     {
-        *((Vector*)(this)) = angle * axis;
+        *this = angle * axis;
     }
     virtual void angle_axis(const AngleAxis& ang_axis)
     {
@@ -112,6 +107,104 @@ public:
         angle_axis(AngleAxis(rot_mat));
     }
 };
+
+
+//template<typename FullVector>
+//class EulerVectorBlock: public Eigen::VectorBlock<FullVector, 3>
+//{
+//public:
+//    typedef Eigen::VectorBlock<FullVector, 3> Block;
+
+//    typedef Eigen::Matrix<Scalar, 3, 1>   Vector;
+
+//    // rotation types
+//    typedef Eigen::AngleAxis<Scalar>    AngleAxis;
+//    typedef Eigen::Quaternion<Scalar>   Quaternion;
+//    typedef Eigen::Matrix<Scalar, 3, 3> RotationMatrix;
+
+//    // constructor and destructor
+//    template <typename T>
+//    EulerVectorBlock(const Eigen::VectorBlock<T, 3>& block): Block(block)
+
+//    {
+////        *this = block;
+//    }
+
+////    template <typename T> EulerVectorBlock(const Eigen::MatrixBase<T>& vector)
+////    {
+////        *this = vector;
+////    }
+
+//    virtual ~EulerVectorBlock() {}
+
+//    /// operators *************************************************************
+//    template <typename T>
+//    void operator = (const Eigen::MatrixBase<T>& vector)
+//    {
+//        *((Block*)(this)) = vector;
+//    }
+//    EulerVector operator * (const EulerVector& factor)
+//    {
+//        EulerVector product;
+//        product.quaternion(this->quaternion() * factor.quaternion());
+//        return product;
+//    }
+
+//    /// accessor **************************************************************
+//    virtual Scalar angle() const
+//    {
+//        return this->norm();
+//    }
+//    virtual Vector axis() const
+//    {
+//        Vector  ax =  this->normalized();
+
+//        if(!std::isfinite(ax.sum()))
+//        {
+//            return Vector(1,0,0);
+//        }
+//        return ax;
+//    }
+//    virtual AngleAxis angle_axis() const
+//    {
+//        return AngleAxis(angle(), axis());
+//    }
+//    virtual Quaternion quaternion() const
+//    {
+//        return Quaternion(angle_axis());
+//    }
+//    virtual RotationMatrix rotation_matrix() const
+//    {
+//        return RotationMatrix(quaternion());
+//    }
+
+//    virtual EulerVector inverse() const
+//    {
+//        return - (*this);
+//    }
+
+//    /// mutators **************************************************************
+//    virtual void angle_axis(const Scalar& angle, const Vector& axis)
+//    {
+//        *((Block*)(this)) = angle * axis;
+//    }
+//    virtual void angle_axis(const AngleAxis& ang_axis)
+//    {
+//        angle_axis(ang_axis.angle(), ang_axis.axis());
+//    }
+//    virtual void quaternion(const Quaternion& quat)
+//    {
+//        angle_axis(AngleAxis(quat));
+//    }
+//    virtual void rotation_matrix(const RotationMatrix& rot_mat)
+//    {
+//        angle_axis(AngleAxis(rot_mat));
+//    }
+//};
+
+
+
+
 
 }
 
