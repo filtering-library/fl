@@ -29,7 +29,7 @@ using namespace fl;
 typedef EulerVector::RotationMatrix RotationMatrix;
 typedef EulerVector::AngleAxis AngleAxis;
 typedef EulerVector::Quaternion Quaternion;
-typedef EulerVector::Vector Vector;
+typedef Eigen::Matrix<Real, 3, 1> Vector;
 
 Real epsilon = 0.000000001;
 
