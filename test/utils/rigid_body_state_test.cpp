@@ -22,30 +22,55 @@
 #include <gtest/gtest.h>
 
 #include <Eigen/Core>
-//#include <fl/util/math/rigid_body_state.hpp>
+#include <fl/util/math/rigid_body_state.hpp>
 
-//using namespace fl;
+using namespace fl;
 
-//typedef EulerVector::RotationMatrix RotationMatrix;
-//typedef EulerVector::AngleAxis AngleAxis;
-//typedef EulerVector::Quaternion Quaternion;
-//typedef EulerVector::Vector Vector;
+typedef EulerVector::RotationMatrix RotationMatrix;
+typedef EulerVector::AngleAxis AngleAxis;
+typedef EulerVector::Quaternion Quaternion;
+typedef Eigen::Matrix<Real, 3, 1> Vector;
 
-//Real epsilon = 0.000000001;
+Real epsilon = 0.000000001;
 
 
-TEST(rigid_body_state, zero_angle)
+TEST(rigid_body_state, euler_vector)
 {
-//    RigidBodyState state = RigidBodyState::Zero();
-//    EulerVector euler_vector = EulerVector::Random();
+    RigidBodyState state = RigidBodyState::Zero();
+    EulerVector euler_vector = EulerVector::Random();
 
-//    std::cout << state.transpose() << std::endl;
-
-////    state.euler_vector().quaternion(euler_vector.quaternion());
-////    state.euler_vector().quaternion(quat);
-
-
-
-//    std::cout << state.transpose() << std::endl;
-
+    state.euler_vector().quaternion(euler_vector.quaternion());
+    EXPECT_TRUE(state.euler_vector().isApprox(euler_vector));
 }
+
+
+
+TEST(rigid_body_state, angle_axis)
+{
+    Vector axis = Vector::Random();
+    axis.normalize();
+    Real angle = 1.155435;
+
+    RigidBodyState state = RigidBodyState::Zero();
+    state.euler_vector().angle_axis(angle, axis);
+
+    EXPECT_TRUE(std::fabs(state.euler_vector().angle() - angle) < epsilon);
+    EXPECT_TRUE(axis.isApprox(state.euler_vector().axis()));
+}
+
+
+TEST(rigid_body_state, consistency)
+{
+    Vector axis = Vector::Random();
+    axis.normalize();
+    Real angle = 1.155435;
+
+    RigidBodyState state = RigidBodyState::Zero();
+    state.euler_vector().angle_axis(angle, axis);
+
+    EXPECT_TRUE(std::fabs(state.euler_vector().angle() - angle) < epsilon);
+    EXPECT_TRUE(axis.isApprox(state.euler_vector().axis()));
+}
+
+
+

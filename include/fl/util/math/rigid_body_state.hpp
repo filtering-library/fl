@@ -53,7 +53,8 @@ public:
     typedef Eigen::Matrix<Real, 4, 4> HomogeneousMatrix;
     typedef typename Eigen::Transform<Scalar, 3, Eigen::Affine> Affine;
 
-    typedef Eigen::VectorBlock<StateVector, BLOCK_SIZE>      Block;
+    typedef Eigen::VectorBlock<StateVector, BLOCK_SIZE>   StateBlock;
+    typedef EulerBlock<StateVector>                       EulerStateBlock;
 
 
     // constructor and destructor
@@ -76,10 +77,10 @@ public:
     {
         return this->middleRows<BLOCK_SIZE>(POSITION_INDEX);
     }
-//    virtual EulerVector euler_vector() const
-//    {
-//        return this->middleRows<BLOCK_SIZE>(EULER_VECTOR_INDEX);
-//    }
+    virtual EulerVector euler_vector() const
+    {
+        return this->middleRows<BLOCK_SIZE>(EULER_VECTOR_INDEX);
+    }
     virtual Vector linear_velocity() const
     {
         return this->middleRows<BLOCK_SIZE>(LINEAR_VELOCITY_INDEX);
@@ -90,22 +91,21 @@ public:
     }
 
     /// mutators ***************************************************************
-    Block position()
+    StateBlock position()
     {
-      return Block(this->derived(), POSITION_INDEX);
+      return StateBlock(this->derived(), POSITION_INDEX);
     }
-    Block euler_vector()
+    EulerStateBlock euler_vector()
     {
-      EulerVector<Block> euler_block(Block(this->derived(), EULER_VECTOR_INDEX));
-      return Block(this->derived(), EULER_VECTOR_INDEX);
+      return EulerStateBlock(this->derived(), EULER_VECTOR_INDEX);
     }
-    Block linear_velocity()
+    StateBlock linear_velocity()
     {
-      return Block(this->derived(), LINEAR_VELOCITY_INDEX);
+      return StateBlock(this->derived(), LINEAR_VELOCITY_INDEX);
     }
-    Block angular_velocity()
+    StateBlock angular_velocity()
     {
-      return Block(this->derived(), ANGULAR_VELOCITY_INDEX);
+      return StateBlock(this->derived(), ANGULAR_VELOCITY_INDEX);
     }
 
 

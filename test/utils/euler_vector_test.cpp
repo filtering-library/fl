@@ -166,3 +166,17 @@ TEST(euler_vector, rotation_matrix_set)
     EXPECT_TRUE(std::fabs(euler_vector.angle() - angle_axis.angle()) < epsilon);
     EXPECT_TRUE(angle_axis.axis().isApprox(euler_vector.axis()));
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+

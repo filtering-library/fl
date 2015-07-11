@@ -37,6 +37,7 @@ public:
     // types *******************************************************************
     typedef typename Base::Scalar           Scalar;
     typedef Eigen::Matrix<Scalar, 3, 1>     Axis;
+    typedef Eigen::Matrix<Scalar, 3, 1>     Vector;
     typedef Eigen::AngleAxis<Scalar>        AngleAxis;
     typedef Eigen::Quaternion<Scalar>       Quaternion;
     typedef Eigen::Matrix<Scalar, 3, 3>     RotationMatrix;
@@ -44,6 +45,13 @@ public:
     // constructor and destructor **********************************************
     EulerBase(const Base& vector): Base(vector) { }
     virtual ~EulerBase() {}
+
+    // operators ***************************************************************
+    template <typename T>
+    void operator = (const Eigen::MatrixBase<T>& vector)
+    {
+        *((Base*)(this)) = vector;
+    }
 
     // accessor ****************************************************************
     virtual Scalar angle() const
@@ -76,7 +84,7 @@ public:
     // mutators ****************************************************************
     virtual void angle_axis(const Scalar& angle, const Axis& axis)
     {
-        *((Base*)(this)) = angle * axis;
+        *this = angle * axis;
     }
     virtual void angle_axis(const AngleAxis& ang_axis)
     {
@@ -129,9 +137,11 @@ class EulerBlock: public EulerBase<Eigen::VectorBlock<Vector, 3>>
 {
 public:
     typedef Eigen::VectorBlock<Vector, 3> Block;
+    typedef EulerBase<Eigen::VectorBlock<Vector, 3>> Base;
 
     // constructor and destructor **********************************************
-    EulerBlock(const Block& block): Block(block) { }
+    EulerBlock(const Block& block): Base(block) { }
+    EulerBlock(Vector& vector, int start): Base(Block(vector, start)) { }
     virtual ~EulerBlock() {}
 };
 
