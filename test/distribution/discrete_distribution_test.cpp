@@ -24,9 +24,45 @@
 
 #include <fl/distribution/discrete_distribution.hpp>
 #include <fl/distribution/gaussian.hpp>
+#include <fl/util/types.hpp>
 
 #include <Eigen/Core>
 #include <Eigen/Eigenvalues>
+
+
+
+TEST(discrete_distribution, default_initialization)
+{
+    typedef Eigen::Vector3d Variate;
+    typedef fl::DiscreteDistribution<Variate> DiscreteDistribution;
+
+    fl::Real e = 0.000000001;
+
+    DiscreteDistribution distribution;
+
+    EXPECT_TRUE(distribution.size() == 1);
+    EXPECT_TRUE(distribution.dimension() == 3);
+
+    EXPECT_TRUE(distribution.location(0).norm() < e);
+    EXPECT_TRUE(std::fabs(distribution.prob_mass(0) - 1.0) < e);
+    EXPECT_TRUE(std::fabs(distribution.log_prob_mass(0)) < e);
+    EXPECT_TRUE(std::fabs(distribution.entropy()) < e);
+    EXPECT_TRUE(std::fabs(distribution.kl_given_uniform()) < e);
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 TEST(discrete_distribution, moments)
 {

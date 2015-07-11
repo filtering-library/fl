@@ -56,16 +56,18 @@ public:
 public:
     /// constructor and destructor *********************************************
     explicit
-    DiscreteDistribution(int dim = DimensionOf<Variate>(),
+    DiscreteDistribution(//int dim = DimensionOf<Variate>(),
                          int locations = MaxOf<Locations, 1>::value)
-        : locations_(locations),
-          log_prob_mass_(Function::Zero(locations)),
-          cumul_distr_(CommulativeDistribution(locations))
+//        : locations_(locations),
+//          log_prob_mass_(Function::Zero(locations)),
+//          cumul_distr_(CommulativeDistribution(locations))
     {
-        locations_(0) = Variate::Zero(dim);
+        set_uniform(locations);
 
-        cumul_distr_.setOnes();
-        cumul_distr_ /= Real(cumul_distr_.size());
+//        locations_(0) = Variate::Zero(dim);
+
+//        cumul_distr_.setOnes();
+//        cumul_distr_ /= Real(cumul_distr_.size());
     }
 
     virtual ~DiscreteDistribution() { }
