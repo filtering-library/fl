@@ -43,25 +43,38 @@ TEST(discrete_distribution, default_initialization)
     EXPECT_TRUE(distribution.size() == 1);
     EXPECT_TRUE(distribution.dimension() == 3);
 
-    EXPECT_TRUE(distribution.location(0).norm() < e);
     EXPECT_TRUE(std::fabs(distribution.prob_mass(0) - 1.0) < e);
     EXPECT_TRUE(std::fabs(distribution.log_prob_mass(0)) < e);
     EXPECT_TRUE(std::fabs(distribution.entropy()) < e);
     EXPECT_TRUE(std::fabs(distribution.kl_given_uniform()) < e);
-
 }
 
 
+TEST(discrete_distribution, max)
+{
+    typedef Eigen::Matrix<int, 1, 1> Variate;
+    typedef fl::DiscreteDistribution<Variate> DiscreteDistribution;
+    typedef DiscreteDistribution::Function Function;
+    typedef std::vector<Variate> Locations;
 
+    int N_locations = 10;
 
+    // random prob mass fct
+    Function pmf = Function::Random(N_locations).abs() + 0.01;
+    pmf /= pmf.sum();
 
+    // create discrete distr
+    DiscreteDistribution discrete_distribution;
+    discrete_distribution.log_unnormalized_prob_mass(pmf.log());
 
+    for(int i = 0; i < N_locations; i++)
+        discrete_distribution.location(i)(0) = i;
 
+    int max_index;
+    pmf.maxCoeff(&max_index);
 
-
-
-
-
+    EXPECT_TRUE(discrete_distribution.max()(0) == max_index);
+}
 
 
 TEST(discrete_distribution, moments)
