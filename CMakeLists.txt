@@ -78,11 +78,8 @@ if(DOXYGEN_FOUND)
     execute_process(COMMAND "${DOXYGEN_EXECUTABLE}" "--version"
                     OUTPUT_VARIABLE DOXYGEN_VERSION
                     OUTPUT_STRIP_TRAILING_WHITESPACE)
-    string(COMPARE
-        LESS "${DOXYGEN_VERSION}" "${MIN_DOXYGEN_VERSION}"
-        DOXYGEN_TOO_OLD)
 
-    if(DOXYGEN_TOO_OLD)
+    if( "${DOXYGEN_VERSION}" VERSION_LESS "${MIN_DOXYGEN_VERSION}" )
         set(DOXYGEN_WARN_MSG_OLD   "Doxygen version is too old!")
         set(DOXYGEN_WARN_MSG_FOUND "Found Doxygen ${DOXYGEN_VERSION}.")
         set(DOXYGEN_WARN_MSG_REQ   "Required is at least ${MIN_DOXYGEN_VERSION}")
@@ -99,7 +96,7 @@ if(DOXYGEN_FOUND)
 
         add_custom_target(doc_fl
             COMMAND ${CMAKE_COMMAND} -P ${TARGET_FAILED_SCRIPT})
-    else(DOXYGEN_TOO_OLD)
+    else()
         configure_file(
             ${CMAKE_CURRENT_SOURCE_DIR}/doc/Doxyfile.in
             ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
@@ -108,7 +105,7 @@ if(DOXYGEN_FOUND)
             COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
             COMMENT "Generating API documentation with Doxygen" VERBATIM)
-    endif(DOXYGEN_TOO_OLD)
+    endif()
 else(DOXYGEN_FOUND)
     set(DOXYGEN_WARN_MSG "Doxygen not found.")
     message(WARNING ${DOXYGEN_WARN_MSG})
