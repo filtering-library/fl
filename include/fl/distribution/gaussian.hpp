@@ -118,7 +118,7 @@ public:
  * probability of a given sample and to map a noise sample into the distribution
  * sample space.
  *
- * \cond INTERNAL
+ * \cond internal
  * The Gaussian internal structure uses lazy assignments or write on read
  * technique. Due to the multi-representation of the Gaussian, modifying one
  * representation affects all remaining ones. If one of the representation is
@@ -154,7 +154,7 @@ public:
     typedef typename StdGaussianMappingBase::StandardVariate StandardVariate;
 
 protected:
-    /** \cond INTERNAL */
+    /** \cond internal */
     /**
      * \enum Attribute
      * Implementation attributes. The enumeration lists the different
@@ -226,7 +226,7 @@ public:
      * \throws InvalidGaussianRepresentationException if non-of the
      *         representation can be used as a source
      *
-     * \cond INTERNAL
+     * \cond internal
      * \pre |{Valid Representations}| > 0
      * \post {Valid Representations}
      *       = {Valid Representations} \f$ \cup \f$ {#CovarianceMatrix}
@@ -292,7 +292,7 @@ public:
      * \throws InvalidGaussianRepresentationException if non-of the
      *         representation can be used as a source
      *
-     * \cond INTERNAL
+     * \cond internal
      * \pre |{Valid Representations}| > 0
      * \post {Valid Representations}
      *       = {Valid Representations} \f$ \cup \f$ {#PrecisionMatrix}
@@ -351,7 +351,7 @@ public:
      * \throws InvalidGaussianRepresentationException if non-of the
      *         representation can be used as a source
      *
-     * \cond INTERNAL
+     * \cond internal
      * \pre |{Valid Representations}| > 0
      * \post {Valid Representations}
      *       = {Valid Representations} \f$ \cup \f$ {#SquareRootMatrix}
@@ -415,7 +415,7 @@ public:
      *
      * \throws see covariance()
      *
-     * \cond INTERNAL
+     * \cond internal
      * \pre |{Valid Representations}| > 0
      * \post {Valid Representations}
      *       = {Valid Representations} \f$ \cup \f$ {#CovarianceMatrix}
@@ -439,7 +439,7 @@ public:
      *
      * \throws see has_full_rank()
      *
-     * \cond INTERNAL
+     * \cond internal
      * \pre |{Valid Representations}| > 0
      * \post {Valid Representations}
      *       = {Valid Representations} \f$ \cup \f$ {#CovarianceMatrix}
@@ -473,7 +473,7 @@ public:
      *
      * \throws see has_full_rank()
      *
-     * \cond INTERNAL
+     * \cond internal
      * \pre |{Valid Representations}| > 0
      * \post {Valid Representations}
      *       = {Valid Representations} \f$ \cup \f$ {#PrecisionMatrix}
@@ -500,7 +500,7 @@ public:
      *
      * \throws see square_root()
      *
-     * \cond INTERNAL
+     * \cond internal
      * \pre |{Valid Representations}| > 0
      * \post {Valid Representations}
      *       = {Valid Representations} \f$ \cup \f$ {#SquareRootMatrix}
@@ -515,7 +515,7 @@ public:
      * Sets the Gaussian to a standard distribution with zero mean and identity
      * covariance.
      *
-     * \cond INTERNAL
+     * \cond internal
      * \pre {}
      * \post
      *  - Fully ranked covariance
@@ -542,7 +542,7 @@ public:
      *
      * \param new_dimension New dimension of the Gaussian
      *
-     * \cond INTERNAL
+     * \cond internal
      * \pre {}
      * \post
      *  - Fully ranked covariance
@@ -579,7 +579,7 @@ public:
      * Sets the covariance matrix
      * \param covariance New covariance matrix
      *
-     * \cond INTERNAL
+     * \cond internal
      * \pre |{Valid Representations}| > 0
      * \post {Valid Representations}
      *       = {Valid Representations} \f$ \cup \f$ {#CovarianceMatrix}
@@ -606,7 +606,7 @@ public:
      *
      * \param square_root New covariance square root
      *
-     * \cond INTERNAL
+     * \cond internal
      * \pre |{Valid Representations}| > 0
      * \post {Valid Representations}
      *       = {Valid Representations} \f$ \cup \f$ {#SquareRootMatrix}
@@ -631,7 +631,7 @@ public:
      *
      * \param precision New precision matrix
      *
-     * \cond INTERNAL
+     * \cond internal
      * \pre |{Valid Representations}| > 0
      * \post {Valid Representations}
      *       = {Valid Representations} \f$ \cup \f$ {#PrecisionMatrix}
@@ -656,7 +656,7 @@ public:
      *
      * \param diag_covariance New diagonal covariance matrix
      *
-     * \cond INTERNAL
+     * \cond internal
      * \pre |{Valid Representations}| > 0
      * \post {Valid Representations}
      *       = {Valid Representations} \f$ \cup \f$ {#DiagonalCovarianceMatrix}
@@ -682,7 +682,7 @@ public:
      *
      * \param diag_square_root New diagonal square root of the covariance
      *
-     * \cond INTERNAL
+     * \cond internal
      * \pre |{Valid Representations}| > 0
      * \post {Valid Representations}
      *       = {Valid Representations} \f$ \cup \f$ {#DiagonalSquareRootMatrix}
@@ -708,7 +708,7 @@ public:
      *
      * \param diag_precision New diagonal precision matrix
      *
-     * \cond INTERNAL
+     * \cond internal
      * \pre |{Valid Representations}| > 0
      * \post {Valid Representations}
      *       = {Valid Representations} \f$ \cup \f$ {#DiagonalPrecisionMatrix}
@@ -730,7 +730,7 @@ public:
     }
 
 protected:
-    /** \cond INTERNAL */
+    /** \cond internal */
     /**
      * Flags the specified attribute as valid and the rest of attributes as
      * dirty.
@@ -804,7 +804,7 @@ protected:
     /** \endcond */
 
 protected:
-    /** \cond INTERNAL */
+    /** \cond internal */
     Variate mean_;                     /**< \brief first moment vector */
     mutable SecondMoment covariance_;  /**< \brief cov. form */
     mutable SecondMoment precision_;   /**< \brief cov. inverse form */
