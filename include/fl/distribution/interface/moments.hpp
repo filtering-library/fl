@@ -30,8 +30,10 @@
 namespace fl
 {
 
+#ifndef GENERATING_DOCUMENTATION
 // Forward declaration
 template <typename...> class Moments;
+#endif
 
 /**
  * \ingroup distribution_interfaces
@@ -51,7 +53,11 @@ template <typename...> class Moments;
  * a distribution. The moments represent a subset of the approximate moments.
  */
 template <typename Variate_, typename SecondMoment_>
+#ifndef GENERATING_DOCUMENTATION
 class Moments<Variate_, SecondMoment_>
+#else
+class Moments
+#endif
     : public ApproximateMoments<Variate_, SecondMoment_>
 {
 public:
@@ -106,6 +112,7 @@ public:
 
 /**
  * \ingroup distribution_interfaces
+ *
  */
 template <typename Variate>
 class Moments<Variate>
@@ -120,8 +127,9 @@ public:
 
 /**
  * \ingroup distribution_interfaces
+ *
  */
-template <>
+template < >
 class Moments<Real>
     : public Moments<Real, Real>
 {
