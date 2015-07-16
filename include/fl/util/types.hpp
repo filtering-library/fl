@@ -39,8 +39,41 @@ namespace fl
 
 /**
  * \ingroup types
+ * \brief Common floating point type. The default type of Real is \c double.
+ *        This type is used throughout the entire ::fl library.
+ *
+ * In order or use other basic floating point types please compile with one of
+ * the following defines:
+ *
+ *  - \c FL_USE_FLOAT:       defines fl::Real as \c float
+ *  - \c FL_USE_DOUBLE:      defines fl::Real as \c double (default)
+ *  - \c FL_USE_LONG_DOUBLE: defines fl::Real as \c long double
  */
 typedef FloatingPoint Real;
+
+/**
+ * \ingroup types
+ */
+template <typename Model_> struct Additive
+{
+    typedef Model_ Model;
+};
+
+/**
+ * \ingroup types
+ */
+template <typename Model_> struct AdditiveUncorrelated
+{
+    typedef Model_ Model;
+};
+
+/**
+ * \ingroup types
+ */
+template <typename Model_> struct NonAdditive
+{
+    typedef Model_ Model;
+};
 
 /**
  * \internal
@@ -52,7 +85,7 @@ namespace internal
  * \internal
  * \ingroup types
  *
- * Observation model type identifier
+ * \brief Observation model type identifier
  */
 struct ObsrvModelType { };
 
@@ -60,7 +93,7 @@ struct ObsrvModelType { };
  * \internal
  * \ingroup types
  *
- * Process model type identifier
+ * \brief Process model type identifier
  */
 struct ProcessModelType { };
 
@@ -68,9 +101,39 @@ struct ProcessModelType { };
  * \internal
  * \ingroup types
  *
- * Adaptive model type identifier
+ * \brief Adaptive model type identifier
  */
 struct AdaptiveModelType { };
+
+/**
+ * \internal
+ * \ingroup types
+ *
+ * \brief Represents the base type of any model with additive noise term
+ * \f$ x_{t+1} = f(x_t) + v_t\f$ while \f$v_t\f$ is the additive noise.
+ */
+struct AdditiveModelType { };
+
+/**
+ * \internal
+ * \ingroup types
+ *
+ * \brief Represents the base type of any model with additive uncorrelated
+ * Gaussian white noise term in \f$ x_{t+1} = f(x_t) + v_t\f$ while \f$v_t\f$ is
+ * the additive noise with \f$v_t \sim {\cal N}(v_t; 0, Q_t)\f$. Here, the
+ * covariance matrix has a diagonal form \f$Q_t = \text{diag}(q_1, q_2, \ldots,
+ * q_n)\f$ and \f$n\f$ is the dimension of \f$v_t \in \mathbb{R}^n\f$.
+ */
+struct AdditiveUncorrelatedModelType { };
+
+/**
+ * \internal
+ * \ingroup types
+ *
+ * \brief Represents the base type of any model with non-additive noise term
+ * \f$ x_{t+1} = f(x_t, v_t) \f$ while \f$v_t\f$ is the additive noise.
+ */
+struct NonAdditiveModelType { };
 
 }
 
