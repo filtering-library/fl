@@ -45,7 +45,7 @@ struct Traits<JointDistribution<Distribution...>>
 {
     enum : signed int
     {
-        JointSize = JoinSizes<SizeOf<typename Distribution::Variate>()...>::Size
+        JointSize = JoinSizes<SizeOf<typename Distribution::Variate>::Value...>::Size
     };
 
     typedef typename FirstTypeIn<
@@ -60,10 +60,10 @@ struct Traits<JointDistribution<Distribution...>>
  */
 template <typename...Distribution>
 class JointDistribution
-    : public Moments<Traits<JointDistribution<Distribution...>>::Variate>
+    : public Moments<typename Traits<JointDistribution<Distribution...>>::Variate>
 {
 public:
-    typedef Traits<JointDistribution<Distribution...>>::Variate Variate;
+    typedef typename Traits<JointDistribution<Distribution...>>::Variate Variate;
     typedef typename Moments<Variate>::SecondMoment SecondMoment;
     typedef std::tuple<Distribution...> MarginalDistributions;
 
