@@ -31,5 +31,6 @@
 #include "meta/operator/adaptive.hpp"
 #include "meta/operator/not_adaptive.hpp"
 #include "meta/operator/forward_adaptive.hpp"
+#include "meta/operator/use_as.hpp"
 
 #endif
