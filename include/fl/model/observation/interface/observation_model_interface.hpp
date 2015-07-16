@@ -35,8 +35,11 @@ template <
     int Id = 0
 >
 class ObservationFunction
+        : internal::NonAdditiveModelType
 {
 public:
+    typedef internal::NonAdditiveModelType Type;
+
     typedef Obsrv_ Obsrv;
     typedef State_ State;
     typedef Noise_ Noise;
