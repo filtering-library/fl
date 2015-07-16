@@ -24,7 +24,7 @@
 
 #include <fl/util/traits.hpp>
 #include <fl/distribution/gaussian.hpp>
-#include <fl/model/process/interface/process_model_interface.hpp>
+#include <fl/model/process/interface/state_transition_function.hpp>
 
 #include <fl/model/process/interface/state_transition_density.hpp>
 #include <fl/model/process/interface/additive_state_transition_function.hpp>
@@ -137,12 +137,12 @@ public: /* factory functions */
     }
 
 public: /* accessors & mutators */
-    virtual DynamicsMatrix dynamics_matrix() const
+    virtual const DynamicsMatrix& dynamics_matrix() const
     {
         return dynamics_matrix_;
     }
 
-    virtual InputMatrix input_matrix() const
+    virtual const InputMatrix& input_matrix() const
     {
         return input_matrix_;
     }

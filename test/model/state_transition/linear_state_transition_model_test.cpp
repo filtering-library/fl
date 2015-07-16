@@ -28,7 +28,7 @@
 #include <iostream>
 
 #include <fl/util/types.hpp>
-#include <fl/model/process/linear_process_model.hpp>
+#include <fl/model/process/linear_state_transition_model.hpp>
 
 template <typename TestType>
 class LinearStateTransitionModelTest:

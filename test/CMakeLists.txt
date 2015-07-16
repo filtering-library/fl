@@ -17,6 +17,14 @@ target_link_libraries(options_test ${catkin_LIBRARIES})
 catkin_add_gtest(join_test utils/join_test.cpp gtest_main.cpp)
 target_link_libraries(join_test ${catkin_LIBRARIES})
 
+# = euler_vector test = #
+catkin_add_gtest(euler_vector_test utils/euler_vector_test.cpp gtest_main.cpp)
+target_link_libraries(euler_vector_test ${catkin_LIBRARIES})
+
+
+catkin_add_gtest(rigid_body_state_test utils/rigid_body_state_test.cpp gtest_main.cpp)
+target_link_libraries(rigid_body_state_test ${catkin_LIBRARIES})
+
 
 # == observation model tests ================================================= #
 catkin_add_gtest(linear_observation_models_test
@@ -29,6 +37,12 @@ catkin_add_gtest(linear_state_transition_model_test
                  model/state_transition/linear_state_transition_model_test.cpp
                  gtest_main.cpp)
 target_link_libraries(linear_state_transition_model_test ${catkin_LIBRARIES})
+
+catkin_add_gtest(orientation_transition_function_test
+                 model/state_transition/orientation_transition_function_test.cpp
+                 gtest_main.cpp)
+target_link_libraries(orientation_transition_function_test ${catkin_LIBRARIES})
+
 
 catkin_add_gtest(binary_transition_density_test
                  model/binary_transition_density_test.cpp

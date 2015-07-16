@@ -31,7 +31,7 @@
 #include <fl/exception/exception.hpp>
 #include <fl/filter/filter_interface.hpp>
 
-#include <fl/model/process/linear_process_model.hpp>
+#include <fl/model/process/linear_state_transition_model.hpp>
 #include <fl/model/observation/linear_observation_model.hpp>
 
 namespace fl

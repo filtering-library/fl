@@ -30,7 +30,7 @@
 #include <fl/util/traits.hpp>
 #include <fl/util/meta.hpp>
 
-#include <fl/model/process/interface/process_model_interface.hpp>
+#include <fl/model/process/interface/state_transition_function.hpp>
 
 namespace fl
 {

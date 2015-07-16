@@ -90,17 +90,11 @@ public:
 
 
 
-/**
- * \interface ProcessModelInterface
- * \ingroup process_models
- *
- * \brief This reprersents the common process model interface of the form
- *        \f$p(x\mid x_t, u_t, v_t)\f$
- *
- * \tparam State    Type of the state variable \f$x_t\f$
- * \tparam Noise    Type of the noise term \f$v_t\f$
- * \tparam Input    Type of the control input \f$u_t\f$
- */
+
+
+
+
+/// \todo: this needs to disappear
 template <
     typename State,
     typename Noise,

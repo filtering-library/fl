@@ -33,7 +33,7 @@
 #include <fl/util/math/linear_algebra.hpp>
 #include <fl/filter/filter_interface.hpp>
 
-#include <fl/model/process/linear_process_model.hpp>
+#include <fl/model/process/linear_state_transition_model.hpp>
 #include <fl/model/observation/linear_observation_model.hpp>
 
 template <typename TestType>

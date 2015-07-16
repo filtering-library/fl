@@ -43,29 +43,19 @@ class DiscreteDistribution
       public StandardGaussianMapping<Variate, 1>
 {
 public:
-    typedef DiscreteDistribution<Variate, Locations> This;
-    typedef Moments<typename FirstMomentOf<Variate>::Type> MomentsInterface;
-    typedef StandardGaussianMapping<Variate,1> StandardGaussianMappingInterface;
+    typedef Moments<typename FirstMomentOf<Variate>::Type>  MomentsInterface;
+    typedef typename MomentsInterface::Variate              Mean;
+    typedef typename MomentsInterface::SecondMoment         Covariance;
 
-    typedef typename MomentsInterface::Variate      Mean;
-    typedef typename MomentsInterface::SecondMoment Covariance;
     typedef Eigen::Array<Real,    Locations, 1> Function;
     typedef Eigen::Array<Variate, Locations, 1> LocationArray;
-    typedef Eigen::Array<Real,    Locations, 1> CommulativeDistribution;
 
 public:
     /// constructor and destructor *********************************************
     explicit
-    DiscreteDistribution(int dim = DimensionOf<Variate>(),
-                         int locations = MaxOf<Locations, 1>::value)
-        : locations_(locations),
-          log_prob_mass_(Function::Zero(locations)),
-          cumul_distr_(CommulativeDistribution(locations))
+    DiscreteDistribution(int locations = MaxOf<Locations, 1>::value)
     {
-        locations_(0) = Variate::Zero(dim);
-
-        cumul_distr_.setOnes();
-        cumul_distr_ /= Real(cumul_distr_.size());
+        set_uniform(locations);
     }
 
     virtual ~DiscreteDistribution() { }
@@ -211,6 +201,16 @@ public:
         return mu_;
     }
 
+    virtual const Variate& max() const
+    {
+        int max_index;
+        log_prob_mass_.maxCoeff(&max_index);
+
+        return locations_(max_index);
+    }
+
+
+
     virtual const Covariance& covariance() const
     {
         Mean mu = mean();
@@ -242,7 +242,7 @@ protected:
 
     Function log_prob_mass_;
     Function prob_mass_;
-    CommulativeDistribution cumul_distr_;
+    Function cumul_distr_;
 
     mutable Mean mu_;
     mutable Covariance cov_;
