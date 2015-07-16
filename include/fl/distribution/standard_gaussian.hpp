@@ -102,11 +102,13 @@ public:
     }
 
 protected:
+    /** \cond internal */
     int dimension_;
     Variate mu_;
     DiagonalSecondMoment cov_;
     mutable fl::mt11213b generator_;
     mutable std::normal_distribution<Real> gaussian_distribution_;
+    /** \endcond */
 };
 
 /**
@@ -141,10 +143,12 @@ public:
     }
 
 protected:
+    /** \cond internal */
     Real mu_;
     Real var_;
     mutable fl::mt11213b generator_;
     mutable std::normal_distribution<Real> gaussian_distribution_;
+    /** \endcond */
 };
 
 }
