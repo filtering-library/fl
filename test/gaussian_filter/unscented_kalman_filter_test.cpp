@@ -25,10 +25,8 @@
 #include <Eigen/Dense>
 
 #include "gaussian_filter_test_suite.hpp"
-
-#include <fl/filter/gaussian/unscented_transform.hpp>
-#include <fl/filter/gaussian/monte_carlo_transform.hpp>
-#include <fl/filter/gaussian/gaussian_filter_ukf.hpp>
+#include <fl/util/meta.hpp>
+#include <fl/filter/gaussian/gaussian_filter.hpp>
 
 template <int StateDimension, int InputDimension, int ObsrvDimension>
 struct UnscentedKalmanFilterTestConfiguration
@@ -43,17 +41,21 @@ struct UnscentedKalmanFilterTestConfiguration
     template <typename StateTransitionModel, typename ObservationModel>
     struct FilterDefinition
     {
+        typedef fl::SigmaPointQuadrature<fl::UnscentedTransform> Quadrature;
+
         typedef fl::GaussianFilter<
-                    StateTransitionModel,
-                    ObservationModel,
-                    fl::UnscentedTransform
+                        StateTransitionModel,
+                        ObservationModel,
+                        Quadrature
                 > Type;
     };
 
     template <typename F, typename H>
     static typename FilterDefinition<F, H>::Type create_filter(F&& f, H&& h)
     {
-        return typename FilterDefinition<F, H>::Type(f, h, fl::UnscentedTransform());
+        return typename FilterDefinition<F, H>::Type(
+            f, h, fl::SigmaPointQuadrature<fl::UnscentedTransform>(
+                        fl::UnscentedTransform()));
     }
 };
 
