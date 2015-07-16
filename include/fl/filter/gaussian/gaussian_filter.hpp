@@ -22,28 +22,11 @@
 #ifndef FL__FILTER__GAUSSIAN__GAUSSIAN_FILTER_HPP
 #define FL__FILTER__GAUSSIAN__GAUSSIAN_FILTER_HPP
 
-namespace fl
-{
-
-
-struct FadingMemoryPolicy // None, alpha, decay
-{
-};
-
-struct ValidationGatePolicy // Eucledian, ellipsoid
-{
-};
-
-struct UpdatePolicy // normal, joseph
-{
-
-};
-
-}
+#include <fl/filter/gaussian/transform/unscented_transform.hpp>
+#include <fl/filter/gaussian/transform/monte_carlo_transform.hpp>
+#include <fl/filter/gaussian/quadrature/sigma_point_quadrature.hpp>
 
 #include <fl/filter/gaussian/gaussian_filter_kf.hpp>
-#include <fl/filter/gaussian/gaussian_filter_ukf.hpp>
-//#include <fl/filter/gaussian/gaussian_filter_factorized.hpp>
-//#include <fl/filter/gaussian/gaussian_filter_ukf_npn_aon.hpp>
+#include <fl/filter/gaussian/gaussian_filter_spkf.hpp>
 
 #endif

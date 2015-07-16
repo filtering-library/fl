@@ -84,7 +84,7 @@ template <
 #endif
 struct Traits<GaussianFilter<TEMPLATE_ARGUMENTS>>
 {
-    /** \cond INTERNAL ====================================================== */
+    /** \cond internal ====================================================== */
     /**
      * \brief Represents the factorized model of a set of independent parameters
      * which shall be filtered jointly with the state.
@@ -163,7 +163,7 @@ struct Traits<GaussianFilter<TEMPLATE_ARGUMENTS>>
                 JointParamDistr
             > Belief;
 
-    /** \cond INTERNAL */
+    /** \cond internal */
     /**
      * Feature type of an observaton.
      */
@@ -865,7 +865,7 @@ public:
 
 public:
     /* == Helpers =========================================================== */
-    /** \cond INTERNAL */
+    /** \cond internal */
 
     /**
      * \return Dimension of the specified variate
@@ -973,7 +973,7 @@ public:
     double thresh;
 
 //private:
-    /** \cond INTERNAL */
+    /** \cond internal */
     /* Model */
     ProcessModel f_;
     ObservationModel h_;
@@ -988,7 +988,7 @@ public:
     /** \endcond */
 
 protected:
-    /** \cond INTERNAL */
+    /** \cond internal */
     /* Data */
     const int param_count_;
     const int dim_marginal_;

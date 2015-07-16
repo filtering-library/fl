@@ -263,8 +263,10 @@ public:
     const ObservationModel& obsrv_model() const { return obsrv_model_; }
 
 protected:
+    /** \cond internal */
     ProcessModel process_model_;
     ObservationModel obsrv_model_;
+    /** \endcond */
 };
 
 }
