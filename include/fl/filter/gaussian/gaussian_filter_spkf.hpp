@@ -14,43 +14,50 @@
  */
 
 /**
- * \file gaussian_filter_ukf.hpp
+ * \file gaussian_filter_spkf.hpp
  * \date October 2014
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__FILTER__GAUSSIAN__GAUSSIAN_FILTER_UKF_HPP
-#define FL__FILTER__GAUSSIAN__GAUSSIAN_FILTER_UKF_HPP
+#ifndef FL__FILTER__GAUSSIAN__GAUSSIAN_FILTER_SPKF_HPP
+#define FL__FILTER__GAUSSIAN__GAUSSIAN_FILTER_SPKF_HPP
 
-#include <map>
-#include <tuple>
-#include <memory>
+
+#include <Eigen/Dense>
 
 #include <fl/util/meta.hpp>
 #include <fl/util/traits.hpp>
 #include <fl/util/profiling.hpp>
-
 #include <fl/exception/exception.hpp>
+#include <fl/distribution/gaussian.hpp>
 #include <fl/filter/filter_interface.hpp>
-#include <fl/filter/gaussian/point_set.hpp>
-#include <fl/filter/gaussian/feature_policy.hpp>
-
-#include <fl/model/observation/joint_observation_model.hpp>
+#include <fl/filter/gaussian/transform/point_set.hpp>
+#include <fl/filter/gaussian/quadrature/sigma_point_quadrature.hpp>
+#include <fl/filter/gaussian/sigma_point_update_policy.hpp>
+#include <fl/filter/gaussian/sigma_point_prediction_policy.hpp>
+#include <fl/filter/gaussian/sigma_point_additive_update_policy.hpp>
+#include <fl/filter/gaussian/sigma_point_additive_prediction_policy.hpp>
 
 namespace fl
 {
 
+// Forward delcaration
 template <typename...> class GaussianFilter;
 
 /**
+ * \internal
+ *
  * GaussianFilter Traits
  */
 template <
     typename ProcessModel,
     typename ObservationModel,
-    typename PointSetTransform
+    typename Quadrature,
+    typename ... Policies
 >
-struct Traits<GaussianFilter<ProcessModel, ObservationModel, PointSetTransform>>
+struct Traits<
+           GaussianFilter<
+               ProcessModel, ObservationModel, Quadrature, Policies...>>
 {
     typedef typename ProcessModel::State State;
     typedef typename ProcessModel::Input Input;
@@ -60,69 +67,99 @@ struct Traits<GaussianFilter<ProcessModel, ObservationModel, PointSetTransform>>
 
 /**
  * \ingroup sigma_point_kalman_filters
- * \ingroup unscented_kalman_filter
  *
  * GaussianFilter represents all filters based on Gaussian distributed systems.
  * This includes the Kalman Filter and filters using non-linear models such as
  * Sigma Point Kalman Filter family.
  *
- * \tparam ProcessModel
+ * \tparam StateTransitionFunction
  * \tparam ObservationModel
  *
  */
 template<
-    typename ProcessModel,
-    typename ObservationModel,
-    typename PointSetTransform
+    typename StateTransitionFunction,
+    typename ObservationFunction,
+    typename Quadrature
 >
-class GaussianFilter<ProcessModel, ObservationModel, PointSetTransform>
+class GaussianFilter<StateTransitionFunction, ObservationFunction, Quadrature>
+    :
+    /* Implement the filter interface */
+#ifndef GENERATING_DOCUMENTATION
+    public GaussianFilter<
+               typename RemoveAdditivityOf<StateTransitionFunction>::Type,
+               typename RemoveAdditivityOf<ObservationFunction>::Type,
+               Quadrature,
+               SigmaPointPredictPolicy<
+                   Quadrature,
+                   typename AdditivityOf<StateTransitionFunction>::Type>,
+               SigmaPointUpdatePolicy<
+                   Quadrature,
+                   typename AdditivityOf<ObservationFunction>::Type>>
+#else
+    public GaussianFilter<
+               StateTransitionFunction,
+               ObservationFunction,
+               Quadrature,
+               PredictionPolicy,
+               UpdatePolicy>
+#endif
+{
+public:
+    template <typename...Args>
+    GaussianFilter(Args&& ... args)
+        : GaussianFilter<
+              typename RemoveAdditivityOf<StateTransitionFunction>::Type,
+              typename RemoveAdditivityOf<ObservationFunction>::Type,
+              Quadrature,
+              SigmaPointPredictPolicy<
+                  Quadrature,
+                  typename AdditivityOf<StateTransitionFunction>::Type>,
+              SigmaPointUpdatePolicy<
+                  Quadrature,
+                  typename AdditivityOf<ObservationFunction>::Type>>
+          (std::forward<Args>(args)...)
+    { }
+};
+
+/**
+ * \ingroup sigma_point_kalman_filters
+ *
+ * GaussianFilter represents all filters based on Gaussian distributed systems.
+ * This includes the Kalman Filter and filters using non-linear models such as
+ * Sigma Point Kalman Filter family.
+ *
+ * \tparam StateTransitionFunction
+ * \tparam ObservationModel
+ *
+ */
+template<
+    typename StateTransitionFunction,
+    typename ObservationFunction,
+    typename Quadrature,
+    typename PredictionPolicy,
+    typename UpdatePolicy
+>
+class GaussianFilter<
+          StateTransitionFunction,
+          ObservationFunction,
+          Quadrature,
+          PredictionPolicy,
+          UpdatePolicy>
     :
     /* Implement the filter interface */
     public FilterInterface<
-              GaussianFilter<ProcessModel, ObservationModel, PointSetTransform>>
+               GaussianFilter<
+                   StateTransitionFunction,
+                   ObservationFunction,
+                   Quadrature,
+                   PredictionPolicy,
+                   UpdatePolicy>>
 {
 public:
-    typedef typename ProcessModel::State State;
-    typedef typename ProcessModel::Input Input;
-    typedef typename ObservationModel::Obsrv Obsrv;
+    typedef typename StateTransitionFunction::State State;
+    typedef typename StateTransitionFunction::Input Input;
+    typedef typename ObservationFunction::Obsrv Obsrv;
     typedef Gaussian<State> Belief;
-
-private:
-    /** \cond INTERNAL */
-    typedef typename ProcessModel::Noise StateNoise;
-    typedef typename ObservationModel::Noise ObsrvNoise;
-
-    /**
-     * Represents the total number of points required by the point set
-     * transform.
-     *
-     * The number of points is a function of the joint Gaussian of which we
-     * compute the transform. In this case the joint Gaussian consists of
-     * the Gaussian of the state, the state noise Gaussian and the
-     * observation noise Gaussian. The latter two are needed since we assume
-     * models with non-additive noise.
-     *
-     * The resulting number of points determined by the employed transform
-     * passed via \c PointSetTransform. If on or more of the marginal
-     * Gaussian sizes is dynamic, the number of points is dynamic as well.
-     * That is, the number of points cannot be known at compile time and
-     * will be allocated dynamically on run time.
-     */
-    enum : signed int
-    {
-        NumberOfPoints = PointSetTransform::number_of_points(
-                             JoinSizes<
-                                 SizeOf<State>::Value,
-                                 SizeOf<StateNoise>::Value,
-                                 SizeOf<ObsrvNoise>::Value
-                             >::Size)
-    };
-
-    typedef PointSet<State, NumberOfPoints> StatePointSet;
-    typedef PointSet<Obsrv, NumberOfPoints> ObsrvPointSet;
-    typedef PointSet<StateNoise, NumberOfPoints> StateNoisePointSet;
-    typedef PointSet<ObsrvNoise, NumberOfPoints> ObsrvNoisePointSet;
-    /** \endcond */
 
 public:
     /**
@@ -130,100 +167,16 @@ public:
      *
      * \param process_model         Process model instance
      * \param obsrv_model           Obsrv model instance
-     * \param point_set_transform   Point set tranfrom such as the unscented
+     * \param transform   Point set tranfrom such as the unscented
      *                              transform
      */
-    GaussianFilter(const ProcessModel& process_model,
-                   const ObservationModel& obsrv_model,
-                   const PointSetTransform& point_set_transform)
+    GaussianFilter(const StateTransitionFunction& process_model,
+                   const ObservationFunction& obsrv_model,
+                   const Quadrature& quadrature)
         : process_model_(process_model),
           obsrv_model_(obsrv_model),
-          transform_(point_set_transform),
-          /*
-           * Set the augmented Gaussian dimension.
-           *
-           * The global dimension is dimension of the augmented Gaussian which
-           * consists of state Gaussian, state noise Gaussian and the
-           * observation noise Gaussian.
-           */
-          augmented_dimension_(process_model_.state_dimension()
-                               + process_model_.noise_dimension()
-                               + obsrv_model_.noise_dimension()),
-          /*
-           * Initialize the points-set Gaussian (e.g. sigma points) of the
-           * \em state noise. The number of points is determined by the
-           * augmented Gaussian with the dimension  global_dimension_
-           */
-          X_Q(process_model_.noise_dimension(),
-              PointSetTransform::number_of_points(augmented_dimension_)),
-          /*
-           * Initialize the points-set Gaussian (e.g. sigma points) of the
-           * \em observation noise. The number of points is determined by the
-           * augmented Gaussian with the dimension global_dimension_
-           */
-          X_R(obsrv_model_.noise_dimension(),
-              PointSetTransform::number_of_points(augmented_dimension_))
-    {
-        /*
-         * pre-compute the state noise points from the standard Gaussian
-         * distribution with the dimension of the state noise and store the
-         * points in the X_Q PointSet
-         *
-         * The points are computet for the marginal Q of the global Gaussian
-         * with the dimension global_dimension_ as depecited below
-         *
-         *    [ P  0  0 ]
-         * -> [ 0  Q  0 ] -> [X_Q[1]  X_Q[2] ... X_Q[p]]
-         *    [ 0  0  R ]
-         *
-         * p is the number of points determined be the transform type
-         *
-         * The transform takes the global dimension (dim(P) + dim(Q) + dim(R))
-         * and the dimension offset dim(P) as parameters.
-         */
-        transform_(Gaussian<StateNoise>(process_model_.noise_dimension()),
-                   augmented_dimension_,
-                   process_model_.state_dimension(),
-                   X_Q);
-
-        /*
-         * pre-compute the observation noise points from the standard Gaussian
-         * distribution with the dimension of the observation noise and store
-         * the points in the X_R PointSet
-         *
-         * The points are computet for the marginal R of the global Gaussian
-         * with the dimension global_dimension_ as depecited below
-         *
-         *    [ P  0  0 ]
-         *    [ 0  Q  0 ]
-         * -> [ 0  0  R ] -> [X_R[1]  X_R[2] ... X_R[p]]
-         *
-         * again p is the number of points determined be the transform type
-         *
-         * The transform takes the global dimension (dim(P) + dim(Q) + dim(R))
-         * and the dimension offset dim(P) + dim(Q) as parameters.
-         */
-        transform_(Gaussian<ObsrvNoise>(obsrv_model_.noise_dimension()),
-                   augmented_dimension_,
-                   process_model_.state_dimension()
-                   + process_model_.noise_dimension(),
-                   X_R);
-
-        /*
-         * Setup the point set of the observation predictions
-         */
-        const int point_count =
-            PointSetTransform::number_of_points(augmented_dimension_);
-
-        X_y.resize(point_count);
-        X_y.dimension(obsrv_model_.obsrv_dimension());
-
-        /*
-         * Setup the point set of the state predictions
-         */
-        X_r.resize(point_count);
-        X_r.dimension(process_model_.state_dimension());
-    }
+          quadrature_(quadrature)
+    { }
 
     /**
      * \brief Overridable default destructor
@@ -237,73 +190,11 @@ public:
                          const Input& input,
                          Belief& predicted_belief)
     {
-        transform_(Gaussian<StateNoise>(process_model_.noise_dimension()),
-                   augmented_dimension_,
-                   process_model_.state_dimension(),
-                   X_Q);
-
-        /*
-         * Compute the state points from the given prior state Gaussian
-         * distribution and store the points in the X_r PointSet
-         *
-         * The points are computet for the marginal R of the global Gaussian
-         * with the dimension global_dimension_ as depecited below
-         *
-         * -> [ P  0  0 ] -> [X_r[1]  X_r[2] ... X_r[p]]
-         *    [ 0  Q  0 ]
-         *    [ 0  0  R ]
-         *
-         * The transform takes the global dimension (dim(P) + dim(Q) + dim(R))
-         * and the dimension offset 0 as parameters.
-         */
-        transform_(prior_belief, augmented_dimension_, 0, X_r);
-
-        /*
-         * Predict each point X_r[i] and store the prediction back in X_r[i]
-         *
-         * X_r[i] = f(X_r[i], X_Q[i], u)
-         */
-        const int point_count = X_r.count_points();
-        for (int i = 0; i < point_count; ++i)
-        {
-            X_r[i] = process_model_.state(X_r[i], X_Q[i], input);
-        }
-
-        /*
-         * Obtain the centered points matrix of the prediction. The columns of
-         * this matrix are the predicted points with zero mean. That is, the
-         * sum of the columns in P is zero.
-         *
-         * P = [X_r[1]-mu_r  X_r[2]-mu_r  ... X_r[n]-mu_r]
-         *
-         * with weighted mean
-         *
-         * mu_r = Sum w_mean[i] X_r[i]
-         */
-        auto&& X = X_r.centered_points();
-
-        /*
-         * Obtain the weights of point as a vector
-         *
-         * W = [w_cov[1]  w_cov[2]  ... w_cov[n]]
-         *
-         * Note that the covariance weights are used.
-         */
-        auto&& W = X_r.covariance_weights_vector();
-
-        /*
-         * Compute and set the moments
-         *
-         * The first moment is simply the weighted mean of points.
-         * The second centered moment is determined by
-         *
-         * C = Sum W[i,i] * (X_r[i]-mu_r)(X_r[i]-mu_r)^T
-         *   = P * W * P^T
-         *
-         * given that W is the diagonal matrix
-         */
-        predicted_belief.mean(X_r.mean());
-        predicted_belief.covariance(X * W.asDiagonal() * X.transpose());
+        prediction_policy_(process_model(),
+                           quadrature(),
+                           prior_belief,
+                           input,
+                           predicted_belief);
     }
 
     virtual void predict(const Belief& prior_belief,
@@ -315,7 +206,11 @@ public:
 
         for (int i = 0; i < steps; ++i)
         {
-            predict(predicted_belief, input, predicted_belief);
+            prediction_policy_(process_model(),
+                               quadrature(),
+                               prior_belief,
+                               input,
+                               predicted_belief);
         }
     }
 
@@ -326,34 +221,11 @@ public:
                         const Obsrv& obsrv,
                         Belief& posterior_belief)
     {
-        transform_(predicted_belief, augmented_dimension_, 0, X_r);
-
-        transform_(Gaussian<ObsrvNoise>(obsrv_model_.noise_dimension()),
-                   augmented_dimension_,
-                   process_model_.state_dimension()
-                   + process_model_.noise_dimension(),
-                   X_R);
-
-        const int point_count = X_r.count_points();
-
-        for (int i = 0; i < point_count; ++i)
-        {
-            X_y[i] = obsrv_model_.observation(X_r[i], X_R[i]);
-        }
-
-        auto&& prediction = X_y.center();
-        auto&& Y = X_y.points();
-        auto&& W = X_r.covariance_weights_vector();
-        auto&& X = X_r.centered_points();
-
-        auto innovation = (obsrv - prediction).eval();
-        auto cov_xx = (X * W.asDiagonal() * X.transpose()).eval();
-        auto cov_yy = (Y * W.asDiagonal() * Y.transpose()).eval();
-        auto cov_xy = (X * W.asDiagonal() * Y.transpose()).eval();
-        auto K = (cov_xy * cov_yy.inverse()).eval();
-
-        posterior_belief.mean(X_r.mean() + K * innovation);
-        posterior_belief.covariance(cov_xx - K * cov_yy * K.transpose());
+        update_policy_(obsrv_model(),
+                       quadrature(),
+                       predicted_belief,
+                       obsrv,
+                       posterior_belief);
     }
 
     /**
@@ -377,73 +249,43 @@ public: /* factory functions */
     }
 
 public: /* accessors & mutators */
-    ProcessModel& process_model()
+    StateTransitionFunction& process_model()
     {
         return process_model_;
     }
 
-    ObservationModel& obsrv_model()
+    ObservationFunction& obsrv_model()
     {
         return obsrv_model_;
     }
 
-    PointSetTransform& point_set_transform()
+    Quadrature& quadrature()
     {
-        return transform_;
+        return quadrature_;
     }
 
-    const ProcessModel& process_model() const
+    const StateTransitionFunction& process_model() const
     {
         return process_model_;
     }
 
-    const ObservationModel& obsrv_model() const
+    const ObservationFunction& obsrv_model() const
     {
         return obsrv_model_;
     }
 
-    const PointSetTransform& point_set_transform() const
+    const Quadrature& quadrature() const
     {
-        return transform_;
+        return quadrature_;
     }
-
-public:
-    ProcessModel process_model_;
-    ObservationModel obsrv_model_;
-    PointSetTransform transform_;
 
 protected:
-    /** \cond INTERNAL */
-    /**
-     * \brief The global dimension is dimension of the augmented Gaussian which
-     * consists of state Gaussian, state noise Gaussian and the
-     * observation noise Gaussian.
-     */
-    int augmented_dimension_;
-
-    /**
-     * \brief Represents the point-set of the state
-     */
-    StatePointSet X_r;
-
-    /**
-     * \brief Represents the point-set of the observation
-     */
-    ObsrvPointSet X_y;
-
-    /**
-     * \brief Represents the points-set Gaussian (e.g. sigma points) of the
-     * \em state noise. The number of points is determined by the augmented
-     * Gaussian with the dimension #global_dimension_
-     */
-    StateNoisePointSet X_Q;
-
-    /**
-     * \brief Represents the points-set Gaussian (e.g. sigma points) of the
-     * \em observation noise. The number of points is determined by the
-     * augmented Gaussian with the dimension #global_dimension_
-     */
-    ObsrvNoisePointSet X_R;
+    /** \cond internal */
+    StateTransitionFunction process_model_;
+    ObservationFunction obsrv_model_;
+    Quadrature quadrature_;
+    PredictionPolicy prediction_policy_;
+    UpdatePolicy update_policy_;
     /** \endcond */
 };
 
@@ -508,14 +350,14 @@ protected:
 //        const ProcessModel& state_process_model,
 //        const LocalParamModel& param_process_model,
 //        const LocalObsrvModel& obsrv_model,
-//        const PointSetTransform& point_set_transform,
+//        const PointSetTransform& transform,
 //        const typename Traits<Base>::FeatureMapping& feature_mapping
 //            = typename Traits<Base>::FeatureMapping(),
 //        int parameter_count = Count)
 //            : Base(
 //                { state_process_model, {param_process_model, parameter_count} },
 //                { obsrv_model, parameter_count },
-//                point_set_transform,
+//                transform,
 //                feature_mapping)
 //    { }
 //};
