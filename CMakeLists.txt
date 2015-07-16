@@ -61,7 +61,7 @@ catkin_package(
 #  $ mkdir build
 #  $ cd build
 #  $ cmake ..
-#  $ make doc
+#  $ make doc_fl
 #
 # The documentation will be generated within /path/to/fl/build/doc
 #
