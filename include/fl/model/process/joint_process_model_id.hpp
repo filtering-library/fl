@@ -172,7 +172,7 @@ protected:
 
 
 private:
-    /** \cond INTERNAL */
+    /** \cond internal */
     template <int...Indices>
     constexpr int expand_state_dimension(IndexSequence<Indices...>) const
     {

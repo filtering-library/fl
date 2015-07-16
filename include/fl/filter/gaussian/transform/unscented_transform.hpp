@@ -5,9 +5,6 @@
  * Copyright (c) 2014 Jan Issac (jan.issac@gmail.com)
  * Copyright (c) 2014 Manuel Wuthrich (manuel.wuthrich@gmail.com)
  *
- * Max-Planck Institute for Intelligent Systems, AMD Lab
- * University of Southern California, CLMC Lab
- *
  * This Source Code Form is subject to the terms of the MIT License (MIT).
  * A copy of the license can be found in the LICENSE file distributed with this
  * source code.
@@ -24,7 +21,8 @@
 
 #include <fl/util/traits.hpp>
 #include <fl/distribution/gaussian.hpp>
-#include <fl/filter/gaussian/point_set_transform.hpp>
+#include <fl/filter/gaussian/transform/point_set_transform.hpp>
+#include <fl/distribution/joint_distribution.hpp>
 
 #include <functional>
 
@@ -195,7 +193,7 @@ public:
     /** \cond INTERNAL */
 
     /**
-     * \return First mean weight
+     * \returninternalean weight
      *
      * \param dim Dimension of the Gaussian
      */
@@ -260,73 +258,100 @@ protected:
 };
 
 
+//template <typename Transform>
+//class SigmaPointQuadrature
+//{
+//public:
+//    explicit
+//    SigmaPointQuadrature(const Transform& transform)
+//        : transform_(transform)
+//    { }
 
-template <typename Transform>
-class SigmaPointQuadrature
-{
-public:
-    explicit
-    SigmaPointQuadrature(const Transform& transform)
-        : transform_(transform)
-    { }
+//    template <typename Integrand, typename GaussianA, typename GaussianB>
+//    auto expectation(
+//            Integrand f,
+//            const GaussianA& distr_a,
+//            const GaussianB& distr_b)
+//    -> decltype(f(distr_a.mean(), distr_b.mean()))
+//    {
+//        typedef typename GaussianA::Variate VariateA;
+//        typedef typename GaussianB::Variate VariateB;
 
-    template <typename Integrand, typename GaussianA, typename GaussianB>
-    auto expectation(
-            Integrand f,
-            const GaussianA& distr_a,
-            const GaussianB& distr_b)
-    -> decltype(f(distr_a.mean(), distr_b.mean()))
-    {
-        typedef typename GaussianA::Variate VariateA;
-        typedef typename GaussianB::Variate VariateB;
+//        enum : signed int
+//        {
+//            NumberOfPoints = Transform::number_of_points(
+//                                 JoinSizes<
+//                                     SizeOf<VariateA>::Value,
+//                                     SizeOf<VariateB>::Value
+//                                 >::Size)
+//        };
 
-        enum : signed int
-        {
-            NumberOfPoints = Transform::number_of_points(
-                                 JoinSizes<
-                                     SizeOf<VariateA>::Value,
-                                     SizeOf<VariateB>::Value
-                                 >::Size)
-        };
+//        typedef PointSet<VariateA, NumberOfPoints> PointSetA;
+//        typedef PointSet<VariateB, NumberOfPoints> PointSetB;
 
-        typedef PointSet<VariateA, NumberOfPoints> PointSetA;
-        typedef PointSet<VariateB, NumberOfPoints> PointSetB;
+//        int augmented_dim = distr_a.dimension() + distr_b.dimension();
+//        int point_count = Transform::number_of_points(augmented_dim);
 
-        int augmented_dim = distr_a.dimension() + distr_b.dimension();
-        int point_count = Transform::number_of_points(augmented_dim);
+//        PointSetA X_a(distr_a.dimension(), point_count);
+//        PointSetB X_b(distr_b.dimension(), point_count);
 
-        PointSetA X_a(distr_a.dimension(), augmented_dim);
-        PointSetB X_b(distr_b.dimension(), augmented_dim);
+//        transform_(distr_a, augmented_dim, 0, X_a);
+//        transform_(distr_b, augmented_dim, distr_a.dimension(), X_b);
 
-        transform_(distr_a, augmented_dim, 0, X_a);
-        transform_(distr_b, augmented_dim, distr_a.dimension(), X_b);
+//        decltype(f(distr_a.mean(), distr_b.mean())) E = f(X_a[0], X_b[0]);
+//        E *= X_a.weight(0);
+//        for (int i = 1; i < point_count; ++i)
+//        {
+//            E += X_a.weight(i) * f(X_a[i], X_b[i]);
+//        }
 
-        decltype(f(distr_a.mean(), distr_b.mean())) E = f(X_a[0], X_b[0]);
-        E *= X_a.weight(0);
-        for (int i = 1; i < point_count; ++i)
-        {
-            E += X_a.weight(i) * f(X_a[i], X_b[i]);
-        }
+//        return E;
+//    }
 
-        return E;
-    }
+//    template <typename Integrand, typename Gaussian>
+//    auto expectation(
+//            Integrand f,
+//            const Gaussian& distr)
+//    -> decltype(f(distr.mean()))
+//    {
+//        typedef typename Gaussian::Variate Variate;
+
+//        enum : signed int
+//        {
+//            NumberOfPoints = Transform::number_of_points(SizeOf<Variate>::Value)
+//        };
+
+//        int point_count = Transform::number_of_points(distr.dimension());
+
+//        auto X_a = PointSet<Variate, NumberOfPoints>(distr.dimension());
+
+//        transform_(distr, X_a);
+
+//        decltype(f(distr.mean())) E = f(X_a[0]);
+//        E *= X_a.weight(0);
+//        for (int i = 1; i < point_count; ++i)
+//        {
+//            E += X_a.weight(i) * f(X_a[i]);
+//        }
+
+//        return E;
+//    }
+
+//    template <typename Integrand, typename GaussianA, typename GaussianB, typename PointSet>
+//    auto expected_points(
+//            Integrand f,
+//            const GaussianA& distr_a,
+//            const GaussianB& distr_b,
+//            PointSet points)
+//    {
+
+//    }
 
 
-    template <typename Integrand, typename GaussianA, typename GaussianB, typename PointSet>
-    auto expected_points(
-            Integrand f,
-            const GaussianA& distr_a,
-            const GaussianB& distr_b,
-            PointSet points)
-    {
 
-    }
-
-
-
-protected:
-    Transform transform_;
-};
+//protected:
+//    Transform transform_;
+//};
 
 }
 

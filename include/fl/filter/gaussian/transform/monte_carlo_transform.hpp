@@ -24,7 +24,7 @@
 
 #include <fl/util/traits.hpp>
 #include <fl/distribution/gaussian.hpp>
-#include <fl/filter/gaussian/point_set_transform.hpp>
+#include <fl/filter/gaussian/transform/point_set_transform.hpp>
 
 namespace fl
 {

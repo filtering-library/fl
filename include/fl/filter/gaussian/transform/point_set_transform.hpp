@@ -25,7 +25,7 @@
 #include <cstddef>
 #include <fl/util/meta.hpp>
 #include <fl/distribution/gaussian.hpp>
-#include <fl/filter/gaussian/point_set.hpp>
+#include <fl/filter/gaussian/transform/point_set.hpp>
 
 namespace fl
 {
@@ -57,7 +57,7 @@ public:
     {
         //typedef Eigen::Matrix<double, 2, 1> Point;
 
-        /** \cond INTERNAL */
+        /** \cond internal */
         /** \remarks */
 
         /**

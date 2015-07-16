@@ -70,7 +70,7 @@ struct Traits<NotAdaptive<Model>>
  * interface, then the NotAdaptive injects the interface with a deactivated
  * adaptivity.
  *
- * \cond INTERNAL
+ * \cond internal
  * NotAdaptive operator specialization forwarding to the according ModelType
  * (i.e. either internal::ObsrvModelType or internal::ProcessModelType).
  * \endcond

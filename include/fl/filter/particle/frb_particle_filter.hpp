@@ -96,7 +96,7 @@ struct Traits<FRBParticleFilter<StateTransitionFunction,
 
     typedef DiscreteDistribution<State> Belief;
 
-    /** \cond INTERNAL */
+    /** \cond internal */
     typedef typename StateTransitionFunction::Noise      ProcessNoise;
 };
 

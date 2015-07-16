@@ -69,7 +69,7 @@ class ParticleFilter<StateTransitionFunction, ObservationDensity>
                  ParticleFilter<StateTransitionFunction, ObservationDensity>>
 {
 private:
-    /** \cond INTERNAL */
+    /** \cond internal */
     typedef typename StateTransitionFunction::Noise StateNoise;
     typedef typename ObservationDensity::Noise      ObsrvNoise;
     /** \endcond */
