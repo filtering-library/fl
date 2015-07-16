@@ -265,6 +265,116 @@ struct FirstMomentOf<Real>
     typedef Real Type;
 };
 
+/**
+ * \ingroup traits
+ */
+template <typename Model> struct IsAdditive
+{
+    enum: bool
+    {
+        Value = std::is_base_of<internal::AdditiveModelType, Model>::value
+    };
+};
+
+/**
+ * \ingroup traits
+ */
+template <typename Model> struct IsAdditiveUncorrelated
+{
+    enum: bool
+    {
+        Value = std::is_base_of<
+                    internal::AdditiveUncorrelatedModelType,
+                    Model
+                >::value
+    };
+};
+
+/**
+ * \ingroup traits
+ */
+template <typename Model> struct IsNonAdditive
+{
+    enum: bool
+    {
+        Value = std::is_base_of<internal::NonAdditiveModelType, Model>::value
+    };
+};
+
+/**
+ * \internal
+ * \ingroup traits
+ */
+template <typename Model, typename ...> struct AdditivityOf;
+
+/**
+ * \internal
+ * \ingroup traits
+ */
+template <typename Model>
+struct AdditivityOf<Model, internal::AdditiveModelType>
+{
+    typedef Additive<Model> Type;
+};
+
+/**
+ * \internal
+ * \ingroup traits
+ */
+template <typename Model>
+struct AdditivityOf<Model, internal::NonAdditiveModelType>
+{
+    typedef NonAdditive<Model> Type;
+};
+
+template <typename Model>
+struct AdditivityOf<Additive<Model>>
+{
+    typedef Additive<Model> Type;
+};
+
+template <typename Model>
+struct AdditivityOf<NonAdditive<Model>>
+{
+    typedef NonAdditive<Model> Type;
+};
+
+/**
+ * \ingroup traits
+ * \brief Provides access to the type of the model
+ *
+ * The model type will be one of the following
+ *  - \c NonAdditive (Noise)
+ *  - \c Additive (Noise)
+ *  - \c AdditiveUncorrelated (Noise)
+ */
+template <typename Model> struct AdditivityOf<Model>
+{
+    typedef typename AdditivityOf<Model, typename Model::Type>::Type Type;
+};
+
+
+/**
+ * \internal
+ * \ingroup traits
+ */
+template <typename Model> struct RemoveAdditivityOf
+{
+    typedef Model Type;
+};
+
+template <typename Model>
+struct RemoveAdditivityOf<Additive<Model>>
+{
+    typedef Model Type;
+};
+
+template <typename Model>
+struct RemoveAdditivityOf<NonAdditive<Model>>
+{
+    typedef Model Type;
+};
+
 }
 
 #endif
