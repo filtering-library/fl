@@ -47,7 +47,7 @@ struct Traits<JointDistribution<MultipleOf<Distribution, Count>>>
     enum : signed int
     {
         MarginalCount = Count,
-        JointSize = ExpandSizes<SizeOf<MarginalVariate>(), Count>::Size
+        JointSize = ExpandSizes<SizeOf<MarginalVariate>::Value, Count>::Size
     };
 
     typedef typename MarginalVariate::Scalar Scalar;
