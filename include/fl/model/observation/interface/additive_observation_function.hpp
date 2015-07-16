@@ -37,9 +37,12 @@ template <
     int Id = 0
 >
 class AdditiveObservationFunction
-    : public ObservationFunction<Obsrv, State, Noise, Id>
+    : public ObservationFunction<Obsrv, State, Noise, Id>,
+      public internal::AdditiveModelType
 {
 public:
+    typedef internal::AdditiveModelType Type;
+
     typedef ObservationFunction<Obsrv, State, Noise, Id> FunctionInterface;
 
     /**
