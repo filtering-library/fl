@@ -130,7 +130,7 @@ public:
      * \param posterior_belief    Updated posterior state distribution
      */
     virtual void update(const Belief& predicted_belief,
-                        const Obsrv& observation,
+                        const Obsrv& obsrv,
                         Belief& posterior_belief) = 0;
 
     /**
