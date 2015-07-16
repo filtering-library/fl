@@ -22,7 +22,7 @@
 #include <gtest/gtest.h>
 
 #include <fl/exception/exception.hpp>
-#include <fl/filter/gaussian/point_set.hpp>
+#include <fl/filter/gaussian/transform/point_set.hpp>
 
 TEST(Exception, create)
 {
