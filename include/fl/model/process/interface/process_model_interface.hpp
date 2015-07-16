@@ -34,8 +34,11 @@ template <
     int Id = 0
 >
 class StateTransitionFunction
+    : internal::NonAdditiveModelType
 {
 public:
+    typedef internal::NonAdditiveModelType Type;
+
     typedef State_ State;
     typedef Noise_ Noise;
     typedef Input_ Input;
