@@ -21,6 +21,7 @@
 
 #include <fl/util/meta.hpp>
 #include <fl/util/traits.hpp>
+#include <fl/util/descriptor.hpp>
 #include <fl/distribution/gaussian.hpp>
 #include <fl/filter/gaussian/transform/point_set.hpp>
 
@@ -31,6 +32,7 @@ template <typename ... > class SigmaPointQuadrature;
 
 template <typename Transform>
 class SigmaPointQuadrature<Transform>
+    : Descriptor
 {
 public:
     explicit SigmaPointQuadrature(const Transform& transform)
@@ -195,6 +197,19 @@ public:
     const Transform& transform() const
     {
         return transform_;
+    }
+
+    virtual std::string name() const
+    {
+        return "SigmaPointQuadrature<"
+                    + list_arguments(transform().name())
+                + ">";
+    }
+
+    virtual std::string description() const
+    {
+        return "Sigma Point based numerical quadrature using :"
+                + indent(transform().description());
     }
 
 protected:
