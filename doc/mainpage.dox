@@ -10,7 +10,7 @@ namespace fl
 
 \section about_fl About FL (draft)
 
-FL is general purpose C++ ([C++11 or C++0x](http://en.wikipedia.org/wiki/C%2B%2B11)
+FL is general purpose C++ ([C++11](http://en.wikipedia.org/wiki/C%2B%2B11)
 standard) Bayesian filtering framework library with real-time support for
 linear and non-linear systems. Currently available filters are (just an
 example list)
@@ -19,10 +19,7 @@ example list)
  - General Particle Filter
  - Coordinate Particle Filter
  - KalmanFilter for purely linear systems
- - Unscented Kalman Filter for linear and non-linear systems
- - Extended Unscented Kalman Filter for high-dimension measurement spaces
- - Factorized Unscented Kalman Filter for high-dimension state and measurement spaces
- - General (Sigma) Point Kalman Filter for linear and non-linear systems
+ - Sigma Point Kalman Filter for linear and non-linear systems
 
 
 The library is being developed as an extensible framework with low application
@@ -48,16 +45,20 @@ standard for your compiler. With GCC you may add the definition
 
     -std=c++0x OR -std=c++11
 
+\subsection tested_eigen Tested Eigen3
+
+  - Eigen 3.1.2
+  - Eigen 3.2.0
+
 \subsection tested_compilers Tested Compilers
 
-  - GCC 4.6
-  - GCC 4.8
+  - GCC 4.6 (-std=c++0x)
+  - GCC 4.8 (-std=c++11)
 
 \subsection tested_os Tested OS
 
   - Ubuntu 12.04 LTS (Precise (AMD64))
   - Ubuntu 14.04 LTS (Trusty Tahr (AMD64))
-
 */
 
 }
