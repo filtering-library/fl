@@ -26,6 +26,7 @@
 
 #include <fl/util/meta.hpp>
 #include <fl/util/traits.hpp>
+#include <fl/util/descriptor.hpp>
 #include <fl/filter/gaussian/transform/point_set.hpp>
 #include <fl/filter/gaussian/quadrature/sigma_point_quadrature.hpp>
 
@@ -42,6 +43,7 @@ template <
 class SigmaPointUpdatePolicy<
           SigmaPointQuadrature,
           Additive<AdditiveObservationFunction>>
+    : public Descriptor
 {
 public:
     typedef typename AdditiveObservationFunction::State State;
@@ -88,6 +90,21 @@ public:
         posterior_belief.covariance(cov_xx - K * cov_yy * K.transpose());
     }
 
+    virtual std::string name() const
+    {
+        return "SigmaPointUpdatePolicy<"
+                + list_arguments(
+                       "SigmaPointQuadrature",
+                       "Additive<AdditiveObservationFunction>")
+                + ">";
+    }
+
+    virtual std::string description() const
+    {
+        return "Sigma Point based filter update policy for observation model"
+               " with additive noise";
+    }
+
 protected:
     StatePointSet X;
     ObsrvPointSet Z;
@@ -96,3 +113,4 @@ protected:
 }
 
 #endif
+
