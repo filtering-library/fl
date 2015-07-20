@@ -60,7 +60,7 @@ fl_add_test(
     SOURCES typecast.hpp
             gaussian_filter/gaussian_filter_test_suite.hpp
             gaussian_filter/unscented_kalman_filter_test.cpp)
-            
+
 ## == Particle filters tests ================================================= #
 ##catkin_add_gtest(particle_filter_test
 ##                 particle_filter/particle_filter_test.cpp
@@ -71,7 +71,8 @@ fl_add_test(
 fl_add_test(
     NAME    particle_filter_fixture
     SOURCES particle_filter/particle_filter_fixture_test.cpp)
-    
+
+
 #fl_add_test(frb_particle_filter_test
 #                 particle_filter/frb_particle_filter_test.cpp
 #                 gtest_main.cpp)
