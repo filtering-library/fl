@@ -25,6 +25,7 @@
 #include <fl/filter/gaussian/transform/unscented_transform.hpp>
 #include <fl/filter/gaussian/transform/monte_carlo_transform.hpp>
 #include <fl/filter/gaussian/quadrature/sigma_point_quadrature.hpp>
+#include <fl/filter/gaussian/quadrature/unscented_quadrature.hpp>
 
 #include <fl/filter/gaussian/gaussian_filter_kf.hpp>
 #include <fl/filter/gaussian/gaussian_filter_spkf.hpp>
