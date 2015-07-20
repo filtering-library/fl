@@ -23,6 +23,7 @@
 #define FL__MODEL__PROCESS__LINEAR_GAUSSIAN_PROCESS_MODEL_HPP
 
 #include <fl/util/traits.hpp>
+#include <fl/util/descriptor.hpp>
 #include <fl/distribution/gaussian.hpp>
 #include <fl/model/process/interface/state_transition_function.hpp>
 
@@ -42,7 +43,8 @@ namespace fl
 template <typename State_, typename Input_>
 class LinearStateTransitionModel
     : public StateTransitionDensity<State_, Input_>,
-      public AdditiveStateTransitionFunction<State_, State_, Input_>
+      public AdditiveStateTransitionFunction<State_, State_, Input_>,
+      public Descriptor
 {
 public:
     typedef State_ State;
@@ -202,6 +204,17 @@ public: /* accessors & mutators */
     {
         discretization_time_step_ = new_discretization_time_step;
     }
+
+    virtual std::string name() const
+    {
+        return "LinearStateTransitionModel";
+    }
+
+    virtual std::string description() const
+    {
+        return "Linear state transition model";
+    }
+
 
 protected:
     DynamicsMatrix dynamics_matrix_;
