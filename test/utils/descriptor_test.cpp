@@ -46,6 +46,8 @@ class NestedDummy
     : public D
 {
 public:
+    using D::indent;
+
     virtual std::string name() const
     {
         return "NestedDummy<" + indent(D::name()) + ">";
