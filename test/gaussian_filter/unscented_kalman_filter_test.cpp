@@ -41,7 +41,8 @@ struct UnscentedKalmanFilterTestConfiguration
     template <typename StateTransitionModel, typename ObservationModel>
     struct FilterDefinition
     {
-        typedef fl::SigmaPointQuadrature<fl::UnscentedTransform> Quadrature;
+        //typedef fl::SigmaPointQuadrature<fl::UnscentedTransform> Quadrature;
+        typedef fl::UnscentedQuadrature Quadrature;
 
         typedef fl::GaussianFilter<
                         StateTransitionModel,
@@ -54,8 +55,7 @@ struct UnscentedKalmanFilterTestConfiguration
     static typename FilterDefinition<F, H>::Type create_filter(F&& f, H&& h)
     {
         return typename FilterDefinition<F, H>::Type(
-            f, h, fl::SigmaPointQuadrature<fl::UnscentedTransform>(
-                        fl::UnscentedTransform()));
+            f, h, fl::UnscentedQuadrature());
     }
 };
 
