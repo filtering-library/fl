@@ -50,17 +50,17 @@ template <typename...> class GaussianFilter;
  * GaussianFilter Traits
  */
 template <
-    typename ProcessModel,
+    typename StateTransitionModel,
     typename ObservationModel,
     typename Quadrature,
     typename ... Policies
 >
 struct Traits<
            GaussianFilter<
-               ProcessModel, ObservationModel, Quadrature, Policies...>>
+               StateTransitionModel, ObservationModel, Quadrature, Policies...>>
 {
-    typedef typename ProcessModel::State State;
-    typedef typename ProcessModel::Input Input;
+    typedef typename StateTransitionModel::State State;
+    typedef typename StateTransitionModel::Input Input;
     typedef typename ObservationModel::Obsrv Obsrv;
     typedef Gaussian<State> Belief;
 };
@@ -153,7 +153,8 @@ class GaussianFilter<
                    ObservationFunction,
                    Quadrature,
                    PredictionPolicy,
-                   UpdatePolicy>>
+                   UpdatePolicy>>,
+    public Descriptor
 {
 public:
     typedef typename StateTransitionFunction::State State;
@@ -277,6 +278,30 @@ public: /* accessors & mutators */
     const Quadrature& quadrature() const
     {
         return quadrature_;
+    }
+
+
+    virtual std::string name() const
+    {
+        return "GaussianFilter<"
+                + list_arguments(
+                       process_model().name(),
+                       obsrv_model().name(),
+                       quadrature().name(),
+                       prediction_policy_.name(),
+                       update_policy_.name())
+                + ">";
+    }
+
+    virtual std::string description() const
+    {
+        return "Sigma point based GaussianFilter with"
+                + list_descriptions(
+                       process_model().description(),
+                       obsrv_model().description(),
+                       quadrature().description(),
+                       prediction_policy_.description(),
+                       update_policy_.description());
     }
 
 protected:
