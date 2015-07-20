@@ -13,7 +13,6 @@ add_definitions(-DUSE_RANDOM_SEED=0)
 ############################
 # Setup                    #
 ############################
-set(fl_VENDOR_PATH "${PROJECT_SOURCE_DIR}/vendor")
 set(fl_INCLUDE_DIRS include)
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
@@ -27,7 +26,7 @@ message("# Version ${FL_MAJOR_VERSION}.${FL_MINOR_VERSION}.${FL_BUILD_VERSION}")
 message("##############################")
 
 ############################
-# Dependecies             ##
+# Dependencies            ##
 ############################
 find_package(Eigen 3.1 REQUIRED)
 include_directories(${Eigen_INCLUDE_DIRS})
@@ -38,8 +37,9 @@ add_definitions(${Eigen_DEFINITIONS})
 ############################
 find_package(catkin QUIET)
 if (catkin_FOUND)
-    catkin_package(INCLUDE_DIRS ${fl_INCLUDE_DIRS} DEPENDS Eigen)
-    set(fl_INCLUDE_DIRS ${catkin_INCLUDE_DIRS})
+    message("Using catkin ... ")
+    catkin_package(INCLUDE_DIRS include DEPENDS Eigen)
+    list(APPEND fl_INCLUDE_DIRS ${catkin_INCLUDE_DIRS})
 endif(catkin_FOUND)
 
 ############################
