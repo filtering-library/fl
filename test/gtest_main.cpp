@@ -18,7 +18,6 @@
  * \date May 2014
  * \author Jan Issac (jan.issac@gmail.com)
  */
-#include <ros/ros.h>
 #include <gtest/gtest.h>
 
 int main(int argc, char **argv)
