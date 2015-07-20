@@ -28,6 +28,8 @@
 #include <fl/util/meta.hpp>
 #include <fl/filter/gaussian/gaussian_filter.hpp>
 
+using namespace fl;
+
 template <int StateDimension, int InputDimension, int ObsrvDimension>
 struct UnscentedKalmanFilterTestConfiguration
 {
@@ -41,10 +43,10 @@ struct UnscentedKalmanFilterTestConfiguration
     template <typename StateTransitionModel, typename ObservationModel>
     struct FilterDefinition
     {
-        //typedef fl::SigmaPointQuadrature<fl::UnscentedTransform> Quadrature;
-        typedef fl::UnscentedQuadrature Quadrature;
+        //typedef SigmaPointQuadrature<UnscentedTransform> Quadrature;
+        typedef UnscentedQuadrature Quadrature;
 
-        typedef fl::GaussianFilter<
+        typedef GaussianFilter<
                         StateTransitionModel,
                         ObservationModel,
                         Quadrature
@@ -55,18 +57,18 @@ struct UnscentedKalmanFilterTestConfiguration
     static typename FilterDefinition<F, H>::Type create_filter(F&& f, H&& h)
     {
         return typename FilterDefinition<F, H>::Type(
-            f, h, fl::UnscentedQuadrature());
+            f, h, UnscentedQuadrature());
     }
 };
 
 typedef ::testing::Types<
-            fl::StaticTest<UnscentedKalmanFilterTestConfiguration<3, 1, 2>>,
-            fl::StaticTest<UnscentedKalmanFilterTestConfiguration<3, 3, 10>>,
-            fl::StaticTest<UnscentedKalmanFilterTestConfiguration<10, 10, 20>>,
+            StaticTest<UnscentedKalmanFilterTestConfiguration<3, 1, 2>>,
+            StaticTest<UnscentedKalmanFilterTestConfiguration<3, 3, 10>>,
+            StaticTest<UnscentedKalmanFilterTestConfiguration<10, 10, 20>>,
 
-            fl::DynamicTest<UnscentedKalmanFilterTestConfiguration<3, 1, 2>>,
-            fl::DynamicTest<UnscentedKalmanFilterTestConfiguration<3, 3, 10>>,
-            fl::DynamicTest<UnscentedKalmanFilterTestConfiguration<10, 10, 20>>
+            DynamicTest<UnscentedKalmanFilterTestConfiguration<3, 1, 2>>,
+            DynamicTest<UnscentedKalmanFilterTestConfiguration<3, 3, 10>>,
+            DynamicTest<UnscentedKalmanFilterTestConfiguration<10, 10, 20>>
         > TestTypes;
 
 INSTANTIATE_TYPED_TEST_CASE_P(UnscentedKalmanFilterTest,
