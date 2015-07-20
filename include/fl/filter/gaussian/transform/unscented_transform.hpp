@@ -20,6 +20,7 @@
 #define FL__FILTER__GAUSSIAN__UNSCENTED_TRANSFORM_HPP
 
 #include <fl/util/traits.hpp>
+#include <fl/util/descriptor.hpp>
 #include <fl/distribution/gaussian.hpp>
 #include <fl/filter/gaussian/transform/point_set_transform.hpp>
 #include <fl/distribution/joint_distribution.hpp>
@@ -37,7 +38,8 @@ namespace fl
  * \cite wan2000unscented . It implememnts the PointSetTransform interface.
  */
 class UnscentedTransform
-    : public PointSetTransform<UnscentedTransform>
+    : public PointSetTransform<UnscentedTransform>,
+      public Descriptor
 {
 public:
     /**
@@ -248,6 +250,16 @@ public:
         return std::sqrt(dim + lambda_scalar(dim));
     }
     /** \endcond */
+
+    virtual std::string name() const
+    {
+        return "UnscentedTransform";
+    }
+
+    virtual std::string description() const
+    {
+        return name();
+    }
 
 protected:
     /** \cond INTERNAL */

@@ -24,8 +24,11 @@
 
 #include <Eigen/Dense>
 
+#include <string>
+
 #include <fl/util/meta.hpp>
 #include <fl/util/traits.hpp>
+#include <fl/util/descriptor.hpp>
 #include <fl/filter/gaussian/transform/point_set.hpp>
 #include <fl/filter/gaussian/quadrature/sigma_point_quadrature.hpp>
 
@@ -54,6 +57,7 @@ template <
 class SigmaPointPredictPolicy<
           SigmaPointQuadrature,
           NonAdditive<StateTransitionFunction>>
+    : public Descriptor
 {
 public:
     typedef typename StateTransitionFunction::State State;
@@ -127,6 +131,22 @@ public:
          */
         predicted_belief.mean(Z.mean());
         predicted_belief.covariance(X_c * W.asDiagonal() * X_c.transpose());
+    }
+
+
+    virtual std::string name() const
+    {
+        return "SigmaPointPredictPolicy<"
+                + list_arguments(
+                       "SigmaPointQuadrature",
+                       "NonAdditive<StateTransitionFunction>")
+                + ">";
+    }
+
+    virtual std::string description() const
+    {
+        return "Sigma Point based filter prediction policy for state transition"
+               " model with non-additive noise";
     }
 
 protected:

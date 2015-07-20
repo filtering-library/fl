@@ -23,6 +23,7 @@
 #define FL__MODEL__OBSERVATION__LINEAR_OBSERVATION_MODEL_HPP
 
 #include <fl/util/traits.hpp>
+#include <fl/util/descriptor.hpp>
 #include <fl/distribution/gaussian.hpp>
 #include <fl/model/adaptive_model.hpp>
 #include <fl/model/observation/interface/observation_density.hpp>
@@ -54,7 +55,8 @@ namespace fl
 template <typename Obsrv_, typename State_>
 class LinearObservationModel
     : public ObservationDensity<Obsrv_, State_>,                  // p(y|x)
-      public AdditiveObservationFunction<Obsrv_, State_, Obsrv_>  // H*x + N*v
+      public AdditiveObservationFunction<Obsrv_, State_, Obsrv_>, // H*x + N*v
+      public Descriptor
 {
 public:
     typedef Obsrv_ Obsrv;
@@ -191,6 +193,16 @@ public:
         auto N = noise_matrix();
         N.setIdentity();
         return N;
+    }
+
+    virtual std::string name() const
+    {
+        return "LinearObservationModel";
+    }
+
+    virtual std::string description() const
+    {
+        return "Linear observation model";
     }
 
 protected:
