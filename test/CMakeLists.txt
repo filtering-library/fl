@@ -39,6 +39,10 @@ fl_add_test(
     SOURCES distribution/gaussian_test.cpp)
 
 fl_add_test(
+    NAME    decorrelated_gaussian_distribution
+    SOURCES distribution/decorrelated_gaussian_test.cpp)
+
+fl_add_test(
     NAME    discrete_distribution
     SOURCES distribution/discrete_distribution_test.cpp)
 
