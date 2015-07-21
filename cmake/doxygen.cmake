@@ -13,6 +13,9 @@
 # The documentation will be generated within /path/to/fl/build/doc
 #
 
+set(DOC_SYNC_LOCATION ""
+    CACHE STRING "Sync location (URL or PATH where to sync the doc to.)")
+
 set(TARGET_FAILED_SCRIPT_TEMPLATE
     ${CMAKE_CURRENT_SOURCE_DIR}/cmake/target_failed.cmake.in)
 
@@ -41,7 +44,10 @@ if(DOXYGEN_FOUND)
 
         add_custom_target(doc_fl
             COMMAND ${CMAKE_COMMAND} -P ${TARGET_FAILED_SCRIPT})
+        add_custom_target(doc_fl_and_sync
+            COMMAND ${CMAKE_COMMAND} -P ${TARGET_FAILED_SCRIPT})
     else(DOXYGEN_VERSION VERSION_LESS MIN_DOXYGEN_VERSION)
+        # doc_fl target
         configure_file(
             ${CMAKE_CURRENT_SOURCE_DIR}/doc/Doxyfile.in
             ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
@@ -50,6 +56,19 @@ if(DOXYGEN_FOUND)
             COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
             COMMENT "Generating API documentation with Doxygen" VERBATIM)
+
+        # doc_fl_and_sync target
+        configure_file(
+            ${CMAKE_CURRENT_SOURCE_DIR}/cmake/sync_doc.cmake.in
+            ${CMAKE_CURRENT_BINARY_DIR}/cmake/sync_doc.cmake @ONLY)
+        add_custom_target(doc_fl_and_sync
+            #${CMAKE_COMMAND} ${CMAKE_CURRENT_SOURCE_DIR}
+            COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
+            COMMAND ${CMAKE_COMMAND} -P
+                    ${CMAKE_CURRENT_BINARY_DIR}/cmake/sync_doc.cmake
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+            COMMENT "Generating API documentation with Doxygen" VERBATIM)
+
     endif(DOXYGEN_VERSION VERSION_LESS MIN_DOXYGEN_VERSION)
 else(DOXYGEN_FOUND)
     set(DOXYGEN_WARN_MSG "Doxygen not found.")
