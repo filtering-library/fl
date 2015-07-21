@@ -22,7 +22,7 @@ set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 include(${CMAKE_MODULE_PATH}/version.cmake)
 message("##############################")
 message("# Filtering Library ")
-message("# Version ${FL_MAJOR_VERSION}.${FL_MINOR_VERSION}.${FL_BUILD_VERSION}")
+message("# Version ${PROJECT_VERSION}")
 message("##############################")
 
 ############################
