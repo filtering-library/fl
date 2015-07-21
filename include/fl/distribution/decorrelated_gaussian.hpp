@@ -14,10 +14,9 @@
  */
 
 /**
- * \file gaussian.hpp
- * \date October 2014
+ * \file decorrelated_gaussian.hpp
+ * \date JUly 2015
  * \author Jan Issac (jan.issac@gmail.com)
- * \author Manuel Wuthrich (manuel.wuthrich@gmail.com)
  */
 
 #ifndef FL__DISTRIBUTION__DECORRELATED_GAUSSIAN_HPP
@@ -95,8 +94,10 @@ public:
      * \brief Second moment matrix type, i.e covariance matrix, precision
      *        matrix, and their diagonal and square root representations
      */
-    typedef
-    typename Moments<Variate, Variate>::SecondMoment DiagonalSecondMoment;
+    typedef typename Moments<
+        Variate,
+        typename DiagonalSecondMomentOf<Variate>::Type
+    >::SecondMoment DiagonalSecondMoment;
 
     /**
      * \brief Represents the StandardGaussianMapping standard variate type which
@@ -137,7 +138,7 @@ public:
      *                  adapted. For dynamic-sized Variable the dimension is
      *                  initialized to 0.
      */
-    explicit Gaussian(int dim = DimensionOf<Variate>()):
+    explicit DecorrelatedGaussian(int dim = DimensionOf<Variate>()):
         StdGaussianMappingInterface(dim),
         dirty_(Attributes, true)
     {
@@ -149,7 +150,7 @@ public:
     /**
      * \brief Overridable default destructor
      */
-    virtual ~Gaussian() { }
+    virtual ~DecorrelatedGaussian() { }
 
     /**
      * \return Gaussian dimension
@@ -183,7 +184,7 @@ public:
      *       = {Valid Representations} \f$ \cup \f$ {#CovarianceMatrix}
      * \endcond
      */
-    virtual const DiagonalSecondMoment& diagonal_covariance() const
+    virtual const DiagonalSecondMoment& covariance() const
     {
         if (dimension() == 0)
         {
@@ -196,21 +197,15 @@ public:
                                                  DiagonalPrecisionMatrix}))
             {
             case DiagonalSquareRootMatrix:
-                covariance_.setZero(dimension());
-
-                for (int i = 0; i < square_root_.diagonalSize(); ++i)
-                {
-                    covariance_(i, i) = square_root_(i, i) * square_root_(i, i);
-                }
-                break;
+            {
+                covariance_.diagonal() = square_root_.diagonal().cwiseProduct(
+                                            square_root_.diagonal());
+             } break;
 
             case DiagonalPrecisionMatrix:
-                covariance_.setZero(dimension(), dimension());
-                for (int i = 0; i < precision_.diagonalSize(); ++i)
-                {
-                    covariance_(i, i) = 1./precision_(i, i);
-                }
-                break;
+            {
+                covariance_.diagonal() = precision_.diagonal().cwiseInverse();
+            } break;
 
             default:
                 fl_throw(InvalidGaussianRepresentationException());
@@ -240,7 +235,7 @@ public:
      *       = {Valid Representations} \f$ \cup \f$ {#PrecisionMatrix}
      * \endcond
      */
-    virtual const SecondMoment& diagonal_precision() const
+    virtual const DiagonalSecondMoment& precision() const
     {
         if (dimension() == 0)
         {
@@ -249,20 +244,12 @@ public:
 
         if (is_dirty(DiagonalPrecisionMatrix))
         {
-            const SecondMoment& cov = covariance();
-
             switch (select_first_representation({DiagonalCovarianceMatrix,
-                                                 DiagonalSquareRootMatrix,
-                                                 CovarianceMatrix,
-                                                 SquareRootMatrix}))
+                                                 DiagonalSquareRootMatrix}))
             {
             case DiagonalCovarianceMatrix:
             case DiagonalSquareRootMatrix:
-                precision_.setZero(dimension(), dimension());
-                for (int i = 0; i < cov.rows(); ++i)
-                {
-                    precision_(i, i) = 1./cov(i, i);
-                }
+                precision_.diagonal() = covariance().diagonal().cwiseInverse();
                 break;
 
             default:
@@ -294,46 +281,22 @@ public:
      *       = {Valid Representations} \f$ \cup \f$ {#SquareRootMatrix}
      * \endcond
      */
-    virtual const SecondMoment& square_root() const
+    virtual const DiagonalSecondMoment& square_root() const
     {
         if (dimension() == 0)
         {
             fl_throw(GaussianUninitializedException());
         }
 
-        if (is_dirty(SquareRootMatrix) && is_dirty(DiagonalSquareRootMatrix))
+        if (is_dirty(DiagonalSquareRootMatrix))
         {
-            const SecondMoment& cov = covariance();
-
             switch (select_first_representation({DiagonalCovarianceMatrix,
-                                                 DiagonalPrecisionMatrix,
-                                                 CovarianceMatrix,
-                                                 PrecisionMatrix}))
+                                                 DiagonalPrecisionMatrix}))
             {
-            case CovarianceMatrix:
-            case PrecisionMatrix:
-            {
-                /// \todo: replace this with the linear_algebra fct matrix_sqrt
-                Eigen::LDLT<SecondMoment> ldlt;
-                ldlt.compute(covariance());
-                Variate D_sqrt = ldlt.vectorD();
-                for(int i = 0; i < D_sqrt.rows(); ++i)
-                {
-                    D_sqrt(i) = std::sqrt(std::fabs(D_sqrt(i)));
-                }
-                square_root_ = ldlt.transpositionsP().transpose()
-                                * (SecondMoment)ldlt.matrixL()
-                                * D_sqrt.asDiagonal();
-            } break;
-
             case DiagonalCovarianceMatrix:
             case DiagonalPrecisionMatrix:
             {
-                square_root_.setZero(dimension(), dimension());
-                for (int i = 0; i < square_root_.rows(); ++i)
-                {
-                    square_root_(i, i) = std::sqrt(cov(i, i));
-                }
+                square_root_.diagonal() = covariance().diagonal().cwiseSqrt();
             } break;
 
             default:
@@ -341,7 +304,7 @@ public:
                 break;
             }
 
-            updated_internally(SquareRootMatrix);
+            updated_internally(DiagonalSquareRootMatrix);
         }
 
         return square_root_;
@@ -362,8 +325,25 @@ public:
     {
         if (is_dirty(Rank))
         {
-            full_rank_ =
-               covariance().colPivHouseholderQr().rank() == covariance().rows();
+            full_rank_ = true;
+
+            switch (select_first_representation({DiagonalCovarianceMatrix,
+                                                 DiagonalPrecisionMatrix,
+                                                 DiagonalSquareRootMatrix}))
+            {
+            case DiagonalCovarianceMatrix:
+                full_rank_ = has_full_rank(covariance());
+                break;
+            case DiagonalPrecisionMatrix:
+                full_rank_ = has_full_rank(precision());
+                break;
+            case DiagonalSquareRootMatrix:
+                full_rank_ = has_full_rank(square_root());
+                break;
+            default:
+                fl_throw(InvalidGaussianRepresentationException());
+                break;
+            }
 
             updated_internally(Rank);
         }
@@ -389,7 +369,7 @@ public:
             if (has_full_rank())
             {
                 log_norm_ = -0.5
-                    * (log(covariance().determinant())
+                    * (log(covariance().diagonal().prod())
                        + Real(covariance().rows()) * log(2.0 * M_PI));
             }
             else
@@ -462,12 +442,15 @@ public:
     virtual void set_standard()
     {
         mean_.resize(dimension());
-        covariance_.resize(dimension(), dimension());
-        precision_.resize(dimension(), dimension());
-        square_root_.resize(dimension(), dimension());
+        covariance_.resize(dimension());
+        precision_.resize(dimension());
+        square_root_.resize(dimension());
 
         mean(Variate::Zero(dimension()));
-        covariance(DiagonalSecondMoment::Identity(dimension(), dimension()));
+
+        auto cov = DiagonalSecondMoment(dimension());
+        cov.setIdentity(dimension());
+        covariance(cov);
 
         full_rank_ = true;
         updated_internally(Rank);
@@ -525,7 +508,7 @@ public:
      *
      * \throws WrongSizeException
      */
-    virtual void diagonal_covariance(
+    virtual void covariance(
         const DiagonalSecondMoment& diag_covariance) noexcept
     {
         if (diag_covariance.size() != covariance_.size())
@@ -552,7 +535,7 @@ public:
      *
      * \throws WrongSizeException
      */
-    virtual void diagonal_square_root(
+    virtual void square_root(
         const DiagonalSecondMoment& diag_square_root) noexcept
     {
         if (diag_square_root.size() != square_root_.size())
@@ -579,7 +562,7 @@ public:
      *
      * \throws WrongSizeException
      */
-    virtual void diagonal_precision(
+    virtual void precision(
         const DiagonalSecondMoment& diag_precision) noexcept
     {
         if (diag_precision.size() != precision_.size())
@@ -664,6 +647,27 @@ protected:
     {
         for (auto& rep: representations)  if (!is_dirty(rep)) return rep;
         return Attributes;
+    }
+
+    /**
+     * \brief has_full_rank check implementation
+     */
+    virtual bool has_full_rank(const DiagonalSecondMoment& mat) const
+    {
+        bool full_rank = true;
+
+        const auto& diag = mat.diagonal();
+
+        for (int i = 0; i < diag.size(); ++i)
+        {
+            if (diag(i) == 0)
+            {
+                full_rank = false;
+                break;
+            }
+        }
+
+        return full_rank;
     }
     /** \endcond */
 
