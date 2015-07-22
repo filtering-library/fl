@@ -27,11 +27,11 @@
 namespace fl
 {
 
-#if defined(FL_USE_FLOAT)
+#if defined(fl_USE_FLOAT)
     typedef float FloatingPoint;
-#elif defined(FL_USE_DOUBLE)
+#elif defined(fl_USE_DOUBLE)
     typedef double FloatingPoint;
-#elif defined(FL_USE_LONG_DOUBLE)
+#elif defined(fl_USE_LONG_DOUBLE)
     typedef long double FloatingPoint;
 #else
     typedef double FloatingPoint;
