@@ -122,7 +122,9 @@ public:
     // accessor ****************************************************************
     virtual PoseVector inverse() const
     {
-        return - (*this);
+        PoseVector inv;
+        inv.homogeneous_matrix(this->homogeneous_matrix().inverse());
+        return inv;
     }
 };
 
@@ -134,6 +136,8 @@ class PoseBlock: public PoseBase<Eigen::VectorBlock<Vector, 6>>
 public:
     typedef Eigen::VectorBlock<Vector, 6>   Block;
     typedef PoseBase<Block>                 Base;
+
+    using Base::operator=;
 
     // constructor and destructor **********************************************
     PoseBlock(const Block& block): Base(block) { }

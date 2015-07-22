@@ -139,6 +139,8 @@ public:
     typedef Eigen::VectorBlock<Vector, 3> Block;
     typedef EulerBase<Block>              Base;
 
+    using Base::operator=;
+
     // constructor and destructor **********************************************
     EulerBlock(const Block& block): Base(block) { }
     EulerBlock(Vector& vector, int start): Base(Block(vector, start)) { }
