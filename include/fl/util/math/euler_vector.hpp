@@ -137,7 +137,7 @@ class EulerBlock: public EulerBase<Eigen::VectorBlock<Vector, 3>>
 {
 public:
     typedef Eigen::VectorBlock<Vector, 3> Block;
-    typedef EulerBase<Eigen::VectorBlock<Vector, 3>> Base;
+    typedef EulerBase<Block>              Base;
 
     // constructor and destructor **********************************************
     EulerBlock(const Block& block): Base(block) { }

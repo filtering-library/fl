@@ -109,14 +109,6 @@ public:
     }
 
 
-
-
-//    // other representations
-//    virtual void quaternion(const Quaternion& quaternion, )
-//    {
-//        AngleAxis angle_axis(quaternion.normalized());
-//        euler_vector(body_index) = angle_axis.angle()*angle_axis.axis();
-//    }
 //    virtual void pose(const Affine& affine, )
 //    {
 //       quaternion(Quaternion(affine.rotation()), body_index);
@@ -124,25 +116,6 @@ public:
 //    }
 
 
-
-
-
-//    // other representations
-//    virtual Quaternion quaternion(const size_t& object_index = 0) const
-//    {
-//        Real angle = euler_vector(object_index).norm();
-//        Vector axis = euler_vector(object_index).normalized();
-
-//        if(std::isfinite(axis.norm()))
-//        {
-//            return Quaternion(AngleAxis(angle, axis));
-//        }
-//        return Quaternion::Identity();
-//    }
-//    virtual RotationMatrix rotation_matrix(const size_t& object_index = 0) const
-//    {
-//        return RotationMatrix(quaternion(object_index));
-//    }
 //    virtual HomogeneousMatrix homogeneous_matrix(const size_t& object_index = 0) const
 //    {
 //        HomogeneousMatrix homogeneous_matrix(HomogeneousMatrix::Identity());
