@@ -42,7 +42,7 @@ if(DOXYGEN_FOUND)
             ${TARGET_FAILED_SCRIPT_TEMPLATE}
             ${TARGET_FAILED_SCRIPT} @ONLY)
 
-        add_custom_target(doc_fl
+        add_custom_target(doc_${PROJECT_NAME}
             COMMAND ${CMAKE_COMMAND} -P ${TARGET_FAILED_SCRIPT})
         add_custom_target(doc_${PROJECT_NAME}_and_sync
             COMMAND ${CMAKE_COMMAND} -P ${TARGET_FAILED_SCRIPT})
@@ -51,7 +51,7 @@ if(DOXYGEN_FOUND)
         configure_file(
             ${CMAKE_CURRENT_SOURCE_DIR}/doc/Doxyfile.in
             ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
-        add_custom_target(doc_fl
+        add_custom_target(doc_${PROJECT_NAME}
             ${CMAKE_COMMAND} ${CMAKE_CURRENT_SOURCE_DIR}
             COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
