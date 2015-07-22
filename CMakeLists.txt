@@ -20,8 +20,9 @@ add_definitions(-DPROFILING_ON=1) #print profiling output
 # Setup                    #
 ############################
 set(fl_INCLUDE_DIRS include)
-set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
-include(${CMAKE_MODULE_PATH}/definitions.cmake)
+set(fl_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+set(CMAKE_MODULE_PATH ${fl_MODULE_PATH})
+include(${fl_MODULE_PATH}/definitions.cmake)
 
 ############################
 ## catkin                  #
@@ -39,12 +40,12 @@ endif(catkin_FOUND AND fl_USE_CATKIN)
 ############################
 # Library Version          #
 ############################
-include(${CMAKE_MODULE_PATH}/version.cmake)
+include(${fl_MODULE_PATH}/version.cmake)
 
 ############################
 # Dependencies            ##
 ############################
-find_package(Eigen 3.1 REQUIRED)
+find_package(Eigen REQUIRED)
 include_directories(${Eigen_INCLUDE_DIRS})
 add_definitions(${Eigen_DEFINITIONS})
 
@@ -64,12 +65,12 @@ add_definitions(${Eigen_DEFINITIONS})
 #
 set(MIN_DOXYGEN_VERSION 1.8.4)
 find_package(Doxygen ${MIN_DOXYGEN_VERSION})
-include(${CMAKE_MODULE_PATH}/doxygen.cmake)
+include(${fl_MODULE_PATH}/doxygen.cmake)
 
 ############################
 # Library info summary     #
 ############################
-include(${CMAKE_MODULE_PATH}/info.cmake)
+include(${fl_MODULE_PATH}/info.cmake)
 
 ############################
 # Build                    #
@@ -87,5 +88,5 @@ set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
 # Tests                    #
 ############################
 enable_testing()
-include(${CMAKE_MODULE_PATH}/gtest.cmake)
+include(${fl_MODULE_PATH}/gtest.cmake)
 add_subdirectory(test)

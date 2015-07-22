@@ -2,10 +2,11 @@
 include(ExternalProject)
 include(CMakeParseArguments)
 
-if(NOT fl_USING_CATKIN)
+if(NOT ${PROJECT_NAME}_USING_CATKIN)
+
     set(gtest_LIBRARY gtest_local)
     set(gtest_main_LIBRARY gtest_main_local)
-    set(fl_TEST_LIBS ${gtest_LIBRARY} ${gtest_main_LIBRARY})
+    set(${PROJECT_NAME}_TEST_LIBS ${gtest_LIBRARY} ${gtest_main_LIBRARY})
 
     set(GTEST_FRAMEWORK gtest_framework)
 
@@ -40,27 +41,32 @@ if(NOT fl_USING_CATKIN)
     add_dependencies(${gtest_main_LIBRARY} ${gtest_LIBRARY})
 
     include_directories(${gtest_INCLUDE_DIR}/include)
-else(NOT fl_USING_CATKIN)
+
+else(NOT ${PROJECT_NAME}_USING_CATKIN)
+
     set(gtest_LIBRARY gtest)
     set(gtest_main_LIBRARY gtest_main)
-    set(fl_TEST_LIBS ${gtest_LIBRARY} ${gtest_main_LIBRARY})
-endif(NOT fl_USING_CATKIN)
+    set(${PROJECT_NAME}_TEST_LIBS ${gtest_LIBRARY} ${gtest_main_LIBRARY})
 
-function(fl_add_test)
+endif(NOT ${PROJECT_NAME}_USING_CATKIN)
+
+function(${PROJECT_NAME}_add_test)
     set(options)
     set(oneValueArgs NAME)
     set(multiValueArgs SOURCES LIBS)
-    cmake_parse_arguments(
-        fl "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+    cmake_parse_arguments(${PROJECT_NAME}
+        "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
-    set(TEST_NAME "${fl_NAME}_test")
+    set(TEST_NAME "${${PROJECT_NAME}_NAME}_test")
 
-    if(NOT fl_USING_CATKIN)
-        add_executable(${TEST_NAME} ${fl_SOURCES})
-        target_link_libraries(${TEST_NAME} ${fl_TEST_LIBS} ${fl_LIBS})
+    if(NOT ${PROJECT_NAME}_USING_CATKIN)
+        add_executable(${TEST_NAME} ${${PROJECT_NAME}_SOURCES})
+        target_link_libraries(${TEST_NAME}
+            ${${PROJECT_NAME}_TEST_LIBS} ${${PROJECT_NAME}_LIBS})
         add_test(${TEST_NAME} ${TEST_NAME})
-    else(NOT fl_USING_CATKIN)
-        catkin_add_gtest(${TEST_NAME} ${fl_SOURCES})
-        target_link_libraries(${TEST_NAME} ${fl_TEST_LIBS} ${fl_LIBS})
-    endif(NOT fl_USING_CATKIN)
-endfunction(fl_add_test)
+    else(NOT ${PROJECT_NAME}_USING_CATKIN)
+        catkin_add_gtest(${TEST_NAME} ${${PROJECT_NAME}_SOURCES})
+        target_link_libraries(${TEST_NAME}
+            ${${PROJECT_NAME}_TEST_LIBS} ${${PROJECT_NAME}_LIBS})
+    endif(NOT ${PROJECT_NAME}_USING_CATKIN)
+endfunction(${PROJECT_NAME}_add_test)

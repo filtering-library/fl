@@ -44,7 +44,7 @@ if(DOXYGEN_FOUND)
 
         add_custom_target(doc_fl
             COMMAND ${CMAKE_COMMAND} -P ${TARGET_FAILED_SCRIPT})
-        add_custom_target(doc_fl_and_sync
+        add_custom_target(doc_${PROJECT_NAME}_and_sync
             COMMAND ${CMAKE_COMMAND} -P ${TARGET_FAILED_SCRIPT})
     else(DOXYGEN_VERSION VERSION_LESS MIN_DOXYGEN_VERSION)
         # doc_fl target
@@ -57,11 +57,11 @@ if(DOXYGEN_FOUND)
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
             COMMENT "Generating API documentation with Doxygen" VERBATIM)
 
-        # doc_fl_and_sync target
+        # doc_${PROJECT_NAME}_and_sync target
         configure_file(
             ${CMAKE_CURRENT_SOURCE_DIR}/cmake/sync_doc.cmake.in
             ${CMAKE_CURRENT_BINARY_DIR}/cmake/sync_doc.cmake @ONLY)
-        add_custom_target(doc_fl_and_sync
+        add_custom_target(doc_${PROJECT_NAME}_and_sync
             #${CMAKE_COMMAND} ${CMAKE_CURRENT_SOURCE_DIR}
             COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
             COMMAND ${CMAKE_COMMAND} -P
