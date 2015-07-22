@@ -1,0 +1,33 @@
+string(ASCII 27 Esc)
+
+set(fl_USING_CATKIN_STR "no")
+set(fl_USING_RANDOM_SEED_STR "no")
+set(fl_FLOATING_POINT_TYPE_STR "default")
+
+if(fl_USING_CATKIN)
+    set(fl_USING_CATKIN_STR "yes")
+endif(fl_USING_CATKIN)
+
+if(fl_USE_RANDOM_SEED)
+    set(fl_USING_RANDOM_SEED_STR "yes")
+endif(fl_USE_RANDOM_SEED)
+
+if(fl_FLOATING_POINT_TYPE STREQUAL "float")
+    set(fl_FLOATING_POINT_TYPE_STR "float")
+elseif(fl_FLOATING_POINT_TYPE STREQUAL "double")
+    set(fl_FLOATING_POINT_TYPE_STR "double")
+elseif(fl_FLOATING_POINT_TYPE STREQUAL "long double")
+    set(fl_FLOATING_POINT_TYPE_STR "long double")
+else(fl_FLOATING_POINT_TYPE STREQUAL "float")
+    set(fl_FLOATING_POINT_TYPE_STR "double")
+endif(fl_FLOATING_POINT_TYPE STREQUAL "float")
+
+message("-- ${Esc}[3;35m ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ${Esc}[m ")
+message("-- ${Esc}[3;35m ~~ ${Esc}[3;34m Filtering Library ${Esc}[m")
+message("-- ${Esc}[3;35m ~~ ${Esc}[3;34m Version${Esc}[1;34m ${PROJECT_VERSION} ${Esc}[m")
+message("-- ${Esc}[3;35m ~~ ")
+message("-- ${Esc}[3;35m ~~ ${Esc}[1;34m Setup: ${Esc}[m")
+message("-- ${Esc}[3;35m ~~ ${Esc}[m - Using Catkin: ${fl_USING_CATKIN_STR}")
+message("-- ${Esc}[3;35m ~~ ${Esc}[m - Using random seeds: ${fl_USING_RANDOM_SEED_STR}")
+message("-- ${Esc}[3;35m ~~ ${Esc}[m - Using fl::Real floating point type: ${fl_FLOATING_POINT_TYPE_STR}")
+message("-- ${Esc}[3;35m ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ${Esc}[m ")
