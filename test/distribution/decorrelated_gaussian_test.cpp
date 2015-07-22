@@ -45,6 +45,29 @@ public:
     typedef Eigen::Matrix<fl::Real, Size, 1> Vector;
 
 protected:
+    template <typename Gaussian, typename Covariance>
+    void test_gaussian_attributes(Gaussian& gaussian,
+                                  const Covariance& covariance,
+                                  const Covariance& precision,
+                                  const Covariance& square_root)
+    {
+        EXPECT_GT(gaussian.dimension(), 0);
+
+        EXPECT_TRUE(
+            fl::are_similar(gaussian.covariance().diagonal(),
+                            covariance.diagonal()));
+
+        EXPECT_TRUE(
+            fl::are_similar(gaussian.precision().diagonal(),
+                            precision.diagonal()));
+
+        EXPECT_TRUE(
+            fl::are_similar(gaussian.square_root().diagonal(),
+                            square_root.diagonal()));
+
+        EXPECT_TRUE(gaussian.has_full_rank());
+    }
+
     template <typename Gaussian>
     void test_gaussian_covariance(Gaussian& gaussian)
     {
@@ -115,29 +138,6 @@ protected:
             test_gaussian_attributes(
                         gaussian, covariance, precision, square_root);
         }
-    }
-
-    template <typename Gaussian, typename Covariance>
-    void test_gaussian_attributes(Gaussian& gaussian,
-                                  const Covariance& covariance,
-                                  const Covariance& precision,
-                                  const Covariance& square_root)
-    {
-        EXPECT_GT(gaussian.dimension(), 0);
-
-        EXPECT_TRUE(
-            fl::are_similar(gaussian.covariance().diagonal(),
-                            covariance.diagonal()));
-
-        EXPECT_TRUE(
-            fl::are_similar(gaussian.precision().diagonal(),
-                            precision.diagonal()));
-
-        EXPECT_TRUE(
-            fl::are_similar(gaussian.square_root().diagonal(),
-                            square_root.diagonal()));
-
-        EXPECT_TRUE(gaussian.has_full_rank());
     }
 };
 
