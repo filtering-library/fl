@@ -2,11 +2,11 @@
 include(ExternalProject)
 include(CMakeParseArguments)
 
-set(gtest_LIBRARY gtesting)
-set(gtest_main_LIBRARY gtesting_main)
-set(fl_TEST_LIBS ${gtest_LIBRARY} ${gtest_main_LIBRARY})
-
 if(NOT fl_USING_CATKIN)
+    set(gtest_LIBRARY gtesting)
+    set(gtest_main_LIBRARY gtesting_main)
+    set(fl_TEST_LIBS ${gtest_LIBRARY} ${gtest_main_LIBRARY})
+
     set(GTEST_FRAMEWORK gtest_framework)
 
     ExternalProject_Add(
@@ -40,6 +40,10 @@ if(NOT fl_USING_CATKIN)
     add_dependencies(${gtest_main_LIBRARY} ${gtest_LIBRARY})
 
     include_directories(${gtest_INCLUDE_DIR}/include)
+else(NOT fl_USING_CATKIN)
+    set(gtest_LIBRARY gtest)
+    set(gtest_main_LIBRARY gtest_main)
+    set(fl_TEST_LIBS ${gtest_LIBRARY} ${gtest_main_LIBRARY})
 endif(NOT fl_USING_CATKIN)
 
 function(fl_add_test)
