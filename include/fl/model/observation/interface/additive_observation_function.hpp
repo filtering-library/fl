@@ -16,7 +16,6 @@
 /**
  * \file additive_observation_function.hpp
  * \date June 2015
- * \author Manuel Wuthrich (manuel.wuthrich@gmail.com)
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
