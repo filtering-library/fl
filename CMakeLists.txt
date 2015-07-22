@@ -21,7 +21,7 @@ add_definitions(-DPROFILING_ON=1) #print profiling output
 ############################
 set(fl_INCLUDE_DIRS include)
 set(fl_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
-set(${CMAKE_MODULE_PATH} ${fl_MODULE_PATH})
+set(CMAKE_MODULE_PATH ${fl_MODULE_PATH})
 include(${fl_MODULE_PATH}/definitions.cmake)
 
 ############################
