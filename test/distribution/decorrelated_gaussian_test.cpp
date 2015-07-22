@@ -177,7 +177,6 @@ TYPED_TEST_P(DecorrelatedGaussianTests, dynamic_uninitialized_gaussian)
 {
     typedef TestFixture This;
     typedef fl::DecorrelatedGaussian<typename This::Vector> Gaussian;
-    typedef typename Gaussian::SecondMoment SecondMoment;
 
     auto gaussian = Gaussian();
 
@@ -209,7 +208,6 @@ TYPED_TEST_P(DecorrelatedGaussianTests, gaussian_covariance_dimension_init)
 {
     typedef TestFixture This;
     typedef fl::DecorrelatedGaussian<typename This::Vector> Gaussian;
-    typedef typename Gaussian::SecondMoment SecondMoment;
 
     auto gaussian = Gaussian();
 
@@ -222,7 +220,6 @@ TYPED_TEST_P(DecorrelatedGaussianTests, gaussian_covariance_constructor_init)
 {
     typedef TestFixture This;
     typedef fl::DecorrelatedGaussian<typename This::Vector> Gaussian;
-    typedef typename Gaussian::SecondMoment SecondMoment;
 
     auto gaussian = Gaussian(This::Dim);
     EXPECT_NO_THROW(This::test_gaussian_covariance(gaussian));
