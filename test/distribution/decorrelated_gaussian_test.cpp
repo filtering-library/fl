@@ -170,7 +170,7 @@ TYPED_TEST_P(DecorrelatedGaussianTests, standard_covariance)
     typedef fl::DecorrelatedGaussian<typename This::Vector> Gaussian;
     auto gaussian = Gaussian(This::Dim);
 
-    test_gaussian_covariance(gaussian);
+    This::test_gaussian_covariance(gaussian);
 }
 
 TYPED_TEST_P(DecorrelatedGaussianTests, dynamic_uninitialized_gaussian)
@@ -214,7 +214,7 @@ TYPED_TEST_P(DecorrelatedGaussianTests, gaussian_covariance_dimension_init)
     auto gaussian = Gaussian();
 
     gaussian.dimension(This::Dim);
-    EXPECT_NO_THROW(test_gaussian_covariance(gaussian));
+    EXPECT_NO_THROW(This::test_gaussian_covariance(gaussian));
 }
 
 
@@ -225,7 +225,7 @@ TYPED_TEST_P(DecorrelatedGaussianTests, gaussian_covariance_constructor_init)
     typedef typename Gaussian::SecondMoment SecondMoment;
 
     auto gaussian = Gaussian(This::Dim);
-    EXPECT_NO_THROW(test_gaussian_covariance(gaussian));
+    EXPECT_NO_THROW(This::test_gaussian_covariance(gaussian));
 }
 
 REGISTER_TYPED_TEST_CASE_P(DecorrelatedGaussianTests,
@@ -242,7 +242,7 @@ struct TestConfiguration
 };
 
 typedef ::testing::Types<
-            fl::StaticTest<TestConfiguration<2>>,
+            fl::StaticTest<TestConfiguration<2>>/*,
             fl::StaticTest<TestConfiguration<3>>,
             fl::StaticTest<TestConfiguration<10>>,
             fl::StaticTest<TestConfiguration<100>>,
@@ -256,7 +256,7 @@ typedef ::testing::Types<
             fl::DynamicTest<TestConfiguration<10000>>,
             fl::DynamicTest<TestConfiguration<100000>>,
             fl::DynamicTest<TestConfiguration<1000000>>,
-            fl::DynamicTest<TestConfiguration<10000000>>
+            fl::DynamicTest<TestConfiguration<10000000>>*/
         > TestTypes;
 
 INSTANTIATE_TYPED_TEST_CASE_P(DecorrelatedGaussianTestCases,
