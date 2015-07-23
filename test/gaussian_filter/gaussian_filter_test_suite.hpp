@@ -34,7 +34,7 @@
 #include <fl/filter/filter_interface.hpp>
 
 #include <fl/model/process/linear_state_transition_model.hpp>
-#include <fl/model/observation/linear_observation_model.hpp>
+#include <fl/model/observation/linear_gaussian_observation_model.hpp>
 
 template <typename TestType>
 class GaussianFilterTest
@@ -65,7 +65,7 @@ protected:
     typedef Eigen::Matrix<fl::Real, ObsrvSize, 1> Obsrv;
 
     typedef fl::LinearStateTransitionModel<State, Input> LinearStateTransition;
-    typedef fl::LinearObservationModel<Obsrv, State> LinearObservation;
+    typedef fl::LinearGaussianObservationModel<Obsrv, State> LinearObservation;
 
     typedef typename Configuration::template FilterDefinition<
                 LinearStateTransition,

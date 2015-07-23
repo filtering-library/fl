@@ -28,7 +28,7 @@
 #include <iostream>
 
 #include <fl/util/types.hpp>
-#include <fl/model/observation/linear_observation_model.hpp>
+#include <fl/model/observation/linear_gaussian_observation_model.hpp>
 
 template <typename TestType>
 class LinearObservationModelTest:
@@ -46,7 +46,7 @@ public:
 
     typedef Eigen::Matrix<fl::Real, StateSize, 1> State;
     typedef Eigen::Matrix<fl::Real, ObsrvSize, 1> Obsrv;
-    typedef fl::LinearObservationModel<Obsrv, State> LinearModel;
+    typedef fl::LinearGaussianObservationModel<Obsrv, State> LinearModel;
 
     typedef typename LinearModel::Noise Noise;
 

@@ -32,7 +32,7 @@
 #include <fl/filter/filter_interface.hpp>
 
 #include <fl/model/process/linear_state_transition_model.hpp>
-#include <fl/model/observation/linear_observation_model.hpp>
+#include <fl/model/observation/linear_gaussian_observation_model.hpp>
 
 namespace fl
 {
@@ -56,7 +56,7 @@ template <typename X, typename U, typename Y>
 struct Traits<
            GaussianFilter<
                LinearStateTransitionModel<X, U>,
-               LinearObservationModel<Y, X>>>
+               LinearGaussianObservationModel<Y, X>>>
 {
     typedef X State;
     typedef U Input;
@@ -84,17 +84,17 @@ template <
 >
 class GaussianFilter<
           LinearStateTransitionModel<State, Input>,
-          LinearObservationModel<Obsrv, State>>
+          LinearGaussianObservationModel<Obsrv, State>>
     :
     /* Implement the conceptual filter interface */
     public FilterInterface<
                GaussianFilter<
                    LinearStateTransitionModel<State, Input>,
-                   LinearObservationModel<Obsrv, State>>>
+                   LinearGaussianObservationModel<Obsrv, State>>>
 {
 public:
     typedef LinearStateTransitionModel<State, Input> ProcessModel;
-    typedef LinearObservationModel<Obsrv, State> ObservationModel;
+    typedef LinearGaussianObservationModel<Obsrv, State> ObservationModel;
 
     /**
      * \brief Represents the underlying distribution of the estimated state.
