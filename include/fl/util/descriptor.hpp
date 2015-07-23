@@ -66,7 +66,7 @@ public:
      */
     virtual std::string description() const = 0;
 
-protected:
+
     /** \cond internal */
 
     /**
@@ -90,6 +90,7 @@ protected:
         return indented_text;
     }
 
+protected:
     /**
      * Creates list with the correct indentation out of the passed elements.
      */
