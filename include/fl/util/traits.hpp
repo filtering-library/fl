@@ -44,6 +44,9 @@ namespace fl
  */
 #define from_traits(TypeName) typename Traits<This>::TypeName TypeName
 
+
+#define OVERRIDE
+
 /**
  * \ingroup traits
  * \brief Generic trait template

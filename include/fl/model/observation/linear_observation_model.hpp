@@ -36,23 +36,16 @@ namespace fl
 {
 
 /**
- * \internal
- * Forward declaration
- */
-template <typename ...> class LinearObservationModel;
-
-/**
  * \ingroup observation_models
  */
 template <typename Obsrv_, typename State_, typename Density>
-class LinearObservationModel<Obsrv_, State_, Density>
+class LinearObservationModel
     : public ObservationDensity<Obsrv_, State_>,                  // p(y|x)
       public AdditiveObservationFunction<Obsrv_, State_, Obsrv_> // H*x + N*v
-
 {
 public:
-    typedef Obsrv_ Obsrv;
     typedef State_ State;
+    typedef Obsrv_ Obsrv;
 
     typedef ObservationDensity<Obsrv, State> DensityInterface;
     typedef AdditiveObservationFunction<Obsrv, State, Obsrv> AdditiveInterface;
@@ -97,7 +90,7 @@ public:
      */
     explicit
     LinearObservationModel(int obsrv_dim = DimensionOf<Obsrv>(),
-                               int state_dim = DimensionOf<State>())
+                           int state_dim = DimensionOf<State>())
         : sensor_matrix_(SensorMatrix::Identity(obsrv_dim, state_dim)),
           density_(obsrv_dim)
     {
@@ -115,45 +108,44 @@ public:
      * \param state
      * \return
      */
-    virtual Obsrv expected_observation(const State& state) const
+    Obsrv expected_observation(const State& state) const OVERRIDE
     {
         return sensor_matrix_ * state;
     }
 
-    virtual Real log_probability(const Obsrv& obsrv,
-                                          const State& state) const
+    Real log_probability(const Obsrv& obsrv, const State& state) const
     {
         density_.mean(expected_observation(state));
 
         return density_.log_probability(obsrv);
     }
 
-    virtual const SensorMatrix& sensor_matrix() const
+    const SensorMatrix& sensor_matrix() const OVERRIDE
     {
         return sensor_matrix_;
     }
 
-    virtual const NoiseMatrix& noise_matrix() const
+    const NoiseMatrix& noise_matrix() const OVERRIDE
     {
         return density_.square_root();
     }
 
-    virtual const NoiseMatrix& noise_covariance() const
+    const NoiseMatrix& noise_covariance() const OVERRIDE
     {
         return density_.covariance();
     }
 
-    virtual int obsrv_dimension() const
+    int obsrv_dimension() const OVERRIDE
     {
         return sensor_matrix_.rows();
     }
 
-    virtual int noise_dimension() const
+    int noise_dimension() const OVERRIDE
     {
         return density_.square_root().cols();
     }
 
-    virtual int state_dimension() const
+    int state_dimension() const OVERRIDE
     {
         return sensor_matrix_.cols();
     }

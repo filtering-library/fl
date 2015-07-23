@@ -69,12 +69,10 @@ public:
      * \param delta_time    Prediction time
      */
     virtual Obsrv expected_observation(const State& state) const = 0;
-
     virtual const NoiseMatrix& noise_matrix() const = 0;
     virtual const NoiseMatrix& noise_covariance() const = 0;
 
-    virtual Obsrv observation(const State& state,
-                              const Noise& noise) const
+    Obsrv observation(const State& state, const Noise& noise) const OVERRIDE
     {
         return expected_observation(state) + noise_matrix() * noise;
     }
