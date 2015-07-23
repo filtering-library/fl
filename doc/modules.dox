@@ -7,10 +7,12 @@ namespace fl
  \defgroup distributions Distributions
  \defgroup observation_models Observation Models
  \defgroup process_models Process Models
+
  \defgroup traits Traits
  \defgroup meta Meta
  \defgroup math Math
  \defgroup types Types
+ \defgroup util Util
  \defgroup exceptions Exceptions
 */
 
