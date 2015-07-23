@@ -15,3 +15,7 @@ execute_process(COMMAND git rev-parse --short HEAD
 set(PROJECT_VERSION
     "${FL_MAJOR_VERSION}.${FL_MINOR_VERSION}.${FL_BUILD_VERSION}")
 
+# update version in documentation config
+configure_file(
+    ${PROJECT_SOURCE_DIR}/doc/Doxyfile.in
+    ${PROJECT_BINARY_DIR}/Doxyfile @ONLY)
