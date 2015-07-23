@@ -14,22 +14,18 @@
  */
 
 /**
- * \file linear_observation_model.hpp
+ * \file linear_gaussian_observation_model.hpp
  * \date October 2014
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__MODEL__OBSERVATION__LINEAR_OBSERVATION_MODEL_HPP
-#define FL__MODEL__OBSERVATION__LINEAR_OBSERVATION_MODEL_HPP
+#ifndef FL__MODEL__OBSERVATION__LINEAR_GAUSSIAN_OBSERVATION_MODEL_HPP
+#define FL__MODEL__OBSERVATION__LINEAR_GAUSSIAN_OBSERVATION_MODEL_HPP
 
 #include <fl/util/traits.hpp>
 #include <fl/util/descriptor.hpp>
 #include <fl/distribution/gaussian.hpp>
-#include <fl/distribution/decorrelated_gaussian.hpp>
-#include <fl/model/adaptive_model.hpp>
-#include <fl/model/observation/interface/observation_density.hpp>
-#include <fl/model/observation/interface/observation_model_interface.hpp>
-#include <fl/model/observation/interface/additive_observation_function.hpp>
+#include <fl/model/observation/linear_observation_model.hpp>
 
 namespace fl
 {
@@ -54,12 +50,8 @@ namespace fl
  * \f$ y_t  = H_t x_t + \tilde{v}_t \f$.
  */
 template <typename Obsrv, typename State>
-class LinearObservationModel<Obsrv, State>
-#ifdef GENERATING_DOCUMENTATION
-    : public LinearObservationModel<Obsrv_, State_, Density>,
-#else
+class LinearGaussianObservationModel
     : public LinearObservationModel<Obsrv, State, Gaussian<Obsrv>>,
-#endif
       public Descriptor
 {
 public:
@@ -69,8 +61,8 @@ public:
      * \param state_dim     state dimension if dynamic size
      */
     explicit
-    LinearObservationModel(int obsrv_dim = DimensionOf<Obsrv>(),
-                           int state_dim = DimensionOf<State>())
+    LinearGaussianObservationModel(int obsrv_dim = DimensionOf<Obsrv>(),
+                                   int state_dim = DimensionOf<State>())
         : LinearObservationModel<Obsrv, State, Gaussian<Obsrv>>(
               obsrv_dim, state_dim)
     { }
