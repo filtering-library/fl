@@ -43,13 +43,12 @@ template <typename ...> class LinearObservationModel;
 
 /**
  * \ingroup observation_models
- * \internal
  */
 template <typename Obsrv_, typename State_, typename Density>
 class LinearObservationModel<Obsrv_, State_, Density>
     : public ObservationDensity<Obsrv_, State_>,                  // p(y|x)
-      public AdditiveObservationFunction<Obsrv_, State_, Obsrv_>, // H*x + N*v
-      public Descriptor
+      public AdditiveObservationFunction<Obsrv_, State_, Obsrv_> // H*x + N*v
+
 {
 public:
     typedef Obsrv_ Obsrv;
@@ -188,112 +187,9 @@ public:
         return N;
     }
 
-    virtual std::string name() const
-    {
-        return "LinearObservationModel";
-    }
-
-    virtual std::string description() const
-    {
-        return "Linear observation model";
-    }
-
 protected:
     SensorMatrix sensor_matrix_;
     mutable Density density_;
-};
-
-/**
- * \ingroup observation_models
- *
- * This represents the linear gaussian observation model \f$p(y_t \mid x_t)\f$
- * governed by the linear equation
- *
- * \f$ y_t  = H_t x_t + N_t v_t \f$
- *
- * where \f$ y_t\f$ is the observation, \f$ x_t\f$ is the state. The matrix
- * \f$H_t\f$ is the sensor model mapping the state into the observation space.
- * The vector \f$ v_t \sim {\cal N}(v_t; 0, I)\f$ is a standard normal variate
- * which is mapped into the the observation space via the noise model matrix
- * \f$N_t\f$. Any Gaussian noise \f$\tilde{v}_t \sim {\cal N}(\tilde{v}_t ; 0,
- * R_t) \f$ can be represented via \f$\tilde{v}_t = N_t v_t\f$ with\f$N_t
- * = \sqrt{R_t}\f$. Hence, the linear equation may be restated as the more
- * familiar but equivalent form
- *
- * \f$ y_t  = H_t x_t + \tilde{v}_t \f$.
- */
-template <typename Obsrv, typename State>
-class LinearObservationModel<Obsrv, State>
-#ifdef GENERATING_DOCUMENTATION
-    : public LinearObservationModel<Obsrv_, State_, Density>
-#else
-    : public LinearObservationModel<Obsrv, State, Gaussian<Obsrv>>
-#endif
-{
-public:
-    /**
-     * Constructs a linear gaussian observation model
-     * \param obsrv_dim     observation dimension if dynamic size
-     * \param state_dim     state dimension if dynamic size
-     */
-    explicit
-    LinearObservationModel(int obsrv_dim = DimensionOf<Obsrv>(),
-                           int state_dim = DimensionOf<State>())
-        : LinearObservationModel<Obsrv, State, Gaussian<Obsrv>>(
-              obsrv_dim, state_dim)
-    { }
-};
-
-/**
- * \internal
- */
-template <typename...> class LinearUncorrelatedObservationModel;
-
-/**
- * \ingroup observation_models
- */
-template <typename Obsrv, typename State>
-class LinearUncorrelatedObservationModel<Obsrv, State>
-#ifdef GENERATING_DOCUMENTATION
-    : public LinearObservationModel<Obsrv_, State_, Density>
-#else
-    : public LinearObservationModel<Obsrv, State, DecorrelatedGaussian<Obsrv>>,
-#endif
-      public AdditiveUncorrelatedObservationFunction<Obsrv, State, Obsrv>
-{
-public:
-
-    typedef AdditiveUncorrelatedObservationFunction<
-                Obsrv, State, Obsrv
-            > AdditiveUncorrelatedInterface;
-
-    typedef typename AdditiveUncorrelatedInterface::NoiseDiagonal NoiseDiagonal;
-
-    using AdditiveUncorrelatedInterface::covariance;
-    using AdditiveUncorrelatedInterface::square_root;
-
-    /**
-     * Constructs a linear gaussian observation model
-     *
-     * \param obsrv_dim     observation dimension if dynamic size
-     * \param state_dim     state dimension if dynamic size
-     */
-    explicit
-    LinearUncorrelatedObservationModel(int obsrv_dim = DimensionOf<Obsrv>(),
-                                       int state_dim = DimensionOf<State>())
-        : LinearObservationModel<Obsrv, State, DecorrelatedGaussian<Obsrv>>(
-              obsrv_dim, state_dim)
-    { }
-
-    virtual const NoiseDiagonal& noise_matrix_diagonal() const
-    {
-        return AdditiveUncorrelatedInterface::square_root();
-    }
-
-    virtual const NoiseDiagonal& noise_covariance_diagonal() const
-    {
-        return AdditiveUncorrelatedInterface::covariance();
-    }
 };
 
 }
