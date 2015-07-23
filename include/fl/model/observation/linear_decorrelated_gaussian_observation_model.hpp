@@ -14,55 +14,42 @@
  */
 
 /**
- * \file linear_observation_model.hpp
+ * \file linear_decorrelated_gaussian_observation_model.hpp
  * \date October 2014
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__MODEL__OBSERVATION__LINEAR_OBSERVATION_MODEL_HPP
-#define FL__MODEL__OBSERVATION__LINEAR_OBSERVATION_MODEL_HPP
+#ifndef FL__MODEL__OBSERVATION__LINEAR_DECORRELATED_GAUSSIAN_OBSERVATION_MODEL_HPP
+#define FL__MODEL__OBSERVATION__LINEAR_DECORRELATED_GAUSSIAN_OBSERVATION_MODEL_HPP
 
 #include <fl/util/traits.hpp>
 #include <fl/util/descriptor.hpp>
-#include <fl/distribution/gaussian.hpp>
 #include <fl/distribution/decorrelated_gaussian.hpp>
-#include <fl/model/adaptive_model.hpp>
-#include <fl/model/observation/interface/observation_density.hpp>
-#include <fl/model/observation/interface/observation_model_interface.hpp>
-#include <fl/model/observation/interface/additive_observation_function.hpp>
+#include <fl/model/observation/linear_observation_model.hpp>
 #include <fl/model/observation/interface/additive_uncorrelated_observation_function.hpp>
 
 namespace fl
 {
 
 /**
- * \internal
- */
-template <typename...> class LinearUncorrelatedObservationModel;
-
-/**
  * \ingroup observation_models
  */
 template <typename Obsrv, typename State>
-class LinearUncorrelatedObservationModel<Obsrv, State>
-#ifdef GENERATING_DOCUMENTATION
-    : public LinearObservationModel<Obsrv_, State_, Density>,
-#else
+class LinearDecorrelatedGaussianObservationModel<Obsrv, State>
     : public LinearObservationModel<Obsrv, State, DecorrelatedGaussian<Obsrv>>,
-#endif
-      public AdditiveUncorrelatedObservationFunction<Obsrv, State, Obsrv>,
+      public AdditiveDecorrelatedObservationFunction<Obsrv, State, Obsrv>,
       public Descriptor
 {
 public:
 
-    typedef AdditiveUncorrelatedObservationFunction<
+    typedef AdditiveDecorrelatedObservationFunction<
                 Obsrv, State, Obsrv
-            > AdditiveUncorrelatedInterface;
+            > AdditiveDecorrelatedInterface;
 
-    typedef typename AdditiveUncorrelatedInterface::NoiseDiagonal NoiseDiagonal;
+    typedef typename AdditiveDecorrelatedInterface::NoiseDiagonal NoiseDiagonal;
 
-    using AdditiveUncorrelatedInterface::covariance;
-    using AdditiveUncorrelatedInterface::square_root;
+    using AdditiveDecorrelatedInterface::covariance;
+    using AdditiveDecorrelatedInterface::square_root;
 
     /**
      * Constructs a linear gaussian observation model
@@ -71,20 +58,21 @@ public:
      * \param state_dim     state dimension if dynamic size
      */
     explicit
-    LinearUncorrelatedObservationModel(int obsrv_dim = DimensionOf<Obsrv>(),
-                                       int state_dim = DimensionOf<State>())
+    LinearDecorrelatedGaussianObservationModel(
+        int obsrv_dim = DimensionOf<Obsrv>(),
+        int state_dim = DimensionOf<State>())
         : LinearObservationModel<Obsrv, State, DecorrelatedGaussian<Obsrv>>(
               obsrv_dim, state_dim)
     { }
 
     virtual const NoiseDiagonal& noise_matrix_diagonal() const
     {
-        return AdditiveUncorrelatedInterface::square_root();
+        return AdditiveDecorrelatedInterface::square_root();
     }
 
     virtual const NoiseDiagonal& noise_covariance_diagonal() const
     {
-        return AdditiveUncorrelatedInterface::covariance();
+        return AdditiveDecorrelatedInterface::covariance();
     }
 
     virtual std::string name() const
