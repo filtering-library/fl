@@ -25,13 +25,58 @@
 namespace fl
 {
 
+/**
+ * \ingroup util
+ *
+ * Descriptor represents the description of a construct. In various cases a
+ * class is composed on compile-time. It is often hard to know what the final
+ * composition constituents are after compilation. The Descriptor provides
+ * the name of composed class and a full description of it.
+ */
 class Descriptor
 {
 public:
+    /**
+     * \brief Generates the name of this construct (compile time generated
+     *        class). This is used to determine the name of the class.
+     *
+     * This function returns the name of this composition including its
+     * constitutent parts. The resulting name is often of a template class
+     * definition form, e.g. in case of a Kalman filter
+     *
+     * \code
+     * GaussianFilter<
+     *     LinearStateTransitionModel<State, Noise, Input>,
+     *     LinearGaussianObservationModel<Obsrv, State, Noise>>
+     * \endcode
+     *
+     * \return Name of \c *this construct
+     */
     virtual std::string name() const = 0;
 
+    /**
+     * \brief Generates of the description this construct (compile time
+     *        generated class). This is used to determine the name of the class.
+     *
+     * This function generates the full description of this class which is
+     * composed on compile-time. The description typically contains the
+     * descriptions of all constituent parts of this class.
+     *
+     * \return Full description of \c *this construct
+     */
     virtual std::string description() const = 0;
 
+protected:
+    /** \cond internal */
+
+    /**
+     * \brief indent a given text
+     *
+     * \param [in] text     Text to indent
+     * \param [in] levels   Levels of indentation
+     *
+     * \return indented text by the number of level
+     */
     virtual std::string indent(const std::string& text, int levels = 1) const
     {
         std::istringstream iss(text);
@@ -45,6 +90,9 @@ public:
         return indented_text;
     }
 
+    /**
+     * Creates list with the correct indentation out of the passed elements.
+     */
     template <typename ... Elements>
     std::string list_arguments(const Elements& ... elements) const
     {
@@ -57,6 +105,9 @@ public:
         return list_string;
     }
 
+    /**
+     * Creates list of descriptions with the correct indentation
+     */
     template <typename ... Elements>
     std::string list_descriptions(const Elements& ... elements) const
     {
@@ -68,6 +119,7 @@ public:
 
         return list_string;
     }
+    /** \endcond */
 
 private:
     template <int Size, int k, typename ... Elements>
