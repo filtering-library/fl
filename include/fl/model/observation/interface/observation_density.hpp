@@ -52,12 +52,17 @@ public:
                                  const State& state) const = 0;
 
     /**
-     * \return Dimension of the state variable $\f$x\f$
+     * \brief Returns the dimension of the state variable \f$x\f$
      */
     virtual int state_dimension() const = 0;
 
     /**
-     * \return Dimension of the measurement \f$h(x, w)\f$
+     * \brief Returns the dimension of the noise term \f$w\f$
+     */
+    virtual int noise_dimension() const = 0;
+
+    /**
+     * \brief Returns the dimension of the measurement \f$h(x, w)\f$
      */
     virtual int obsrv_dimension() const = 0;
 
