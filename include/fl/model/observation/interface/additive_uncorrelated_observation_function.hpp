@@ -14,13 +14,13 @@
  */
 
 /**
- * \file additive_uncorrelated_observation_function.hpp
+ * \file additive_decorrelated_observation_function.hpp
  * \date June 2015
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__MODEL__OBSERVATION__ADDITIVE_UNCORRELATED_OBSERVATION_FUNCTION_HPP
-#define FL__MODEL__OBSERVATION__ADDITIVE_UNCORRELATED_OBSERVATION_FUNCTION_HPP
+#ifndef FL__MODEL__OBSERVATION__ADDITIVE_DECORRELATED_OBSERVATION_FUNCTION_HPP
+#define FL__MODEL__OBSERVATION__ADDITIVE_DECORRELATED_OBSERVATION_FUNCTION_HPP
 
 #include <fl/util/traits.hpp>
 
@@ -35,7 +35,7 @@ template <
     typename Noise,
     int Id = 0
 >
-class AdditiveUncorrelatedObservationFunction
+class AdditiveDecorrelatedObservationFunction
     : public AdditiveObservationFunction<Obsrv, State, Noise, Id>
 {
 public:
@@ -51,7 +51,7 @@ public:
     /**
      * \brief Overridable default destructor
      */
-    virtual ~AdditiveUncorrelatedObservationFunction() { }
+    virtual ~AdditiveDecorrelatedObservationFunction() { }
 
     virtual const NoiseDiagonal& noise_matrix_diagonal() const = 0;
     virtual const NoiseDiagonal& noise_covariance_diagonal() const = 0;
