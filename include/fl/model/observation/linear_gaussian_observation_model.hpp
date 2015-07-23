@@ -77,12 +77,12 @@ public:
 
     virtual std::string name() const
     {
-        return "LinearObservationModel";
+        return "LinearGaussianObservationModel";
     }
 
     virtual std::string description() const
     {
-        return "Linear observation model";
+        return "Linear observation model with additive Gaussian noise";
     }
 };
 
