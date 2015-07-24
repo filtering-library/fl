@@ -89,4 +89,5 @@ set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
 ############################
 enable_testing()
 include(${fl_MODULE_PATH}/gtest.cmake)
+include_directories(${gtest_INCLUDE_DIR})
 add_subdirectory(test)
