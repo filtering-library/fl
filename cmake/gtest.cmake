@@ -15,7 +15,7 @@ if(NOT ${PROJECT_NAME}_USING_CATKIN)
         URL https://googletest.googlecode.com/files/gtest-1.6.0.zip
         PREFIX ${CMAKE_CURRENT_BINARY_DIR}/gtest
         INSTALL_COMMAND "" # do not install this library
-        CMAKE_ARGS -Dgtest_disable_pthreads=ON
+        CMAKE_ARGS -Dgtest_disable_pthreads=ON -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
     )
 
     ExternalProject_Get_Property(${GTEST_FRAMEWORK} source_dir binary_dir)
