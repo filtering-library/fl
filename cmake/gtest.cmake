@@ -40,7 +40,7 @@ if(NOT ${PROJECT_NAME}_USING_CATKIN)
         IMPORTED_LINK_INTERFACE_LIBRARIES "${CMAKE_THREAD_LIBS_INIT}")
     add_dependencies(${gtest_main_LIBRARY} ${gtest_LIBRARY})
 
-    include_directories(${gtest_INCLUDE_DIR}/include)
+    include_directories(${gtest_INCLUDE_DIR})
 
 else(NOT ${PROJECT_NAME}_USING_CATKIN)
 
