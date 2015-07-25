@@ -72,7 +72,7 @@ public:
     virtual const NoiseMatrix& noise_matrix() const = 0;
     virtual const NoiseMatrix& noise_covariance() const = 0;
 
-    Obsrv observation(const State& state, const Noise& noise) const OVERRIDE
+    Obsrv observation(const State& state, const Noise& noise) const override
     {
         return expected_observation(state) + noise_matrix() * noise;
     }

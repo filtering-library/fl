@@ -44,8 +44,9 @@ namespace fl
  */
 #define from_traits(TypeName) typename Traits<This>::TypeName TypeName
 
-
-#define OVERRIDE
+#if defined(__GXX_EXPERIMENTAL_CXX0X__)
+#define override
+#endif
 
 /**
  * \ingroup traits

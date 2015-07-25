@@ -108,7 +108,7 @@ public:
      * \param state
      * \return
      */
-    Obsrv expected_observation(const State& state) const OVERRIDE
+    Obsrv expected_observation(const State& state) const override
     {
         return sensor_matrix_ * state;
     }
@@ -120,32 +120,32 @@ public:
         return density_.log_probability(obsrv);
     }
 
-    const SensorMatrix& sensor_matrix() const OVERRIDE
+    const SensorMatrix& sensor_matrix() const override
     {
         return sensor_matrix_;
     }
 
-    const NoiseMatrix& noise_matrix() const OVERRIDE
+    const NoiseMatrix& noise_matrix() const override
     {
         return density_.square_root();
     }
 
-    const NoiseMatrix& noise_covariance() const OVERRIDE
+    const NoiseMatrix& noise_covariance() const override
     {
         return density_.covariance();
     }
 
-    int obsrv_dimension() const OVERRIDE
+    int obsrv_dimension() const override
     {
         return sensor_matrix_.rows();
     }
 
-    int noise_dimension() const OVERRIDE
+    int noise_dimension() const override
     {
         return density_.square_root().cols();
     }
 
-    int state_dimension() const OVERRIDE
+    int state_dimension() const override
     {
         return sensor_matrix_.cols();
     }
