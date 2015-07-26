@@ -239,21 +239,15 @@ struct TestConfiguration
 };
 
 typedef ::testing::Types<
-            fl::StaticTest<TestConfiguration<2>>/*,
+            fl::StaticTest<TestConfiguration<2>>,
             fl::StaticTest<TestConfiguration<3>>,
             fl::StaticTest<TestConfiguration<10>>,
-            fl::StaticTest<TestConfiguration<100>>,
-            fl::StaticTest<TestConfiguration<1000>>,
             fl::StaticTest<TestConfiguration<10000>>,
             fl::DynamicTest<TestConfiguration<2>>,
             fl::DynamicTest<TestConfiguration<3>>,
             fl::DynamicTest<TestConfiguration<10>>,
-            fl::DynamicTest<TestConfiguration<100>>,
             fl::DynamicTest<TestConfiguration<1000>>,
-            fl::DynamicTest<TestConfiguration<10000>>,
-            fl::DynamicTest<TestConfiguration<100000>>,
-            fl::DynamicTest<TestConfiguration<1000000>>,
-            fl::DynamicTest<TestConfiguration<10000000>>*/
+            fl::DynamicTest<TestConfiguration<10000000>>
         > TestTypes;
 
 INSTANTIATE_TYPED_TEST_CASE_P(DecorrelatedGaussianTestCases,
