@@ -20,41 +20,27 @@
  */
 
 #include <gtest/gtest.h>
-
-#include <Eigen/Dense>
+#include "../typecast.hpp"
 
 #include <cmath>
 #include <iostream>
 
 #include <fl/distribution/gaussian.hpp>
 
-class GaussianTests:
-        public testing::Test
+template <typename TestType>
+class GaussianTests
+    : public testing::Test
 {
 public:
-    typedef Eigen::Matrix<double, 5, 1> FVector;
-    typedef Eigen::Matrix<double, Eigen::Dynamic, 1> DVector;
+    typedef typename TestType::Parameter Configuration;
 
-protected:
-    template <typename Gaussian>
-    void test_gaussian_dimension(Gaussian& gaussian, int dim)
+    enum: signed int
     {
-        EXPECT_EQ(gaussian.dimension(), dim);
-        EXPECT_EQ(gaussian.standard_variate_dimension(), dim);
-        EXPECT_EQ(gaussian.mean().rows(), dim);
-        EXPECT_EQ(gaussian.covariance().rows(), dim);
-        EXPECT_EQ(gaussian.covariance().cols(), dim);
-        EXPECT_EQ(gaussian.precision().rows(), dim);
-        EXPECT_EQ(gaussian.precision().cols(), dim);
-        EXPECT_EQ(gaussian.square_root().rows(), dim);
-        EXPECT_EQ(gaussian.square_root().cols(), dim);
+        Dim = Configuration::Dim,
+        Size = fl::TestSize<Dim, TestType>::Value
+    };
 
-        typename Gaussian::StandardVariate noise =
-            Gaussian::StandardVariate::Random(
-                gaussian.standard_variate_dimension(),1);
-
-        EXPECT_EQ(gaussian.map_standard_normal(noise).rows(), dim);
-    }
+    typedef Eigen::Matrix<fl::Real, Size, 1> Vector;
 
     template <typename Gaussian>
     void test_gaussian_covariance(Gaussian& gaussian)
@@ -124,123 +110,119 @@ protected:
 
         EXPECT_TRUE(fl::are_similar(gaussian.covariance(), covariance));
         EXPECT_TRUE(fl::are_similar(gaussian.precision(), precision));
-//        const Covariance temp =
-//                gaussian.square_root() * gaussian.square_root().transpose();
-//        const Covariance temp2 = square_root * square_root.transpose();
-
+        EXPECT_TRUE(fl::are_similar(gaussian.square_root(), square_root));
         EXPECT_TRUE(gaussian.has_full_rank());
     }
 };
 
-//TEST_F(GaussianTests, eigen_O3_isApprox_bug)
-//{
-//    Eigen::MatrixXd m = Eigen::MatrixXd::Random(5, 5);
-//    bool expect_false = (m * m).isApprox(m * m.transpose());
-//}
+TYPED_TEST_CASE_P(GaussianTests);
 
-TEST_F(GaussianTests, fixed_dimension)
+TYPED_TEST_P(GaussianTests, dimension)
 {
-    typedef Eigen::Matrix<double, 10, 1> Vector;
-    fl::Gaussian<Vector> gaussian;
+    typedef TestFixture This;
+    typedef fl::Gaussian<typename This::Vector> Gaussian;
 
-    test_gaussian_dimension(gaussian, 10);
+    auto gaussian = Gaussian(This::Dim);
+
+    EXPECT_EQ(gaussian.dimension(), This::Dim);
+    EXPECT_EQ(gaussian.standard_variate_dimension(), This::Dim);
+    EXPECT_EQ(gaussian.mean().size(), This::Dim);
+    EXPECT_EQ(gaussian.covariance().rows(), This::Dim);
+    EXPECT_EQ(gaussian.precision().rows(), This::Dim);
+    EXPECT_EQ(gaussian.square_root().rows(), This::Dim);
+
+    auto noise = Gaussian::StandardVariate::Random(
+                        gaussian.standard_variate_dimension(), 1).eval();
+
+    EXPECT_EQ(gaussian.map_standard_normal(noise).size(), This::Dim);
 }
 
-TEST_F(GaussianTests, dynamic_dimension)
-{
-    const int dim = 10;
-    typedef Eigen::Matrix<fl::Real, Eigen::Dynamic, 1> Vector;
-    fl::Gaussian<Vector> gaussian(dim);
 
-    test_gaussian_dimension(gaussian, dim);
+TYPED_TEST_P(GaussianTests, standard_covariance)
+{
+    typedef TestFixture This;
+    typedef fl::Gaussian<typename This::Vector> Gaussian;
+    auto gaussian = Gaussian(This::Dim);
+
+    This::test_gaussian_covariance(gaussian);
 }
 
-TEST_F(GaussianTests, fixed_standard_covariance)
+TYPED_TEST_P(GaussianTests, gaussian_covariance_dimension_init)
 {
-    typedef fl::Gaussian<FVector> Gaussian;
-    typedef typename Gaussian::SecondMoment Covariance;
+    typedef TestFixture This;
+    typedef fl::Gaussian<typename This::Vector> Gaussian;
 
-    Gaussian gaussian;
-    Covariance covariance = Covariance::Identity(gaussian.dimension(),
-                                                 gaussian.dimension());
+    auto gaussian = Gaussian();
 
-    test_gaussian_attributes(gaussian, covariance, covariance, covariance);
-    gaussian.set_standard();
-    test_gaussian_attributes(gaussian, covariance, covariance, covariance);
-    // gaussian.SetStandard(10); // causes compile time error as expected
+    gaussian.dimension(This::Dim);
+    EXPECT_NO_THROW(This::test_gaussian_covariance(gaussian));
 }
 
-TEST_F(GaussianTests, dynamic_standard_covariance)
+
+TYPED_TEST_P(GaussianTests, gaussian_covariance_constructor_init)
 {
-    typedef fl::Gaussian<DVector> Gaussian;
-    typedef typename Gaussian::SecondMoment Covariance;
+    typedef TestFixture This;
+    typedef fl::Gaussian<typename This::Vector> Gaussian;
 
-    Gaussian gaussian(6);
-    Covariance covariance = Covariance::Identity(gaussian.dimension(),
-                                                 gaussian.dimension());
+    auto gaussian = Gaussian(This::Dim);
+    EXPECT_NO_THROW(This::test_gaussian_covariance(gaussian));
+}
 
+TYPED_TEST_P(GaussianTests, dynamic_uninitialized_gaussian)
+{
+    typedef TestFixture This;
+    typedef fl::Gaussian<typename This::Vector> Gaussian;
+
+    auto gaussian = Gaussian();
+
+    if (This::Size != Eigen::Dynamic)
     {
-        SCOPED_TRACE("Unchanged");
-
-        EXPECT_EQ(gaussian.dimension(), 6);
-        test_gaussian_attributes(gaussian, covariance, covariance, covariance);
+        EXPECT_NO_THROW(gaussian.covariance());
+        EXPECT_NO_THROW(gaussian.precision());
+        EXPECT_NO_THROW(gaussian.square_root());
     }
-
+    else
     {
-        SCOPED_TRACE("gaussian.SetStandard()");
+        EXPECT_THROW(gaussian.covariance(), fl::GaussianUninitializedException);
+        EXPECT_THROW(gaussian.precision(), fl::GaussianUninitializedException);
+        EXPECT_THROW(gaussian.square_root(), fl::GaussianUninitializedException);
 
-        gaussian.set_standard();
-        EXPECT_EQ(gaussian.dimension(), 6);
-        //test_gaussian_attributes(gaussian, covariance, covariance, covariance);
-    }
+        gaussian.dimension(1);
+        EXPECT_NO_THROW(gaussian.covariance());
+        EXPECT_NO_THROW(gaussian.precision());
+        EXPECT_NO_THROW(gaussian.square_root());
 
-    {
-        SCOPED_TRACE("gaussian.SetStandard(10)");
-
-        gaussian.dimension(10);
-        EXPECT_EQ(gaussian.dimension(), 10);
-        covariance = Covariance::Identity(gaussian.dimension(),
-                                          gaussian.dimension());
-        //test_gaussian_attributes(gaussian, covariance, covariance, covariance);
+        gaussian.dimension(0);
+        EXPECT_THROW(gaussian.covariance(), fl::GaussianUninitializedException);
+        EXPECT_THROW(gaussian.precision(), fl::GaussianUninitializedException);
+        EXPECT_THROW(gaussian.square_root(), fl::GaussianUninitializedException);
     }
 }
 
-TEST_F(GaussianTests, fixed_gaussian_covariance)
+REGISTER_TYPED_TEST_CASE_P(GaussianTests,
+                           dimension,
+                           standard_covariance,
+                           dynamic_uninitialized_gaussian,
+                           gaussian_covariance_dimension_init,
+                           gaussian_covariance_constructor_init);
+
+template <int Dimension>
+struct TestConfiguration
 {
-    // triggers static assert as expected:
-    // fl::Gaussian<Eigen::Matrix<double, 0, 0>> gaussian;
+    enum: signed int { Dim = Dimension };
+};
 
-    fl::Gaussian<FVector> gaussian;
-    EXPECT_NO_THROW(test_gaussian_covariance(gaussian));
-}
+typedef ::testing::Types<
+            fl::StaticTest<TestConfiguration<2>>,
+            fl::StaticTest<TestConfiguration<3>>,
+            fl::StaticTest<TestConfiguration<10>>,
+            fl::StaticTest<TestConfiguration<100>>,
+            fl::DynamicTest<TestConfiguration<2>>,
+            fl::DynamicTest<TestConfiguration<3>>,
+            fl::DynamicTest<TestConfiguration<10>>,
+            fl::DynamicTest<TestConfiguration<100>>
+        > TestTypes;
 
-TEST_F(GaussianTests, dynamic_gaussian_covariance_constructor_init)
-{
-    fl::Gaussian<DVector> gaussian(6);
-    EXPECT_NO_THROW(test_gaussian_covariance(gaussian));
-}
-
-TEST_F(GaussianTests, dynamic_gaussian_covariance_SetStandard_init)
-{
-    fl::Gaussian<DVector> gaussian;
-    gaussian.dimension(7);
-    EXPECT_NO_THROW(test_gaussian_covariance(gaussian));
-}
-
-TEST_F(GaussianTests, dynamic_uninitialized_gaussian)
-{
-    fl::Gaussian<DVector> gaussian;
-    EXPECT_THROW(gaussian.covariance(), fl::GaussianUninitializedException);
-    EXPECT_THROW(gaussian.precision(), fl::GaussianUninitializedException);
-    EXPECT_THROW(gaussian.square_root(), fl::GaussianUninitializedException);
-
-    gaussian.dimension(1);
-    EXPECT_NO_THROW(gaussian.covariance());
-    EXPECT_NO_THROW(gaussian.precision());
-    EXPECT_NO_THROW(gaussian.square_root());
-
-    gaussian.dimension(0);
-    EXPECT_THROW(gaussian.covariance(), fl::GaussianUninitializedException);
-    EXPECT_THROW(gaussian.precision(), fl::GaussianUninitializedException);
-    EXPECT_THROW(gaussian.square_root(), fl::GaussianUninitializedException);
-}
+INSTANTIATE_TYPED_TEST_CASE_P(GaussianTestCases,
+                              GaussianTests,
+                              TestTypes);
