@@ -81,7 +81,6 @@ TEST(DescriptorTests, Dummy_indent)
                  "\n    Dummy class implementing the fl::Descriptor");
 }
 
-
 TEST(DescriptorTests, NestedDummy_name)
 {
     NestedDummy<Dummy<>> dummy;
