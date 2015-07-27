@@ -254,7 +254,7 @@ inline Eigen::Matrix<double, 4, 3> quaternion_matrix(
  */
 template <typename RegularMatrix, typename SquareRootMatrix>
 void square_root(const RegularMatrix& regular_matrix,
-                SquareRootMatrix& square_root)
+                 SquareRootMatrix& square_root)
 {
     square_root = regular_matrix.llt().matrixL();
 }
@@ -369,8 +369,9 @@ matrix_sqrt(Eigen::Matrix<Scalar, Size, Size> M)
     {
         D_sqrt(i) = std::sqrt(std::fabs(D_sqrt(i)));
     }
+
     return ldlt.transpositionsP().transpose()
-                    * (Matrix)ldlt.matrixL()
+                    * (Matrix) ldlt.matrixL()
                     * D_sqrt.asDiagonal();
 }
 

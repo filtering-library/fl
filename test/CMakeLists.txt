@@ -9,75 +9,75 @@ fl_add_test(NAME euler_vector      SOURCES utils/euler_vector_test.cpp)
 fl_add_test(NAME pose_vector       SOURCES utils/pose_vector_test.cpp)
 fl_add_test(NAME rigid_body_state  SOURCES utils/rigid_body_state_test.cpp)
 fl_add_test(NAME descriptor        SOURCES utils/descriptor_test.cpp)
+fl_add_test(NAME linear_algebra    SOURCES utils/linear_algebra_test.cpp)
 
-## == observation model tests ================================================= #
-#fl_add_test(
-#    NAME    linear_observation_model
-#    SOURCES model/observation/linear_observation_model_test.cpp)
+# == observation model tests ================================================= #
+fl_add_test(
+    NAME    linear_observation_model
+    SOURCES model/observation/linear_observation_model_test.cpp)
 
-## == state transition model tests ============================================ #
-#fl_add_test(
-#    NAME    linear_state_transition_model
-#    SOURCES model/state_transition/linear_state_transition_model_test.cpp)
+# == state transition model tests ============================================ #
+fl_add_test(
+    NAME    linear_state_transition_model
+    SOURCES model/state_transition/linear_state_transition_model_test.cpp)
 
-#fl_add_test(
-#    NAME    orientation_transition_function
-#    SOURCES model/state_transition/orientation_transition_function_test.cpp)
+fl_add_test(
+    NAME    orientation_transition_function
+    SOURCES model/state_transition/orientation_transition_function_test.cpp)
 
-#fl_add_test(
-#    NAME    binary_transition_density
-#    SOURCES model/binary_transition_density_test.cpp)
+fl_add_test(
+    NAME    binary_transition_density
+    SOURCES model/binary_transition_density_test.cpp)
 
-## ==filter interface test ==================================================== #
-#fl_add_test(
-#    NAME    filter_interface
-#    SOURCES filter_interface/filter_interface_test.cpp
-#            filter_interface/filter_interface_stubs.hpp)
+# ==filter interface test ==================================================== #
+fl_add_test(
+    NAME    filter_interface
+    SOURCES filter_interface/filter_interface_test.cpp
+            filter_interface/filter_interface_stubs.hpp)
 
-## == distribution tests ====================================================== #
-#fl_add_test(
-#    NAME    gaussian_distribution
-#    SOURCES distribution/gaussian_test.cpp)
+# == distribution tests ====================================================== #
+fl_add_test(
+    NAME    gaussian_distribution
+    SOURCES distribution/gaussian_test.cpp)
 
-#fl_add_test(
-#    NAME    decorrelated_gaussian_distribution
-#    SOURCES distribution/decorrelated_gaussian_test.cpp)
+fl_add_test(
+    NAME    decorrelated_gaussian_distribution
+    SOURCES distribution/decorrelated_gaussian_test.cpp)
 
-#fl_add_test(
-#    NAME    discrete_distribution
-#    SOURCES distribution/discrete_distribution_test.cpp)
+fl_add_test(
+    NAME    discrete_distribution
+    SOURCES distribution/discrete_distribution_test.cpp)
 
-## == exceptions tests ======================================================== #
-#fl_add_test(NAME exception
-#            SOURCES exception/exception_test.cpp)
+# == exceptions tests ======================================================== #
+fl_add_test(NAME exception
+            SOURCES exception/exception_test.cpp)
 
-## == Gaussian filters tests ================================================== #
+# == Gaussian filters tests ================================================== #
 
-## = Kalman filter = #
-#fl_add_test(
-#    NAME gaussian_filter_kalman_filter
-#    SOURCES typecast.hpp
-#            gaussian_filter/gaussian_filter_test_suite.hpp
-#            gaussian_filter/kalman_filter_test.cpp)
+# = Kalman filter = #
+fl_add_test(
+    NAME gaussian_filter_kalman_filter
+    SOURCES typecast.hpp
+            gaussian_filter/gaussian_filter_test_suite.hpp
+            gaussian_filter/kalman_filter_test.cpp)
 
-## = Unscented Kalman filter = #
-#fl_add_test(
-#    NAME    gaussian_filter_unscented_kalman_filter
-#    SOURCES typecast.hpp
-#            gaussian_filter/gaussian_filter_test_suite.hpp
-#            gaussian_filter/unscented_kalman_filter_test.cpp)
+# = Unscented Kalman filter = #
+fl_add_test(
+    NAME    gaussian_filter_unscented_kalman_filter
+    SOURCES typecast.hpp
+            gaussian_filter/gaussian_filter_test_suite.hpp
+            gaussian_filter/unscented_kalman_filter_test.cpp)
 
-### == Particle filters tests ================================================= #
-###catkin_add_gtest(particle_filter_test
-###                 particle_filter/particle_filter_test.cpp
-###                 gtest_main.cpp)
-###target_link_libraries(particle_filter_test
-###                      ${catkin_LIBRARIES})
+## == Particle filters tests ================================================= #
+##catkin_add_gtest(particle_filter_test
+##                 particle_filter/particle_filter_test.cpp
+##                 gtest_main.cpp)
+##target_link_libraries(particle_filter_test
+##                      ${catkin_LIBRARIES})
 
-#fl_add_test(
-#    NAME    particle_filter_fixture
-#    SOURCES particle_filter/particle_filter_fixture_test.cpp)
-
+fl_add_test(
+    NAME    particle_filter_fixture
+    SOURCES particle_filter/particle_filter_fixture_test.cpp)
 
 #fl_add_test(frb_particle_filter_test
 #                 particle_filter/frb_particle_filter_test.cpp
