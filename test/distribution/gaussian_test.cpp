@@ -67,9 +67,11 @@ public:
 
             covariance.setRandom();
             covariance *= covariance.transpose();
-            square_root = covariance.llt().matrixL();
+            square_root = fl::matrix_sqrt(covariance);
+
             precision = covariance.inverse();
             gaussian.covariance(covariance);
+
             test_gaussian_attributes(
                         gaussian, covariance, precision, square_root);
         }
@@ -92,8 +94,8 @@ public:
 
             precision.setRandom();
             precision *= precision.transpose();
-            covariance= precision .inverse();
-            square_root = covariance.llt().matrixL();
+            covariance = precision.inverse();
+            square_root = fl::matrix_sqrt(covariance);
             gaussian.precision(precision);
             test_gaussian_attributes(
                         gaussian, covariance, precision, square_root);
@@ -110,7 +112,9 @@ public:
 
         EXPECT_TRUE(fl::are_similar(gaussian.covariance(), covariance));
         EXPECT_TRUE(fl::are_similar(gaussian.precision(), precision));
-        EXPECT_TRUE(fl::are_similar(gaussian.square_root(), square_root));
+        EXPECT_TRUE((fl::are_similar(
+            gaussian.square_root() * gaussian.square_root().transpose(),
+            square_root * square_root.transpose())));
         EXPECT_TRUE(gaussian.has_full_rank());
     }
 };
