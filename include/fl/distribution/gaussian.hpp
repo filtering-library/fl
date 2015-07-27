@@ -375,29 +375,17 @@ public:
             {
             case CovarianceMatrix:
             case PrecisionMatrix:
-            {
-                /// \todo: replace this with the linear_algebra fct matrix_sqrt
-                Eigen::LDLT<SecondMoment> ldlt;
-                ldlt.compute(covariance());
-                Variate D_sqrt = ldlt.vectorD();
-                for(int i = 0; i < D_sqrt.rows(); ++i)
-                {
-                    D_sqrt(i) = std::sqrt(std::fabs(D_sqrt(i)));
-                }
-                square_root_ = ldlt.transpositionsP().transpose()
-                                * (SecondMoment)ldlt.matrixL()
-                                * D_sqrt.asDiagonal();
-            } break;
+                fl::square_root(cov, square_root_);
+                break;
 
             case DiagonalCovarianceMatrix:
             case DiagonalPrecisionMatrix:
-            {
                 square_root_.setZero(dimension(), dimension());
                 for (int i = 0; i < square_root_.rows(); ++i)
                 {
                     square_root_(i, i) = std::sqrt(cov(i, i));
                 }
-            } break;
+                break;
 
             default:
                 fl_throw(InvalidGaussianRepresentationException());
