@@ -660,7 +660,7 @@ protected:
 
         for (int i = 0; i < diag.size(); ++i)
         {
-            if (diag(i) < 1e-12)
+            if (std::fabs(diag(i)) < 1e-18)
             {
                 full_rank = false;
                 break;
