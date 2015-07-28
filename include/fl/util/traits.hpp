@@ -276,7 +276,7 @@ template <typename Model> struct IsAdditive
 {
     enum: bool
     {
-        Value = std::is_base_of<internal::AdditiveModelType, Model>::value
+        Value = std::is_base_of<internal::AdditiveNoiseModelType, Model>::value
     };
 };
 
@@ -288,7 +288,7 @@ template <typename Model> struct IsAdditiveUncorrelated
     enum: bool
     {
         Value = std::is_base_of<
-                    internal::AdditiveUncorrelatedModelType,
+                    internal::AdditiveUncorrelatedNoiseModelType,
                     Model
                 >::value
     };
@@ -301,7 +301,7 @@ template <typename Model> struct IsNonAdditive
 {
     enum: bool
     {
-        Value = std::is_base_of<internal::NonAdditiveModelType, Model>::value
+        Value = std::is_base_of<internal::NonAdditiveNoiseModelType, Model>::value
     };
 };
 
@@ -316,7 +316,7 @@ template <typename Model, typename ...> struct AdditivityOf;
  * \ingroup traits
  */
 template <typename Model>
-struct AdditivityOf<Model, internal::AdditiveModelType>
+struct AdditivityOf<Model, internal::AdditiveNoiseModelType>
 {
     typedef Additive<Model> Type;
 };
@@ -326,7 +326,7 @@ struct AdditivityOf<Model, internal::AdditiveModelType>
  * \ingroup traits
  */
 template <typename Model>
-struct AdditivityOf<Model, internal::NonAdditiveModelType>
+struct AdditivityOf<Model, internal::NonAdditiveNoiseModelType>
 {
     typedef NonAdditive<Model> Type;
 };
@@ -376,6 +376,20 @@ struct RemoveAdditivityOf<Additive<Model>>
 template <typename Model>
 struct RemoveAdditivityOf<NonAdditive<Model>>
 {
+    typedef Model Type;
+};
+
+/**
+ * \internal
+ *
+ * \ingroup traits
+ */
+template <typename Model>
+struct ForwardLinearModelOnly
+{
+    static_assert(std::is_base_of<internal::LinearModelType, Model>::value,
+                  "The specified model is not linear!");
+
     typedef Model Type;
 };
 
