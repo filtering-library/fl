@@ -36,19 +36,4 @@ namespace fl
  * \ingroup math
  */
 
-/**
- * \defgroup sigma_point_kalman_filters Sigma Point Kalman Filters
- * \ingroup filters
- */
-
-/**
- * \defgroup unscented_kalman_filter Unscented Kalman Filter
- * \ingroup sigma_point_kalman_filters
- */
-
-/**
- * \defgroup point_set_transform Point Set Transform
- * \ingroup sigma_point_kalman_filters
- */
-
 }
