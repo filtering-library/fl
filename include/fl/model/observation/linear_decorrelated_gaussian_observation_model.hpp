@@ -43,6 +43,8 @@ class LinearDecorrelatedGaussianObservationModel
       private internal::LinearModelType
 {
 public:
+    // specify the main type of this model
+    typedef internal::AdditiveUncorrelatedNoiseModelType Type;
 
     typedef AdditiveUncorrelatedNoiseModel<
                 DecorrelatedGaussian<Obsrv>
@@ -85,7 +87,6 @@ public:
         assert(obsrv_dim > 0);
         assert(state_dim > 0);
     }
-
 
     /**
      * \brief Overridable default destructor
