@@ -115,7 +115,7 @@ public:
     virtual std::string name() const
     {
         return "SigmaPointUpdatePolicy<"
-                + list_arguments(
+                + this->list_arguments(
                        "SigmaPointQuadrature",
                        "NonAdditive<ObservationFunction>")
                 + ">";

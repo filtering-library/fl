@@ -51,8 +51,8 @@ public:
 
     enum : signed int
     {
-        NumberOfPoints = SigmaPointQuadrature
-                             ::number_of_points(SizeOf<State>::Value)
+        NumberOfPoints =
+            SigmaPointQuadrature::number_of_points(SizeOf<State>::Value)
     };
 
     typedef PointSet<State, NumberOfPoints> StatePointSet;
@@ -93,7 +93,7 @@ public:
     virtual std::string name() const
     {
         return "SigmaPointUpdatePolicy<"
-                + list_arguments(
+                + this->list_arguments(
                        "SigmaPointQuadrature",
                        "Additive<AdditiveObservationFunction>")
                 + ">";
