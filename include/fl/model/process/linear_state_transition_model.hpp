@@ -44,7 +44,8 @@ template <typename State_, typename Input_>
 class LinearStateTransitionModel
     : public StateTransitionDensity<State_, Input_>,
       public AdditiveStateTransitionFunction<State_, State_, Input_>,
-      public Descriptor
+      public Descriptor,
+      private internal::LinearModelType
 {
 public:
     typedef State_ State;
