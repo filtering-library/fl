@@ -85,6 +85,14 @@ namespace internal
  * \internal
  * \ingroup types
  *
+ * \brief Linear model type identifier
+ */
+struct LinearModelType { };
+
+/**
+ * \internal
+ * \ingroup types
+ *
  * \brief Observation model type identifier
  */
 struct ObsrvModelType { };
@@ -112,7 +120,7 @@ struct AdaptiveModelType { };
  * \brief Represents the base type of any model with additive noise term
  * \f$ x_{t+1} = f(x_t) + v_t\f$ while \f$v_t\f$ is the additive noise.
  */
-struct AdditiveModelType { };
+struct AdditiveNoiseModelType { };
 
 /**
  * \internal
@@ -124,7 +132,7 @@ struct AdditiveModelType { };
  * covariance matrix has a diagonal form \f$Q_t = \text{diag}(q_1, q_2, \ldots,
  * q_n)\f$ and \f$n\f$ is the dimension of \f$v_t \in \mathbb{R}^n\f$.
  */
-struct AdditiveUncorrelatedModelType { };
+struct AdditiveUncorrelatedNoiseModelType { };
 
 /**
  * \internal
@@ -133,7 +141,7 @@ struct AdditiveUncorrelatedModelType { };
  * \brief Represents the base type of any model with non-additive noise term
  * \f$ x_{t+1} = f(x_t, v_t) \f$ while \f$v_t\f$ is the additive noise.
  */
-struct NonAdditiveModelType { };
+struct NonAdditiveNoiseModelType { };
 
 }
 
