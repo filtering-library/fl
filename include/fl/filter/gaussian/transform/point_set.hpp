@@ -146,7 +146,7 @@ struct Traits<PointSet<Point_, Points_>>
 /**
  * \class PointSet
  *
- * \ingroup sigma_point_kalman_filters
+ * \ingroup nonlinear_gaussian_filter
  *
  * PointSet represents a container of fixed-size or dynamic-size points each
  * paired with a set of weights. PointSet has two degree-of-freedoms. The first
