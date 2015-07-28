@@ -175,6 +175,22 @@ public: /* accessors */
         return obsrv_model_;
     }
 
+    virtual std::string name() const
+    {
+        return "ParticleFilter<"
+                + this->list_arguments(
+                            process_model().name(),
+                            obsrv_model().name())
+                + ">";
+    }
+
+    virtual std::string description() const
+    {
+        return "Non-parametric ParticleFilter with"
+                + this->list_descriptions(
+                            process_model().description(),
+                            obsrv_model().description());
+    }
 protected:
     StateTransitionFunction process_model_;
     ObservationDensity obsrv_model_;
