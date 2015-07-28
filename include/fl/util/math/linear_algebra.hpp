@@ -294,15 +294,16 @@ void sqrt_diagonal_vector(const RegularMatrix& regular_matrix,
  *
  */
 template <typename SrcDiagonalMatrix, typename DestDiagonalMatrix>
-void invert_diagonal_Vector(const SrcDiagonalMatrix& diagonal,
+void invert_diagonal_vector(const SrcDiagonalMatrix& diagonal,
                             DestDiagonalMatrix& diagonal_inverse)
 {
-    diagonal_inverse.resize(diagonal.rows(), 1);
+    diagonal_inverse = diagonal.array().cwiseInverse();
 
-    for (size_t i = 0; i < diagonal.rows(); ++i)
-    {
-        diagonal_inverse(i, 0) = 1./diagonal(i, 0);
-    }
+//    diagonal_inverse.resize(diagonal.size());
+//    for (int i = 0; i < diagonal.size(); ++i)
+//    {
+//        diagonal_inverse(i) = 1./diagonal(i);
+//    }
 }
 
 /**
