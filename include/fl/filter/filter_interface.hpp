@@ -23,6 +23,7 @@
 #define FL__FILTER__FILTER_INTERFACE_HPP
 
 #include <fl/util/traits.hpp>
+#include <fl/util/descriptor.hpp>
 
 namespace fl
 {
@@ -50,6 +51,7 @@ namespace fl
  */
 template <typename Derived>
 class FilterInterface
+    : public Descriptor
 {
 public:
     /**
