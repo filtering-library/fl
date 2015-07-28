@@ -23,12 +23,13 @@
 #define FL__MODEL__OBSERVATION__LINEAR_OBSERVATION_MODEL_HPP
 
 #include <fl/util/traits.hpp>
+#include <fl/util/types.hpp>
 #include <fl/util/descriptor.hpp>
 #include <fl/distribution/gaussian.hpp>
 #include <fl/distribution/decorrelated_gaussian.hpp>
 #include <fl/model/adaptive_model.hpp>
 #include <fl/model/observation/interface/observation_density.hpp>
-#include <fl/model/observation/interface/observation_model_interface.hpp>
+#include <fl/model/observation/interface/observation_function.hpp>
 #include <fl/model/observation/interface/additive_observation_function.hpp>
 #include <fl/model/observation/interface/additive_uncorrelated_observation_function.hpp>
 
@@ -38,17 +39,15 @@ namespace fl
 /**
  * \ingroup observation_models
  */
-template <typename Obsrv_, typename State_, typename Density>
+template <typename Obsrv, typename State, typename NoiseDensity>
 class LinearObservationModel
-    : public ObservationDensity<Obsrv_, State_>,                  // p(y|x)
-      public AdditiveObservationFunction<Obsrv_, State_, Obsrv_> // H*x + N*v
+    : public ObservationDensity<Obsrv, State>,
+      public AdditiveObservationFunction<Obsrv, State, NoiseDensity>,
+      private internal::LinearModelType
 {
 public:
-    typedef State_ State;
-    typedef Obsrv_ Obsrv;
-
     typedef ObservationDensity<Obsrv, State> DensityInterface;
-    typedef AdditiveObservationFunction<Obsrv, State, Obsrv> AdditiveInterface;
+    typedef AdditiveObservationFunction<Obsrv, State, NoiseDensity> AdditiveInterface;
     typedef typename AdditiveInterface::FunctionInterface FunctionInterface;
 
     /**
@@ -125,12 +124,12 @@ public:
         return sensor_matrix_;
     }
 
-    const NoiseMatrix& noise_matrix() const override
+    NoiseMatrix noise_matrix() const override
     {
         return density_.square_root();
     }
 
-    const NoiseMatrix& noise_covariance() const override
+    NoiseMatrix noise_covariance() const override
     {
         return density_.covariance();
     }
@@ -181,7 +180,7 @@ public:
 
 protected:
     SensorMatrix sensor_matrix_;
-    mutable Density density_;
+    mutable NoiseDensity density_;
 };
 
 }
