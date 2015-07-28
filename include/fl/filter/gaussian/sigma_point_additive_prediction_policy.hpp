@@ -116,7 +116,7 @@ public:
     virtual std::string name() const
     {
         return "SigmaPointPredictPolicy<"
-                + list_arguments(
+                + this->list_arguments(
                        "SigmaPointQuadrature",
                        "Additive<AdditiveStateTransitionFunction>")
                 + ">";
@@ -124,8 +124,8 @@ public:
 
     virtual std::string description() const
     {
-        return "Sigma Point based filter prediction policy for state transition"
-               " model with additive noise";
+        return "Sigma Point based filter prediction policy for state "
+               "transition model with additive noise";
     }
 
 protected:
