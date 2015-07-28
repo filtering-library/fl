@@ -28,17 +28,27 @@
 #include <fl/util/meta.hpp>
 #include <fl/util/traits.hpp>
 #include <fl/filter/filter_interface.hpp>
+#include <fl/distribution/gaussian.hpp>
 
 namespace fl
 {
+
+/**
+* \defgroup generic_nonlinear_gaussian_filter Generic Nonlinear Gaussian Filter
+* \ingroup filters
+*/
 
 // Forward delcaration
 template <typename...> class GaussianFilter;
 
 /**
  * \internal
+ * \ingroup nonlinear_gaussian_filter
+ * \ingroup generic_nonlinear_gaussian_filter
  *
- * GaussianFilter Traits
+ * Traits for generic GaussianFilter based on quadrature (numeric integration)
+ * with customizable policies, i.e implementations of the time and measurement
+ * updates.
  */
 template <
     typename StateTransitionModel,
@@ -57,7 +67,8 @@ struct Traits<
 };
 
 /**
- * \ingroup sigma_point_kalman_filters
+ * \ingroup nonlinear_gaussian_filter
+ * \ingroup generic_nonlinear_gaussian_filter
  *
  * GaussianFilter represents all filters based on Gaussian distributed systems.
  * This includes the Kalman Filter and filters using non-linear models such as
@@ -90,8 +101,7 @@ class GaussianFilter<
                    ObservationFunction,
                    Quadrature,
                    PredictionPolicy,
-                   UpdatePolicy>>,
-    public Descriptor
+                   UpdatePolicy>>
 {
 public:
     typedef typename StateTransitionFunction::State State;
@@ -191,24 +201,24 @@ public: /* accessors & mutators */
     virtual std::string name() const
     {
         return "GaussianFilter<"
-                + list_arguments(
-                       process_model().name(),
-                       obsrv_model().name(),
-                       quadrature().name(),
-                       prediction_policy_.name(),
-                       update_policy_.name())
+                + this->list_arguments(
+                            process_model().name(),
+                            obsrv_model().name(),
+                            quadrature().name(),
+                            prediction_policy_.name(),
+                            update_policy_.name())
                 + ">";
     }
 
     virtual std::string description() const
     {
         return "Sigma point based GaussianFilter with"
-                + list_descriptions(
-                       process_model().description(),
-                       obsrv_model().description(),
-                       quadrature().description(),
-                       prediction_policy_.description(),
-                       update_policy_.description());
+                + this->list_descriptions(
+                            process_model().description(),
+                            obsrv_model().description(),
+                            quadrature().description(),
+                            prediction_policy_.description(),
+                            update_policy_.description());
     }
 
 protected:
