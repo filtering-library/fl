@@ -157,52 +157,6 @@ public:
     }
 
     /**
-     * \copydoc FilterInterface::predict(const Belief&,
-     *                                   const Input&,
-     *                                   long,
-     *                                   Belief&)
-     */
-    virtual void predict(const Belief& prior_belief,
-                         const Input& input,
-                         const long steps,
-                         Belief& predicted_belief)
-    {
-        if (steps == 1)
-        {
-            predict(prior_belief, input, predicted_belief);
-            return;
-        }
-
-        auto A = process_model_.dynamics_matrix();
-        auto B = process_model_.input_matrix();
-        auto Q = process_model_.noise_covariance();
-
-        auto A_pow_k = A;
-        auto sum_A_pow_i= A;
-        auto sum_A_pow_i_Q_AT_pow_i = Q;
-
-        A_pow_k.setIdentity();
-        sum_A_pow_i.setZero();
-        sum_A_pow_i_Q_AT_pow_i.setZero();
-
-        for (int i = 0; i < steps; ++i)
-        {
-            sum_A_pow_i += A_pow_k;
-            sum_A_pow_i_Q_AT_pow_i += A_pow_k * Q * A_pow_k.transpose();
-
-            A_pow_k = A_pow_k * A;
-        }
-
-        predicted_belief.mean(
-            A_pow_k * prior_belief.mean()
-            + sum_A_pow_i * B * input);
-
-        predicted_belief.covariance(
-            A_pow_k * prior_belief.covariance() * A_pow_k.transpose()
-            + sum_A_pow_i_Q_AT_pow_i);
-    }
-
-    /**
      * \copydoc FilterInterface::update
      *
      * Given the following matrices
@@ -238,18 +192,6 @@ public:
 
         posterior_belief.mean(mean + K * (y - H * mean));
         posterior_belief.covariance(cov_xx - K * H * cov_xx);
-    }
-
-    /**
-     * \copydoc FilterInterface::predict_and_update
-     */
-    virtual void predict_and_update(const Belief& prior_belief,
-                                    const Input& input,
-                                    const Obsrv& observation,
-                                    Belief& posterior_belief)
-    {
-        predict(prior_belief, input, posterior_belief);
-        update(posterior_belief, observation, posterior_belief);
     }
 
     virtual Belief create_belief() const

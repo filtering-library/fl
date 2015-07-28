@@ -100,29 +100,6 @@ public:
                          Belief& predicted_belief) = 0;
 
     /**
-     * Predicts the distribution over the state give a number of time steps.
-     * This may provide a more efficient implementation than simply calling
-     * the \c predict function recursively.
-     *
-     * \param prior_belief        Prior state distribution
-     * \param input               Control input argument
-     * \param steps
-     * \param predicted_belief    Predicted state distribution
-     */
-    virtual void predict(const Belief& prior_belief,
-                         const Input& input,
-                         const long steps,
-                         Belief& predicted_belief)
-    {
-        predicted_belief = prior_belief;
-
-        for (int i = 0; i < steps; ++i)
-        {
-            predict(predicted_belief, input, predicted_belief);
-        }
-    }
-
-    /**
      * Updates a predicted state given an observation
      *
      * \param predicted_belief    Predicted state distribution
@@ -132,21 +109,6 @@ public:
     virtual void update(const Belief& predicted_belief,
                         const Obsrv& obsrv,
                         Belief& posterior_belief) = 0;
-
-    /**
-     * Predicts the state distribution for a given delta time and subsequently
-     * updates the prediction using a measurement.
-     *
-     * @param delta_time
-     * @param input
-     * @param observation
-     * @param prior_belief
-     * @param posterior_belief
-     */
-    virtual void predict_and_update(const Belief& prior_belief,
-                                    const Input& input,
-                                    const Obsrv& obsrv,
-                                    Belief& posterior_belief) = 0;
 };
 
 }
