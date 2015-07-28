@@ -62,13 +62,21 @@ struct UnscentedKalmanFilterTestConfiguration
 };
 
 typedef ::testing::Types<
-            StaticTest<UnscentedKalmanFilterTestConfiguration<3, 1, 2>>,
-            StaticTest<UnscentedKalmanFilterTestConfiguration<3, 3, 10>>,
-            StaticTest<UnscentedKalmanFilterTestConfiguration<10, 10, 20>>,
+//            StaticTest<UnscentedKalmanFilterTestConfiguration<3, 1, 2>>,
+//            StaticTest<UnscentedKalmanFilterTestConfiguration<3, 3, 10>>,
+//            StaticTest<UnscentedKalmanFilterTestConfiguration<10, 10, 20>>,
+            StaticTest<UnscentedKalmanFilterTestConfiguration<10, 10, 200>>,
+            StaticTest<UnscentedKalmanFilterTestConfiguration<10, 10, 2000>>,
+            StaticTest<UnscentedKalmanFilterTestConfiguration<10, 10, 5000>>,
+            StaticTest<UnscentedKalmanFilterTestConfiguration<10, 10, 10000>>,
 
-            DynamicTest<UnscentedKalmanFilterTestConfiguration<3, 1, 2>>,
-            DynamicTest<UnscentedKalmanFilterTestConfiguration<3, 3, 10>>,
-            DynamicTest<UnscentedKalmanFilterTestConfiguration<10, 10, 20>>
+//            DynamicTest<UnscentedKalmanFilterTestConfiguration<3, 1, 2>>,
+//            DynamicTest<UnscentedKalmanFilterTestConfiguration<3, 3, 10>>,
+//            DynamicTest<UnscentedKalmanFilterTestConfiguration<10, 10, 20>>,
+            DynamicTest<UnscentedKalmanFilterTestConfiguration<10, 10, 200>>,
+            DynamicTest<UnscentedKalmanFilterTestConfiguration<10, 10, 2000>>,
+            DynamicTest<UnscentedKalmanFilterTestConfiguration<10, 10, 5000>>,
+            DynamicTest<UnscentedKalmanFilterTestConfiguration<10, 10, 10000>>
         > TestTypes;
 
 INSTANTIATE_TYPED_TEST_CASE_P(UnscentedKalmanFilterTest,

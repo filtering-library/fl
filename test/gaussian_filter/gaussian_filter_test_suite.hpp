@@ -66,8 +66,9 @@ protected:
     typedef Eigen::Matrix<fl::Real, ObsrvSize, 1> Obsrv;
 
     typedef fl::LinearStateTransitionModel<State, Input> LinearStateTransition;
-    //typedef fl::LinearDecorrelatedGaussianObservationModel<Obsrv, State> LinearObservation;
+    typedef fl::LinearDecorrelatedGaussianObservationModel<Obsrv, State> LinearObservation;
     typedef fl::LinearGaussianObservationModel<Obsrv, State> LinearObservation;
+
 
     typedef typename Configuration::template FilterDefinition<
                 LinearStateTransition,
@@ -77,8 +78,8 @@ protected:
     typedef typename FilterDefinition::Type Filter;
 
     GaussianFilterTest()
-        : predict_steps_(10000),
-          predict_update_steps_(2000)
+        : predict_steps_(30),
+          predict_update_steps_(30)
     { }
 
     Filter create_filter() const
@@ -142,10 +143,10 @@ TYPED_TEST_P(GaussianFilterTest, init_predict)
     auto filter = This::create_filter();
     auto belief = filter.create_belief();
 
-//    std::cout << "filter.name():\n\n"
-//              << filter.name() << std::endl;
-//    std::cout << "\nfilter.description():\n\n"
-//              << filter.description() << std::endl;
+    std::cout << "filter.name():\n\n"
+              << filter.name() << std::endl;
+    std::cout << "\nfilter.description():\n\n"
+              << filter.description() << std::endl;
 
     EXPECT_TRUE(belief.mean().isZero());
     EXPECT_TRUE(belief.covariance().isIdentity());

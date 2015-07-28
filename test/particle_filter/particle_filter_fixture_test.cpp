@@ -26,7 +26,7 @@
 #include <fl/util/math/linear_algebra.hpp>
 
 #include <fl/filter/particle/particle_filter.hpp>
-#include <fl/filter/gaussian/gaussian_filter_kf.hpp>
+#include <fl/filter/gaussian/gaussian_filter_linear.hpp>
 #include <fl/model/process/linear_state_transition_model.hpp>
 #include <fl/model/observation/linear_gaussian_observation_model.hpp>
 

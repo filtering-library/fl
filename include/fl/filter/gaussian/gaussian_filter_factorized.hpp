@@ -45,12 +45,6 @@ namespace fl
 // Forward declarations
 template <typename...> class GaussianFilter;
 
-/**
- * \defgroup gaussian_filter_iid Factorized Gaussian Filter (IID)
- * \ingroup sigma_point_kalman_filters
- */
-
-
 #ifdef TEMPLATE_ARGUMENTS
 #  undef TEMPLATE_ARGUMENTS
 #endif

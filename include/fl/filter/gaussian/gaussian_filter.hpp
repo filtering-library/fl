@@ -27,7 +27,7 @@
 #include <fl/filter/gaussian/quadrature/sigma_point_quadrature.hpp>
 #include <fl/filter/gaussian/quadrature/unscented_quadrature.hpp>
 
-#include <fl/filter/gaussian/gaussian_filter_kf.hpp>
+#include <fl/filter/gaussian/gaussian_filter_linear.hpp>
 #include <fl/filter/gaussian/gaussian_filter_nonlinear_generic.hpp>
 #include <fl/filter/gaussian/gaussian_filter_nonlinear.hpp>
 
