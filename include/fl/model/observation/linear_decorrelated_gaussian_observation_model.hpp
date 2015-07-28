@@ -23,6 +23,7 @@
 #define FL__MODEL__OBSERVATION__LINEAR_DECORRELATED_GAUSSIAN_OBSERVATION_MODEL_HPP
 
 #include <fl/util/traits.hpp>
+#include <fl/util/types.hpp>
 #include <fl/util/descriptor.hpp>
 #include <fl/distribution/decorrelated_gaussian.hpp>
 #include <fl/model/observation/linear_observation_model.hpp>
@@ -35,21 +36,38 @@ namespace fl
  * \ingroup observation_models
  */
 template <typename Obsrv, typename State>
-class LinearDecorrelatedGaussianObservationModel<Obsrv, State>
-    : public LinearObservationModel<Obsrv, State, DecorrelatedGaussian<Obsrv>>,
-      public AdditiveDecorrelatedObservationFunction<Obsrv, State, Obsrv>,
-      public Descriptor
+class LinearDecorrelatedGaussianObservationModel
+    : public AdditiveUncorrelatedNoiseModel<DecorrelatedGaussian<Obsrv>>,
+      public AdditiveObservationFunction<Obsrv, State, Gaussian<Obsrv>>,
+      public Descriptor,
+      private internal::LinearModelType
 {
 public:
 
-    typedef AdditiveDecorrelatedObservationFunction<
-                Obsrv, State, Obsrv
-            > AdditiveDecorrelatedInterface;
+    typedef AdditiveUncorrelatedNoiseModel<
+                DecorrelatedGaussian<Obsrv>
+            > AdditiveUncorrelatedInterface;
 
-    typedef typename AdditiveDecorrelatedInterface::NoiseDiagonal NoiseDiagonal;
+    typedef AdditiveObservationFunction<
+                Obsrv, State, Gaussian<Obsrv>
+            > AdditiveObservationFunctionInterface;
 
-    using AdditiveDecorrelatedInterface::covariance;
-    using AdditiveDecorrelatedInterface::square_root;
+    typedef
+    typename AdditiveObservationFunctionInterface::NoiseMatrix NoiseMatrix;
+
+    typedef
+    typename AdditiveUncorrelatedInterface::NoiseMatrix NoiseDiagonalMatrix;
+
+    /**
+     * Observation model sensor matrix \f$H_t\f$ use in
+     *
+     * \f$ y_t  = H_t x_t + N_t v_t \f$
+     */
+    typedef Eigen::Matrix<
+                typename State::Scalar,
+                SizeOf<Obsrv>::Value,
+                SizeOf<State>::Value
+            > SensorMatrix;
 
     /**
      * Constructs a linear gaussian observation model
@@ -61,18 +79,115 @@ public:
     LinearDecorrelatedGaussianObservationModel(
         int obsrv_dim = DimensionOf<Obsrv>(),
         int state_dim = DimensionOf<State>())
-        : LinearObservationModel<Obsrv, State, DecorrelatedGaussian<Obsrv>>(
-              obsrv_dim, state_dim)
-    { }
-
-    virtual const NoiseDiagonal& noise_matrix_diagonal() const
+        : sensor_matrix_(SensorMatrix::Identity(obsrv_dim, state_dim)),
+          density_(obsrv_dim)
     {
-        return AdditiveDecorrelatedInterface::square_root();
+        assert(obsrv_dim > 0);
+        assert(state_dim > 0);
     }
 
-    virtual const NoiseDiagonal& noise_covariance_diagonal() const
+
+    /**
+     * \brief Overridable default destructor
+     */
+    virtual ~LinearDecorrelatedGaussianObservationModel() { }
+
+    virtual NoiseDiagonalMatrix noise_matrix_diagonal() const
     {
-        return AdditiveDecorrelatedInterface::covariance();
+        return density_.square_root();
+    }
+
+    virtual NoiseDiagonalMatrix noise_covariance_diagonal() const
+    {
+        return density_.covariance();
+    }
+
+    /**
+     * \brief expected_observation
+     * \param state
+     * \return
+     */
+    Obsrv expected_observation(const State& state) const override
+    {
+        return sensor_matrix_ * state;
+    }
+
+    Real log_probability(const Obsrv& obsrv, const State& state) const
+    {
+        density_.mean(expected_observation(state));
+
+        return density_.log_probability(obsrv);
+    }
+
+    const SensorMatrix& sensor_matrix() const override
+    {
+        return sensor_matrix_;
+    }
+
+    NoiseMatrix noise_matrix() const override
+    {
+        return density_.square_root();
+    }
+
+    NoiseMatrix noise_covariance() const override
+    {
+        return density_.covariance();
+    }
+
+    int obsrv_dimension() const override
+    {
+        return sensor_matrix_.rows();
+    }
+
+    int noise_dimension() const override
+    {
+        return density_.square_root().cols();
+    }
+
+    int state_dimension() const override
+    {
+        return sensor_matrix_.cols();
+    }
+
+    virtual void sensor_matrix(const SensorMatrix& sensor_mat)
+    {
+        sensor_matrix_ = sensor_mat;
+    }
+
+    virtual void noise_matrix(const NoiseMatrix& noise_mat)
+    {
+        density_.square_root(noise_mat.diagonal().asDiagonal());
+    }
+
+    virtual void noise_covariance(const NoiseMatrix& noise_mat_squared)
+    {
+        density_.covariance(noise_mat_squared.diagonal().asDiagonal());
+    }
+
+    virtual void noise_matrix_diagonal(
+        const NoiseDiagonalMatrix& noise_mat)
+    {
+        density_.square_root(noise_mat);
+    }
+
+    virtual void noise_covariance_diagonal(
+        const NoiseDiagonalMatrix& noise_mat_squared)
+    {
+        density_.covariance(noise_mat_squared);
+    }
+
+    virtual SensorMatrix create_sensor_matrix() const
+    {
+        auto H = sensor_matrix();
+        H.setIdentity();
+        return H;
+    }
+
+    virtual NoiseMatrix create_noise_matrix() const
+    {
+        auto N = noise_matrix();
+        N.setIdentity();
+        return N;
     }
 
     virtual std::string name() const
@@ -85,6 +200,10 @@ public:
         return "Linear observation model with additive decorrelated Gaussian "
                "noise";
     }
+
+private:
+    SensorMatrix sensor_matrix_;
+    mutable DecorrelatedGaussian<Obsrv> density_;
 };
 
 }
