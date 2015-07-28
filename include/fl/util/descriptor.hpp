@@ -89,8 +89,11 @@ public:
 
         return indented_text;
     }
+    /** \endcond */
 
 protected:
+    /** \cond internal */
+
     /**
      * Creates list with the correct indentation out of the passed elements.
      */
@@ -100,7 +103,7 @@ protected:
         std::tuple<const Elements&...> element_tuple{elements...};
 
         std::string list_string;
-        list_impl<sizeof...(Elements), 0>(
+        list<sizeof...(Elements), 0>(
             element_tuple, "", ",", ",", list_string);
 
         return list_string;
@@ -115,20 +118,21 @@ protected:
         std::tuple<const Elements&...> element_tuple{elements...};
 
         std::string list_string;
-        list_impl<sizeof...(Elements), 0>(
+        list<sizeof...(Elements), 0>(
             element_tuple, "- ", ",", ", and", list_string);
 
         return list_string;
     }
-    /** \endcond */
 
-private:
+    /**
+     * Generic configurable compile time list generator
+     */
     template <int Size, int k, typename ... Elements>
-    void list_impl(const std::tuple<const Elements&...>& element_tuple,
-                   const std::string& bullet,
-                   const std::string& delimiter,
-                   const std::string& final_delimiter,
-                   std::string& list_string) const
+    void list(const std::tuple<const Elements&...>& element_tuple,
+              const std::string& bullet,
+              const std::string& delimiter,
+              const std::string& final_delimiter,
+              std::string& list_string) const
     {
         auto&& element = std::get<k>(element_tuple);
 
@@ -145,13 +149,14 @@ private:
 
         if (Size == k + 1) return;
 
-        list_impl<Size, k + (k + 1 < Size ? 1 : 0)>(
+        list<Size, k + (k + 1 < Size ? 1 : 0)>(
             element_tuple,
             bullet,
             delimiter,
             final_delimiter,
             list_string);
     }
+    /** \endcond */
 };
 
 }
