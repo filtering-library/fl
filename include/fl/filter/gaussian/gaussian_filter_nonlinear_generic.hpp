@@ -14,29 +14,20 @@
  */
 
 /**
- * \file gaussian_filter_spkf.hpp
+ * \file gaussian_filter_nonlinear_generic.hpp
  * \date October 2014
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__FILTER__GAUSSIAN__GAUSSIAN_FILTER_SPKF_HPP
-#define FL__FILTER__GAUSSIAN__GAUSSIAN_FILTER_SPKF_HPP
+#ifndef FL__FILTER__GAUSSIAN__GAUSSIAN_FILTER_NONLINEAR_GENERIC_HPP
+#define FL__FILTER__GAUSSIAN__GAUSSIAN_FILTER_NONLINEAR_GENERIC_HPP
 
 
 #include <Eigen/Dense>
 
 #include <fl/util/meta.hpp>
 #include <fl/util/traits.hpp>
-#include <fl/util/profiling.hpp>
-#include <fl/exception/exception.hpp>
-#include <fl/distribution/gaussian.hpp>
 #include <fl/filter/filter_interface.hpp>
-#include <fl/filter/gaussian/transform/point_set.hpp>
-#include <fl/filter/gaussian/quadrature/sigma_point_quadrature.hpp>
-#include <fl/filter/gaussian/sigma_point_update_policy.hpp>
-#include <fl/filter/gaussian/sigma_point_prediction_policy.hpp>
-#include <fl/filter/gaussian/sigma_point_additive_update_policy.hpp>
-#include <fl/filter/gaussian/sigma_point_additive_prediction_policy.hpp>
 
 namespace fl
 {
@@ -73,64 +64,10 @@ struct Traits<
  * Sigma Point Kalman Filter family.
  *
  * \tparam StateTransitionFunction
- * \tparam ObservationModel
- *
- */
-template<
-    typename StateTransitionFunction,
-    typename ObservationFunction,
-    typename Quadrature
->
-class GaussianFilter<StateTransitionFunction, ObservationFunction, Quadrature>
-    :
-    /* Implement the filter interface */
-#ifndef GENERATING_DOCUMENTATION
-    public GaussianFilter<
-               typename RemoveAdditivityOf<StateTransitionFunction>::Type,
-               typename RemoveAdditivityOf<ObservationFunction>::Type,
-               Quadrature,
-               SigmaPointPredictPolicy<
-                   Quadrature,
-                   typename AdditivityOf<StateTransitionFunction>::Type>,
-               SigmaPointUpdatePolicy<
-                   Quadrature,
-                   typename AdditivityOf<ObservationFunction>::Type>>
-#else
-    public GaussianFilter<
-               StateTransitionFunction,
-               ObservationFunction,
-               Quadrature,
-               PredictionPolicy,
-               UpdatePolicy>
-#endif
-{
-public:
-    template <typename...Args>
-    GaussianFilter(Args&& ... args)
-        : GaussianFilter<
-              typename RemoveAdditivityOf<StateTransitionFunction>::Type,
-              typename RemoveAdditivityOf<ObservationFunction>::Type,
-              Quadrature,
-              SigmaPointPredictPolicy<
-                  Quadrature,
-                  typename AdditivityOf<StateTransitionFunction>::Type>,
-              SigmaPointUpdatePolicy<
-                  Quadrature,
-                  typename AdditivityOf<ObservationFunction>::Type>>
-          (std::forward<Args>(args)...)
-    { }
-};
-
-/**
- * \ingroup sigma_point_kalman_filters
- *
- * GaussianFilter represents all filters based on Gaussian distributed systems.
- * This includes the Kalman Filter and filters using non-linear models such as
- * Sigma Point Kalman Filter family.
- *
- * \tparam StateTransitionFunction
- * \tparam ObservationModel
- *
+ * \tparam ObservationFunction
+ * \tparam Quadrature
+ * \tparam PredictionPolicy
+ * \tparam UpdatePolicy
  */
 template<
     typename StateTransitionFunction,
@@ -198,23 +135,6 @@ public:
                            predicted_belief);
     }
 
-    virtual void predict(const Belief& prior_belief,
-                         const Input& input,
-                         const long steps,
-                         Belief& predicted_belief)
-    {
-        predicted_belief = prior_belief;
-
-        for (int i = 0; i < steps; ++i)
-        {
-            prediction_policy_(process_model(),
-                               quadrature(),
-                               prior_belief,
-                               input,
-                               predicted_belief);
-        }
-    }
-
     /**
      * \copydoc FilterInterface::update
      */
@@ -227,18 +147,6 @@ public:
                        predicted_belief,
                        obsrv,
                        posterior_belief);
-    }
-
-    /**
-     * \copydoc FilterInterface::predict_and_update
-     */
-    virtual void predict_and_update(const Belief& prior_belief,
-                                    const Input& input,
-                                    const Obsrv& observation,
-                                    Belief& posterior_belief)
-    {
-        predict(prior_belief, input, posterior_belief);
-        update(posterior_belief, observation, posterior_belief);
     }
 
 public: /* factory functions */
@@ -280,7 +188,6 @@ public: /* accessors & mutators */
         return quadrature_;
     }
 
-
     virtual std::string name() const
     {
         return "GaussianFilter<"
@@ -313,81 +220,6 @@ protected:
     UpdatePolicy update_policy_;
     /** \endcond */
 };
-
-//#ifdef TEMPLATE_ARGUMENTS
-//    #undef TEMPLATE_ARGUMENTS
-//#endif
-
-
-//#define TEMPLATE_ARGUMENTS \
-//    JointProcessModel< \
-//       ProcessModel, \
-//       JointProcessModel<MultipleOf<LocalParamModel, Count>>>, \
-//    Adaptive<JointObservationModel<MultipleOf<LocalObsrvModel, Count>>>, \
-//    PointSetTransform,\
-//    FeaturePolicy<>
-
-//#ifndef GENERATING_DOCUMENTATION
-//template <
-//    typename ProcessModel,
-//    typename LocalObsrvModel,
-//    typename LocalParamModel,
-//    int Count,
-//    typename PointSetTransform,
-//    template <typename...T> class FeaturePolicy
-//>
-//#endif
-//struct Traits<
-//           GaussianFilter<
-//               ProcessModel,
-//               Join<MultipleOf<Adaptive<LocalObsrvModel, LocalParamModel>, Count>>,
-//               PointSetTransform,
-//               FeaturePolicy<>,
-//               Options<NoOptions>
-//            >
-//        >
-//    : Traits<GaussianFilter<TEMPLATE_ARGUMENTS>>
-//{ };
-
-//#ifndef GENERATING_DOCUMENTATION
-//template <
-//    typename ProcessModel,
-//    typename LocalObsrvModel,
-//    typename LocalParamModel,
-//    int Count,
-//    typename PointSetTransform,
-//    template <typename...T> class FeaturePolicy
-//>
-//#endif
-//class GaussianFilter<
-//          ProcessModel,
-//          Join<MultipleOf<Adaptive<LocalObsrvModel, LocalParamModel>, Count>>,
-//          PointSetTransform,
-//          FeaturePolicy<>,
-//          Options<NoOptions>
-//      >
-//    : public GaussianFilter<TEMPLATE_ARGUMENTS>
-//{
-//public:
-//    typedef GaussianFilter<TEMPLATE_ARGUMENTS> Base;
-
-//    GaussianFilter(
-//        const ProcessModel& state_process_model,
-//        const LocalParamModel& param_process_model,
-//        const LocalObsrvModel& obsrv_model,
-//        const PointSetTransform& transform,
-//        const typename Traits<Base>::FeatureMapping& feature_mapping
-//            = typename Traits<Base>::FeatureMapping(),
-//        int parameter_count = Count)
-//            : Base(
-//                { state_process_model, {param_process_model, parameter_count} },
-//                { obsrv_model, parameter_count },
-//                transform,
-//                feature_mapping)
-//    { }
-//};
-
-//#undef TEMPLATE_ARGUMENTS
 
 }
 
