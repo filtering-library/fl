@@ -25,6 +25,7 @@
 #include <fl/util/meta.hpp>
 #include <fl/util/traits.hpp>
 #include <fl/filter/gaussian/gaussian_filter_nonlinear_generic.hpp>
+#include <fl/filter/gaussian/sigma_point_additive_uncorrelated_update_policy.hpp>
 #include <fl/filter/gaussian/sigma_point_additive_prediction_policy.hpp>
 #include <fl/filter/gaussian/sigma_point_additive_update_policy.hpp>
 #include <fl/filter/gaussian/sigma_point_prediction_policy.hpp>
@@ -34,7 +35,13 @@ namespace fl
 {
 
 /**
- * \ingroup sigma_point_kalman_filters
+ * \defgroup nonlinear_gaussian_filter Nonlinear Gaussian Filter
+ *
+ * \ingroup generic_nonlinear_gaussian_filter
+ */
+
+/**
+ * \ingroup nonlinear_gaussian_filter
  *
  * GaussianFilter represents all filters based on Gaussian distributed systems.
  * This includes the Kalman Filter and filters using non-linear models such as
@@ -74,8 +81,9 @@ class GaussianFilter<StateTransitionFunction, ObservationFunction, Quadrature>
 #endif
 {
 public:
-    template <typename...Args>
-    GaussianFilter(Args&& ... args)
+    GaussianFilter(const StateTransitionFunction& process_model,
+                   const ObservationFunction& obsrv_model,
+                   const Quadrature& quadrature)
         : GaussianFilter<
               typename RemoveAdditivityOf<StateTransitionFunction>::Type,
               typename RemoveAdditivityOf<ObservationFunction>::Type,
@@ -86,7 +94,7 @@ public:
               SigmaPointUpdatePolicy<
                   Quadrature,
                   typename AdditivityOf<ObservationFunction>::Type>>
-          (std::forward<Args>(args)...)
+          (process_model, obsrv_model, quadrature)
     { }
 };
 
