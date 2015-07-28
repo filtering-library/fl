@@ -19,12 +19,13 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__MODEL__OBSERVATION__ADDITIVE_OBSERVATION_FUNCTION_HPP
-#define FL__MODEL__OBSERVATION__ADDITIVE_OBSERVATION_FUNCTION_HPP
+#ifndef FL__MODEL__OBSERVATION__INTERFACE__ADDITIVE_OBSERVATION_FUNCTION_HPP
+#define FL__MODEL__OBSERVATION__INTERFACE__ADDITIVE_OBSERVATION_FUNCTION_HPP
 
 #include <fl/util/traits.hpp>
 
-#include <fl/model/observation/interface/observation_model_interface.hpp>
+#include <fl/model/additive_noise_model.hpp>
+#include <fl/model/observation/interface/observation_function.hpp>
 
 namespace fl
 {
@@ -32,26 +33,21 @@ namespace fl
 template <
     typename Obsrv,
     typename State,
-    typename Noise,
+    typename NoiseDensity,
     int Id = 0
 >
 class AdditiveObservationFunction
-    : public ObservationFunction<Obsrv, State, Noise, Id>,
-      public internal::AdditiveModelType
+    : public ObservationFunction<Obsrv, State, typename NoiseDensity::Variate, Id>,
+      public AdditiveNoiseModel<NoiseDensity>
 {
 public:
-    typedef internal::AdditiveModelType Type;
-
+    typedef typename NoiseDensity::Variate Noise;
+    typedef internal::AdditiveNoiseModelType Type;
     typedef ObservationFunction<Obsrv, State, Noise, Id> FunctionInterface;
+    typedef AdditiveNoiseModel<NoiseDensity> AdditiveInterface;
 
-    /**
-     * Noise model matrix \f$N_t\f$
-     */
-    typedef Eigen::Matrix<
-                typename Noise::Scalar,
-                SizeOf<Noise>::Value,
-                SizeOf<Noise>::Value
-            > NoiseMatrix;
+    using AdditiveInterface::noise_matrix;
+
 public:
     /**
      * \brief Overridable default destructor
@@ -69,8 +65,6 @@ public:
      * \param delta_time    Prediction time
      */
     virtual Obsrv expected_observation(const State& state) const = 0;
-    virtual const NoiseMatrix& noise_matrix() const = 0;
-    virtual const NoiseMatrix& noise_covariance() const = 0;
 
     Obsrv observation(const State& state, const Noise& noise) const override
     {
