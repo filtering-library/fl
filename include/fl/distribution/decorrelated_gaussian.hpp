@@ -94,10 +94,9 @@ public:
      * \brief Second moment matrix type, i.e covariance matrix, precision
      *        matrix, and their diagonal and square root representations
      */
-    typedef typename Moments<
-        Variate,
-        typename DiagonalSecondMomentOf<Variate>::Type
-    >::SecondMoment DiagonalSecondMoment;
+    typedef typename DiagonalSecondMomentOf<Variate>::Type DiagonalSecondMoment;
+
+    typedef typename SecondMomentOf<Variate>::Type DenseSecondMoment;
 
     /**
      * \brief Represents the StandardGaussianMapping standard variate type which
@@ -576,6 +575,63 @@ public:
         updated_externally(DiagonalPrecisionMatrix);
     }
 
+    /**
+     * Sets the covariance matrix as a diagonal matrix
+     *
+     * \param diag_covariance New diagonal covariance matrix
+     *
+     * \cond internal
+     * \pre |{Valid Representations}| > 0
+     * \post {Valid Representations}
+     *       = {Valid Representations} \f$ \cup \f$ {#DiagonalCovarianceMatrix}
+     * \endcond
+     *
+     * \throws WrongSizeException
+     */
+    virtual void covariance(
+        const Eigen::MatrixBase<DenseSecondMoment>& cov) noexcept
+    {
+        covariance(cov.diagonal().asDiagonal());
+    }
+
+    /**
+     * Sets the covariance matrix in its diagonal square root form
+     *
+     * \param diag_square_root New diagonal square root of the covariance
+     *
+     * \cond internal
+     * \pre |{Valid Representations}| > 0
+     * \post {Valid Representations}
+     *       = {Valid Representations} \f$ \cup \f$ {#DiagonalSquareRootMatrix}
+     * \endcond
+     *
+     * \throws WrongSizeException
+     */
+    virtual void square_root(
+        const Eigen::MatrixBase<DenseSecondMoment>& sqrt) noexcept
+    {
+        square_root(sqrt.diagonal().asDiagonal());
+    }
+
+    /**
+     * Sets the covariance matrix in its diagonal precision form
+     *
+     * \param diag_precision New diagonal precision matrix
+     *
+     * \cond internal
+     * \pre |{Valid Representations}| > 0
+     * \post {Valid Representations}
+     *       = {Valid Representations} \f$ \cup \f$ {#DiagonalPrecisionMatrix}
+     * \endcond
+     *
+     * \throws WrongSizeException
+     */
+    virtual void precision(
+        const Eigen::MatrixBase<DenseSecondMoment>& prec) noexcept
+    {
+        precision(prec.diagonal().asDiagonal());
+    }
+
 protected:
     /** \cond internal */
     /**
@@ -660,7 +716,7 @@ protected:
 
         for (int i = 0; i < diag.size(); ++i)
         {
-            if (std::fabs(diag(i)) < 1e-18)
+            if (std::fabs(diag(i)) < 1e-24)
             {
                 full_rank = false;
                 break;
