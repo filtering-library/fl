@@ -13,8 +13,12 @@ set(fl_FLOATING_POINT_TYPE "double" CACHE STRING "fl::Real floating point type")
 ############################
 # Enable c++11 GCC 4.6 or greater required
 add_definitions(-DEIGEN_MPL2_ONLY=1)
-add_definitions(-std=c++0x -Wall -O3 -g3)
+add_definitions(-std=c++0x -O3)
 add_definitions(-DPROFILING_ON=1) #print profiling output
+
+add_definitions(-Wall)
+add_definitions(-Wno-unused-local-typedefs)
+add_definitions(-Wno-deprecated-declarations)
 
 ############################
 # Setup                    #
