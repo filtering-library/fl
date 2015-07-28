@@ -38,7 +38,7 @@ namespace fl
 {
 
 /**
- * \defgroup kalman_filter Kalman Filter
+ * \defgroup linear_gaussian_filter Linear Gaussian Filter (Kalman Filter)
  * \ingroup filters
  */
 
@@ -48,7 +48,7 @@ template <typename...> class GaussianFilter;
 
 /**
  * \internal
- * \ingroup kalman_filter
+ * \ingroup linear_gaussian_filter
  *
  * Traits of the Linear GaussianFilter (KalmanFilter)
  */
@@ -65,7 +65,7 @@ struct Traits<
 };
 
 /**
- * \ingroup kalman_filter
+ * \ingroup linear_gaussian_filter
  *
  * \brief GaussianFilter resembles the Kalman filter.
  *
@@ -198,6 +198,23 @@ public:
     {
         auto belief = Belief(process_model().state_dimension());
         return belief;
+    }
+
+    virtual std::string name() const
+    {
+        return "GaussianFilter<"
+                + this->list_arguments(
+                            process_model().name(),
+                            obsrv_model().name())
+                + ">";
+    }
+
+    virtual std::string description() const
+    {
+        return "Linear Gaussian filter (the Kalman Filter) with"
+                + this->list_descriptions(
+                            process_model().description(),
+                            obsrv_model().description());
     }
 
     LinearStateTransitionModel& process_model() { return process_model_; }
