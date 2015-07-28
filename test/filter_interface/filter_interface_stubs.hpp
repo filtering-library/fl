@@ -63,27 +63,26 @@ public:
 
     virtual void predict(const Belief& prior_belief,
                          const Input& input,
-                         Belief& predicted_belief)
+                         Belief& predicted_belief) override
     {
         predicted_belief = (prior_belief * 2);
     }
 
-
-
     virtual void update(const Belief& predicted_belief,
                         const Obsrv& observation,
-                        Belief& posterior_belief)
+                        Belief& posterior_belief) override
     {
         posterior_belief = (predicted_belief + observation) / 2.;
     }
 
-    virtual void predict_and_update(const Belief& prior_belief,
-                                    const Input& input,
-                                    const Obsrv& observation,
-                                    Belief& posterior_belief)
+    std::string name() const override
     {
-        predict(prior_belief, input, posterior_belief);
-        update(posterior_belief, observation, posterior_belief);
+        return "FilterForMoreFun";
+    }
+
+    std::string description() const override
+    {
+        return "FilterForMoreFun";
     }
 };
 
@@ -125,26 +124,27 @@ public:
     typedef typename fl::Traits<This>::Obsrv Obsrv;
     typedef typename fl::Traits<This>::Belief Belief;
 
-    virtual void predict(const Belief& prior_belief,
+    void predict(const Belief& prior_belief,
                          const Input& input,
-                         Belief& predicted_belief)
+                         Belief& predicted_belief) override
     {
         predicted_belief = (prior_belief * 3);
     }
 
-    virtual void update(const Belief& predicted_belief,
+    void update(const Belief& predicted_belief,
                         const Obsrv& observation,
-                        Belief& posterior_belief)
+                        Belief& posterior_belief) override
     {
         posterior_belief = (predicted_belief + observation) / 3.;
     }
 
-    virtual void predict_and_update(const Belief& prior_belief,
-                                    const Input& input,
-                                    const Obsrv& observation,
-                                    Belief& posterior_belief)
+    std::string name() const override
     {
-        predict(prior_belief, input, posterior_belief);
-        update(posterior_belief, observation, posterior_belief);
+        return "FilterForMoreFun";
+    }
+
+    std::string description() const override
+    {
+        return "FilterForMoreFun";
     }
 };
