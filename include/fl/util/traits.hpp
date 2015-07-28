@@ -326,17 +326,45 @@ struct AdditivityOf<Model, internal::AdditiveNoiseModelType>
  * \ingroup traits
  */
 template <typename Model>
+struct AdditivityOf<Model, internal::AdditiveUncorrelatedNoiseModelType>
+{
+    typedef AdditiveUncorrelated<Model> Type;
+};
+
+/**
+ * \internal
+ * \ingroup traits
+ */
+template <typename Model>
 struct AdditivityOf<Model, internal::NonAdditiveNoiseModelType>
 {
     typedef NonAdditive<Model> Type;
 };
 
+/**
+ * \internal
+ * \ingroup traits
+ */
 template <typename Model>
 struct AdditivityOf<Additive<Model>>
 {
     typedef Additive<Model> Type;
 };
 
+/**
+ * \internal
+ * \ingroup traits
+ */
+template <typename Model>
+struct AdditivityOf<AdditiveUncorrelated<Model>>
+{
+    typedef AdditiveUncorrelated<Model> Type;
+};
+
+/**
+ * \internal
+ * \ingroup traits
+ */
 template <typename Model>
 struct AdditivityOf<NonAdditive<Model>>
 {
@@ -357,7 +385,6 @@ template <typename Model> struct AdditivityOf<Model>
     typedef typename AdditivityOf<Model, typename Model::Type>::Type Type;
 };
 
-
 /**
  * \internal
  * \ingroup traits
@@ -369,6 +396,12 @@ template <typename Model> struct RemoveAdditivityOf
 
 template <typename Model>
 struct RemoveAdditivityOf<Additive<Model>>
+{
+    typedef Model Type;
+};
+
+template <typename Model>
+struct RemoveAdditivityOf<AdditiveUncorrelated<Model>>
 {
     typedef Model Type;
 };
