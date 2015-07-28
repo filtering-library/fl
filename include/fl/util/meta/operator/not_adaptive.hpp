@@ -30,7 +30,7 @@
 #include <fl/util/meta.hpp>
 #include <fl/model/adaptive_model.hpp>
 #include <fl/model/process/interface/state_transition_function.hpp>
-#include <fl/model/observation/interface/observation_model_interface.hpp>
+#include <fl/model/observation/interface/observation_function.hpp>
 
 namespace fl
 {

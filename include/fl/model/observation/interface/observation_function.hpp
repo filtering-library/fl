@@ -19,9 +19,10 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__MODEL__OBSERVATION__OBSERVATION_MODEL_INTERFACE_HPP
-#define FL__MODEL__OBSERVATION__OBSERVATION_MODEL_INTERFACE_HPP
+#ifndef FL__MODEL__OBSERVATION__INTERFACE_OBSERVATION_FUNCTION_HPP
+#define FL__MODEL__OBSERVATION__INTERFACE_OBSERVATION_FUNCTION_HPP
 
+#include <fl/util/types.hpp>
 #include <fl/util/traits.hpp>
 
 namespace fl
@@ -37,10 +38,10 @@ template <
     int Id = 0
 >
 class ObservationFunction
-        : internal::NonAdditiveModelType
+    : private internal::NonAdditiveNoiseModelType
 {
 public:
-    typedef internal::NonAdditiveModelType Type;
+    typedef internal::NonAdditiveNoiseModelType Type;
 
     typedef Obsrv_ Obsrv;
     typedef State_ State;

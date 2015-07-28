@@ -14,16 +14,17 @@
  */
 
 /**
- * \file additive_decorrelated_observation_function.hpp
+ * \file additive_uncorrelated_observation_function.hpp
  * \date June 2015
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__MODEL__OBSERVATION__ADDITIVE_DECORRELATED_OBSERVATION_FUNCTION_HPP
-#define FL__MODEL__OBSERVATION__ADDITIVE_DECORRELATED_OBSERVATION_FUNCTION_HPP
+#ifndef FL__MODEL__OBSERVATION__INTERFACE__ADDITIVE_UNCORRELATED_OBSERVATION_FUNCTION_HPP
+#define FL__MODEL__OBSERVATION__INTERFACE__ADDITIVE_UNCORRELATED_OBSERVATION_FUNCTION_HPP
 
 #include <fl/util/traits.hpp>
 
+#include <fl/model/additive_uncorrelated_noise_model.hpp>
 #include <fl/model/observation/interface/additive_observation_function.hpp>
 
 namespace fl
@@ -35,26 +36,16 @@ template <
     typename Noise,
     int Id = 0
 >
-class AdditiveDecorrelatedObservationFunction
-    : public AdditiveObservationFunction<Obsrv, State, Noise, Id>
+class AdditiveUncorrelatedObservationFunction
+    : public AdditiveObservationFunction<Obsrv, State, Noise, Id>,
+      public AdditiveUncorrelatedNoiseModel<Noise>,
+      private internal::AdditiveUncorrelatedNoiseModelType
 {
-public:
-    typedef AdditiveObservationFunction<
-                Obsrv, State, Noise, Id
-            >  AdditiveFunctionInterface;
-
-    typedef Eigen::DiagonalMatrix<
-                typename Noise::Scalar,
-                SizeOf<Obsrv>::Value
-            > NoiseDiagonal;
 public:
     /**
      * \brief Overridable default destructor
      */
-    virtual ~AdditiveDecorrelatedObservationFunction() { }
-
-    virtual const NoiseDiagonal& noise_matrix_diagonal() const = 0;
-    virtual const NoiseDiagonal& noise_covariance_diagonal() const = 0;
+    virtual ~AdditiveUncorrelatedObservationFunction() { }
 };
 
 }

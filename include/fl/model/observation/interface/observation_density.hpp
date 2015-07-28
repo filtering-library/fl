@@ -20,8 +20,8 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__MODEL__OBSERVATION__OBSERVATION_DENSITY_HPP
-#define FL__MODEL__OBSERVATION__OBSERVATION_DENSITY_HPP
+#ifndef FL__MODEL__OBSERVATION__INTERFACE__OBSERVATION_DENSITY_HPP
+#define FL__MODEL__OBSERVATION__INTERFACE__OBSERVATION_DENSITY_HPP
 
 #include <fl/util/types.hpp>
 #include <fl/util/traits.hpp>

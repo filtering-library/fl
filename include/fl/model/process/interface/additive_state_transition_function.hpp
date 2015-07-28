@@ -38,10 +38,10 @@ template <
 >
 class AdditiveStateTransitionFunction
     : public StateTransitionFunction<State, Noise, Input, Id>,
-      public internal::AdditiveModelType
+      public internal::AdditiveNoiseModelType
 {
 public:
-    typedef internal::AdditiveModelType Type;
+    typedef internal::AdditiveNoiseModelType Type;
 
     typedef StateTransitionFunction<State, Noise, Input, Id> FunctionInterface;
 
