@@ -66,8 +66,8 @@ protected:
     typedef Eigen::Matrix<fl::Real, ObsrvSize, 1> Obsrv;
 
     typedef fl::LinearStateTransitionModel<State, Input> LinearStateTransition;
-    //typedef fl::LinearDecorrelatedGaussianObservationModel<Obsrv, State> LinearObservation;
-    typedef fl::LinearGaussianObservationModel<Obsrv, State> LinearObservation;
+    typedef fl::LinearDecorrelatedGaussianObservationModel<Obsrv, State> LinearObservation;
+    //typedef fl::LinearGaussianObservationModel<Obsrv, State> LinearObservation;
 
 
     typedef typename Configuration::template FilterDefinition<
