@@ -93,16 +93,6 @@ public:
      */
     virtual ~LinearDecorrelatedGaussianObservationModel() { }
 
-    virtual NoiseDiagonalMatrix noise_matrix_diagonal() const
-    {
-        return density_.square_root();
-    }
-
-    virtual NoiseDiagonalMatrix noise_covariance_diagonal() const
-    {
-        return density_.covariance();
-    }
-
     /**
      * \brief expected_observation
      * \param state
@@ -131,6 +121,16 @@ public:
     }
 
     NoiseMatrix noise_covariance() const override
+    {
+        return density_.covariance();
+    }
+
+    virtual NoiseDiagonalMatrix noise_diagonal_matrix() const
+    {
+        return density_.square_root();
+    }
+
+    virtual NoiseDiagonalMatrix noise_diagonal_covariance() const
     {
         return density_.covariance();
     }
@@ -165,13 +165,13 @@ public:
         density_.covariance(noise_mat_squared.diagonal().asDiagonal());
     }
 
-    virtual void noise_matrix_diagonal(
+    virtual void noise_diagonal_matrix(
         const NoiseDiagonalMatrix& noise_mat)
     {
         density_.square_root(noise_mat);
     }
 
-    virtual void noise_covariance_diagonal(
+    virtual void noise_diagonal_covariance(
         const NoiseDiagonalMatrix& noise_mat_squared)
     {
         density_.covariance(noise_mat_squared);
@@ -189,6 +189,27 @@ public:
         auto N = noise_matrix();
         N.setIdentity();
         return N;
+    }
+
+    virtual NoiseMatrix create_noise_covariance() const
+    {
+        auto C = noise_covariance();
+        C.setIdentity();
+        return C;
+    }
+
+    virtual NoiseMatrix create_noise_diagonal_matrix() const
+    {
+        auto N = noise_diagonal_matrix();
+        N.setIdentity();
+        return N;
+    }
+
+    virtual NoiseMatrix create_noise_diagonal_covariance() const
+    {
+        auto C = noise_diagonal_covariance();
+        C.setIdentity();
+        return C;
     }
 
     virtual std::string name() const
