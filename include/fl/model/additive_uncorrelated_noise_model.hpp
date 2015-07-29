@@ -37,8 +37,8 @@ class AdditiveUncorrelatedNoiseModel
 public:
     typedef typename NoiseDensity::SecondMoment NoiseMatrix;
 public:
-    virtual NoiseMatrix noise_matrix_diagonal() const = 0;
-    virtual NoiseMatrix noise_covariance_diagonal() const = 0;
+    virtual NoiseMatrix noise_diagonal_matrix() const = 0;
+    virtual NoiseMatrix noise_diagonal_covariance() const = 0;
 };
 
 }
