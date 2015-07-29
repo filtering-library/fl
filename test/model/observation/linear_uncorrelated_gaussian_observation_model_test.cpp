@@ -130,9 +130,7 @@ public:
                 noise_diagonal_matrix.asDiagonal()));
 
         // make sure the dense matrix has a diagonal form
-        EXPECT_TRUE(
-           (model.noise_matrix() - model.noise_matrix().diagonal().asDiagonal())
-           .isZero());
+        EXPECT_TRUE(fl::is_diagonal(model.noise_matrix()));
     }
 
     void noise_covariance_value_test()
@@ -171,10 +169,7 @@ public:
                 noise_diagonal_covariance.diagonal()));
 
         // make sure the dense matrix has a diagonal form
-        EXPECT_TRUE(
-            (model.noise_covariance()
-             - model.noise_covariance().diagonal().asDiagonal())
-            .isZero());
+        EXPECT_TRUE(fl::is_diagonal(model.noise_covariance()));
     }
 
     void expected_observation_test()
