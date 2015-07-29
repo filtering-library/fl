@@ -14,7 +14,7 @@
  */
 
 /**
- * \file linear_observation_model_test.hpp
+ * \file linear_gaussian_observation_model_test.hpp
  * \date October 2014
  * \author Jan Issac (jan.issac@gmail.com)
  */
@@ -31,7 +31,7 @@
 #include <fl/model/observation/linear_gaussian_observation_model.hpp>
 
 template <typename TestType>
-class LinearObservationModelTest:
+class LinearGaussianObservationModelTest:
     public testing::Test
 {
 public:
@@ -50,7 +50,7 @@ public:
 
     typedef typename LinearModel::Noise Noise;
 
-    LinearObservationModelTest()
+    LinearGaussianObservationModelTest()
         : model(LinearModel(ObsrvDim, StateDim))
     { }
 
@@ -167,44 +167,44 @@ typedef ::testing::Types<
             fl::DynamicTest<Dimensions<10, 10>>
         > TestTypes;
 
-TYPED_TEST_CASE(LinearObservationModelTest, TestTypes);
+TYPED_TEST_CASE(LinearGaussianObservationModelTest, TestTypes);
 
-TYPED_TEST(LinearObservationModelTest, init_dimension)
+TYPED_TEST(LinearGaussianObservationModelTest, init_dimension)
 {
     TestFixture::init_dimension_test();
 }
 
-TYPED_TEST(LinearObservationModelTest, init_sensor_matrix_value)
+TYPED_TEST(LinearGaussianObservationModelTest, init_sensor_matrix_value)
 {
     TestFixture::init_sensor_matrix_value_test();
 }
 
-TYPED_TEST(LinearObservationModelTest, init_noise_matrix_value)
+TYPED_TEST(LinearGaussianObservationModelTest, init_noise_matrix_value)
 {
     TestFixture::init_noise_matrix_value_test();
 }
 
-TYPED_TEST(LinearObservationModelTest, sensor_matrix)
+TYPED_TEST(LinearGaussianObservationModelTest, sensor_matrix)
 {
     TestFixture::sensor_matrix_value_test();
 }
 
-TYPED_TEST(LinearObservationModelTest, noise_matrix)
+TYPED_TEST(LinearGaussianObservationModelTest, noise_matrix)
 {
     TestFixture::noise_matrix_value_test();
 }
 
-TYPED_TEST(LinearObservationModelTest, expected_observation)
+TYPED_TEST(LinearGaussianObservationModelTest, expected_observation)
 {
     TestFixture::expected_observation_test();
 }
 
-TYPED_TEST(LinearObservationModelTest, observation_with_zero_noise)
+TYPED_TEST(LinearGaussianObservationModelTest, observation_with_zero_noise)
 {
     TestFixture::observation_with_zero_noise_test();
 }
 
-TYPED_TEST(LinearObservationModelTest, observation)
+TYPED_TEST(LinearGaussianObservationModelTest, observation)
 {
     TestFixture::observation_test();
 }
