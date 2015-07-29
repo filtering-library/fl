@@ -246,8 +246,7 @@ typedef ::testing::Types<
             fl::DynamicTest<TestConfiguration<2>>,
             fl::DynamicTest<TestConfiguration<3>>,
             fl::DynamicTest<TestConfiguration<10>>,
-            fl::DynamicTest<TestConfiguration<1000>>,
-            fl::DynamicTest<TestConfiguration<10000000>>
+            fl::DynamicTest<TestConfiguration<1000000>>
         > TestTypes;
 
 INSTANTIATE_TYPED_TEST_CASE_P(DecorrelatedGaussianTestCases,
