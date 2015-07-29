@@ -14,8 +14,12 @@ fl_add_test(NAME LA_smw_inversion  SOURCES utils/linear_algebra_smw_inversion_te
 
 # == observation model tests ================================================= #
 fl_add_test(
-    NAME    linear_observation_model
-    SOURCES model/observation/linear_observation_model_test.cpp)
+    NAME    linear_gaussian_observation_model
+    SOURCES model/observation/linear_gaussian_observation_model_test.cpp)
+
+fl_add_test(
+    NAME    linear_uncorrelated_gaussian_observation_model
+    SOURCES model/observation/linear_uncorrelated_gaussian_observation_model_test.cpp)
 
 # == state transition model tests ============================================ #
 fl_add_test(
