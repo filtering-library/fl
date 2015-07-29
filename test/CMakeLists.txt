@@ -11,6 +11,7 @@ fl_add_test(NAME rigid_body_state  SOURCES utils/rigid_body_state_test.cpp)
 fl_add_test(NAME descriptor        SOURCES utils/descriptor_test.cpp)
 fl_add_test(NAME LA_square_root    SOURCES utils/linear_algebra_square_root_test.cpp)
 fl_add_test(NAME LA_smw_inversion  SOURCES utils/linear_algebra_smw_inversion_test.cpp)
+fl_add_test(NAME LA_is_diagonal    SOURCES utils/linear_algebra_is_diagonal_test.cpp)
 
 # == observation model tests ================================================= #
 fl_add_test(
@@ -72,6 +73,12 @@ fl_add_test(
     SOURCES typecast.hpp
             gaussian_filter/gaussian_filter_test_suite.hpp
             gaussian_filter/unscented_kalman_filter_test.cpp)
+
+# = Unscented Kalman filter = #
+fl_add_test(
+    NAME    gaussian_filter_linear_vs_x
+    SOURCES typecast.hpp
+            gaussian_filter/gaussian_filter_linear_vs_x_test.cpp)
 
 ## == Particle filters tests ================================================= #
 ##catkin_add_gtest(particle_filter_test
