@@ -14,8 +14,8 @@
  */
 
 /**
- * \file linear_algebra_test.cpp
- * \date July N15
+ * \file linear_algebra_square_root_test.cpp
+ * \date July 15
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
