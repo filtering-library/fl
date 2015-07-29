@@ -14,8 +14,8 @@
  */
 
 /**
- * \file linear_observation_model_test.hpp
- * \date October 2014
+ * \file linear_uncorrelated_gaussian_observation_model_test.hpp
+ * \date July 2015
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
@@ -28,10 +28,10 @@
 #include <iostream>
 
 #include <fl/util/types.hpp>
-#include <fl/model/observation/linear_gaussian_observation_model.hpp>
+#include <fl/model/observation/linear_decorrelated_gaussian_observation_model.hpp>
 
 template <typename TestType>
-class LinearObservationModelTest:
+class LinearUncorrelatedGaussianObservationModelTest:
     public testing::Test
 {
 public:
@@ -46,11 +46,11 @@ public:
 
     typedef Eigen::Matrix<fl::Real, StateSize, 1> State;
     typedef Eigen::Matrix<fl::Real, ObsrvSize, 1> Obsrv;
-    typedef fl::LinearGaussianObservationModel<Obsrv, State> LinearModel;
+    typedef fl::LinearDecorrelatedGaussianObservationModel<Obsrv, State> LinearModel;
 
     typedef typename LinearModel::Noise Noise;
 
-    LinearObservationModelTest()
+    LinearUncorrelatedGaussianObservationModelTest()
         : model(LinearModel(ObsrvDim, StateDim))
     { }
 
@@ -75,6 +75,15 @@ public:
     void init_noise_matrix_value_test()
     {
         EXPECT_TRUE(model.noise_matrix().isIdentity());
+        EXPECT_DOUBLE_EQ(
+            model.noise_diagonal_matrix().diagonal().array().prod(), 1.);
+    }
+
+    void init_noise_covariance_value_test()
+    {
+        EXPECT_TRUE(model.noise_covariance().isIdentity());
+        EXPECT_DOUBLE_EQ(
+            model.noise_diagonal_covariance().diagonal().array().prod(), 1.);
     }
 
     void sensor_matrix_value_test()
@@ -90,7 +99,82 @@ public:
         auto noise_matrix = model.create_noise_matrix();
         noise_matrix.setRandom();
         model.noise_matrix(noise_matrix);
+        // first comapre dense with diagonal which must evaluate to false
+        EXPECT_FALSE(fl::are_similar(model.noise_matrix(), noise_matrix));
+
+        // make noise matrix diagonal and compair again, which must pass
+        noise_matrix = noise_matrix.diagonal().asDiagonal();
+        model.noise_matrix(noise_matrix);
         EXPECT_TRUE(fl::are_similar(model.noise_matrix(), noise_matrix));
+
+        // check also the diagonal representation
+        EXPECT_TRUE(
+            fl::are_similar(
+                model.noise_diagonal_matrix().diagonal(),
+                noise_matrix.diagonal()));
+    }
+
+    void noise_diagonal_matrix_value_test()
+    {
+        auto noise_diagonal_matrix = model.create_noise_diagonal_matrix();
+        noise_diagonal_matrix.diagonal().setRandom();
+        model.noise_diagonal_matrix(noise_diagonal_matrix);
+        EXPECT_TRUE(
+            fl::are_similar(
+                model.noise_diagonal_matrix(), noise_diagonal_matrix));
+
+        // check also the dense matrix representation
+        EXPECT_TRUE(
+            fl::are_similar(
+                model.noise_matrix(),
+                noise_diagonal_matrix.asDiagonal()));
+
+        // make sure the dense matrix has a diagonal form
+        EXPECT_TRUE(
+           (model.noise_matrix() - model.noise_matrix().diagonal().asDiagonal())
+           .isZero());
+    }
+
+    void noise_covariance_value_test()
+    {
+        auto noise_covariance = model.create_noise_covariance();
+        noise_covariance.setRandom();
+        model.noise_covariance(noise_covariance);
+        // first comapre dense with diagonal which must evaluate to false
+        EXPECT_FALSE(fl::are_similar(model.noise_covariance(), noise_covariance));
+
+        // make noise matrix diagonal and compair again, which must pass
+        noise_covariance = noise_covariance.diagonal().asDiagonal();
+        model.noise_covariance(noise_covariance);
+        EXPECT_TRUE(fl::are_similar(model.noise_covariance(), noise_covariance));
+
+        // check also the diagonal representation
+        EXPECT_TRUE(
+            fl::are_similar(
+                model.noise_diagonal_covariance().diagonal(),
+                noise_covariance.diagonal()));
+    }
+
+    void noise_diagonal_covariance_value_test()
+    {
+        auto noise_diagonal_covariance = model.create_noise_diagonal_covariance();
+        noise_diagonal_covariance.diagonal().setRandom();
+        model.noise_diagonal_covariance(noise_diagonal_covariance);
+        EXPECT_TRUE(
+            fl::are_similar(
+                model.noise_covariance(), noise_diagonal_covariance));
+
+        // check also the dense representation
+        EXPECT_TRUE(
+            fl::are_similar(
+                model.noise_covariance().diagonal(),
+                noise_diagonal_covariance.diagonal()));
+
+        // make sure the dense matrix has a diagonal form
+        EXPECT_TRUE(
+            (model.noise_covariance()
+             - model.noise_covariance().diagonal().asDiagonal())
+            .isZero());
     }
 
     void expected_observation_test()
@@ -161,50 +245,57 @@ typedef ::testing::Types<
             fl::StaticTest<Dimensions<2, 2>>,
             fl::StaticTest<Dimensions<3, 3>>,
             fl::StaticTest<Dimensions<10, 10>>,
+            fl::StaticTest<Dimensions<10, 1000>>,
             fl::DynamicTest<Dimensions<2, 1>>,
             fl::DynamicTest<Dimensions<2, 2>>,
             fl::DynamicTest<Dimensions<3, 3>>,
-            fl::DynamicTest<Dimensions<10, 10>>
+            fl::DynamicTest<Dimensions<10, 10>>,
+            fl::DynamicTest<Dimensions<10, 1000>>
         > TestTypes;
 
-TYPED_TEST_CASE(LinearObservationModelTest, TestTypes);
+TYPED_TEST_CASE(LinearUncorrelatedGaussianObservationModelTest, TestTypes);
 
-TYPED_TEST(LinearObservationModelTest, init_dimension)
+TYPED_TEST(LinearUncorrelatedGaussianObservationModelTest, init_dimension)
 {
     TestFixture::init_dimension_test();
 }
 
-TYPED_TEST(LinearObservationModelTest, init_sensor_matrix_value)
+TYPED_TEST(LinearUncorrelatedGaussianObservationModelTest, init_sensor_matrix_value)
 {
     TestFixture::init_sensor_matrix_value_test();
 }
 
-TYPED_TEST(LinearObservationModelTest, init_noise_matrix_value)
+TYPED_TEST(LinearUncorrelatedGaussianObservationModelTest, init_noise_matrix_value)
 {
     TestFixture::init_noise_matrix_value_test();
 }
 
-TYPED_TEST(LinearObservationModelTest, sensor_matrix)
+TYPED_TEST(LinearUncorrelatedGaussianObservationModelTest, sensor_matrix)
 {
     TestFixture::sensor_matrix_value_test();
 }
 
-TYPED_TEST(LinearObservationModelTest, noise_matrix)
+TYPED_TEST(LinearUncorrelatedGaussianObservationModelTest, noise_matrix)
 {
     TestFixture::noise_matrix_value_test();
 }
 
-TYPED_TEST(LinearObservationModelTest, expected_observation)
+TYPED_TEST(LinearUncorrelatedGaussianObservationModelTest, noise_covariance)
+{
+    TestFixture::noise_covariance_value_test();
+}
+
+TYPED_TEST(LinearUncorrelatedGaussianObservationModelTest, expected_observation)
 {
     TestFixture::expected_observation_test();
 }
 
-TYPED_TEST(LinearObservationModelTest, observation_with_zero_noise)
+TYPED_TEST(LinearUncorrelatedGaussianObservationModelTest, observation_with_zero_noise)
 {
     TestFixture::observation_with_zero_noise_test();
 }
 
-TYPED_TEST(LinearObservationModelTest, observation)
+TYPED_TEST(LinearUncorrelatedGaussianObservationModelTest, observation)
 {
     TestFixture::observation_test();
 }
