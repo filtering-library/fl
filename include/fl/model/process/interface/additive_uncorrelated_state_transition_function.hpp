@@ -14,7 +14,7 @@
  */
 
 /**
- * \file additive_uncorrelated_observation_function.hpp
+ * \file additive_uncorrelated_state_transition_function.hpp
  * \date June 2015
  * \author Jan Issac (jan.issac@gmail.com)
  */
@@ -54,8 +54,8 @@ public:
      */
     virtual ~AdditiveUncorrelatedStateTransitionFunction() { }
 
-    virtual const NoiseDiagonal& noise_matrix_diagonal() const = 0;
-    virtual const NoiseDiagonal& noise_covariance_diagonal() const = 0;
+    virtual const NoiseDiagonal& noise_diagonal_matrix() const = 0;
+    virtual const NoiseDiagonal& noise_diagonal_covariance() const = 0;
 };
 
 }

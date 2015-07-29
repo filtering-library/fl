@@ -78,7 +78,7 @@ public:
 
         auto R_inv =
             obsrv_function
-                .noise_covariance_diagonal()
+                .noise_diagonal_covariance()
                 .diagonal()
                 .cwiseInverse()
                 .eval();
