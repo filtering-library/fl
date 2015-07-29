@@ -376,7 +376,19 @@ matrix_sqrt(Eigen::Matrix<Scalar, Size, Size> M)
                     * D_sqrt.asDiagonal();
 }
 
+/**
+ * Checks wheather the specified dense matrix has a diagonal form
+ *
+ * \return true if diagonal, false otherwise
+ */
+template <typename Derived>
+bool is_diagonal(const Eigen::MatrixBase<Derived>& m)
+{
+    Derived z = m;
+    z -= z.diagonal().asDiagonal();
 
+    return z.isZero();
+}
 
 }
 
