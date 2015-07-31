@@ -6,6 +6,10 @@ compiler:
 script:
   - cmake --build && make -j && make test
   
+branches:
+  only:
+    - travis-tests
+  
 before_install:
   - sudo apt-get update 
   - sudo apt-get install eigen3
