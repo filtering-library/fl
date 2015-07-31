@@ -19,6 +19,7 @@ add_definitions(-DPROFILING_ON=1) #print profiling output
 add_definitions(-Wall)
 add_definitions(-Wno-unused-local-typedefs)
 add_definitions(-Wno-deprecated-declarations)
+add_definitions(-Wno-comment)
 
 ############################
 # Setup                    #
