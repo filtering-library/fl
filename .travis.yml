@@ -1,0 +1,8 @@
+language: cpp
+compiler: 
+  - gcc
+script:
+  - cmake --build
+before_install:
+	- sudo apt-get update 
+  - sudo apt-get install eigen3
