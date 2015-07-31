@@ -343,11 +343,20 @@ double frobenius_norm(const Eigen::MatrixBase<Derived>& a)
  *     \begin{cases} 1 & x \in [0, \epsilon)
  *                  \\ 0, & \text{otherwise} \end{cases}\f$
  */
+//template <typename DerivedA, typename DerivedB>
+//bool are_similar(const Eigen::MatrixBase<DerivedA>& a,
+//                 const Eigen::MatrixBase<DerivedB>& b,
+//                 const double epsilon = 1.e-6)
+//{
+//    return frobenius_norm(a - b) < epsilon;
+//}
+
 template <typename DerivedA, typename DerivedB>
 bool are_similar(const Eigen::MatrixBase<DerivedA>& a,
                  const Eigen::MatrixBase<DerivedB>& b,
                  const double epsilon = 1.e-6)
 {
+    //return (a - b).cwiseAbs().maxCoeff() < epsilon;
     return frobenius_norm(a - b) < epsilon;
 }
 
@@ -377,6 +386,7 @@ matrix_sqrt(Eigen::Matrix<Scalar, Size, Size> M)
 }
 
 /**
+ * \ingroup linear_algebra
  * Checks wheather the specified dense matrix has a diagonal form
  *
  * \return true if diagonal, false otherwise
