@@ -184,11 +184,15 @@ public:
         auto H = obsrv_model_.sensor_matrix();
         auto R = obsrv_model_.noise_covariance();
 
-        auto&& mean = predicted_belief.mean();
-        auto&& cov_xx = predicted_belief.covariance();
+        auto mean = predicted_belief.mean();
+        auto cov_xx = predicted_belief.covariance();
 
         auto S = (H * cov_xx * H.transpose() + R).eval();
         auto K = (cov_xx * H.transpose() * S.inverse()).eval();
+
+//        PV(cov_xx);
+//        PV(K);
+//        PV((y - H * mean));
 
         posterior_belief.mean(mean + K * (y - H * mean));
         posterior_belief.covariance(cov_xx - K * H * cov_xx);
