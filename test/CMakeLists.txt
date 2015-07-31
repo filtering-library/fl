@@ -58,6 +58,13 @@ fl_add_test(
 fl_add_test(NAME exception
             SOURCES exception/exception_test.cpp)
 
+# == Sigma Point Transforms ================================================== #
+
+## unscented_transform tests ##
+fl_add_test(
+    NAME        unscented_transform_test
+    SOURCES     gaussian_filter/unscented_transform_test.cpp)
+
 # == Gaussian filters tests ================================================== #
 
 # = Kalman filter = #
@@ -67,18 +74,21 @@ fl_add_test(
             gaussian_filter/gaussian_filter_test_suite.hpp
             gaussian_filter/kalman_filter_test.cpp)
 
-# = Unscented Kalman filter = #
+#= Unscented Kalman filter = #
 fl_add_test(
     NAME    gaussian_filter_unscented_kalman_filter
     SOURCES typecast.hpp
             gaussian_filter/gaussian_filter_test_suite.hpp
             gaussian_filter/unscented_kalman_filter_test.cpp)
 
-# = Unscented Kalman filter = #
+# = Linear Gaussian filter vs Unscented Kalman filter = #
 fl_add_test(
-    NAME    gaussian_filter_linear_vs_x
+    NAME    gaussian_filter_linear_vs_unscented_kalman_filter
     SOURCES typecast.hpp
-            gaussian_filter/gaussian_filter_linear_vs_x_test.cpp)
+            gaussian_filter/gaussian_filter_linear_vs_x_test_suite.hpp
+            gaussian_filter/gaussian_filter_linear_vs_unscented_kalman_filter_test.cpp)
+
+add_subdirectory(gaussian_filter)
 
 ## == Particle filters tests ================================================= #
 ##catkin_add_gtest(particle_filter_test
@@ -126,12 +136,7 @@ fl_add_test(
 # target_link_libraries(point_set_test
 #                       ${catkin_LIBRARIES})
 
-# ## unscented_transform tests ##
-# catkin_add_gtest(unscented_transform_test
-#                  gaussian_filter/unscented_transform_test.cpp
-#                  gtest_main.cpp)
-# target_link_libraries(unscented_transform_test
-#                       ${catkin_LIBRARIES})
+
 
 # ## monte_carlo trandform tests ##
 ## catkin_add_gtest(monte_carlo_transform_test
