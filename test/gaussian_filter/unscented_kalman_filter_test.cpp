@@ -33,7 +33,7 @@ using namespace fl;
 template <int StateDimension, int InputDimension, int ObsrvDimension>
 struct UnscentedKalmanFilterTestConfiguration
 {
-    enum: signed int
+    enum : signed int
     {
         StateDim = StateDimension,
         InputDim = InputDimension,
