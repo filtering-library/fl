@@ -48,8 +48,8 @@
 
 #include <Eigen/Dense>
 
-#include <fl/filter/gaussian/point_set.hpp>
-#include <fl/filter/gaussian/unscented_transform.hpp>
+#include <fl/filter/gaussian/transform/point_set.hpp>
+#include <fl/filter/gaussian/transform/unscented_transform.hpp>
 
 TEST(UnscentedTransformTest, weights)
 {
@@ -161,7 +161,7 @@ void test_covariance_transform(PointSet<Point, Dim>& point_set, int dim)
 {
     fl::UnscentedTransform ut;
 
-    typename fl::Traits<fl::Gaussian<Point>>::SecondMoment cov;
+    typename fl::Gaussian<Point>::SecondMoment cov;
     cov.setRandom(dim, dim);
     cov *= cov.transpose();
 
@@ -220,7 +220,7 @@ TEST(UnscentedTransformTest, covariance_recovery_dynamic_fixed_throw)
 
     fl::UnscentedTransform ut;
 
-    typename fl::Traits<fl::Gaussian<Point>>::SecondMoment cov;
+    typename fl::Gaussian<Point>::SecondMoment cov;
     cov.setRandom(dim, dim);
     cov *= cov.transpose();
 
