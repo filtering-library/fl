@@ -44,7 +44,7 @@ template <typename Model_>
 struct UseAs<AdditiveUncorrelated<Model_>>
 {
     typedef Model_ Model;
-    typedef Additive<Model> Type;
+    typedef AdditiveUncorrelated<Model> Type;
 
     static_assert(
         IsAdditiveUncorrelated<Model>::Value,
