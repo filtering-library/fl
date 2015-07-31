@@ -3,17 +3,23 @@ language: cpp
 compiler: 
   - gcc
   
-script:
-  - cmake --build && make -j && make test
-  
-branches:
-  only:
-    - travis-tests
-  
 before_install:
   - sudo apt-get update 
-  - sudo apt-get install eigen3
+  - sudo apt-get install -y software-properties-common
+  - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+  - sudo apt-get update 
+  - sudo apt-get install -y gcc-4.8 g++-4.8 --no-install-recommends 
 
 branches:
   only:
-    - travis-tests
+    - master
+
+script:
+  - hg clone https://bitbucket.org/eigen/eigen eigen && cd eigen && hg up 3.2.5 && mkdir build && cd build && cmake .. && sudo make install
+  - cd ..
+  - cd ..
+  - mkdir build && cd build 
+  - cmake .. -DCMAKE_CXX_COMPILER=g++-4.8 -DCMAKE_CXX_FLAGS="-DEIGEN_STACK_ALLOCATION_LIMIT=0"
+  - make -j1
+  - make test
+
