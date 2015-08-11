@@ -25,11 +25,101 @@
 #include <Eigen/Dense>
 #include <fl/util/types.hpp>
 #include <fl/util/math/euler_vector.hpp>
+#include <fl/util/math/pose_vector.hpp>
 
 namespace fl
 {
 
-class RigidBodyState: public Eigen::Matrix<Real, 12, 1>
+
+
+/// basic functionality for both vectors and blocks ****************************
+template <typename Base>
+class PoseVelocityBase: public Base
+{
+public:
+    enum
+    {
+        BLOCK_SIZE = 3,
+        POSITION_INDEX = 0,
+        POSE_INDEX = 0,
+        EULER_VECTOR_INDEX = 3,
+        LINEAR_VELOCITY_INDEX = 6,
+        ANGULAR_VELOCITY_INDEX = 9
+    };
+
+    // types *******************************************************************
+    typedef Eigen::Matrix<Real, 3, 1>              Vector;
+    typedef Eigen::Matrix<Real, 4, 4>              HomogeneousMatrix;
+    typedef Eigen::VectorBlock<Base, BLOCK_SIZE>   PositionBlock;
+    typedef EulerBlock<Base>                       OrientationBlock;
+
+    // constructor and destructor **********************************************
+    PoseVelocityBase(const Base& vector): Base(vector) { }
+    virtual ~PoseVelocityBase() {}
+
+    // operators ***************************************************************
+    template <typename T>
+    void operator = (const Eigen::MatrixBase<T>& vector)
+    {
+        *((Base*)(this)) = vector;
+    }
+
+    // accessors ***************************************************************
+    virtual PoseVector pose() const
+    {
+        return this->template middleRows<BLOCK_SIZE>(POSE_INDEX);
+    }
+    virtual Vector linear_velocity() const
+    {
+        return this->template middleRows<BLOCK_SIZE>(LINEAR_VELOCITY_INDEX);
+    }
+    virtual Vector angular_velocity() const
+    {
+        return this->template middleRows<BLOCK_SIZE>(ANGULAR_VELOCITY_INDEX);
+    }
+
+    virtual HomogeneousMatrix homogeneous_matrix() const
+    {
+        HomogeneousMatrix H(HomogeneousMatrix::Identity());
+        H.topLeftCorner(3, 3) = euler_vector().rotation_matrix();
+        H.topRightCorner(3, 1) = position();
+
+        return H;
+    }
+
+    // mutators ****************************************************************
+    PositionBlock position()
+    {
+      return PositionBlock(this->derived(), POSITION_INDEX);
+    }
+    OrientationBlock euler_vector()
+    {
+      return OrientationBlock(this->derived(), EULER_VECTOR_INDEX);
+    }
+    virtual void homogeneous_matrix(const HomogeneousMatrix& H)
+    {
+        euler_vector().rotation_matrix(H.topLeftCorner(3, 3));
+        position() = H.topRightCorner(3, 1);
+    }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+class PoseVelocityVector: public Eigen::Matrix<Real, 12, 1>
 {
 public:
     enum
@@ -58,12 +148,12 @@ public:
 
 
     // constructor and destructor
-    RigidBodyState() { }
+    PoseVelocityVector() { }
     template <typename T> RigidBodyState(const Eigen::MatrixBase<T>& state_vector)
     {
         *this = state_vector;
     }
-    virtual ~RigidBodyState() {}
+    virtual ~PoseVelocityVector() {}
 
     template <typename T>
     void operator = (const Eigen::MatrixBase<T>& state_vector)

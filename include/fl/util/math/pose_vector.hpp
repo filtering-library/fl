@@ -47,8 +47,8 @@ public:
     // types *******************************************************************
     typedef Eigen::Matrix<Real, 3, 1>              Vector;
     typedef Eigen::Matrix<Real, 4, 4>              HomogeneousMatrix;
-    typedef Eigen::VectorBlock<Base, BLOCK_SIZE>   StateBlock;
-    typedef EulerBlock<Base>                       EulerStateBlock;
+    typedef Eigen::VectorBlock<Base, BLOCK_SIZE>   PositionBlock;
+    typedef EulerBlock<Base>                       OrientationBlock;
 
     // constructor and destructor **********************************************
     PoseBase(const Base& vector): Base(vector) { }
@@ -80,13 +80,13 @@ public:
     }
 
     // mutators ****************************************************************
-    StateBlock position()
+    PositionBlock position()
     {
-      return StateBlock(this->derived(), POSITION_INDEX);
+      return PositionBlock(this->derived(), POSITION_INDEX);
     }
-    EulerStateBlock euler_vector()
+    OrientationBlock euler_vector()
     {
-      return EulerStateBlock(this->derived(), EULER_VECTOR_INDEX);
+      return OrientationBlock(this->derived(), EULER_VECTOR_INDEX);
     }
     virtual void homogeneous_matrix(const HomogeneousMatrix& H)
     {
