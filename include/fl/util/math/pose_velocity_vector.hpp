@@ -19,8 +19,8 @@
  */
 
 
-#ifndef FL__UTIL__MATH__RIGID_BODY_STATE_HPP
-#define FL__UTIL__MATH__RIGID_BODY_STATE_HPP
+#ifndef FL__UTIL__MATH__POSE_VELOCITY_VECTOR_HPP
+#define FL__UTIL__MATH__POSE_VELOCITY_VECTOR_HPP
 
 #include <Eigen/Dense>
 #include <fl/util/types.hpp>
