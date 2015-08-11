@@ -55,9 +55,10 @@ template <int Head, int... Sizes> struct JoinSizes<Head, Sizes...>
 {
     enum : signed int
     {
-        Size = IsFixed<Head>() && IsFixed<JoinSizes<Sizes...>::Size>()
+        Value = IsFixed<Head>() && IsFixed<JoinSizes<Sizes...>::Size>()
                    ? Head + JoinSizes<Sizes...>::Size
-                   : Eigen::Dynamic
+                   : Eigen::Dynamic,
+        Size = Value
     };
 };
 
@@ -67,7 +68,7 @@ template <int Head, int... Sizes> struct JoinSizes<Head, Sizes...>
  *
  * Terminal specialization of JoinSizes<...>
  */
-template <> struct JoinSizes<> { enum: signed int { Size = 0 }; } ;
+template <> struct JoinSizes<> { enum: signed int { Size = 0, Value = 0 }; } ;
 
 /**
  * \ingroup meta
@@ -96,9 +97,10 @@ template <int Head, int... Sizes> struct ExpandSizes<Head, Sizes...>
 {
     enum: signed int
     {
-        Size = IsFixed<Head>() && IsFixed<ExpandSizes<Sizes...>::Size>()
+        Value = IsFixed<Head>() && IsFixed<ExpandSizes<Sizes...>::Size>()
                    ? Head * ExpandSizes<Sizes...>::Size
-                   : Eigen::Dynamic
+                   : Eigen::Dynamic,
+        Size = Value
     };
 };
 
@@ -108,7 +110,7 @@ template <int Head, int... Sizes> struct ExpandSizes<Head, Sizes...>
  *
  * Terminal specialization of ExpandSizes<...>
  */
-template <> struct ExpandSizes<> { enum: signed int { Size = 1 }; } ;
+template <> struct ExpandSizes<> { enum: signed int { Size = 1, Value = 1 }; } ;
 
 }
 
