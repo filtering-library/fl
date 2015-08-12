@@ -47,33 +47,17 @@ TEST(pose_velocity_vector, consistency)
 }
 
 
+TEST(pose_velocity_vector, setting_pose_properties)
+{
+    PoseVelocityVector vector = PoseVelocityVector::Random();
+    PoseVector pose = PoseVector::Random();
 
-//TEST(rigid_body_state, angle_axis)
-//{
-//    Vector axis = Vector::Random();
-//    axis.normalize();
-//    Real angle = 1.155435;
+    vector.pose().position() = pose.position();
+    vector.pose().euler_vector() = pose.euler_vector();
 
-//    RigidBodyState state = RigidBodyState::Zero();
-//    state.euler_vector().angle_axis(angle, axis);
+    EXPECT_TRUE(vector.pose().isApprox(pose));
+}
 
-//    EXPECT_TRUE(std::fabs(state.euler_vector().angle() - angle) < epsilon);
-//    EXPECT_TRUE(axis.isApprox(state.euler_vector().axis()));
-//}
-
-
-//TEST(rigid_body_state, consistency)
-//{
-//    Vector axis = Vector::Random();
-//    axis.normalize();
-//    Real angle = 1.155435;
-
-//    RigidBodyState state = RigidBodyState::Zero();
-//    state.euler_vector().angle_axis(angle, axis);
-
-//    EXPECT_TRUE(std::fabs(state.euler_vector().angle() - angle) < epsilon);
-//    EXPECT_TRUE(axis.isApprox(state.euler_vector().axis()));
-//}
 
 
 

@@ -82,11 +82,11 @@ public:
     // mutators ****************************************************************
     PositionBlock position()
     {
-      return PositionBlock(this->derived(), POSITION_INDEX);
+      return PositionBlock(*this, POSITION_INDEX);
     }
     OrientationBlock euler_vector()
     {
-      return OrientationBlock(this->derived(), EULER_VECTOR_INDEX);
+      return OrientationBlock(*this, EULER_VECTOR_INDEX);
     }
     virtual void homogeneous_matrix(const HomogeneousMatrix& H)
     {

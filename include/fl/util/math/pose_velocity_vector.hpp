@@ -79,15 +79,15 @@ public:
     // mutators ****************************************************************
     PoseBlock<Base> pose()
     {
-        return PoseBlock<Base>(this->derived(), POSE_INDEX);
+        return PoseBlock<Base>(*this, POSE_INDEX);
     }
     VelocityBlock linear_velocity()
     {
-        return VelocityBlock(this->derived(), LINEAR_VELOCITY_INDEX);
+        return VelocityBlock(*this, LINEAR_VELOCITY_INDEX);
     }
     VelocityBlock angular_velocity()
     {
-        return VelocityBlock(this->derived(), ANGULAR_VELOCITY_INDEX);
+        return VelocityBlock(*this, ANGULAR_VELOCITY_INDEX);
     }
 };
 
@@ -110,20 +110,20 @@ public:
 
 
 /// implementation for blocks **************************************************
-//template <typename Vector>
-//class PoseVelocityBlock: public PoseVelocityBase<Eigen::VectorBlock<Vector, 12>>
-//{
-//public:
-//    typedef Eigen::VectorBlock<Vector, 12>   Block;
-//    typedef PoseVelocityBase<Block>          Base;
+template <typename Vector>
+class PoseVelocityBlock: public PoseVelocityBase<Eigen::VectorBlock<Vector, 12>>
+{
+public:
+    typedef Eigen::VectorBlock<Vector, 12>   Block;
+    typedef PoseVelocityBase<Block>          Base;
 
-//    using Base::operator=;
+    using Base::operator=;
 
-//    // constructor and destructor **********************************************
-//    PoseVelocityBlock(const Block& block): Base(block) { }
-//    PoseVelocityBlock(Vector& vector, int start): Base(Block(vector, start)) { }
-//    virtual ~PoseVelocityBlock() {}
-//};
+    // constructor and destructor **********************************************
+    PoseVelocityBlock(const Block& block): Base(block) { }
+    PoseVelocityBlock(Vector& vector, int start): Base(Block(vector, start)) { }
+    virtual ~PoseVelocityBlock() {}
+};
 
 
 
