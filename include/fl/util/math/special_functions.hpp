@@ -30,6 +30,8 @@
 
 #include <iostream>
 
+#include <fl/util/types.hpp>
+
 namespace fl
 {
 
@@ -83,6 +85,71 @@ inline double igamma(const double a, const double z)
 
     return std::exp(-z + a * std::log(z)) * h;
 }
+
+
+//inline double inv_igamma_p(double a, double p)
+//{
+//    int j;
+//    double x, err, t, u, pp, lna1, afac, a1 = a - 1;
+//    const double EPS=1.e-8;
+
+//    gln=gammln(a);
+
+//    assert(a > 0.);
+
+//    if (p >= 1.) return std::max(100., a + 100. * std::sqrt(a));
+//    if (p <= 0.) return 0.0;
+//    if (a > 1.)
+//    {
+//        lna1 = std::log(a1);
+//        afac = std::exp(a1 * (lna1 - 1.) - gln);
+//        pp = (p < 0.5)? p : 1. - p;
+//        t = sqrt(-2.*log(pp));
+//        x = (2.30753 + t * 0.27061) / (1. + t * (0.99229 + t * 0.04481)) - t;
+//        if (p < 0.5) x = -x;
+//        x = std::max(1.e-3, a * std::pow(1. - 1. / (9. * a) - x/(3.*std::sqrt(a)),3));
+//    }
+//    else
+//    {
+//        t = 1.0 - a*(0.253+a*0.12);
+
+//        if (p < t)
+//        {
+//            x = std::pow(p/t,1./a);
+//        }
+//        else
+//        {
+//            x = 1.-std::log(1.-(p-t)/(1.-t));
+//        }
+//    }
+//    for (j=0;j<12;j++)
+//    {
+//        if (x <= 0.0) return 0.0;
+
+//        err = gammp(a,x) - p;
+//        if (a > 1.)
+//        {
+//            t = afac*std::exp(-(x-a1)+a1*(std::log(x)-lna1));
+//        }
+//        else
+//        {
+//            t = std::exp(-x + a1 * std::log(x) - gln);
+//        }
+//        u = err/t;
+//        x -= (t = u/(1. - 0.5 * std::min(1., u * ((a - 1.) / x - 1))));
+
+//        if (x <= 0.)
+//        {
+//            x = 0.5*(x + t);
+//        }
+
+//        if (std::fabs(t) < EPS*x ) break;
+//    }
+//    return x;
+//    }
+
+//}
+
 
 /**
  * \brief This is a deterministic exponential integral approximation
@@ -179,7 +246,7 @@ template <> inline float erfinv<float>(float x)
  * Single precision implementation of erfinv according to
  * \cite giles2010approximating
  *
-* \ingroup special_functions
+ * \ingroup special_functions
  *
  * \return evaluates the erfinv at \f$ x \in (-1; 1) \f$
  */
