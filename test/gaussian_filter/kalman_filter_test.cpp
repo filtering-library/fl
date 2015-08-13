@@ -55,13 +55,13 @@ struct KalmanFilterTestConfiguration
 };
 
 typedef ::testing::Types<
-            fl::StaticTest<KalmanFilterTestConfiguration<3, 1, 2>>/*,
+            fl::StaticTest<KalmanFilterTestConfiguration<3, 1, 2>>,
             fl::StaticTest<KalmanFilterTestConfiguration<3, 3, 10>>,
             fl::StaticTest<KalmanFilterTestConfiguration<10, 10, 20>>,
 
             fl::DynamicTest<KalmanFilterTestConfiguration<3, 1, 2>>,
             fl::DynamicTest<KalmanFilterTestConfiguration<3, 3, 10>>,
-            fl::DynamicTest<KalmanFilterTestConfiguration<10, 10, 20>>*/
+            fl::DynamicTest<KalmanFilterTestConfiguration<10, 10, 20>>
         > TestTypes;
 
 INSTANTIATE_TYPED_TEST_CASE_P(KalmanFilterTest,

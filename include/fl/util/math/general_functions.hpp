@@ -61,6 +61,29 @@ inline long timesteps(Real discretization_time_step,
 //           int(delta_time/discretization_time_step);
 }
 
+
+/**
+ * \return True if d is within the specified epsilon bounds
+ */
+inline bool check_epsilon_bounds(Real d, Real epsilon)
+{
+    return std::fabs(d) < epsilon;
+}
+
+/**
+ * \ingroup special_functions
+ *
+ * \return converts a standard normal variate into a uniformly distributed
+ * variate u
+ */
+inline Real normal_to_uniform(Real snv)
+{
+    static constexpr Real sqrt_of_2 = std::sqrt(Real(2));
+
+    Real u = (1 + std::erf(snv / sqrt_of_2)) / Real(2);
+    return u;
+}
+
 }
 
 #endif

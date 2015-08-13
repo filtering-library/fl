@@ -122,6 +122,7 @@ protected:
         DiagonalSquareRootMatrix,    /**< Diagonal form of Cholesky decomp. */
         Rank,                        /**< Covariance Rank */
         Normalizer,                  /**< Log probability normalizer */
+        Determinant,                 /**< Determinant of covariance */
 
         Attributes                   /**< Total number of attribute */
     };
@@ -368,7 +369,7 @@ public:
             if (has_full_rank())
             {
                 log_norm_ = -0.5
-                    * (log(covariance().diagonal().prod())
+                    * (log(covariance_determinant())
                        + Real(covariance().rows()) * log(2.0 * M_PI));
             }
             else
@@ -380,6 +381,23 @@ public:
         }
 
         return log_norm_;
+    }
+
+    /**
+     * \return Covariance determinant
+     *
+     * \throws see covariance
+     */
+    virtual Real covariance_determinant() const
+    {
+        if (is_dirty(Determinant))
+        {
+            determinant_ = covariance().diagonal().prod();
+
+            updated_internally(Determinant);
+        }
+
+        return determinant_;
     }
 
     /**
@@ -735,6 +753,7 @@ protected:
     mutable DiagonalSecondMoment square_root_;/**< \brief cov. square root  */
     mutable bool full_rank_;                  /**< \brief full rank flag */
     mutable Real log_norm_;                   /**< \brief log normalizing const */
+    mutable Real determinant_;         /**< \brief determinant of covariance */
     mutable std::vector<bool> dirty_;         /**< \brief data validity flags */
     /** \endcond */
 };

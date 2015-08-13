@@ -25,6 +25,7 @@
 #include <limits>
 #include <cmath>
 
+#include <fl/util/math.hpp>
 #include <fl/distribution/interface/evaluation.hpp>
 #include <fl/distribution/interface/standard_gaussian_mapping.hpp>
 
@@ -37,13 +38,52 @@ namespace fl
  * \ingroup distributions
  */
 class UniformDistribution
-        : public Evaluation<Real>,
-          public StandardGaussianMapping<Real, 1>
+    : public Evaluation<Real>,
+      public StandardGaussianMapping<Real, 1>
 {
 
 public:
-    UniformDistribution(Real min = 0.0,
-                        Real max = 1.0): min_(min), max_(max)
+    UniformDistribution()
+        : min_(0.), max_(1.)
+    {
+        init();
+    }
+
+    UniformDistribution(Real min, Real max)
+        : min_(min), max_(max)
+    {
+        init();
+    }
+
+    virtual ~UniformDistribution() { }
+
+    Real probability(const Real& input) const override
+    {
+        if(input < min_ || input > max_) return 0;
+
+        return density_;
+    }
+
+    Real log_probability(const Real& input) const override
+    {
+        if(input < min_ || input > max_)
+        {
+            return -std::numeric_limits<Real>::infinity();
+        }
+
+        return log_density_;
+    }
+
+    Real map_standard_normal(const Real& gaussian_sample) const override
+    {
+        // map from a gaussian to a uniform distribution
+        Real standard_uniform_sample = fl::normal_to_uniform(gaussian_sample);
+
+        return mean_ + (standard_uniform_sample - 0.5) * delta_;
+    }
+
+private:
+    void init()
     {
         delta_ = max_ - min_;
         density_ = 1.0 / delta_;
@@ -51,33 +91,6 @@ public:
         log_density_ = std::log(density_);
     }
 
-    virtual ~UniformDistribution() { }
-
-    virtual Real probability(const Real& input) const
-    {
-        if(input < min_ || input > max_)
-            return 0;
-
-        return density_;
-    }
-
-    virtual Real log_probability(const Real& input) const
-    {
-        if(input < min_ || input > max_)
-            return -std::numeric_limits<Real>::infinity();
-
-        return log_density_;
-    }
-
-    virtual Real map_standard_normal(const Real& gaussian_sample) const
-    {
-        // map from a gaussian to a uniform distribution
-        Real standard_uniform_sample =
-                0.5 * (1.0 + std::erf(gaussian_sample / std::sqrt(2.0)));
-        return mean_ + (standard_uniform_sample - 0.5) * delta_;
-    }
-
-private:
     Real min_;
     Real max_;
     Real delta_;
