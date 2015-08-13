@@ -171,6 +171,7 @@ protected:
         DiagonalSquareRootMatrix, /**< Diagonal form of the Cholesky decomp. */
         Rank,                     /**< Covariance Rank */
         Normalizer,               /**< Log probability normalizer */
+        Determinant,              /**< Determinant of covariance */
 
         Attributes                /**< Total number of attribute */
     };
@@ -182,7 +183,7 @@ public:
      *
      * \param dimension Dimension of the Gaussian. The default is defined by the
      *                  dimension of the variable type \em Vector. If the size
-     *                  of the Vector at compile time is fixed, this will be
+     *                  of the Variate at compile time is fixed, this will be
      *                  adapted. For dynamic-sized Variable the dimension is
      *                  initialized to 0.
      */
@@ -223,14 +224,8 @@ public:
      *
      * \throws GaussianUninitializedException if the Gaussian is of dynamic-size
      *         and has not been initialized using SetStandard(dimension).
-     * \throws InvalidGaussianRepresentationException if non-of the
+     * \throws InvalidGaussianRepresentationException if non-of theember function)
      *         representation can be used as a source
-     *
-     * \cond internal
-     * \pre |{Valid Representations}| > 0
-     * \post {Valid Representations}
-     *       = {Valid Representations} \f$ \cup \f$ {#CovarianceMatrix}
-     * \endcond
      */
     virtual const SecondMoment& covariance() const
     {
@@ -291,12 +286,6 @@ public:
      *         and has not been initialized using SetStandard(dimension).
      * \throws InvalidGaussianRepresentationException if non-of the
      *         representation can be used as a source
-     *
-     * \cond internal
-     * \pre |{Valid Representations}| > 0
-     * \post {Valid Representations}
-     *       = {Valid Representations} \f$ \cup \f$ {#PrecisionMatrix}
-     * \endcond
      */
     virtual const SecondMoment& precision() const
     {
@@ -350,12 +339,6 @@ public:
      *         and has not been initialized using SetStandard(dimension).
      * \throws InvalidGaussianRepresentationException if non-of the
      *         representation can be used as a source
-     *
-     * \cond internal
-     * \pre |{Valid Representations}| > 0
-     * \post {Valid Representations}
-     *       = {Valid Representations} \f$ \cup \f$ {#SquareRootMatrix}
-     * \endcond
      */
     virtual const SecondMoment& square_root() const
     {
@@ -402,12 +385,6 @@ public:
      * \return True if the covariance matrix has a full rank
      *
      * \throws see covariance()
-     *
-     * \cond internal
-     * \pre |{Valid Representations}| > 0
-     * \post {Valid Representations}
-     *       = {Valid Representations} \f$ \cup \f$ {#CovarianceMatrix}
-     * \endcond
      */
     virtual bool has_full_rank() const
     {
@@ -426,12 +403,6 @@ public:
      * \return Log normalizing constant
      *
      * \throws see has_full_rank()
-     *
-     * \cond internal
-     * \pre |{Valid Representations}| > 0
-     * \post {Valid Representations}
-     *       = {Valid Representations} \f$ \cup \f$ {#CovarianceMatrix}
-     * \endcond
      */
     virtual Real log_normalizer() const
     {
@@ -439,9 +410,10 @@ public:
         {
             if (has_full_rank())
             {
-                log_norm_ = -0.5
-                    * (log(covariance().determinant())
-                       + Real(covariance().rows()) * log(2.0 * M_PI));
+                log_norm_ =
+                    -0.5
+                    * (std::log(covariance_determinant())
+                       + Real(dimension()) * std::log(2.0 * M_PI));
             }
             else
             {
@@ -455,17 +427,28 @@ public:
     }
 
     /**
+     * \return Covariance determinant
+     *
+     * \throws see covariance
+     */
+    virtual Real covariance_determinant() const
+    {
+        if (is_dirty(Determinant))
+        {
+            determinant_ = covariance().determinant();
+
+            updated_internally(Determinant);
+        }
+
+        return determinant_;
+    }
+
+    /**
      * \return Log of the probability of the given sample \c vector
      *
      * \param vector sample which should be evaluated
      *
      * \throws see has_full_rank()
-     *
-     * \cond internal
-     * \pre |{Valid Representations}| > 0
-     * \post {Valid Representations}
-     *       = {Valid Representations} \f$ \cup \f$ {#PrecisionMatrix}
-     * \endcond
      */
     virtual Real log_probability(const Variate& vector) const
     {
@@ -481,18 +464,12 @@ public:
     }
 
     /**
-     * \return a Gaussian sample of the type \c Vector determined by mapping a
+     * \return a Gaussian sample of the type \c Variate determined by mapping a
      * noise sample into the Gaussian sample space
      *
      * \param sample    Noise Sample
      *
      * \throws see square_root()
-     *
-     * \cond internal
-     * \pre |{Valid Representations}| > 0
-     * \post {Valid Representations}
-     *       = {Valid Representations} \f$ \cup \f$ {#SquareRootMatrix}
-     * \endcond
      */
     virtual Variate map_standard_normal(const StandardVariate& sample) const
     {
@@ -502,13 +479,6 @@ public:
     /**
      * Sets the Gaussian to a standard distribution with zero mean and identity
      * covariance.
-     *
-     * \cond internal
-     * \pre {}
-     * \post
-     *  - Fully ranked covariance
-     *  - {Valid representations} = {#CovarianceMatrix}
-     * \endcond
      */
     virtual void set_standard()
     {
@@ -529,13 +499,6 @@ public:
      * standard distribution with zero mean and identity covariance.
      *
      * \param new_dimension New dimension of the Gaussian
-     *
-     * \cond internal
-     * \pre {}
-     * \post
-     *  - Fully ranked covariance
-     *  - {Valid representations} = {#CovarianceMatrix}
-     * \endcond
      *
      * \throws ResizingFixedSizeEntityException
      *         see GaussianMap::standard_variate_dimension(int)
@@ -567,16 +530,10 @@ public:
      * Sets the covariance matrix
      * \param covariance New covariance matrix
      *
-     * \cond internal
-     * \pre |{Valid Representations}| > 0
-     * \post {Valid Representations}
-     *       = {Valid Representations} \f$ \cup \f$ {#CovarianceMatrix}
-     * \endcond
-     *
      * \throws WrongSizeException
      */
 
-    virtual void covariance(const SecondMoment& covariance) noexcept
+    virtual void covariance(const SecondMoment& covariance)
     {
         if (covariance_.size() != covariance.size())
         {
@@ -594,15 +551,9 @@ public:
      *
      * \param square_root New covariance square root
      *
-     * \cond internal
-     * \pre |{Valid Representations}| > 0
-     * \post {Valid Representations}
-     *       = {Valid Representations} \f$ \cup \f$ {#SquareRootMatrix}
-     * \endcond
-     *
      * \throws WrongSizeException
      */
-    virtual void square_root(const SecondMoment& square_root) noexcept
+    virtual void square_root(const SecondMoment& square_root)
     {
         if (square_root_.size() != square_root.size())
         {
@@ -618,12 +569,6 @@ public:
      * Sets the covariance matrix in the precision form (inverse of covariance)
      *
      * \param precision New precision matrix
-     *
-     * \cond internal
-     * \pre |{Valid Representations}| > 0
-     * \post {Valid Representations}
-     *       = {Valid Representations} \f$ \cup \f$ {#PrecisionMatrix}
-     * \endcond
      *
      * \throws WrongSizeException
      */
@@ -643,12 +588,6 @@ public:
      * Sets the covariance matrix as a diagonal matrix
      *
      * \param diag_covariance New diagonal covariance matrix
-     *
-     * \cond internal
-     * \pre |{Valid Representations}| > 0
-     * \post {Valid Representations}
-     *       = {Valid Representations} \f$ \cup \f$ {#DiagonalCovarianceMatrix}
-     * \endcond
      *
      * \throws WrongSizeException
      */
@@ -670,12 +609,6 @@ public:
      *
      * \param diag_square_root New diagonal square root of the covariance
      *
-     * \cond internal
-     * \pre |{Valid Representations}| > 0
-     * \post {Valid Representations}
-     *       = {Valid Representations} \f$ \cup \f$ {#DiagonalSquareRootMatrix}
-     * \endcond
-     *
      * \throws WrongSizeException
      */
     virtual void diagonal_square_root(const SecondMoment& diag_square_root) noexcept
@@ -695,12 +628,6 @@ public:
      * Sets the covariance matrix in its diagonal precision form
      *
      * \param diag_precision New diagonal precision matrix
-     *
-     * \cond internal
-     * \pre |{Valid Representations}| > 0
-     * \post {Valid Representations}
-     *       = {Valid Representations} \f$ \cup \f$ {#DiagonalPrecisionMatrix}
-     * \endcond
      *
      * \throws WrongSizeException
      */
@@ -799,6 +726,7 @@ protected:
     mutable SecondMoment square_root_; /**< \brief cov. square root form */
     mutable bool full_rank_;           /**< \brief full rank flag */
     mutable Real log_norm_;            /**< \brief log normalizing constant */
+    mutable Real determinant_;         /**< \brief determinant of covariance */
     mutable std::vector<bool> dirty_;  /**< \brief data validity flags */
     /** \endcond */
 };
