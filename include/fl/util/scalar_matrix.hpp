@@ -79,7 +79,7 @@ public:
      * \brief operator Real() implicit typecast conversion of a ScalarMatrix
      * into a scalar
      */
-    operator Real()
+    operator Real() const
     {
         return Real((*this)(0));
     }
