@@ -30,19 +30,6 @@ set(CMAKE_MODULE_PATH ${fl_MODULE_PATH})
 include(${fl_MODULE_PATH}/definitions.cmake)
 
 ############################
-## catkin                  #
-############################
-if(fl_USE_CATKIN)
-    find_package(catkin REQUIRED)
-endif(fl_USE_CATKIN)
-
-if(catkin_FOUND AND fl_USE_CATKIN)
-    set(fl_USING_CATKIN YES)
-    catkin_package(INCLUDE_DIRS include ${Eigen_INCLUDE_DIRS} DEPENDS Eigen)
-    list(APPEND fl_INCLUDE_DIRS ${catkin_INCLUDE_DIRS})
-endif(catkin_FOUND AND fl_USE_CATKIN)
-
-############################
 # Library Version          #
 ############################
 include(${fl_MODULE_PATH}/version.cmake)
@@ -53,6 +40,22 @@ include(${fl_MODULE_PATH}/version.cmake)
 find_package(Eigen REQUIRED)
 include_directories(${Eigen_INCLUDE_DIRS})
 add_definitions(${Eigen_DEFINITIONS})
+
+find_package(Boost REQUIRED)
+include_directories(${Boost_INCLUDE_DIRS})
+
+############################
+## catkin                  #
+############################
+if(fl_USE_CATKIN)
+    find_package(catkin REQUIRED)
+endif(fl_USE_CATKIN)
+
+if(catkin_FOUND AND fl_USE_CATKIN)
+    set(fl_USING_CATKIN YES)
+    catkin_package(INCLUDE_DIRS include DEPENDS Eigen Boost)
+    list(APPEND fl_INCLUDE_DIRS ${catkin_INCLUDE_DIRS})
+endif(catkin_FOUND AND fl_USE_CATKIN)
 
 ############################
 # Documentation Generation #
