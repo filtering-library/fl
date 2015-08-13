@@ -61,6 +61,11 @@ inline long timesteps(Real discretization_time_step,
 //           int(delta_time/discretization_time_step);
 }
 
+inline bool check_epsilon_bounds(Real d, Real epsilon)
+{
+    return std::fabs(d) < epsilon;
+}
+
 }
 
 #endif
