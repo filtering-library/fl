@@ -79,6 +79,10 @@ public:
     {
         return pose().homogeneous_matrix();
     }
+    virtual PoseVector::Affine affine() const
+    {
+        return pose().affine();
+    }
     virtual VelocityVector linear_velocity() const
     {
         return this->template middleRows<VELOCITY_SIZE>(LINEAR_VELOCITY_INDEX);
@@ -105,6 +109,10 @@ public:
                     const typename PoseBlock<Base>::HomogeneousMatrix& H)
     {
         pose().homogeneous_matrix(H);
+    }
+    virtual void affine(const typename PoseBlock<Base>::Affine& A)
+    {
+        pose().affine(A);
     }
     VelocityBlock linear_velocity()
     {

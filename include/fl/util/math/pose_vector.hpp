@@ -47,6 +47,8 @@ public:
     // types *******************************************************************
     typedef Eigen::Matrix<Real, 3, 1>              Vector;
     typedef Eigen::Matrix<Real, 4, 4>              HomogeneousMatrix;
+    typedef typename Eigen::Transform<Real, 3, Eigen::Affine> Affine;
+
     typedef Eigen::VectorBlock<Base, BLOCK_SIZE>   PositionBlock;
     typedef EulerBlock<Base>                       OrientationBlock;
 
@@ -78,6 +80,14 @@ public:
 
         return H;
     }
+    virtual Affine affine() const
+    {
+        Affine A;
+        A.linear() = euler_vector().rotation_matrix();
+        A.translation() = position();
+
+        return A;
+    }
 
     // mutators ****************************************************************
     PositionBlock position()
@@ -92,6 +102,11 @@ public:
     {
         euler_vector().rotation_matrix(H.topLeftCorner(3, 3));
         position() = H.topRightCorner(3, 1);
+    }
+    virtual void affine(const Affine& A)
+    {
+       euler_vector().rotation_matrix(A.rotation());
+       position() = A.translation();
     }
 };
 

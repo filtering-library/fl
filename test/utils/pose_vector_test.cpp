@@ -29,15 +29,18 @@ using namespace fl;
 typedef EulerVector::RotationMatrix RotationMatrix;
 typedef EulerVector::AngleAxis AngleAxis;
 typedef EulerVector::Quaternion Quaternion;
-typedef Eigen::Matrix<Real, 4, 4>              HomogeneousMatrix;
+typedef Eigen::Matrix<Real, 4, 4> HomogeneousMatrix;
 typedef Eigen::Matrix<Real, 6, 1> Vector6d;
 typedef Eigen::Matrix<Real, 3, 1> Vector3d;
 typedef Eigen::Matrix<Real, 4, 1> Vector4d;
+typedef PoseVector::Affine Affine;
 
 
 
 
 Real epsilon = 0.000000001;
+
+
 
 
 TEST(pose_vector, equality)
@@ -106,6 +109,35 @@ TEST(pose_vector, set_homogeneous)
     EXPECT_TRUE(pose_vector1.isApprox(pose_vector2));
 }
 
+TEST(pose_vector, get_affine)
+{
+    PoseVector pose_vector = PoseVector::Random();
+
+    Vector3d va = Vector3d::Random();
+    Vector3d vb = va;
+
+    pose_vector.position() = Vector3d::Zero();
+
+
+    va = pose_vector.euler_vector().rotation_matrix() * va
+            + pose_vector.position();
+    vb = pose_vector.affine() * vb;
+
+    EXPECT_TRUE(va.isApprox(vb));
+}
+
+
+TEST(pose_vector, set_affine)
+{
+    PoseVector pose_vector1 = PoseVector::Random();
+    PoseVector pose_vector2;
+    pose_vector2.affine(pose_vector1.affine());
+
+
+    EXPECT_TRUE(pose_vector1.isApprox(pose_vector2));
+}
+
+
 
 TEST(pose_vector, product)
 {
@@ -136,6 +168,9 @@ TEST(pose_vector, inverse)
     result = v.inverse() * v;
     EXPECT_TRUE(result.norm() < 0.00001);
 }
+
+
+
 
 
 
