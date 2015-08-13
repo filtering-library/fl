@@ -50,6 +50,9 @@ public:
     typedef Eigen::Array<Real,    Locations, 1> Function;
     typedef Eigen::Array<Variate, Locations, 1> LocationArray;
 
+    typedef StandardGaussianMapping<Variate, 1> StdGaussianMapping;
+    typedef typename StdGaussianMapping::StandardVariate StandardVariate;
+
 public:
     /// constructor and destructor *********************************************
     explicit
@@ -126,15 +129,15 @@ public:
     /// const functions ********************************************************
 
     // sampling ----------------------------------------------------------------
-    virtual Variate map_standard_normal(const Real& gaussian_sample) const
+    virtual Variate map_standard_normal(const StandardVariate& gaussian_sample) const
     {
-        Real uniform_sample =
-                0.5 * (1.0 + std::erf(gaussian_sample / std::sqrt(2.0)));
+        StandardVariate scaled_sample = gaussian_sample / std::sqrt(2.0);
+        StandardVariate uniform_sample = 0.5 * (1.0 + std::erf(scaled_sample));
 
         return map_standard_uniform(uniform_sample);
     }
 
-    virtual Variate map_standard_uniform(const Real& uniform_sample) const
+    virtual Variate map_standard_uniform(const StandardVariate& uniform_sample) const
     {
         int i = 0;
         for (i = 0; i < cumul_distr_.size(); ++i)
