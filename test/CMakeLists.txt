@@ -7,7 +7,7 @@ fl_add_test(NAME options           SOURCES utils/options_test.cpp)
 fl_add_test(NAME join              SOURCES utils/join_test.cpp)
 fl_add_test(NAME euler_vector      SOURCES utils/euler_vector_test.cpp)
 fl_add_test(NAME pose_vector       SOURCES utils/pose_vector_test.cpp)
-fl_add_test(NAME rigid_body_state  SOURCES utils/rigid_body_state_test.cpp)
+fl_add_test(NAME pose_velocity_vector  SOURCES utils/pose_velocity_vector_test.cpp)
 fl_add_test(NAME descriptor        SOURCES utils/descriptor_test.cpp)
 
 fl_add_test(
