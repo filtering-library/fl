@@ -38,9 +38,22 @@ namespace fl
  * \ingroup distributions
  */
 class UniformDistribution
-    : public Evaluation<Real>,
-      public StandardGaussianMapping<Real, 1>
+    : public Evaluation<ScalarMatrix>,
+      public StandardGaussianMapping<ScalarMatrix, 1>
 {
+private:
+    typedef StandardGaussianMapping<ScalarMatrix, 1> StdGaussianMappingBase;
+
+public:
+    typedef ScalarMatrix Variate;
+
+    /**
+     * \brief Represents the StandardGaussianMapping standard variate type which
+     *        is of the same dimension as the \c TDistribution \c Variate. The
+     *        StandardVariate type is used to sample from a standard normal
+     *        Gaussian and map it to this \c TDistribution
+     */
+    typedef typename StdGaussianMappingBase::StandardVariate StandardVariate;
 
 public:
     UniformDistribution()
@@ -57,16 +70,20 @@ public:
 
     virtual ~UniformDistribution() { }
 
-    Real probability(const Real& input) const override
+    Real probability(const Variate& x) const override
     {
-        if(input < min_ || input > max_) return 0;
+        assert(x.size() == 1);
+
+        if(x < min_ || x > max_) return 0;
 
         return density_;
     }
 
-    Real log_probability(const Real& input) const override
+    Real log_probability(const Variate& x) const override
     {
-        if(input < min_ || input > max_)
+        assert(x.size() == 1);
+
+        if(x < min_ || x > max_)
         {
             return -std::numeric_limits<Real>::infinity();
         }
@@ -74,12 +91,14 @@ public:
         return log_density_;
     }
 
-    Real map_standard_normal(const Real& gaussian_sample) const override
+    Variate map_standard_normal(const StandardVariate& sample) const override
     {
-        // map from a gaussian to a uniform distribution
-        Real standard_uniform_sample = fl::normal_to_uniform(gaussian_sample);
+        assert(sample.size() == 1);
 
-        return mean_ + (standard_uniform_sample - 0.5) * delta_;
+        // map from a gaussian to a uniform distribution
+        Real standard_uniform_sample = fl::normal_to_uniform(sample);
+
+        return mean_ + (standard_uniform_sample - 0.5) * delta_;;
     }
 
 private:
