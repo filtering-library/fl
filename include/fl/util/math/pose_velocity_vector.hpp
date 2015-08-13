@@ -67,6 +67,18 @@ public:
     {
         return this->template middleRows<POSE_SIZE>(POSE_INDEX);
     }
+    virtual PoseVector::Vector position() const
+    {
+        return pose().position();
+    }
+    virtual EulerVector euler_vector() const
+    {
+        return pose().euler_vector();
+    }
+    virtual PoseVector::HomogeneousMatrix homogeneous_matrix() const
+    {
+        return pose().homogeneous_matrix();
+    }
     virtual VelocityVector linear_velocity() const
     {
         return this->template middleRows<VELOCITY_SIZE>(LINEAR_VELOCITY_INDEX);
@@ -80,6 +92,19 @@ public:
     PoseBlock<Base> pose()
     {
         return PoseBlock<Base>(*this, POSE_INDEX);
+    }
+    typename PoseBlock<Base>::PositionBlock position()
+    {
+      return pose().position();
+    }
+    typename PoseBlock<Base>::OrientationBlock euler_vector()
+    {
+      return pose().euler_vector();
+    }
+    virtual void homogeneous_matrix(
+                    const typename PoseBlock<Base>::HomogeneousMatrix& H)
+    {
+        pose().homogeneous_matrix(H);
     }
     VelocityBlock linear_velocity()
     {
