@@ -23,60 +23,65 @@
 
 #include <fl/util/scalar_matrix.hpp>
 
-using namespace fl;
+#include <boost/math/distributions/chi_squared.hpp>
+
+
+/* == creation and conversion =============================================== */
 
 TEST(ScalarMatrixTests, create)
 {
-    ScalarMatrix s;
+    fl::ScalarMatrix s;
     EXPECT_EQ(s(0), 0);
 }
 
 TEST(ScalarMatrixTests, create_with_value)
 {
-    ScalarMatrix s(42.);
+    fl::ScalarMatrix s(42.);
     EXPECT_DOUBLE_EQ(s(0), 42.);
 }
 
 TEST(ScalarMatrixTests, assign_scalar_to_ScalarMatrix)
 {
-    ScalarMatrix s;
+    fl::ScalarMatrix s;
     s = 43.;
     EXPECT_DOUBLE_EQ(s(0), 43.);
 }
 
 TEST(ScalarMatrixTests, assign_ScalarMatrix_to_scalar)
 {
-    Real r = 0;
-    ScalarMatrix s(44);
+    fl::Real r = 0;
+    fl::ScalarMatrix s(44);
     r = s;
     EXPECT_DOUBLE_EQ(s(0), r);
 }
 
 TEST(ScalarMatrixTests, create_with_value_implicit_conversion_test)
 {
-    ScalarMatrix s(42.);
+    fl::ScalarMatrix s(42.);
     EXPECT_DOUBLE_EQ(s, 42.);
 }
 
+/* == addition (+) ========================================================== */
+
 TEST(ScalarMatrixTests, plus_scalar_value)
 {
-    ScalarMatrix s(42);
+    fl::ScalarMatrix s(42);
     s += 43.;
     EXPECT_DOUBLE_EQ(s, 42. + 43.);
 }
 
 TEST(ScalarMatrixTests, plus_scalar_matrix)
 {
-    ScalarMatrix s(42);
-    s += ScalarMatrix(43.);
+    fl::ScalarMatrix s(42);
+    s += fl::ScalarMatrix (43.);
     EXPECT_DOUBLE_EQ(s, 42. + 43.);
 }
 
 TEST(ScalarMatrixTests, scalar_matrix_plus_scalar_matrix)
 {
-    auto a = ScalarMatrix(42);
-    auto b = ScalarMatrix(43);
-    ScalarMatrix s;
+    auto a = fl::ScalarMatrix (42);
+    auto b = fl::ScalarMatrix (43);
+    fl::ScalarMatrix s;
 
     s = a + b;
     EXPECT_DOUBLE_EQ(s, 42. + 43.);
@@ -84,9 +89,9 @@ TEST(ScalarMatrixTests, scalar_matrix_plus_scalar_matrix)
 
 TEST(ScalarMatrixTests, scalar_plus_scalar_matrix)
 {
-    Real a = 42;
-    auto b = ScalarMatrix(43);
-    ScalarMatrix s;
+    fl::Real a = 42;
+    auto b = fl::ScalarMatrix (43);
+    fl::ScalarMatrix s;
 
     s = a + b;
     EXPECT_DOUBLE_EQ(s, 42. + 43.);
@@ -95,25 +100,27 @@ TEST(ScalarMatrixTests, scalar_plus_scalar_matrix)
     EXPECT_DOUBLE_EQ(s, 42. + 43.);
 }
 
+/* == subtraction (-) ======================================================= */
+
 TEST(ScalarMatrixTests, minus_scalar_value)
 {
-    ScalarMatrix s(42);
+    fl::ScalarMatrix s(42);
     s -= 43.;
     EXPECT_DOUBLE_EQ(s, 42. - 43.);
 }
 
 TEST(ScalarMatrixTests, minus_scalar_matrix)
 {
-    ScalarMatrix s(42);
-    s -= ScalarMatrix(43.);
+    fl::ScalarMatrix s(42);
+    s -= fl::ScalarMatrix (43.);
     EXPECT_DOUBLE_EQ(s, 42. - 43.);
 }
 
 TEST(ScalarMatrixTests, scalar_matrix_minus_scalar_matrix)
 {
-    auto a = ScalarMatrix(42);
-    auto b = ScalarMatrix(43);
-    ScalarMatrix s;
+    auto a = fl::ScalarMatrix (42);
+    auto b = fl::ScalarMatrix (43);
+    fl::ScalarMatrix s;
 
     s = a - b;
     EXPECT_DOUBLE_EQ(s, 42. - 43.);
@@ -121,9 +128,9 @@ TEST(ScalarMatrixTests, scalar_matrix_minus_scalar_matrix)
 
 TEST(ScalarMatrixTests, scalar_minus_scalar_matrix)
 {
-    Real a = 42;
-    auto b = ScalarMatrix(43);
-    ScalarMatrix s;
+    fl::Real a = 42;
+    auto b = fl::ScalarMatrix (43);
+    fl::ScalarMatrix s;
 
     s = a - b;
     EXPECT_DOUBLE_EQ(s, 42. - 43.);
@@ -132,25 +139,27 @@ TEST(ScalarMatrixTests, scalar_minus_scalar_matrix)
     EXPECT_DOUBLE_EQ(s, 43. - 42.);
 }
 
+/* == multiplication (*) ==================================================== */
+
 TEST(ScalarMatrixTests, multiply_scalar_value)
 {
-    ScalarMatrix s(42);
+    fl::ScalarMatrix s(42);
     s *= 43.;
     EXPECT_DOUBLE_EQ(s, 42. * 43.);
 }
 
 TEST(ScalarMatrixTests, multiply_scalar_matrix)
 {
-    ScalarMatrix s(42);
-    s *= ScalarMatrix(43.);
+    fl::ScalarMatrix s(42);
+    s *= fl::ScalarMatrix (43.);
     EXPECT_DOUBLE_EQ(s, 42. * 43.);
 }
 
 TEST(ScalarMatrixTests, scalar_matrix_multiply_scalar_matrix)
 {
-    auto a = ScalarMatrix(42);
-    auto b = ScalarMatrix(43);
-    ScalarMatrix s;
+    auto a = fl::ScalarMatrix (42);
+    auto b = fl::ScalarMatrix (43);
+    fl::ScalarMatrix s;
 
     s = a * b;
     EXPECT_DOUBLE_EQ(s, 42. * 43.);
@@ -158,9 +167,9 @@ TEST(ScalarMatrixTests, scalar_matrix_multiply_scalar_matrix)
 
 TEST(ScalarMatrixTests, scalar_multiply_scalar_matrix)
 {
-    Real a = 42;
-    auto b = ScalarMatrix(43);
-    ScalarMatrix s;
+    fl::Real a = 42;
+    auto b = fl::ScalarMatrix (43);
+    fl::ScalarMatrix s;
 
     s = a * b;
     EXPECT_DOUBLE_EQ(s, 42. * 43.);
@@ -169,25 +178,27 @@ TEST(ScalarMatrixTests, scalar_multiply_scalar_matrix)
     EXPECT_DOUBLE_EQ(s, 43. * 42.);
 }
 
+/* == division (/) ========================================================== */
+
 TEST(ScalarMatrixTests, divide_scalar_value)
 {
-    ScalarMatrix s(42);
+    fl::ScalarMatrix s(42);
     s /= 43.;
     EXPECT_DOUBLE_EQ(s, 42. / 43.);
 }
 
 TEST(ScalarMatrixTests, divide_scalar_matrix)
 {
-    ScalarMatrix s(42);
-    s /= ScalarMatrix(43.);
+    fl::ScalarMatrix s(42);
+    s /= fl::ScalarMatrix (43.);
     EXPECT_DOUBLE_EQ(s, 42. / 43.);
 }
 
 TEST(ScalarMatrixTests, scalar_matrix_divide_scalar_matrix)
 {
-    auto a = ScalarMatrix(42);
-    auto b = ScalarMatrix(43);
-    ScalarMatrix s;
+    auto a = fl::ScalarMatrix (42);
+    auto b = fl::ScalarMatrix (43);
+    fl::ScalarMatrix s;
 
     s = a / b;
     EXPECT_DOUBLE_EQ(s, 42. / 43.);
@@ -195,9 +206,9 @@ TEST(ScalarMatrixTests, scalar_matrix_divide_scalar_matrix)
 
 TEST(ScalarMatrixTests, scalar_divide_scalar_matrix)
 {
-    Real a = 42;
-    auto b = ScalarMatrix(43);
-    ScalarMatrix s;
+    fl::Real a = 42;
+    auto b = fl::ScalarMatrix (43);
+    fl::ScalarMatrix s;
 
     s = a / b;
     EXPECT_DOUBLE_EQ(s, 42. / 43.);
@@ -206,30 +217,32 @@ TEST(ScalarMatrixTests, scalar_divide_scalar_matrix)
     EXPECT_DOUBLE_EQ(s, 43. / 42.);
 }
 
+/* == ++ and -- ============================================================= */
+
 TEST(ScalarMatrixTests, prefix_increment)
 {
-    ScalarMatrix s(42);
+    fl::ScalarMatrix s(42);
     EXPECT_DOUBLE_EQ(++s, 42 + 1);
     EXPECT_DOUBLE_EQ(s, 42 + 1);
 }
 
 TEST(ScalarMatrixTests, postfix_increment)
 {
-    ScalarMatrix s(42);
+    fl::ScalarMatrix s(42);
     EXPECT_DOUBLE_EQ(s++, 42);
     EXPECT_DOUBLE_EQ(s, 42 + 1);
 }
 
 TEST(ScalarMatrixTests, prefix_decrement)
 {
-    ScalarMatrix s(42);
+    fl::ScalarMatrix s(42);
     EXPECT_DOUBLE_EQ(--s, 42 - 1);
     EXPECT_DOUBLE_EQ(s, 42 - 1);
 }
 
 TEST(ScalarMatrixTests, postfix_decrement)
 {
-    ScalarMatrix s(42);
+    fl::ScalarMatrix s(42);
     EXPECT_DOUBLE_EQ(s--, 42);
     EXPECT_DOUBLE_EQ(s, 42 - 1);
 }
