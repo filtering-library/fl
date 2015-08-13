@@ -80,8 +80,6 @@ inline Real normal_to_uniform(Real snv)
 {
     static constexpr Real sqrt_of_2 = std::sqrt(Real(2));
 
-    assert(snv >= 0.);
-
     Real u = (1 + std::erf(snv / sqrt_of_2)) / Real(2);
     return u;
 }
