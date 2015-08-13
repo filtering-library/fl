@@ -90,9 +90,9 @@ public:
      */
     explicit TDistribution(Real degrees_of_freedom,
                            int dim = DimensionOf<Variate>())
-        : chi2_(degrees_of_freedom),
-          normal_(dim),
-          StdGaussianMappingBase(dim + 1)
+        : StdGaussianMappingBase(dim + 1),
+          chi2_(degrees_of_freedom),
+          normal_(dim)
     {
         static_assert(Variate::SizeAtCompileTime != 0,
                       "Illegal static dimension");
@@ -239,7 +239,7 @@ public:
     /**
      * Sets t-distribution degree-of-freedom
      */
-    virtual void degrees_of_freedom(Real dof) const
+    virtual void degrees_of_freedom(Real dof)
     {
         chi2_.degrees_of_freedom(dof);
         cached_log_pdf_.flag_dirty();
@@ -251,8 +251,6 @@ protected:
     Gaussian<Variate> normal_;
     /** \endcond */
 
-private:
-    CachedLogPdf cached_log_pdf_;
 
 private:
     class CachedLogPdf
@@ -270,7 +268,7 @@ private:
         {
             if (dirty_) update(t_distr);
 
-            Variate z = x - location();
+            Variate z = x - t_distr.location();
             Real dof = t_distr.degrees_of_freedom();
 
             Real quad_term = (z.transpose() * t_distr.normal_.precision() * z);
@@ -288,10 +286,10 @@ private:
             Real dim = t_distr.dimension();
             Real dof = t_distr.degrees_of_freedom();
             const_term_ =
-                boost::lgamma(half * (dof + dim))
-                - boost::lgamma(half * dof)
+                boost::math::lgamma(half * (dof + dim))
+                - boost::math::lgamma(half * dof)
                 - half * (dim * std::log(M_PI * dof))
-                - half * (std::log(t_distr.normal_.determinant()));
+                - half * (std::log(t_distr.normal_.covariance_determinant()));
 
             const_factor_ = half * (dof + dim);
 
@@ -304,6 +302,8 @@ private:
     };
 
     friend class CachedLogPdf;
+
+    mutable CachedLogPdf cached_log_pdf_;
 };
 
 }
