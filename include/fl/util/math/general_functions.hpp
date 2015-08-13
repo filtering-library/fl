@@ -25,6 +25,7 @@
 
 #include <cmath>
 #include <fl/util/types.hpp>
+#include <fl/util/math/special_functions.hpp>
 
 namespace fl
 {
@@ -63,6 +64,7 @@ inline long timesteps(Real discretization_time_step,
 
 
 /**
+ * \ingroup general_functions
  * \return True if d is within the specified epsilon bounds
  */
 inline bool check_epsilon_bounds(Real d, Real epsilon)
@@ -71,7 +73,7 @@ inline bool check_epsilon_bounds(Real d, Real epsilon)
 }
 
 /**
- * \ingroup special_functions
+ * \ingroup general_functions
  *
  * \return converts a standard normal variate into a uniformly distributed
  * variate u
@@ -82,6 +84,20 @@ inline Real normal_to_uniform(Real snv)
 
     Real u = (1 + std::erf(snv / sqrt_of_2)) / Real(2);
     return u;
+}
+
+/**
+ * \ingroup general_functions
+ *
+ * \return converts a standard normal variate into a uniformly distributed
+ * variate u
+ */
+inline Real uniform_to_normal(Real u)
+{
+    static constexpr Real sqrt_of_2 = std::sqrt(Real(2));
+
+    Real snv = fl::erfinv(Real(2) * u - 1) * sqrt_of_2;
+    return snv;
 }
 
 }
