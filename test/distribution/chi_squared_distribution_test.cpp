@@ -14,7 +14,7 @@
  */
 
 /**
- * \file ch_squared_distribution_test.cpp
+ * \file chi_squared_distribution_test.cpp
  * \date August 2015
  * \author Jan Issac (jan.issac@gmail.com)
  */

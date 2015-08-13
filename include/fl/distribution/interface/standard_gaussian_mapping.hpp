@@ -28,6 +28,7 @@
 #include <type_traits>
 
 #include <fl/util/traits.hpp>
+#include <fl/util/scalar_matrix.hpp>
 #include <fl/distribution/interface/sampling.hpp>
 #include <fl/distribution/standard_gaussian.hpp>
 
@@ -129,7 +130,7 @@ class StandardGaussianMapping<Variate, 1>
     : public Sampling<Variate>
 {
 public:
-    typedef Real StandardVariate;
+    typedef ScalarMatrix StandardVariate;
 
 
     /// \todo fix this (unused argument)
@@ -150,7 +151,7 @@ public:
      *
      * \return A variate according to the underlying distribution
      */
-    virtual Variate map_standard_normal(const Real& sample) const = 0;
+    virtual Variate map_standard_normal(const StandardVariate& sample) const = 0;
 
     /**
      * \return A variate according to the underlying distribution
@@ -172,9 +173,6 @@ public:
     virtual void standard_variate_dimension(int snv_dimension)
     {
     }
-
-
-
 
 protected:
     /**

@@ -7,8 +7,12 @@ fl_add_test(NAME options           SOURCES utils/options_test.cpp)
 fl_add_test(NAME join              SOURCES utils/join_test.cpp)
 fl_add_test(NAME euler_vector      SOURCES utils/euler_vector_test.cpp)
 fl_add_test(NAME pose_vector       SOURCES utils/pose_vector_test.cpp)
-fl_add_test(NAME pose_velocity_vector  SOURCES utils/pose_velocity_vector_test.cpp)
 fl_add_test(NAME descriptor        SOURCES utils/descriptor_test.cpp)
+fl_add_test(NAME scalar_matrix     SOURCES utils/scalar_matrix_test.cpp)
+
+fl_add_test(
+    NAME pose_velocity_vector
+    SOURCES utils/pose_velocity_vector_test.cpp)
 
 fl_add_test(
     NAME la_square_root
@@ -70,6 +74,10 @@ fl_add_test(
 fl_add_test(
     NAME    chi_squared_distribution
     SOURCES distribution/chi_squared_distribution_test.cpp)
+
+fl_add_test(
+    NAME    t_distribution
+    SOURCES distribution/t_distribution_test.cpp)
 
 # == exceptions tests ======================================================== #
 fl_add_test(NAME exception

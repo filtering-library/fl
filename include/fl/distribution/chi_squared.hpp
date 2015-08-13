@@ -27,6 +27,7 @@
 #include <boost/math/distributions.hpp>
 
 #include <fl/util/meta.hpp>
+#include <fl/util/scalar_matrix.hpp>
 #include <fl/distribution/uniform_distribution.hpp>
 #include <fl/distribution/interface/evaluation.hpp>
 #include <fl/distribution/interface/standard_gaussian_mapping.hpp>
@@ -41,11 +42,11 @@ namespace fl
  * \f$\chi^2_k\f$, with \f$k \in \mathbb{N}^{*}\f$ degrees-of-freedom
  */
 class ChiSquared
-    : public Evaluation<Real>,
-      public StandardGaussianMapping<Real, 1>
+    : public Evaluation<ScalarMatrix>,
+      public StandardGaussianMapping<ScalarMatrix, 1>
 {
 private:
-    typedef StandardGaussianMapping<Real, 1> StdGaussianMappingBase;
+    typedef StandardGaussianMapping<ScalarMatrix, 1> StdGaussianMappingBase;
 
 public:
     /**
@@ -54,6 +55,7 @@ public:
      *        StandardVariate type is used to sample from a standard normal
      *        Gaussian and map it to this \c TDistribution
      */
+    typedef ScalarMatrix Variate;
     typedef typename StdGaussianMappingBase::StandardVariate StandardVariate;
 
 public:
@@ -86,9 +88,9 @@ public:
      *
      * \throws See Gaussian<Variate>::map_standard_normal
      */
-    Real map_standard_normal(const StandardVariate& n) const override
+    virtual Variate map_standard_uniform(const StandardVariate& n) const
     {
-        return map_standard_uniform(uniform_.map_standard_normal(n));
+        return boost::math::quantile(chi2_, n);
     }
 
     /**
@@ -99,9 +101,9 @@ public:
      *
      * \throws See Gaussian<Variate>::map_standard_normal
      */
-    virtual Real map_standard_uniform(const StandardVariate& n) const
+    Variate map_standard_normal(const StandardVariate& n) const override
     {
-        return boost::math::quantile(chi2_, n);
+        return map_standard_uniform(uniform_.map_standard_normal(n));
     }
 
     /**
@@ -111,8 +113,9 @@ public:
      *
      * \throws See Gaussian<Variate>::has_full_rank()
      */
-    Real log_probability(const Real& variate) const override
+    Real log_probability(const Variate& variate) const override
     {
+        assert(variate.size() == 1);
         return std::log(probability(variate));
     }
 
@@ -123,8 +126,9 @@ public:
      *
      * \return \f$p(x)\f$
      */
-    Real probability(const Real& variate) const override
+    Real probability(const Variate& variate) const override
     {
+        assert(variate.size() == 1);
         return boost::math::pdf(chi2_, variate);
     }
 
