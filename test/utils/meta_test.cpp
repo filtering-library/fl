@@ -44,7 +44,6 @@ TEST(MetaTests, ExpandSizes)
     EXPECT_EQ((ExpandSizes<3, 5>::Size), 15);
 }
 
-
 TEST(MetaTests, JoinSizes_single_param)
 {
     EXPECT_EQ((JoinSizes<0>::Size), 0);
