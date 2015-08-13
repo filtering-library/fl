@@ -9,9 +9,22 @@ fl_add_test(NAME euler_vector      SOURCES utils/euler_vector_test.cpp)
 fl_add_test(NAME pose_vector       SOURCES utils/pose_vector_test.cpp)
 fl_add_test(NAME rigid_body_state  SOURCES utils/rigid_body_state_test.cpp)
 fl_add_test(NAME descriptor        SOURCES utils/descriptor_test.cpp)
-fl_add_test(NAME LA_square_root    SOURCES utils/linear_algebra_square_root_test.cpp)
-fl_add_test(NAME LA_smw_inversion  SOURCES utils/linear_algebra_smw_inversion_test.cpp)
-fl_add_test(NAME LA_is_diagonal    SOURCES utils/linear_algebra_is_diagonal_test.cpp)
+
+fl_add_test(
+    NAME la_square_root
+    SOURCES utils/linear_algebra_square_root_test.cpp)
+
+fl_add_test(
+    NAME la_smw_inversion
+    SOURCES utils/linear_algebra_smw_inversion_test.cpp)
+
+fl_add_test(
+    NAME la_is_diagonal
+    SOURCES utils/linear_algebra_is_diagonal_test.cpp)
+
+fl_add_test(
+    NAME sp_normal_to_uniform
+    SOURCES utils/special_functions_normal_to_uniform_test.cpp)
 
 # == observation model tests ================================================= #
 fl_add_test(
@@ -53,6 +66,10 @@ fl_add_test(
 fl_add_test(
     NAME    discrete_distribution
     SOURCES distribution/discrete_distribution_test.cpp)
+
+fl_add_test(
+    NAME    chi_squared_distribution
+    SOURCES distribution/chi_squared_distribution_test.cpp)
 
 # == exceptions tests ======================================================== #
 fl_add_test(NAME exception
