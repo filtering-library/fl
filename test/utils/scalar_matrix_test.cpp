@@ -23,8 +23,6 @@
 
 #include <fl/util/scalar_matrix.hpp>
 
-#include <boost/math/distributions/chi_squared.hpp>
-
 
 /* == creation and conversion =============================================== */
 
