@@ -19,8 +19,8 @@
  * \author Manuel Wuthrich (manuel.wuthrich@gmail.com)
  */
 
-#ifndef FL__UTIL__MATH__MULTI_BLOCK_VECTOR_HPP
-#define FL__UTIL__MATH__MULTI_BLOCK_VECTOR_HPP
+#ifndef FL__UTIL__MATH__COMPOSED_VECTOR_HPP
+#define FL__UTIL__MATH__COMPOSED_VECTOR_HPP
 
 
 #include <Eigen/Dense>
@@ -29,38 +29,43 @@
 namespace fl
 {
 
-template <typename Block, int N>
-struct MultiBlockVectorTypes
-{
-    typedef Eigen::Matrix<Real, N == Eigen::Dynamic ?
-                    Eigen::Dynamic : N * Block::SizeAtCompileTime(), 1>  Vector;
-
-};
-
-
-/// basic functionality for both vectors and blocks ****************************
-// the block is assumed to be fixed size
-template <typename Block, int N>
-class MultiBlockVector: public MultiBlockVectorTypes<Block, N>::Vector
+template <typename Block, typename Vector>
+class ComposedVector: public Vector
 {
 public:
-    typedef typename MultiBlockVectorTypes<Block, N>::Vector Vector;
-
     // constructor and destructor **********************************************
-    MultiBlockVector() { }
-
-    MultiBlockVector(int n): Vector(n * Block::SizeAtCompileTime()) { }
+    ComposedVector() { }
 
     template <typename T>
-    MultiBlockVector(const Eigen::MatrixBase<T>& vector): Vector(vector) { }
+    ComposedVector(const Eigen::MatrixBase<T>& vector): Vector(vector) { }
 
-    virtual ~MultiBlockVector() {}
+    virtual ~ComposedVector() {}
 
     // operators ***************************************************************
     template <typename T>
     void operator = (const Eigen::MatrixBase<T>& vector)
     {
         *((Vector*)(this)) = vector;
+    }
+
+    // accessors ***************************************************************
+    const Block& component(int index) const
+    {
+        return Block(*this, index * Block::SizeAtCompileTime);
+    }
+    int count()
+    {
+        return this->size() / Block::SizeAtCompileTime;
+    }
+
+    // mutators ****************************************************************
+    Block component(int index)
+    {
+        return Block(*this, index * Block::SizeAtCompileTime);
+    }
+    void recount(int new_count)
+    {
+        return this->resize(new_count * Block::SizeAtCompileTime);
     }
 };
 

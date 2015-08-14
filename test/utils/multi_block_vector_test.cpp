@@ -47,10 +47,33 @@ Real epsilon = 0.000000001;
 
 TEST(multi_block_vector, equality)
 {
-    Vector6d vector = Vector6d::Random();
-    PoseVector multi_block_vector = vector;
 
-    EXPECT_TRUE(multi_block_vector.isApprox(vector));
+    ComposedVector<PoseBlock<Eigen::VectorXd>, Eigen::VectorXd> vector;
+
+    vector.recount(3);
+
+    vector.setZero();
+
+
+
+
+    PoseVector pose1 = PoseVector::Random();
+
+    vector.component(1).euler_vector() = pose1.euler_vector();
+
+
+
+    std::cout << "count " << vector.count() << std::endl;
+    std::cout << "vector " << vector.transpose() << std::endl;
+
+
+
+
+//    PoseBlock<Eigen::VectorXd>::Derived shiznit;
+
+//    MultiBlockVector<PoseBlock<Eigen::VectorXd>> shizzle;
+
+//    EXPECT_TRUE(multi_block_vector.isApprox(vector));
 }
 
 
