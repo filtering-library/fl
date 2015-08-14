@@ -27,7 +27,7 @@
 #include <fl/filter/gaussian/gaussian_filter_nonlinear_generic.hpp>
 #include <fl/filter/gaussian/sigma_point_additive_uncorrelated_update_policy.hpp>
 #include <fl/filter/gaussian/sigma_point_additive_prediction_policy.hpp>
-#include <fl/filter/gaussian/sigma_point_additive_update_policy.hpp>S
+#include <fl/filter/gaussian/sigma_point_additive_update_policy.hpp>
 #include <fl/filter/gaussian/sigma_point_prediction_policy.hpp>
 #include <fl/filter/gaussian/sigma_point_update_policy.hpp>
 
