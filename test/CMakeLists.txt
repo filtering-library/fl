@@ -85,35 +85,32 @@ fl_add_test(NAME exception
 
 # == Sigma Point Transforms ================================================== #
 
-## unscented_transform tests ##
 fl_add_test(
     NAME        unscented_transform_test
     SOURCES     gaussian_filter/unscented_transform_test.cpp)
 
 # == Gaussian filters tests ================================================== #
 
-# = Kalman filter = #
 fl_add_test(
     NAME gaussian_filter_kalman_filter
     SOURCES typecast.hpp
             gaussian_filter/gaussian_filter_test_suite.hpp
             gaussian_filter/kalman_filter_test.cpp)
 
-##= Unscented Kalman filter =  to be removed #
-#fl_add_test(
-#    NAME    gaussian_filter_unscented_kalman_filter
-#    SOURCES typecast.hpp
-#            gaussian_filter/gaussian_filter_test_suite.hpp
-#            gaussian_filter/unscented_kalman_filter_test.cpp)
+fl_add_test(
+    NAME    gaussian_filter_unscented_kalman_filter
+    SOURCES typecast.hpp
+            gaussian_filter/gaussian_filter_test_suite.hpp
+            gaussian_filter/unscented_kalman_filter_test.cpp)
 
-## = Linear Gaussian filter vs Unscented Kalman filter = #
-#fl_add_test(
-#    NAME    gaussian_filter_linear_vs_unscented_kalman_filter
-#    SOURCES typecast.hpp
-#            gaussian_filter/gaussian_filter_linear_vs_x_test_suite.hpp
-#            gaussian_filter/gaussian_filter_linear_vs_unscented_kalman_filter_test.cpp)
-
+##
 add_subdirectory(gaussian_filter)
+
+fl_add_test(
+    NAME    robust_gaussian_filter
+    SOURCES typecast.hpp
+            gaussian_filter/gaussian_filter_test_suite.hpp
+            gaussian_filter/robust_gaussian_filter_test.cpp)
 
 ## == Particle filters tests ================================================= #
 ##catkin_add_gtest(particle_filter_test
