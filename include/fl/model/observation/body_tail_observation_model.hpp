@@ -54,7 +54,7 @@ struct Traits<BodyTailObsrvModel<BodyModel, TailModel>>
      * \brief Define the body-tail observation model \a Noise variate
      *
      * The noise variate size is
-     * \f$1 + max(SizeOf<BodyModel>::Noise, SizeOf<BodyModel>::Noise)\f$
+     * 1 + max(SizeOf<BodyModel>::Noise, SizeOf<BodyModel>::Noise)
      */
     typedef typename VariateOfSize<
                 JoinSizes<
@@ -123,8 +123,22 @@ private:
     typedef BodyTailObsrvModel<BodyModel, TailModel> This;
 
 public:
+    /**
+     * \brief Model observation \f$y\f$ type. This is the same as the
+     * \c BodyModel::Obsrv and \c TailModel::Obsrv.
+     */
     typedef typename Traits<This>::Obsrv Obsrv;
+
+    /**
+     * \brief Model state \f$x\f$ type. This is the same as the
+     * \c BodyModel::State and \c TailModel::State.
+     */
     typedef typename Traits<This>::State State;
+
+    /**
+     * \brief Model noise \f$w\f$ type. The noise variate size is given by
+     * 1 + max(SizeOf<BodyModel>::Noise, SizeOf<BodyModel>::Noise)
+     */
     typedef typename Traits<This>::Noise Noise;
 
 public:
@@ -151,10 +165,14 @@ public:
     }
 
     /**
-     * \brief observation
-     * \param state
-     * \param noise
-     * \return
+     * \brief Returns an observation prediction based on the provided state and
+     *        noise variate.
+     *
+     * The result is either from the body or the tail model. The selection is
+     * based on the last component of the noise variate. If it exceeds the
+     * body-tail-model threshold, the body model is evaluated, otherwise the
+     * tail is selected. The noise variate size is give as specified by
+     * noise_dimension()
      */
     Obsrv observation(const State& state, const Noise& noise) const override
     {
@@ -178,10 +196,14 @@ public:
     }
 
     /**
-     * \brief probability
-     * \param obsrv
-     * \param state
-     * \return
+     * \brief Evalues the probability of the specified \a obsrv, i.e.
+     * \f$p(y \mid x)\f$ where \f$y =\f$ \a obsrv and \f$x =\f$ \a state.
+     *
+     * \param obsrv     Observation \f$y\f$
+     * \param state     State \f$x\f$
+     *
+     * The resulting probability is a mixture of the probabilities given by
+     * the bode and tail models.
      */
     Real probability(const Obsrv& obsrv, const State& state) const override
     {
@@ -192,10 +214,14 @@ public:
     }
 
     /**
-     * \brief log_probability
-     * \param obsrv
-     * \param state
-     * \return
+     * \brief Evalues the log. probability of the specified \a obsrv, i.e.
+     * \f$p(y \mid x)\f$ where \f$y =\f$ \a obsrv and \f$x =\f$ \a state.
+     *
+     * \param obsrv     Observation \f$y\f$
+     * \param state     State \f$x\f$
+     *
+     * The resulting probability is a mixture of the probabilities given by
+     * the bode and tail models.
      */
     Real log_probability(const Obsrv& obsrv, const State& state) const override
     {
@@ -224,17 +250,66 @@ public:
      * \brief Returns the dimension of the noise term \f$w\f$
      *
      * The noise variate size is
-     * \f$1 + max(SizeOf<BodyModel>::Noise, SizeOf<BodyModel>::Noise)\f$
+     * 1 + max(SizeOf<BodyModel>::Noise, SizeOf<BodyModel>::Noise)
      */
     int noise_dimension() const override
     {
         return 1 + std::max(body_.noise_dimension(), tail_.noise_dimension());
     }
 
+    /**
+     * \brief Reference to the body observation model part
+     */
+    BodyModel& body_model()
+    {
+        return body_;
+    }
+
+    /**
+     * \brief Reference to the tail observation model part
+     */
+    TailModel& tail_model()
+    {
+        return tail_;
+    }
+
+    /**
+     * \brief Const reference to the body observation model part
+     */
+    const BodyModel& body_model() const
+    {
+        return body_;
+    }
+
+    /**
+     * \brief Const reference to the tail observation model part
+     */
+    const TailModel& tail_model() const
+    {
+        return tail_;
+    }
+
 protected:
+    /** \cond internal */
+
+    /**
+     * \brief Body observation model
+     */
     BodyModel body_;
+
+    /**
+     * \brief Tail observation model representing the fat-tail
+     */
     TailModel tail_;
+
+    /**
+     * \brief Threshold \f$\in [0, 1]\f$ which determines the model selection.
+     *        Any value below the threshold selects the tail, otherwise the body
+     *        is selected
+     */
     Real threshold_;
+
+    /** \endcond */
 };
 
 }
