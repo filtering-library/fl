@@ -450,7 +450,7 @@ public:
      *
      * \throws see has_full_rank()
      */
-    virtual Real log_probability(const Variate& vector) const
+    Real log_probability(const Variate& vector) const override
     {
         if(has_full_rank())
         {
@@ -471,7 +471,7 @@ public:
      *
      * \throws see square_root()
      */
-    virtual Variate map_standard_normal(const StandardVariate& sample) const
+    Variate map_standard_normal(const StandardVariate& sample) const override
     {
         return mean() + square_root() * sample;
     }
@@ -591,7 +591,7 @@ public:
      *
      * \throws WrongSizeException
      */
-    virtual void diagonal_covariance(const SecondMoment& diag_covariance) noexcept
+    virtual void diagonal_covariance(const SecondMoment& diag_covariance)
     {
         if (diag_covariance.size() != covariance_.size())
         {
@@ -611,7 +611,7 @@ public:
      *
      * \throws WrongSizeException
      */
-    virtual void diagonal_square_root(const SecondMoment& diag_square_root) noexcept
+    virtual void diagonal_square_root(const SecondMoment& diag_square_root)
     {
         if (diag_square_root.size() != square_root_.size())
         {
@@ -631,7 +631,7 @@ public:
      *
      * \throws WrongSizeException
      */
-    virtual void diagonal_precision(const SecondMoment& diag_precision) noexcept
+    virtual void diagonal_precision(const SecondMoment& diag_precision)
     {
         if (diag_precision.size() != precision_.size())
         {
@@ -652,7 +652,7 @@ protected:
      *
      * \param attribute Modified attribute
      */
-    virtual void updated_externally(Attribute attribute) const noexcept
+    void updated_externally(Attribute attribute) const noexcept
     {
         std::fill(dirty_.begin(), dirty_.end(), true);
         updated_internally(attribute);
@@ -663,7 +663,7 @@ protected:
      *
      * \param attribute Modified attribute
      */
-    virtual void updated_internally(Attribute attribute) const noexcept
+    void updated_internally(Attribute attribute) const noexcept
     {
         dirty_[attribute] = false;
     }
@@ -672,7 +672,7 @@ protected:
      * \return True if any of the other representation was modified.
      * \param attribute     Attribute in question
      */
-    virtual bool is_dirty(Attribute attribute) const noexcept
+    bool is_dirty(Attribute attribute) const noexcept
     {
         return dirty_[int(attribute)];
     }
@@ -710,8 +710,8 @@ protected:
      * beginning of the initialization-list. Diagonal forms can be converted
      * most efficiently other  representations.
      */
-    virtual Attribute select_first_representation(
-            const std::vector<Attribute>& representations) const noexcept
+    Attribute select_first_representation(
+        const std::vector<Attribute>& representations) const noexcept
     {
         for (auto& rep: representations)  if (!is_dirty(rep)) return rep;
         return Attributes;
