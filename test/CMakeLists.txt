@@ -40,6 +40,10 @@ fl_add_test(
     NAME    linear_uncorrelated_gaussian_observation_model
     SOURCES model/observation/linear_uncorrelated_gaussian_observation_model_test.cpp)
 
+fl_add_test(
+    NAME    body_tail_observation_model
+    SOURCES model/observation/body_tail_observation_model_test.cpp)
+
 # == state transition model tests ============================================ #
 fl_add_test(
     NAME    linear_state_transition_model
