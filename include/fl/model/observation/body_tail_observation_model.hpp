@@ -16,7 +16,7 @@
 /**
  * \file body_tail_observation_model.hpp
  * \date August 2015
- * \author Jan Issac (jan.issac\gmail.com)
+ * \author Jan Issac (jan.issac@gmail.com)
  */
 
 #ifndef FL__MODEL_OBSERVATION__BODY_TAIL_OBSERVATION_MODEL_HPP
@@ -56,7 +56,7 @@ struct Traits<BodyTailObsrvModel<BodyModel, TailModel>>
      * The noise variate size is
      * \f$1 + max(SizeOf<BodyModel>::Noise, SizeOf<BodyModel>::Noise)\f$
      */
-    typedef VariateOfSize<
+    typedef typename VariateOfSize<
                 JoinSizes<
                     MaxOf<
                         SizeOf< typename BodyModel::Noise >::Value,
@@ -81,6 +81,26 @@ struct Traits<BodyTailObsrvModel<BodyModel, TailModel>>
                     typename BodyModel::State,
                     typename TailModel::State>::value,
                   "Both models must be defined interms of the same State type");
+
+    static_assert(std::is_base_of<
+                    internal::NonAdditiveNoiseModelType,
+                    BodyModel>::value,
+                  "BodyModel must implement ObservationFunction<...> interface");
+
+    static_assert(std::is_base_of<
+                    internal::NonAdditiveNoiseModelType,
+                    TailModel>::value,
+                  "TailModel must implement ObservationFunction<...> interface");
+
+    static_assert(std::is_base_of<
+                    ObservationDensity<Obsrv, State>,
+                    BodyModel>::value,
+                  "BodyModel must implement ObservationDensity<...> interface");
+
+    static_assert(std::is_base_of<
+                    ObservationDensity<Obsrv, State>,
+                    TailModel>::value,
+                  "TailModel must implement ObservationDensity<...> interface");
 };
 
 
@@ -95,7 +115,7 @@ template <
     typename BodyModel,
     typename TailModel
 >
-class BodyTailObsrvModel<BodyModel, TailModel>
+class BodyTailObsrvModel
     : public Traits<BodyTailObsrvModel<BodyModel, TailModel>>::ObsrvFunction,
       public Traits<BodyTailObsrvModel<BodyModel, TailModel>>::ObsrvDensity
 {
@@ -143,7 +163,7 @@ public:
         // use the last noise component as a threshold to select the model
         // since the noise is a standard normal variate, we transform it into
         // a uniformly distributed variate before thresholding
-        Real u = fl::normal_to_uniform(noise(noise_dimension() - 1));
+        Real u = fl::normal_to_uniform(noise.bottomRows(1)(0));
 
         if(u > threshold_)
         {
@@ -212,8 +232,8 @@ public:
     }
 
 protected:
-    BodyModel<Obsrv, State> body_;
-    TailModel<Obsrv, State> tail_;
+    BodyModel body_;
+    TailModel tail_;
     Real threshold_;
 };
 
