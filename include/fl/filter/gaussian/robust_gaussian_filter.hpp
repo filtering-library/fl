@@ -67,18 +67,6 @@ struct Traits<
 };
 
 
-
-
-//template <typename Obsrv, typename State, typename FeatureFunction>
-//class FeatureAugmentedObservationModel
-//{
-//public:
-
-//};
-
-
-
-
 /**
  * \ingroup nonlinear_gaussian_filter
  * \ingroup generic_nonlinear_gaussian_filter
