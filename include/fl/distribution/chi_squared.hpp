@@ -56,6 +56,11 @@ public:
      *        Gaussian and map it to this \c TDistribution
      */
     typedef ScalarMatrix Variate;
+
+    /**
+     * \brief StandardVariate type which is used to sample from and mapped it
+     * into the distribution space
+     */
     typedef typename StdGaussianMappingBase::StandardVariate StandardVariate;
 
 public:
@@ -81,8 +86,8 @@ public:
     virtual ~ChiSquared() { }
 
     /**
-     * \return a t-distribution sample of the type \c Variate determined by
-     * mapping a standard normal sample into the t-distribution sample space
+     * \brief Returns aa t-distribution sample of the type \c Variate determined
+     * by mapping a standard normal sample into the t-distribution sample space
      *
      * \param n    Standard normal sample
      *
@@ -94,8 +99,8 @@ public:
     }
 
     /**
-     * \return a t-distribution sample of the type \c Variate determined by
-     * mapping a standard normal sample into the t-distribution sample space
+     * \brief Returns a t-distribution sample of the type \c Variate determined
+     * by mapping a standard normal sample into the t-distribution sample space
      *
      * \param n    Standard normal sample
      *
@@ -107,7 +112,7 @@ public:
     }
 
     /**
-     * \return Log of the probability of the given sample \c variate
+     * \brief Returns the log probability of the given sample \c variate
      *
      * \param variate sample which should be evaluated
      *
@@ -120,7 +125,7 @@ public:
     }
 
     /**
-     * Determines the probability for the specified variate.
+     * \brief Evaluates the probability for the specified variate.
      *
      * \param variate Sample \f$x\f$ to evaluate
      *
@@ -133,7 +138,7 @@ public:
     }
 
     /**
-     * \return t-distribution degree-of-freedom
+     * \brief Returns t-distribution degree-of-freedom
      */
     Real degrees_of_freedom() const
     {
@@ -141,7 +146,7 @@ public:
     }
 
     /**
-     * Sets t-distribution degree-of-freedom
+     * \brief Sets t-distribution degree-of-freedom
      */
     void degrees_of_freedom(Real dof)
     {

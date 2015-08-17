@@ -78,7 +78,7 @@ public:
 
 public:
     /**
-     * Creates a dynamic or fixed size t-distribution.
+     * \brief Creates a dynamic or fixed size t-distribution.
      *
      * \param degrees_of_freedom
      *                  t-distribution degree-of-freedom
@@ -106,7 +106,7 @@ public:
     virtual ~TDistribution() { }
 
     /**
-     * \return a t-distribution sample of the type \c Variate determined by
+     * \brief Returns a t-distribution sample of the type \c Variate determined by
      * mapping a standard normal sample into the t-distribution sample space
      *
      * \param sample    Standard normal sample
@@ -126,7 +126,7 @@ public:
     }
 
     /**
-     * \return Log of the probability of the given sample \c variate
+     * \brief Returns the log. probability of the given sample \c variate
      *
      * Evaluates the t-distribution pdf
      *
@@ -153,7 +153,7 @@ public:
     }
 
     /**
-     * \return Gaussian dimension
+     * \brief Returns the Gaussian variate dimension
      */
     virtual constexpr int dimension() const
     {
@@ -161,7 +161,7 @@ public:
     }
 
     /**
-     * \return t-distribution location
+     * \brief Returns a const reference to the t-distribution location (mean)
      */
     const Variate& mean() const override
     {
@@ -169,7 +169,8 @@ public:
     }
 
     /**
-     * \return t-distribution scaling matrix
+     * \brief Returns a const reference to t-distribution scaling matrix
+     * (covariance matrix)
      *
      * \throws See Gaussian<Variate>::covariance()
      */
@@ -179,7 +180,7 @@ public:
     }
 
     /**
-     * \return t-distribution location
+     * \brief Returns the const reference to t-distribution location (mean)
      */
     virtual const Variate& location() const
     {
@@ -187,7 +188,7 @@ public:
     }
 
     /**
-     * \return t-distribution degree-of-freedom
+     * \brief Returns the t-distribution degree-of-freedom
      */
     virtual Real degrees_of_freedom() const
     {
@@ -195,8 +196,8 @@ public:
     }
 
     /**
-     * Changes the dimension of the dynamic-size t-distribution and sets it to a
-     * standard distribution with zero mean and identity covariance.
+     * \brief Changes the dimension of the dynamic-size t-distribution and sets
+     * it to a standard distribution with zero mean and identity covariance.
      *
      * \param new_dimension New dimension of the t-distribution
      *
@@ -211,7 +212,7 @@ public:
     }
 
     /**
-     * Sets the distribution location
+     * \brief Sets the distribution location
      *
      * \param location New t-distribution mean
      *
@@ -224,7 +225,8 @@ public:
     }
 
     /**
-     * Sets the covariance matrix
+     * \brief Sets the covariance matrix
+     *
      * \param covariance New covariance matrix
      *
      * \throws WrongSizeException
@@ -237,7 +239,7 @@ public:
     }
 
     /**
-     * Sets t-distribution degree-of-freedom
+     * \brief  Sets t-distribution degree-of-freedom
      */
     virtual void degrees_of_freedom(Real dof)
     {
@@ -247,8 +249,19 @@ public:
 
 protected:
     /** \cond internal */
+
+    /**
+     * \brief \f$\chi^2\f$ distribution used to generate samples of the
+     * t-distribution
+     */
     ChiSquared chi2_;
+
+    /**
+     * \brief \f${\cal N}(\boldmath{0}, \Sigma)\f$ Gaussian distribution used
+     * to generate samples of the t-distribution
+     */
     Gaussian<Variate> normal_;
+
     /** \endcond */
 
 

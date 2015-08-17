@@ -48,8 +48,8 @@ public:
     virtual ~UnnormalizedEvaluation() { }
 
     /**
-     * Determines the normalized or unnormalized probability for the specified
-     * variate.
+     * \brief Determines the normalized or unnormalized probability for the
+     *        specified variate.
      *
      * \param variate  The sample \f$x\f$ to evaluate
      *
@@ -61,7 +61,8 @@ public:
     }
 
     /**
-     * The log of the unnormalized probability of the specified variate
+     * \brief Returns log of the unnormalized probability of the specified
+     *        variate
      *
      * \param variate  The sample \f$x\f$ to evaluate
      *
