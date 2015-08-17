@@ -200,8 +200,9 @@ template <int Dimension> struct ToDimension
  */
 template <int A, int B> struct MaxOf
 {
+    enum : signed int { Value = (A > B) ? A : B };
     static constexpr int value = (A > B) ? A : B;
-    constexpr operator int () { return value; }
+    constexpr operator int () { return Value; }
 };
 
 /**
@@ -211,8 +212,9 @@ template <int A, int B> struct MaxOf
  */
 template <int A, int B> struct MinOf
 {
+    enum : signed int { Value = (A < B) ? A : B };
     static constexpr int value = (A < B) ? A : B;
-    constexpr operator int () { return value; }
+    constexpr operator int () { return Value; }
 };
 
 /**
@@ -268,6 +270,18 @@ struct FirstMomentOf<Real>
 {
     typedef Real Type;
 };
+
+
+/**
+ * \ingroup traits
+ * Defines a Real variate of the specified size
+ */
+template <int Size>
+struct VariateOfSize
+{
+    typedef Eigen::Matrix<Real, Size, 1> Type;
+};
+
 
 /**
  * \ingroup traits
