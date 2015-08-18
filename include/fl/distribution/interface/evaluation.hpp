@@ -56,7 +56,7 @@ public:
     virtual ~Evaluation() { }
 
     /**
-     * Determines the probability for the specified variate.
+     * \brief Determines the probability for the specified variate.
      *
      * \param variate Sample \f$x\f$ to evaluate
      *
@@ -68,7 +68,7 @@ public:
     }
 
     /**
-     * Determines the probability log for the specified variate.
+     * \brief Determines the probability log for the specified variate.
      *
      * \param variate Sample \f$x\f$ to evaluate
      *
@@ -76,10 +76,7 @@ public:
      */
     virtual Real log_probability(const Variate& variate) const = 0;
 
-    /**
-     * \copydoc UnnormalizedEvaluation::log_unnormalized_probability
-     */
-    virtual Real log_unnormalized_probability(const Variate& variate) const
+    Real log_unnormalized_probability(const Variate& variate) const override
     {
         return log_probability(variate);
     }

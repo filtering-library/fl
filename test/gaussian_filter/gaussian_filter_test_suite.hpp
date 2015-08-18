@@ -143,10 +143,10 @@ TYPED_TEST_P(GaussianFilterTest, init_predict)
     auto filter = This::create_filter();
     auto belief = filter.create_belief();
 
-//    std::cout << "filter.name():\n\n"
-//              << filter.name() << std::endl;
-//    std::cout << "\nfilter.description():\n\n"
-//              << filter.description() << std::endl;
+    std::cout << "filter.name():\n\n"
+              << filter.name() << std::endl<< std::endl;
+    std::cout << "\nfilter.description():\n\n"
+              << filter.description() << std::endl<< std::endl;
 
     EXPECT_TRUE(belief.mean().isZero());
     EXPECT_TRUE(belief.covariance().isIdentity());

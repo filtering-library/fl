@@ -66,14 +66,14 @@ public:
     virtual ~ApproximateMoments() { }
 
     /**
-     * \return First moment approximation, the mean
+     * \brief Returns the first moment approximation, the mean
      *
      * \f$ \mu_{approx} \approx \sum\limits_i x_i p(x_i)\f$
      */
     virtual const Variate& approximate_mean() const = 0;
 
     /**
-     * \return Second centeral moment, the covariance
+     * \brief Returns the second centeral moment, the covariance
      *
      * \f$ \Sigma_{approx} \approx
      *     \sum\limits_i (x_i - \mu)(x_i - \mu)^T \f$

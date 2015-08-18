@@ -78,14 +78,14 @@ public:
     virtual ~Moments() { }
 
     /**
-     * \return First moment of the underlying distribution, the mean
+     * \brief Returns the first moment of the underlying distribution, the mean
      *
      * \f$ \mu = \sum\limits_i x_i p(x_i)\f$
      */
     virtual const Variate& mean() const = 0;
 
     /**
-     * \return Second centered moment of the underlying distribution,
+     * \brief Returns the second centered moment of the underlying distribution,
      *         the covariance
      *
      * \f$ \Sigma =
@@ -93,18 +93,12 @@ public:
      */
     virtual const SecondMoment& covariance() const = 0;
 
-    /**
-     * \copydoc ApproximateMoments::approximate_mean
-     */
-    virtual const Variate& approximate_mean() const
+    const Variate& approximate_mean() const override
     {
         return mean();
     }
 
-    /**
-     * \copydoc ApproximateMoments::approximate_covariance
-     */
-    virtual const SecondMoment& approximate_covariance() const
+    const SecondMoment& approximate_covariance() const override
     {
         return covariance();
     }

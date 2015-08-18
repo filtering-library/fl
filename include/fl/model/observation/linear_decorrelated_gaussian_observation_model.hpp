@@ -39,6 +39,7 @@ template <typename Obsrv, typename State>
 class LinearDecorrelatedGaussianObservationModel
     : public AdditiveUncorrelatedNoiseModel<DecorrelatedGaussian<Obsrv>>,
       public AdditiveObservationFunction<Obsrv, State, Gaussian<Obsrv>>,
+      public ObservationDensity<Obsrv, State>,
       public Descriptor,
       private internal::LinearModelType
 {
@@ -103,7 +104,7 @@ public:
         return sensor_matrix_ * state;
     }
 
-    Real log_probability(const Obsrv& obsrv, const State& state) const
+    Real log_probability(const Obsrv& obsrv, const State& state) const override
     {
         density_.mean(expected_observation(state));
 

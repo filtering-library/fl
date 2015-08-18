@@ -45,7 +45,7 @@ public:
      */
     ScalarMatrix()
     {
-        (*this)(0) = Real(0);
+        this->data()[0] = Real(0);
     }
 
     /**
@@ -55,7 +55,7 @@ public:
      */
     ScalarMatrix(Real value)
     {
-        (*this)(0) = value;
+        this->data()[0] = value;
     }
 
     /**
@@ -63,7 +63,7 @@ public:
      */
     ScalarMatrix(const ScalarMatrix& other)
     {
-        (*this)(0) = other(0);
+        this->data()[0] = other.data()[0];
     }
 
     /**
@@ -72,7 +72,7 @@ public:
     template <typename OtherDerived>
     ScalarMatrix(const Eigen::MatrixBase<OtherDerived> &other)
     {
-        (*this)(0) = other(0);
+        this->data()[0] = other(0);
     }
 
     /**
@@ -81,7 +81,7 @@ public:
      */
     operator Real() const
     {
-        return Real((*this)(0));
+        return Real(this->data()[0]);
     }
 
     /**
@@ -89,7 +89,7 @@ public:
      */
     void operator+=(Real value)
     {
-        (*this)(0) += value;
+        this->data()[0] += value;
     }
 
     /**
@@ -97,7 +97,7 @@ public:
      */
     void operator-=(Real value)
     {
-        (*this)(0) -= value;
+        this->data()[0] -= value;
     }
 
     /**
@@ -106,7 +106,7 @@ public:
      */
     void operator*=(Real value)
     {
-        (*this)(0) *= value;
+        this->data()[0] *= value;
     }
 
     /**
@@ -115,7 +115,7 @@ public:
      */
     void operator/=(Real value)
     {
-        (*this)(0) /= value;
+        this->data()[0] /= value;
     }
 
     /**
@@ -123,8 +123,7 @@ public:
      */
     ScalarMatrix& operator++()
     {
-        ++(*this)(0);
-        return *this;
+        return (++this->data()[0], *this);
     }
 
     /**
@@ -132,8 +131,7 @@ public:
      */
     ScalarMatrix operator++(int)
     {
-        ScalarMatrix r = *this;
-        ++(*this);
+        auto r = ScalarMatrix(this->data()[0]++); // RVO
         return r;
     }
 
@@ -142,8 +140,7 @@ public:
      */
     ScalarMatrix& operator--()
     {
-        --(*this)(0);
-        return *this;
+        return (--this->data()[0], *this);
     }
 
     /**
@@ -151,8 +148,7 @@ public:
      */
     ScalarMatrix operator--(int)
     {
-        ScalarMatrix r = *this;
-        --(*this);
+        auto r = ScalarMatrix(this->data()[0]--); // RVO
         return r;
     }
 };

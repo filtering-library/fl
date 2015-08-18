@@ -21,6 +21,7 @@ function(add_gaussian_filter_test
     fl_add_test(
         NAME    ${TEST_FILE}_${TEST_FILE_SUFFIX}
         SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/${TEST_FILE}.hpp
+                ${CMAKE_CURRENT_SOURCE_DIR}/gaussian_filter_linear_vs_x_test_suite.hpp
                 ${CMAKE_CURRENT_BINARY_DIR}/${TEST_FILE}_${TEST_FILE_SUFFIX}.cpp)
 endfunction()
 

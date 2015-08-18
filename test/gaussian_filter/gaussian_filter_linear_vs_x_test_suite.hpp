@@ -187,21 +187,6 @@ protected:
         other_filter.process_model().noise_matrix(Q);
         other_filter.obsrv_model().sensor_matrix(H);
         other_filter.obsrv_model().noise_matrix(R);
-
-//        PV(kalman_filter.process_model().dynamics_matrix());
-//        PV(other_filter.process_model().dynamics_matrix());
-
-//        PV(kalman_filter.process_model().input_matrix());
-//        PV(other_filter.process_model().input_matrix());
-
-//        PV(kalman_filter.process_model().noise_matrix());
-//        PV(other_filter.process_model().noise_matrix());
-
-//        PV(kalman_filter.obsrv_model().sensor_matrix());
-//        PV(other_filter.obsrv_model().sensor_matrix());
-
-//        PV(kalman_filter.obsrv_model().noise_matrix());
-//        PV(other_filter.obsrv_model().noise_matrix());
     }
 
     State zero_state() { return State::Zero(StateDim); }
@@ -274,8 +259,6 @@ TYPED_TEST_P(GaussianFilterLinearVsXTest, predict_and_update)
 
     auto belief_other = other_filter.create_belief();
     auto belief_kf = kalman_filter.create_belief();
-
-    std::cout << other_filter.name() << std::endl;
 
     for (int i = 0; i < This::predict_update_steps_; ++i)
     {
