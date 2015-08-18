@@ -22,7 +22,7 @@
 #include <gtest/gtest.h>
 
 #include <Eigen/Core>
-#include <fl/util/math/multi_block_vector.hpp>
+#include <fl/util/math/composed_vector.hpp>
 #include <fl/util/math/pose_vector.hpp>
 
 
