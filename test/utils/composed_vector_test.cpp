@@ -28,21 +28,6 @@
 
 using namespace fl;
 
-typedef EulerVector::RotationMatrix RotationMatrix;
-typedef EulerVector::AngleAxis AngleAxis;
-typedef EulerVector::Quaternion Quaternion;
-typedef Eigen::Matrix<Real, 4, 4> HomogeneousMatrix;
-typedef Eigen::Matrix<Real, 6, 1> Vector6d;
-typedef Eigen::Matrix<Real, 3, 1> Vector3d;
-typedef Eigen::Matrix<Real, 4, 1> Vector4d;
-typedef PoseVector::Affine Affine;
-
-
-
-
-Real epsilon = 0.000000001;
-
-
 
 TEST(composed_vector, count_dynamic_size)
 {
@@ -155,7 +140,7 @@ TEST(composed_vector, accessors_dynamic_size)
     pose1.position()      = vector.component(1).position();
     pose2.position()      = vector.component(2).position();
     pose2.euler_vector().quaternion(
-                                vector.component(2).euler_vector().quaternion());
+                               vector.component(2).euler_vector().quaternion());
 
     EXPECT_TRUE(vector.component(0).isApprox(pose0));
     EXPECT_TRUE(vector.component(1).isApprox(pose1));
@@ -177,7 +162,7 @@ TEST(composed_vector, accessors_fixed_size)
     pose1.position()      = vector.component(1).position();
     pose2.position()      = vector.component(2).position();
     pose2.euler_vector().quaternion(
-                                vector.component(2).euler_vector().quaternion());
+                               vector.component(2).euler_vector().quaternion());
 
     EXPECT_TRUE(vector.component(0).isApprox(pose0));
     EXPECT_TRUE(vector.component(1).isApprox(pose1));
