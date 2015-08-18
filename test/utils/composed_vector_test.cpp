@@ -44,47 +44,145 @@ Real epsilon = 0.000000001;
 
 
 
-
-TEST(multi_block_vector, equality)
+TEST(composed_vector, count_dynamic_size)
 {
+    typedef  Eigen::VectorXd Vector;
+    typedef Eigen::VectorBlock<Vector, 4> Block;
 
-    ComposedVector<PoseBlock<Eigen::VectorXd>, Eigen::VectorXd> vector;
+    ComposedVector<Block, Vector> vector;
 
-    vector.recount(3);
+    vector.resize(12);
+    EXPECT_TRUE(vector.count() == 3);
 
-    vector.setZero();
+    vector.resize(15);
+    EXPECT_TRUE(vector.count() == 3);
 
-
-
-
-    PoseVector pose1 = PoseVector::Random();
-
-    vector.component(1).euler_vector() = pose1.euler_vector();
-
-
-
-    std::cout << "count " << vector.count() << std::endl;
-    std::cout << "vector " << vector.transpose() << std::endl;
-
-
-
-
-//    PoseBlock<Eigen::VectorXd>::Derived shiznit;
-
-//    MultiBlockVector<PoseBlock<Eigen::VectorXd>> shizzle;
-
-//    EXPECT_TRUE(multi_block_vector.isApprox(vector));
+    vector.resize(16);
+    EXPECT_TRUE(vector.count() == 4);
 }
 
 
-//TEST(multi_block_vector, equality)
-//{
-//    Vector6d vector = Vector6d::Random();
-//    PoseVector multi_block_vector = vector;
+TEST(composed_vector, count_fixed_size)
+{
+    typedef  Eigen::Matrix<Real, 16, 1> Vector;
+    typedef Eigen::VectorBlock<Vector, 4> Block;
 
-//    EXPECT_TRUE(multi_block_vector.isApprox(vector));
-//}
+    ComposedVector<Block, Vector> vector;
 
+    EXPECT_TRUE(vector.count() == 4);
+}
+
+
+TEST(composed_vector, recount_dynamic_size)
+{
+    typedef  Eigen::VectorXd Vector;
+    typedef Eigen::VectorBlock<Vector, 4> Block;
+
+    ComposedVector<Block, Vector> vector;
+
+    vector.recount(3);
+    EXPECT_TRUE(vector.size() == 12);
+
+    vector.recount(15);
+    EXPECT_TRUE(vector.size() == 60);
+}
+
+
+
+
+TEST(composed_vector, mutators_dynamic_size)
+{  
+    typedef  Eigen::VectorXd Vector;
+    typedef PoseBlock<Vector> Block;
+
+    ComposedVector<Block, Vector> vector;
+    vector.recount(3);
+
+    PoseVector pose0 = PoseVector::Random();
+    PoseVector pose1 = PoseVector::Random();
+    PoseVector pose2 = PoseVector::Random();
+
+    vector.component(0) = pose0;
+    vector.component(1).euler_vector() = pose1.euler_vector();
+    vector.component(1).position() = pose1.position();
+    vector.component(2).euler_vector().quaternion(
+                                pose2.euler_vector().quaternion());
+    vector.component(2).position() = pose2.position();
+
+    EXPECT_TRUE(pose0.isApprox(vector.component(0)));
+    EXPECT_TRUE(pose1.isApprox(vector.component(1)));
+    EXPECT_TRUE(pose2.isApprox(vector.component(2)));
+}
+
+
+
+TEST(composed_vector, mutators_fixed_size)
+{
+    typedef  Eigen::Matrix<Real, 3*PoseVector::SizeAtCompileTime, 1> Vector;
+    typedef PoseBlock<Vector> Block;
+
+    ComposedVector<Block, Vector> vector;
+
+    PoseVector pose0 = PoseVector::Random();
+    PoseVector pose1 = PoseVector::Random();
+    PoseVector pose2 = PoseVector::Random();
+
+    vector.component(0) = pose0;
+    vector.component(1).euler_vector() = pose1.euler_vector();
+    vector.component(1).position() = pose1.position();
+    vector.component(2).euler_vector().quaternion(
+                                pose2.euler_vector().quaternion());
+    vector.component(2).position() = pose2.position();
+
+    EXPECT_TRUE(pose0.isApprox(vector.component(0)));
+    EXPECT_TRUE(pose1.isApprox(vector.component(1)));
+    EXPECT_TRUE(pose2.isApprox(vector.component(2)));
+}
+
+
+TEST(composed_vector, accessors_dynamic_size)
+{
+    typedef  Eigen::VectorXd Vector;
+    typedef PoseBlock<Vector> Block;
+
+    ComposedVector<Block, Vector> vector;
+    vector.recount(3);
+    vector = ComposedVector<Block, Vector>::Random(vector.size());
+
+    PoseVector pose0, pose1, pose2;
+    pose0                 = vector.component(0);
+    pose1.euler_vector()  = vector.component(1).euler_vector();
+    pose1.position()      = vector.component(1).position();
+    pose2.position()      = vector.component(2).position();
+    pose2.euler_vector().quaternion(
+                                vector.component(2).euler_vector().quaternion());
+
+    EXPECT_TRUE(vector.component(0).isApprox(pose0));
+    EXPECT_TRUE(vector.component(1).isApprox(pose1));
+    EXPECT_TRUE(vector.component(2).isApprox(pose2));
+}
+
+
+TEST(composed_vector, accessors_fixed_size)
+{
+    typedef  Eigen::Matrix<Real, 3*PoseVector::SizeAtCompileTime, 1> Vector;
+    typedef PoseBlock<Vector> Block;
+
+    ComposedVector<Block, Vector> vector
+                        = ComposedVector<Block, Vector>::Random();
+
+    PoseVector pose0, pose1, pose2;
+    pose0                 = vector.component(0);
+    pose1.euler_vector()  = vector.component(1).euler_vector();
+    pose1.position()      = vector.component(1).position();
+    pose2.position()      = vector.component(2).position();
+    pose2.euler_vector().quaternion(
+                                vector.component(2).euler_vector().quaternion());
+
+    EXPECT_TRUE(vector.component(0).isApprox(pose0));
+    EXPECT_TRUE(vector.component(1).isApprox(pose1));
+    EXPECT_TRUE(vector.component(2).isApprox(pose2));
+}
 
 
 
