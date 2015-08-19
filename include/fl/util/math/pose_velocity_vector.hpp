@@ -67,21 +67,22 @@ public:
     {
         return this->template middleRows<POSE_SIZE>(POSE_INDEX);
     }
-    virtual PoseVector::Vector position() const
+    virtual PoseVector::HomogeneousMatrix homogeneous() const
     {
-        return pose().position();
-    }
-    virtual EulerVector euler_vector() const
-    {
-        return pose().euler_vector();
-    }
-    virtual PoseVector::HomogeneousMatrix homogeneous_matrix() const
-    {
-        return pose().homogeneous_matrix();
+        return pose().homogeneous();
     }
     virtual PoseVector::Affine affine() const
     {
         return pose().affine();
+    }
+
+    virtual PoseVector::Vector position() const
+    {
+        return pose().position();
+    }
+    virtual EulerVector orientation() const
+    {
+        return pose().orientation();
     }
     virtual VelocityVector linear_velocity() const
     {
@@ -97,22 +98,23 @@ public:
     {
         return PoseBlock<Base>(*this, POSE_INDEX);
     }
-    typename PoseBlock<Base>::PositionBlock position()
-    {
-      return pose().position();
-    }
-    typename PoseBlock<Base>::OrientationBlock euler_vector()
-    {
-      return pose().euler_vector();
-    }
-    virtual void homogeneous_matrix(
+    virtual void homogeneous(
                     const typename PoseBlock<Base>::HomogeneousMatrix& H)
     {
-        pose().homogeneous_matrix(H);
+        pose().homogeneous(H);
     }
     virtual void affine(const typename PoseBlock<Base>::Affine& A)
     {
         pose().affine(A);
+    }
+
+    typename PoseBlock<Base>::PositionBlock position()
+    {
+      return pose().position();
+    }
+    typename PoseBlock<Base>::OrientationBlock orientation()
+    {
+      return pose().orientation();
     }
     VelocityBlock linear_velocity()
     {

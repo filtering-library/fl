@@ -88,10 +88,10 @@ TEST(composed_vector, mutators_dynamic_size)
     PoseVector pose2 = PoseVector::Random();
 
     vector.component(0) = pose0;
-    vector.component(1).euler_vector() = pose1.euler_vector();
+    vector.component(1).orientation() = pose1.orientation();
     vector.component(1).position() = pose1.position();
-    vector.component(2).euler_vector().quaternion(
-                                pose2.euler_vector().quaternion());
+    vector.component(2).orientation().quaternion(
+                                pose2.orientation().quaternion());
     vector.component(2).position() = pose2.position();
 
     EXPECT_TRUE(pose0.isApprox(vector.component(0)));
@@ -113,10 +113,10 @@ TEST(composed_vector, mutators_fixed_size)
     PoseVector pose2 = PoseVector::Random();
 
     vector.component(0) = pose0;
-    vector.component(1).euler_vector() = pose1.euler_vector();
+    vector.component(1).orientation() = pose1.orientation();
     vector.component(1).position() = pose1.position();
-    vector.component(2).euler_vector().quaternion(
-                                pose2.euler_vector().quaternion());
+    vector.component(2).orientation().quaternion(
+                                pose2.orientation().quaternion());
     vector.component(2).position() = pose2.position();
 
     EXPECT_TRUE(pose0.isApprox(vector.component(0)));
@@ -136,11 +136,11 @@ TEST(composed_vector, accessors_dynamic_size)
 
     PoseVector pose0, pose1, pose2;
     pose0                 = vector.component(0);
-    pose1.euler_vector()  = vector.component(1).euler_vector();
+    pose1.orientation()  = vector.component(1).orientation();
     pose1.position()      = vector.component(1).position();
     pose2.position()      = vector.component(2).position();
-    pose2.euler_vector().quaternion(
-                               vector.component(2).euler_vector().quaternion());
+    pose2.orientation().quaternion(
+                               vector.component(2).orientation().quaternion());
 
     EXPECT_TRUE(vector.component(0).isApprox(pose0));
     EXPECT_TRUE(vector.component(1).isApprox(pose1));
@@ -158,11 +158,11 @@ TEST(composed_vector, accessors_fixed_size)
 
     PoseVector pose0, pose1, pose2;
     pose0                 = vector.component(0);
-    pose1.euler_vector()  = vector.component(1).euler_vector();
+    pose1.orientation()  = vector.component(1).orientation();
     pose1.position()      = vector.component(1).position();
     pose2.position()      = vector.component(2).position();
-    pose2.euler_vector().quaternion(
-                               vector.component(2).euler_vector().quaternion());
+    pose2.orientation().quaternion(
+                               vector.component(2).orientation().quaternion());
 
     EXPECT_TRUE(vector.component(0).isApprox(pose0));
     EXPECT_TRUE(vector.component(1).isApprox(pose1));

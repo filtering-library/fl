@@ -53,7 +53,7 @@ TEST(pose_velocity_vector, setting_pose_properties)
     PoseVector pose = PoseVector::Random();
 
     vector.pose().position() = pose.position();
-    vector.pose().euler_vector() = pose.euler_vector();
+    vector.pose().orientation() = pose.orientation();
 
     EXPECT_TRUE(vector.pose().isApprox(pose));
 }
