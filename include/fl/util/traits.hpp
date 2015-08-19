@@ -45,7 +45,7 @@ namespace fl
 #define from_traits(TypeName) typename Traits<This>::TypeName TypeName
 
 #if defined(__GXX_EXPERIMENTAL_CXX0X__)
-#define override
+    #define override
 #endif
 
 /**
