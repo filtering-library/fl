@@ -49,11 +49,11 @@ public:
     }
 
     // accessors ***************************************************************
-    const Block& component(int index) const
+    const Block component(int index) const
     {
         return Block(*this, index * Block::SizeAtCompileTime);
     }
-    int count()
+    int count() const
     {
         return this->size() / Block::SizeAtCompileTime;
     }

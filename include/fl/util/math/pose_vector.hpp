@@ -68,14 +68,14 @@ public:
     {
         return this->template middleRows<BLOCK_SIZE>(POSITION_INDEX);
     }
-    virtual EulerVector euler_vector() const
+    virtual EulerVector orientation() const
     {
         return this->template middleRows<BLOCK_SIZE>(EULER_VECTOR_INDEX);
     }
-    virtual HomogeneousMatrix homogeneous_matrix() const
+    virtual HomogeneousMatrix homogeneous() const
     {
         HomogeneousMatrix H(HomogeneousMatrix::Identity());
-        H.topLeftCorner(3, 3) = euler_vector().rotation_matrix();
+        H.topLeftCorner(3, 3) = orientation().rotation_matrix();
         H.topRightCorner(3, 1) = position();
 
         return H;
@@ -83,7 +83,7 @@ public:
     virtual Affine affine() const
     {
         Affine A;
-        A.linear() = euler_vector().rotation_matrix();
+        A.linear() = orientation().rotation_matrix();
         A.translation() = position();
 
         return A;
@@ -94,18 +94,18 @@ public:
     {
       return PositionBlock(*this, POSITION_INDEX);
     }
-    OrientationBlock euler_vector()
+    OrientationBlock orientation()
     {
       return OrientationBlock(*this, EULER_VECTOR_INDEX);
     }
-    virtual void homogeneous_matrix(const HomogeneousMatrix& H)
+    virtual void homogeneous(const HomogeneousMatrix& H)
     {
-        euler_vector().rotation_matrix(H.topLeftCorner(3, 3));
+        orientation().rotation_matrix(H.topLeftCorner(3, 3));
         position() = H.topRightCorner(3, 1);
     }
     virtual void affine(const Affine& A)
     {
-       euler_vector().rotation_matrix(A.rotation());
+       orientation().rotation_matrix(A.rotation());
        position() = A.translation();
     }
 };
@@ -129,8 +129,8 @@ public:
     PoseVector operator * (const PoseVector& factor)
     {
         PoseVector product;
-        product.homogeneous_matrix(
-                    this->homogeneous_matrix() * factor.homogeneous_matrix());
+        product.homogeneous(
+                    this->homogeneous() * factor.homogeneous());
         return product;
     }
 
@@ -138,7 +138,7 @@ public:
     virtual PoseVector inverse() const
     {
         PoseVector inv;
-        inv.homogeneous_matrix(this->homogeneous_matrix().inverse());
+        inv.homogeneous(this->homogeneous().inverse());
         return inv;
     }
 };

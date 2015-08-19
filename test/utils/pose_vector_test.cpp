@@ -66,9 +66,9 @@ TEST(pose_vector, euler_vector)
 {
     Vector3d vector = Vector3d::Random();
     PoseVector pose_vector;
-    pose_vector.euler_vector() = vector;
+    pose_vector.orientation() = vector;
 
-    EXPECT_TRUE(pose_vector.euler_vector().isApprox(vector));
+    EXPECT_TRUE(pose_vector.orientation().isApprox(vector));
 }
 
 
@@ -77,9 +77,9 @@ TEST(pose_vector, quaternion)
     EulerVector euler = EulerVector::Random();
     PoseVector pose_vector;
 
-    pose_vector.euler_vector().quaternion(euler.quaternion());
+    pose_vector.orientation().quaternion(euler.quaternion());
 
-    EXPECT_TRUE(pose_vector.euler_vector().isApprox(euler));
+    EXPECT_TRUE(pose_vector.orientation().isApprox(euler));
 }
 
 
@@ -90,10 +90,10 @@ TEST(pose_vector, get_homogeneous)
     Vector3d va = Vector3d::Random();
     Vector4d vb; vb.topRows(3) = va; vb(3) = 1;
 
-    va = pose_vector.euler_vector().rotation_matrix() * va
+    va = pose_vector.orientation().rotation_matrix() * va
             + pose_vector.position();
 
-    vb = pose_vector.homogeneous_matrix() * vb;
+    vb = pose_vector.homogeneous() * vb;
 
     EXPECT_TRUE(va.isApprox(vb.topRows(3)));
 }
@@ -103,7 +103,7 @@ TEST(pose_vector, set_homogeneous)
 {
     PoseVector pose_vector1 = PoseVector::Random();
     PoseVector pose_vector2;
-    pose_vector2.homogeneous_matrix(pose_vector1.homogeneous_matrix());
+    pose_vector2.homogeneous(pose_vector1.homogeneous());
 
 
     EXPECT_TRUE(pose_vector1.isApprox(pose_vector2));
@@ -119,7 +119,7 @@ TEST(pose_vector, get_affine)
     pose_vector.position() = Vector3d::Zero();
 
 
-    va = pose_vector.euler_vector().rotation_matrix() * va
+    va = pose_vector.orientation().rotation_matrix() * va
             + pose_vector.position();
     vb = pose_vector.affine() * vb;
 
@@ -145,11 +145,11 @@ TEST(pose_vector, product)
     PoseVector v2 = PoseVector::Random();
 
     PoseVector correct_result;
-    correct_result.euler_vector().rotation_matrix(
-                                    v2.euler_vector().rotation_matrix() *
-                                    v1.euler_vector().rotation_matrix()   );
+    correct_result.orientation().rotation_matrix(
+                                    v2.orientation().rotation_matrix() *
+                                    v1.orientation().rotation_matrix()   );
     correct_result.position() =
-            v2.euler_vector().rotation_matrix() * v1.position()
+            v2.orientation().rotation_matrix() * v1.position()
             + v2.position();
 
     PoseVector operator_result = v2 * v1;
