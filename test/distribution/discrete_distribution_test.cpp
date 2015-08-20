@@ -182,3 +182,39 @@ TEST(discrete_distribution, sampling)
         EXPECT_TRUE(fabs(pmf[i] - empirical_pmf[i]) < 0.01);
     }
 }
+
+TEST(discrete_distribution, sampling_index)
+{
+//    typedef Eigen::Matrix<int, 1, 1> Variate;
+    typedef fl::DiscreteDistribution<fl::ScalarMatrix> DiscreteDistribution;
+    typedef DiscreteDistribution::Function Function;
+
+    int N_locations = 10;
+    int N_samples   = 1000000;
+
+    // random prob mass fct
+    Function pmf = Function::Random(N_locations).abs() + 0.01;
+    pmf /= pmf.sum();
+
+    // create discrete distr
+    DiscreteDistribution discrete_distribution;
+    discrete_distribution.log_unnormalized_prob_mass(pmf.log());
+
+    for(int i = 0; i < N_locations; i++)
+        discrete_distribution.location(i) = i;
+
+
+    for(int i = 0; i < N_samples; i++)
+    {
+        int index;
+        int sample = discrete_distribution.sample(index);
+
+        EXPECT_TRUE(index == sample);
+    }
+}
+
+
+
+
+
+
