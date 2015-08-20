@@ -30,6 +30,7 @@
 #include <fl/filter/gaussian/sigma_point_additive_update_policy.hpp>
 #include <fl/filter/gaussian/sigma_point_prediction_policy.hpp>
 #include <fl/filter/gaussian/sigma_point_update_policy.hpp>
+#include <fl/model/observation/robust_feature_obsrv_model.hpp>
 
 namespace fl
 {
@@ -87,8 +88,13 @@ public:
     typedef typename ObservationFunction::Obsrv Obsrv;
     typedef Gaussian<State> Belief;
 
+    /**
+     * \brief Robust feature observation model type used internally.
+     */
+    typedef RobustFeatureObsrvModel<ObservationFunction> FeatureObsrvModel;
+
     typedef GaussianFilter<
-                StateTransitionFunction, ObservationFunction, Policies...
+                StateTransitionFunction, FeatureObsrvModel, Policies...
             > BaseGaussianFilter;
 
 public:
@@ -101,7 +107,7 @@ public:
                          SpecializationArgs&& ... args)
         : gaussian_filter_(
               process_model,
-              obsrv_model,
+              FeatureObsrvModel(obsrv_model),
               std::forward<SpecializationArgs>(args)...)
     { }
 
@@ -127,15 +133,35 @@ public:
                         const Obsrv& obsrv,
                         Belief& posterior_belief)
     {
-        gaussian_filter_.update(predicted_belief, obsrv, posterior_belief);
+        typedef FeatureObsrvModel::Noise Noise;
+
+        Gaussian<Obsrv> body_distr(obsrv_model().obsrv_dimension());
+        Gaussian<Noise> noise_distr(obsrv_model().noise_dimension());
+
+        auto&& h = [=](const State& x, const Noise& w)
+        {
+           return obsrv_model().observation(x, w);
+        };
+
+        gaussian_filter_
+            .quadrature()
+            .integrate_to_gaussian(h, predicted_belief, noise_distr, body_distr);
+
+        gaussian_filter_
+            .obsrv_model()
+            .parameters(body_distr, predicted_belief.mean());
+
+        gaussian_filter_
+            .update(predicted_belief,
+                    gaussian_filter_.obsrv_model().feature_obsrv(obsrv),
+                    posterior_belief);
     }
 
 public: /* factory functions */
     virtual Belief create_belief() const
     {
-        // note: do not simplify!
         auto belief = gaussian_filter_.create_belief();
-        return belief;
+        return belief; // RVO
     }
 
 public: /* accessors & mutators */
@@ -146,6 +172,11 @@ public: /* accessors & mutators */
 
     ObservationFunction& obsrv_model()
     {
+        return gaussian_filter_.obsrv_model().embedded_obsrv_model();
+    }
+
+    FeatureObsrvModel& robust_feature_obsrv_model()
+    {
         return gaussian_filter_.obsrv_model();
     }
 
@@ -155,6 +186,11 @@ public: /* accessors & mutators */
     }
 
     const ObservationFunction& obsrv_model() const
+    {
+        return gaussian_filter_.obsrv_model().embedded_obsrv_model();
+    }
+
+    const FeatureObsrvModel& robust_feature_obsrv_model() const
     {
         return gaussian_filter_.obsrv_model();
     }

@@ -86,9 +86,9 @@ public:
     }
 
     BodyTailModel create_body_tail_model(const BodyModel& body_model,
-                                         const TailModel& tail_model)
+                                         const TailModel& tail_model,
+                                         fl::Real threshold = 0.5)
     {
-        auto threshold = fl::Real(0.5);
         auto model = BodyTailModel(body_model, tail_model, threshold);
 
         return model;
@@ -120,10 +120,13 @@ public:
         auto x = State::Random(StateDim).eval();
         auto n = Noise::Random(NoiseDim).eval();
 
-        n(body_tail_model.noise_dimension() - 1) = fl::uniform_to_normal(threshold);
+        n(body_tail_model.noise_dimension() - 1)
+            = fl::uniform_to_normal(threshold);
 
-        auto body_y = body_model.observation(x, n.topRows(body_model.noise_dimension()));
-        auto tail_y = tail_model.observation(x, n.topRows(tail_model.noise_dimension()));
+        auto body_y = body_model.observation(
+            x, n.topRows(body_model.noise_dimension()));
+        auto tail_y = tail_model.observation(
+            x, n.topRows(tail_model.noise_dimension()));
         auto body_tail_y = body_tail_model.observation(x, n);
 
         if (threshold > 0.5)
@@ -159,7 +162,8 @@ public:
         auto tail_prob = tail_model.probability(y, x);
         auto body_tail_log_prob = body_tail_model.log_probability(y, x);
 
-        ASSERT_DOUBLE_EQ(std::log((body_prob + tail_prob)/2.), body_tail_log_prob);
+        ASSERT_DOUBLE_EQ(std::log((body_prob + tail_prob)/2.),
+                         body_tail_log_prob);
     }
 
 protected:
@@ -228,4 +232,32 @@ TYPED_TEST(BodyTailObservationModelTest, log_probability)
     {
         TestFixture::log_probability();
     }
+}
+
+TYPED_TEST(BodyTailObservationModelTest, wrong_threshlold_exception)
+{
+    EXPECT_THROW(TestFixture::create_body_tail_model(
+                     TestFixture::create_body_model(),
+                     TestFixture::create_tail_model(),
+                     fl::Real(-0.1)),
+                 fl::Exception);
+
+    EXPECT_THROW(TestFixture::create_body_tail_model(
+                     TestFixture::create_body_model(),
+                     TestFixture::create_tail_model(),
+                     fl::Real(1.1)),
+                 fl::Exception);
+}
+
+TYPED_TEST(BodyTailObservationModelTest, correct_threshlold)
+{
+    EXPECT_NO_THROW(TestFixture::create_body_tail_model(
+                     TestFixture::create_body_model(),
+                     TestFixture::create_tail_model(),
+                     fl::Real(0.99999999)));
+
+    EXPECT_NO_THROW(TestFixture::create_body_tail_model(
+                     TestFixture::create_body_model(),
+                     TestFixture::create_tail_model(),
+                     fl::Real(0.000000001)));
 }

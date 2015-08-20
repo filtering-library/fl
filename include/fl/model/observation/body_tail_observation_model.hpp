@@ -147,20 +147,21 @@ public:
      *
      * \param body      Body observation model
      * \param tail      Tail observation model
-     * \param threshold Threshold \f$\in [0, 1]\f$ which determines the model
-     *                  selection. Any value below the threshold selects the
-     *                  tail, otherwise the body is selected
+     * \param weight_threshold
+     *                  \f$\in [0, 1]\f$ which determines the model selection.
+     *                  Any value below the weight_threshold selects the tail,
+     *                  otherwise the body is selected
      */
     BodyTailObsrvModel(const BodyModel& body,
                        const TailModel& tail,
-                       Real threshold)
+                       Real weight_threshold)
         : body_(body),
           tail_(tail),
-          threshold_(threshold)
+          weight_threshold_(weight_threshold)
     {
-        if (threshold_ < Real(0) || threshold_  > Real(1))
+        if (weight_threshold_ < Real(0) || weight_threshold_  > Real(1))
         {
-            fl_throw(Exception("Threshold must be in [0; 1]"));
+            fl_throw(Exception("weight_threshold must be in [0; 1]"));
         }
     }
 
@@ -170,7 +171,7 @@ public:
      *
      * The result is either from the body or the tail model. The selection is
      * based on the last component of the noise variate. If it exceeds the
-     * body-tail-model threshold, the body model is evaluated, otherwise the
+     * body-tail-model weight_threshold, the body model is evaluated, otherwise the
      * tail is selected. The noise variate size is give as specified by
      * noise_dimension()
      */
@@ -178,12 +179,12 @@ public:
     {
         assert(noise.size() == noise_dimension());
 
-        // use the last noise component as a threshold to select the model
+        // use the last noise component as a weight_threshold to select the model
         // since the noise is a standard normal variate, we transform it into
-        // a uniformly distributed variate before thresholding
+        // a uniformly distributed variate before weight_thresholding
         Real u = fl::normal_to_uniform(noise.bottomRows(1)(0));
 
-        if(u > threshold_)
+        if(u > weight_threshold_)
         {
             auto noise_body = noise.topRows(body_.noise_dimension()).eval();
             auto y = body_.observation(state, noise_body);
@@ -210,7 +211,8 @@ public:
         Real prob_body = body_.probability(obsrv, state);
         Real prob_tail = tail_.probability(obsrv, state);
 
-        return (Real(1) - threshold_) * prob_body + threshold_ * prob_tail;
+        return (Real(1) - weight_threshold_) * prob_body +
+                          weight_threshold_  * prob_tail;
     }
 
     /**
@@ -255,6 +257,14 @@ public:
     int noise_dimension() const override
     {
         return 1 + std::max(body_.noise_dimension(), tail_.noise_dimension());
+    }
+
+    /**
+     * \brief Returns the weight_threshold between body and tail model
+     */
+    Real weight_threshold() const
+    {
+        return weight_threshold_;
     }
 
     /**
@@ -303,11 +313,11 @@ protected:
     TailModel tail_;
 
     /**
-     * \brief Threshold \f$\in [0, 1]\f$ which determines the model selection.
-     *        Any value below the threshold selects the tail, otherwise the body
-     *        is selected
+     * \brief weight_threshold \f$\in [0, 1]\f$ which determines the model
+     *        selection. Any value below the weight_threshold selects the tail,
+     *        otherwise the body is selected.
      */
-    Real threshold_;
+    Real weight_threshold_;
 
     /** \endcond */
 };

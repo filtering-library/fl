@@ -7,6 +7,7 @@ namespace fl
  \defgroup distributions Distributions
  \defgroup observation_models Observation Models
  \defgroup process_models Process Models
+ \defgroup numeric_integration Numeric Integration
 
  \defgroup traits Traits
  \defgroup meta Meta
