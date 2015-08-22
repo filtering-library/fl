@@ -52,18 +52,6 @@ struct TestSize<Size, DynamicTest<Param>>
     enum : signed int { Value = Eigen::Dynamic };
 };
 
-//template <typename TypeA, typename TypeB, bool SelectTypeA>
-//struct BinaryTypeSelector
-//{
-//    typedef TypeA Type;
-//};
-
-//template <typename TypeA, typename TypeB>
-//struct BinaryTypeSelector<TypeA, TypeB, false>
-//{
-//    typedef TypeB Type;
-//};
-
 template <int Key_, typename TypeName>
 struct IntegerTypePair
 {
@@ -87,8 +75,6 @@ struct IntegerTypeMap
 {
     template <int Key> struct Select: IntegerTypeMapImp<Key, Pairs...> { };
 };
-
-
 
 }
 #endif
