@@ -29,7 +29,7 @@ namespace fl
 {
 
 // Forward declaration
-template <typename ... > class SigmaPointQuadrature;
+//template <typename ... > class SigmaPointQuadrature;
 
 /**
  * \ingroup numeric_integration
@@ -88,10 +88,16 @@ template <typename ... > class SigmaPointQuadrature;
  * \endcode
  */
 template <typename Transform>
-class SigmaPointQuadrature<Transform>
+class SigmaPointQuadrature
     : Descriptor
 {
 public:
+    /**
+     * \brief Creates a SigmaPointQuadrature
+     */
+    SigmaPointQuadrature() { }
+
+
     /**
      * \brief Creates a SigmaPointQuadrature
      *
@@ -130,6 +136,7 @@ public:
     {
         return number_of_points(JoinSizes<SizeOf<Variates>::Value...>::Size);
     }
+
 
     /** @{ */
 
