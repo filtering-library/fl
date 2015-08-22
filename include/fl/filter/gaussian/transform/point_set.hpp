@@ -144,12 +144,12 @@ struct Traits<PointSet<Point_, Points_>>
 };
 
 /**
- * \class PointSet
- *
  * \ingroup nonlinear_gaussian_filter
  *
- * PointSet represents a container of fixed-size or dynamic-size points each
- * paired with a set of weights. PointSet has two degree-of-freedoms. The first
+ * \brief PointSet represents a container of fixed-size or dynamic-size points each
+ *        paired with a set of weights.
+ *
+ * PointSet has two degree-of-freedoms. The first
  * is the dimension of the points. The second is the number of points within the
  * set. Each of the parameter can either be fixed at compile time or left
  * unspecified. That is, the parameter is set to Eigen::Dynamic.
@@ -161,7 +161,7 @@ template <typename Point_, int Points_ = -1>
 class PointSet
 {
 private:
-    /** Typdef of \c This for #from_traits(TypeName) helper */
+    /** \brief Typdef of \c This for #from_traits(TypeName) helper */
     typedef PointSet<Point_, Points_> This;
 
 public:
@@ -173,7 +173,7 @@ public:
 
 public:
     /**
-     * Creates a PointSet
+     * \brief Creates a PointSet
      *
      * \param points_count   Number of points representing the Gaussian
      * \param dimension      Sample space dimension
@@ -193,7 +193,7 @@ public:
     }
 
     /**
-     * Creates a PointSet
+     * \brief Creates a PointSet
      */
     PointSet()
     {
@@ -209,7 +209,7 @@ public:
     virtual ~PointSet() { }
 
     /**
-     * Resizes a dynamic-size PointSet
+     * \brief Resizes a dynamic-size PointSet
      *
      * \param Points_   Number of points
      *
@@ -242,7 +242,7 @@ public:
     }
 
     /**
-     * Resizes a dynamic-size PointSet
+     * \brief Resizes a dynamic-size PointSet
      *
      * \param Points_   Number of points
      *
@@ -264,7 +264,7 @@ public:
     }
 
     /**
-     * Sets the new dimension for dynamic-size points (not to confuse
+     * \brief Sets the new dimension for dynamic-size points (not to confuse
      * with the number of points)
      *
      * \param dim  Dimension of each point
@@ -283,7 +283,7 @@ public:
     }
 
     /**
-     * \return The number of points
+     * \brief  The number of points
      */
     int count_points() const
     {
@@ -291,7 +291,7 @@ public:
     }
 
     /**
-     * \return read only access on i-th point
+     * \brief  Read only access on i-th point
      *
      * \param i Index of requested point
      *
@@ -311,7 +311,7 @@ public:
     }
 
     /**
-     * \return weight of i-th point assuming both weights are the same
+     * \brief  weight of i-th point assuming both weights are the same
      *
      * \param i Index of requested point
      *
@@ -326,7 +326,7 @@ public:
     }
 
     /**
-     * \return weights of i-th point
+     * \brief  weights of i-th point
      *
      * \param i Index of requested point
      *
@@ -341,7 +341,7 @@ public:
     }
 
     /**
-     * \return Point matrix (read only)
+     * \brief  Point matrix (read only)
      */
     const PointMatrix& points() const noexcept
     {
@@ -349,7 +349,7 @@ public:
     }
 
     /**
-     * \return Point matrix
+     * \brief  Point matrix
      */
     PointMatrix& points()
     {
@@ -357,7 +357,7 @@ public:
     }
 
     /**
-     * \return point weights vector
+     * \brief  point weights vector
      */
     const Weights& weights() const noexcept
     {
@@ -365,7 +365,7 @@ public:
     }
 
     /**
-     * \return Returns the weights for the mean of the points as a vector
+     * \brief  Returns the weights for the mean of the points as a vector
      */
     WeightVector mean_weights_vector() const noexcept
     {
@@ -382,7 +382,7 @@ public:
     }
 
     /**
-     * \return Returns the weights for the covariance of the points as a vector
+     * \brief  Returns the weights for the covariance of the points as a vector
      */
     WeightVector covariance_weights_vector() const noexcept
     {
@@ -399,7 +399,7 @@ public:
     }
 
     /**
-     * Sets the given point matrix
+     * \brief Sets the given point matrix
      */
     void points(const PointMatrix& point_matrix)
     {
@@ -407,7 +407,7 @@ public:
     }
 
     /**
-     * Sets a given point at position i
+     * \brief Sets a given point at position i
      *
      * \param i         Index of point
      * \param p         The new point
@@ -423,7 +423,7 @@ public:
     }
 
     /**
-     * Sets a given point at position i along with its weights
+     * \brief Sets a given point at position i along with its weights
      *
      * \param i         Index of point
      * \param p         The new point
@@ -439,7 +439,7 @@ public:
     }
 
     /**
-     * Sets a given point at position i along with its weights
+     * \brief Sets a given point at position i along with its weights
      *
      * \param i         Index of point
      * \param p         The new point
@@ -455,7 +455,7 @@ public:
     }
 
     /**
-     * Sets a given point at given position i along with its weights
+     * \brief Sets a given point at given position i along with its weights
      *
      * \param i         Index of point
      * \param p         The new point
@@ -473,7 +473,7 @@ public:
     }
 
     /**
-     * Sets a given weight of a point at position i
+     * \brief Sets a given weight of a point at position i
      *
      * \param i         Index of point
      * \param w         Point weights. The weights determinaing the first two
@@ -488,7 +488,7 @@ public:
     }
 
     /**
-     * Sets given weights of a point at position i
+     * \brief Sets given weights of a point at position i
      *
      * \param i         Index of point
      * \param w_mean    point weight used to compute the first moment
@@ -519,9 +519,9 @@ public:
     }
 
     /**
-     * \return Centered points matrix.
+     * \brief Creates a PointMatrix populated with zero mean points
      *
-     * Creates a PointMatrix populated with zero mean points
+     * \return Centered points matrix.
      *
      * \throws ZeroDimensionException
      * \throws Exception
@@ -542,6 +542,14 @@ public:
         return centered;
     }
 
+    /**
+     * \brief Centers all points and returns the mean over all points.
+     *
+     * Computes the weighted mean of all points and subtracts the mean from all
+     * points. Finally returns the weighted mean
+     *
+     * \return Weighted mean
+     */
     Point center()
     {
         const Point weighted_mean = mean();
@@ -555,7 +563,7 @@ public:
     }
 
     /**
-     * \return The weighted mean of all points
+     * \brief Returns the weighted mean of all points
      *
      * \throws ZeroDimensionException
      * \throws Exception
