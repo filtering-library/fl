@@ -34,7 +34,6 @@
 #include <fl/filter/gaussian/transform/monte_carlo_transform.hpp>
 #include <fl/filter/gaussian/quadrature/sigma_point_quadrature.hpp>
 
-
 template <typename TestType>
 class SigmaPointQuadratureTests
     : public testing::Test
@@ -63,9 +62,7 @@ public:
     typedef Eigen::Matrix<fl::Real, SizeA, SizeA> MatrixAA;
     typedef Eigen::Matrix<fl::Real, SizeB, SizeA> MatrixAB;
 
-    //typedef fl::MonteCarloTransform<fl::ConstantPointCountPolicy<1000>> Transform;
-    typedef fl::UnscentedTransform Transform;
-
+    typedef typename Configuration::TransformSelection::Transform Transform;
     typedef fl::SigmaPointQuadrature<Transform> Quadrature;
 
     SigmaPointQuadratureTests()
@@ -73,7 +70,8 @@ public:
           H(MatrixAB::Random(DimB, DimA)),
           p_A(DimA),
           p_B(DimB),
-          quadrature(Transform())
+          quadrature(Transform()),
+          eps(Configuration::TransformSelection::epsilon)
     {
         // create a random source Gaussians
         p_A.mean(VariateA::Random(DimA));
@@ -117,13 +115,13 @@ public:
                    (f(x) - result_gaussian.mean()).transpose();
         };
 
-        EXPECT_FALSE(result_gaussian.is_approx(expect_gaussian));
+        // EXPECT_FALSE(result_gaussian.is_approx(expect_gaussian, eps, true));
 
         // integrate mean and covariance
         result_gaussian.mean(quadrature.integrate(mean_f, p_A));
         result_gaussian.covariance(quadrature.integrate(cov_f, p_A));
 
-        EXPECT_TRUE(result_gaussian.is_approx(expect_gaussian));
+        EXPECT_TRUE(result_gaussian.is_approx(expect_gaussian, eps, true));
     }
 
     void integrate_fxy_pxy()
@@ -152,13 +150,13 @@ public:
                    (f(x, y) - result_gaussian.mean()).transpose();
         };
 
-        EXPECT_FALSE(result_gaussian.is_approx(expect_gaussian));
+        // EXPECT_FALSE(result_gaussian.is_approx(expect_gaussian, eps, true));
 
         // integrate mean and covariance
         result_gaussian.mean(quadrature.integrate(mean_f, p_A, p_B));
         result_gaussian.covariance(quadrature.integrate(cov_f, p_A, p_B));
 
-        EXPECT_TRUE(result_gaussian.is_approx(expect_gaussian));
+        EXPECT_TRUE(result_gaussian.is_approx(expect_gaussian, eps, true));
     }
 
     void propergate_gaussian_Z()
@@ -174,9 +172,12 @@ public:
         // here we use a simple identity function
         auto mean_f = [&] (const VariateA& x) -> VariateA { return f(x); };
 
-        EXPECT_FALSE(result_gaussian.is_approx(expect_gaussian));
+        // EXPECT_FALSE(result_gaussian.is_approx(expect_gaussian, eps, true));
 
-        PointSet<VariateA, Quadrature::number_of_points<VariateA>()> Z;
+        enum { SetSize = Quadrature::template size<VariateA>() };
+
+        auto Z = PointSet<decltype(mean_f(VariateA())), SetSize>();
+
         quadrature.propergate_gaussian(mean_f, p_A, Z);
 
         auto mean = Z.center();
@@ -187,7 +188,7 @@ public:
         result_gaussian.mean(mean);
         result_gaussian.covariance(Z_c * W.asDiagonal() * Z_c.transpose());
 
-        EXPECT_TRUE(result_gaussian.is_approx(expect_gaussian));
+        EXPECT_TRUE(result_gaussian.is_approx(expect_gaussian, eps, true));
     }
 
     void propergate_gaussian_X_Z()
@@ -203,10 +204,12 @@ public:
         // here we use a simple identity function
         auto mean_f = [&] (const VariateA& x) -> VariateA { return f(x); };
 
-        EXPECT_FALSE(result_gaussian.is_approx(expect_gaussian));
+        // EXPECT_FALSE(result_gaussian.is_approx(expect_gaussian, eps, true));
 
-        PointSet<VariateA, Quadrature::number_of_points<VariateA>()> Y;
-        PointSet<VariateA, Quadrature::number_of_points<VariateA>()> Z;
+        enum { SetSize = Quadrature::template size<VariateA>() };
+
+        auto Y = PointSet<VariateA, SetSize>();
+        auto Z = PointSet<decltype(mean_f(VariateA())), SetSize>();
 
         // integrate and check moment results
         quadrature.propergate_gaussian(mean_f, p_A, Y, Z);
@@ -218,7 +221,8 @@ public:
         // integrate mean and covariance
         result_gaussian.mean(mean);
         result_gaussian.covariance(Z_c * W.asDiagonal() * Z_c.transpose());
-        EXPECT_TRUE(result_gaussian.is_approx(expect_gaussian));
+
+        EXPECT_TRUE(result_gaussian.is_approx(expect_gaussian, eps, true));
 
         // finally check the Y result whether it actually represents the
         // input Gaussian p_A
@@ -234,7 +238,7 @@ public:
 
         temp_gaussian.mean(Y_mean);
         temp_gaussian.covariance(Y_cov);
-        EXPECT_TRUE(temp_gaussian.is_approx(p_A));
+        EXPECT_TRUE(temp_gaussian.is_approx(p_A, eps, true));
     }
 
     void propergate_gaussian_pxy_Z()
@@ -255,9 +259,12 @@ public:
             return f(x, y);
         };
 
-        EXPECT_FALSE(result_gaussian.is_approx(expect_gaussian));
+        // EXPECT_FALSE(result_gaussian.is_approx(expect_gaussian, eps, true));
 
-        PointSet<VariateB, Quadrature::number_of_points<VariateA,VariateB>()> Z;
+        enum { SetSize = Quadrature::template size<VariateA, VariateB>() };
+
+        auto Z = PointSet<decltype(mean_f(VariateA(), VariateB())), SetSize>();
+
         quadrature.propergate_gaussian(mean_f, p_A, p_B, Z);
 
         auto mean = Z.center();
@@ -268,7 +275,7 @@ public:
         result_gaussian.mean(mean);
         result_gaussian.covariance(Z_c * W.asDiagonal() * Z_c.transpose());
 
-        EXPECT_TRUE(result_gaussian.is_approx(expect_gaussian));
+        EXPECT_TRUE(result_gaussian.is_approx(expect_gaussian, eps, true));
     }
 
 
@@ -290,11 +297,14 @@ public:
             return f(x, y);
         };
 
-        EXPECT_FALSE(result_gaussian.is_approx(expect_gaussian));
+        // EXPECT_FALSE(result_gaussian.is_approx(expect_gaussian, eps, true));
 
-        PointSet<VariateA, Quadrature::number_of_points<VariateA,VariateB>()> X;
-        PointSet<VariateB, Quadrature::number_of_points<VariateA,VariateB>()> Y;
-        PointSet<VariateB, Quadrature::number_of_points<VariateA,VariateB>()> Z;
+        enum { SetSize = Quadrature::template size<VariateA, VariateB>() };
+
+        auto X = PointSet<VariateA, SetSize>();
+        auto Y = PointSet<VariateB, SetSize>();
+        auto Z = PointSet<decltype(mean_f(VariateA(), VariateB())), SetSize>();
+
         quadrature.propergate_gaussian(mean_f, p_A, p_B, X, Y, Z);
 
         auto mean = Z.center();
@@ -305,8 +315,7 @@ public:
         result_gaussian.mean(mean);
         result_gaussian.covariance(Z_c * W.asDiagonal() * Z_c.transpose());
 
-        EXPECT_TRUE(result_gaussian.is_approx(expect_gaussian));
-
+        EXPECT_TRUE(result_gaussian.is_approx(expect_gaussian, eps, true));
 
         // finally check the X and Y result whether they actually represents the
         // input Gaussians p_A and p_B, respectively
@@ -329,11 +338,11 @@ public:
 
         temp_gaussian_A.mean(X_mean);
         temp_gaussian_A.covariance(X_cov);
-        EXPECT_TRUE(temp_gaussian_A.is_approx(p_A));
+        EXPECT_TRUE(temp_gaussian_A.is_approx(p_A, eps, true));
 
         temp_gaussian_B.mean(Y_mean);
         temp_gaussian_B.covariance(Y_cov);
-        EXPECT_TRUE(temp_gaussian_B.is_approx(p_B));
+        EXPECT_TRUE(temp_gaussian_B.is_approx(p_B, eps, true));
     }
 
     void integrate_moments_fx_px()
@@ -352,7 +361,7 @@ public:
         // here we use a simple identity function
         auto mean_f = [&] (const VariateA& x) -> VariateA { return f(x); };
 
-        EXPECT_FALSE(result_gaussian.is_approx(expect_gaussian));
+        // EXPECT_FALSE(result_gaussian.is_approx(expect_gaussian, eps, true));
 
         // integrate mean and covariance
         auto mean = typename FirstMomentOf<VariateA>::Type();
@@ -362,7 +371,7 @@ public:
         result_gaussian.mean(mean);
         result_gaussian.covariance(cov);
 
-        EXPECT_TRUE(result_gaussian.is_approx(expect_gaussian));
+        EXPECT_TRUE(result_gaussian.is_approx(expect_gaussian, eps, true));
     }
 
     void integrate_moments_fxy_pxy()
@@ -391,12 +400,12 @@ public:
         // create the gaussian which will contail the integration results
         auto result_gaussian = GaussianB(DimB);
 
-        EXPECT_FALSE(result_gaussian.is_approx(expect_gaussian));
+        // EXPECT_FALSE(result_gaussian.is_approx(expect_gaussian, eps, true));
 
         result_gaussian.mean(mean);
         result_gaussian.covariance(cov);
 
-        EXPECT_TRUE(result_gaussian.is_approx(expect_gaussian));
+        EXPECT_TRUE(result_gaussian.is_approx(expect_gaussian, eps, true));
     }
 
 protected:
@@ -410,10 +419,11 @@ protected:
 
     /* our integrator */
     Quadrature quadrature;
+
+    fl::Real eps;
 };
 
 TYPED_TEST_CASE_P(SigmaPointQuadratureTests);
-
 
 TYPED_TEST_P(SigmaPointQuadratureTests, integrate_fx_px)
 {
@@ -465,32 +475,38 @@ REGISTER_TYPED_TEST_CASE_P(SigmaPointQuadratureTests,
                            integrate_moments_fx_px,
                            integrate_moments_fxy_pxy);
 
-template <int DimensionA, int DimensionB>
+namespace internal
+{
+
+// Transform configuration selection helper
+template <typename T> struct TransformSelection;
+
+// TransformSelection for MonteCarlo integration
+template <typename PSP>
+struct TransformSelection<fl::MonteCarloTransform<PSP>>
+{
+    static constexpr fl::Real epsilon = fl::Real(0.5);
+    typedef fl::MonteCarloTransform<PSP> Transform;
+};
+
+// TransformSelection for deterministic Unscented integration
+template <> struct TransformSelection<fl::UnscentedTransform>
+{
+    static constexpr fl::Real epsilon = fl::Real(1.e-9);
+    typedef fl::UnscentedTransform Transform;
+};
+
+}
+
+template <int DimensionA, int DimensionB, typename Transform>
 struct TestConfiguration
 {
-    enum: signed int
+    enum : signed int
     {
         DimA = DimensionA,
         DimB = DimensionB
     };
+
+    typedef internal::TransformSelection<Transform> TransformSelection;
 };
 
-typedef ::testing::Types<
-            fl::StaticTest<TestConfiguration<1, 1>>,
-            fl::StaticTest<TestConfiguration<2, 2>>,
-            fl::StaticTest<TestConfiguration<3, 3>>,
-            fl::StaticTest<TestConfiguration<6, 3>>,
-            fl::StaticTest<TestConfiguration<3, 6>>,
-            fl::StaticTest<TestConfiguration<24,3>>,
-            fl::StaticTest<TestConfiguration<50,50>>,
-            fl::DynamicTest<TestConfiguration<2, 2>>,
-            fl::DynamicTest<TestConfiguration<3, 3>>,
-            fl::DynamicTest<TestConfiguration<6, 3>>,
-            fl::DynamicTest<TestConfiguration<3, 6>>,
-            fl::DynamicTest<TestConfiguration<24, 3>>,
-            fl::DynamicTest<TestConfiguration<50, 50>>
-        > TestTypes;
-
-INSTANTIATE_TYPED_TEST_CASE_P(SigmaPointQuadratureTestCases,
-                              SigmaPointQuadratureTests,
-                              TestTypes);
