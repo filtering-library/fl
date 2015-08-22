@@ -56,9 +56,9 @@ public:
 public:
     /// constructor and destructor *********************************************
     explicit
-    DiscreteDistribution(int locations = MaxOf<Locations, 1>::value)
+    DiscreteDistribution(int size = MaxOf<Locations, 1>::value)
     {
-        set_uniform(locations);
+        set_uniform(size);
     }
 
     virtual ~DiscreteDistribution() { }
