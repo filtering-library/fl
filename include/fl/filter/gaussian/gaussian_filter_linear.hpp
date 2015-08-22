@@ -190,10 +190,6 @@ public:
         auto S = (H * cov_xx * H.transpose() + R).eval();
         auto K = (cov_xx * H.transpose() * S.inverse()).eval();
 
-//        PV(cov_xx);
-//        PV(K);
-//        PV((y - H * mean));
-
         posterior_belief.mean(mean + K * (y - H * mean));
         posterior_belief.covariance(cov_xx - K * H * cov_xx);
     }

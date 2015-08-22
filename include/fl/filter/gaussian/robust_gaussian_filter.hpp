@@ -133,7 +133,7 @@ public:
                         const Obsrv& obsrv,
                         Belief& posterior_belief)
     {
-        typedef FeatureObsrvModel::Noise Noise;
+        typedef typename FeatureObsrvModel::Noise Noise;
 
         Gaussian<Obsrv> body_distr(obsrv_model().obsrv_dimension());
         Gaussian<Noise> noise_distr(obsrv_model().noise_dimension());
@@ -145,7 +145,7 @@ public:
 
         gaussian_filter_
             .quadrature()
-            .integrate_to_gaussian(h, predicted_belief, noise_distr, body_distr);
+            .integrate_moments(h, predicted_belief, noise_distr, body_distr);
 
         gaussian_filter_
             .obsrv_model()

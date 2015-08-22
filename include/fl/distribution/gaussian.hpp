@@ -644,6 +644,45 @@ public:
         updated_externally(DiagonalPrecisionMatrix);
     }
 
+    /**
+     * \brief Returns true if the specified Gaussian is close to this one w.r.t.
+     *        \a an epsilon.
+     *
+     * \throws See covariance() and mean()
+     */
+    template <typename OtherVariate>
+    bool is_approx(const Gaussian<OtherVariate>& other)
+    {
+
+
+        return fl::are_similar(mean(), other.mean()) &&
+               fl::are_similar(covariance(), other.covariance());
+    }
+
+    /**
+     * \brief Returns true if the specified Gaussian is close to this one w.r.t.
+     *        \a an epsilon.
+     *
+     * \throws See covariance() and mean()
+     */
+    template <typename OtherVariate>
+    bool is_approx(const Gaussian<OtherVariate>& other,
+                   Real eps = 1.e-9,
+                   bool scale_with_size = false)
+    {
+        Real eps_mean = eps;
+        Real eps_cov = eps;
+
+        if (scale_with_size)
+        {
+            eps_mean *= mean().size();
+            eps_cov *= covariance().size();
+        }
+
+        return fl::are_similar(mean(), other.mean(), eps_mean) &&
+               fl::are_similar(covariance(), other.covariance(), eps_cov);
+    }
+
 protected:
     /** \cond internal */
     /**

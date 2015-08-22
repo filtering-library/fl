@@ -166,6 +166,38 @@ public:
         : PointSetTransform<MonteCarloTransform<PointCountPolicy>>(this)
     { }
 
+    /**
+     * \copydoc PointSetTransform::forward(const Gaussian&,
+     *                                     PointSet&) const
+     *
+     * \throws WrongSizeException
+     * \throws ResizingFixedSizeEntityException
+     */
+    template <typename Gaussian_, typename PointSet_>
+    void operator()(const Gaussian_& gaussian,
+                    PointSet_& point_set) const
+    {
+        forward(gaussian, gaussian.dimension(), 0, point_set);
+    }
+
+
+    /**
+     * \copydoc PointSetTransform::forward(const Gaussian&,
+     *                                     int global_dimension,
+     *                                     int dimension_offset,
+     *                                     PointSet&) const
+     *
+     * \throws WrongSizeException
+     * \throws ResizingFixedSizeEntityException
+     */
+    template <typename Gaussian_, typename PointSet_>
+    void operator()(const Gaussian_& gaussian,
+                    int global_dimension,
+                    int dimension_offset,
+                    PointSet_& point_set) const
+    {
+        forward(gaussian, global_dimension, dimension_offset, point_set);
+    }
 
     /**
      * \copydoc PointSetTransform::forward(const Gaussian&,
@@ -215,6 +247,16 @@ public:
     static constexpr int number_of_points(int dimension)
     {
         return PointCountPolicy::number_of_points(dimension);
+    }
+
+    virtual std::string name() const
+    {
+        return "MonteCarloTransform";
+    }
+
+    virtual std::string description() const
+    {
+        return name();
     }
 };
 

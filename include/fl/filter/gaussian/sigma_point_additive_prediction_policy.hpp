@@ -72,7 +72,7 @@ public:
             return additive_state_transition_function.expected_state(x, u);
         };
 
-        quadrature.integrate_to_points(f, prior_belief, Y, Z);
+        quadrature.propergate_gaussian(f, prior_belief, Y, Z);
 
         /*
          * Obtain the centered points matrix of the prediction. The columns of

@@ -74,7 +74,7 @@ public:
            return obsrv_function.expected_observation(x);
         };
 
-        quadrature.integrate_to_points(h, prior_belief, X, Z);
+        quadrature.propergate_gaussian(h, prior_belief, X, Z);
 
         auto R_inv =
             obsrv_function

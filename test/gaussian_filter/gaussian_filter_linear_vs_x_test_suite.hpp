@@ -267,36 +267,36 @@ TYPED_TEST_P(GaussianFilterLinearVsXTest, predict_and_update)
         kalman_filter.predict(belief_kf, This::zero_input(), belief_kf);
         other_filter.predict(belief_other, This::zero_input(), belief_other);
 
-        if (!fl::are_similar(belief_other.mean(), belief_kf.mean(), epsilon))
-        {
-            std::cout << "predict i = " << i << std::endl;
-            PV(belief_kf.mean());
-            PV(belief_other.mean());
-        }
+//        if (!fl::are_similar(belief_other.mean(), belief_kf.mean(), epsilon))
+//        {
+//            std::cout << "predict i = " << i << std::endl;
+//            PV(belief_kf.mean());
+//            PV(belief_other.mean());
+//        }
 
-        if (!fl::are_similar(belief_other.covariance(), belief_kf.covariance(), epsilon))
-        {
-            std::cout << "predict i = " << i << std::endl;
-            PV(belief_kf.covariance());
-            PV(belief_other.covariance());
-        }
+//        if (!fl::are_similar(belief_other.covariance(), belief_kf.covariance(), epsilon))
+//        {
+//            std::cout << "predict i = " << i << std::endl;
+//            PV(belief_kf.covariance());
+//            PV(belief_other.covariance());
+//        }
 
         kalman_filter.update(belief_kf, y, belief_kf);
         other_filter.update(belief_other, y, belief_other);
 
-        if (!fl::are_similar(belief_other.mean(), belief_kf.mean(), epsilon))
-        {
-            std::cout << "update i = " << i << std::endl;
-            PV(belief_kf.mean());
-            PV(belief_other.mean());
-        }
+//        if (!fl::are_similar(belief_other.mean(), belief_kf.mean(), epsilon))
+//        {
+//            std::cout << "update i = " << i << std::endl;
+//            PV(belief_kf.mean());
+//            PV(belief_other.mean());
+//        }
 
-        if (!fl::are_similar(belief_other.covariance(), belief_kf.covariance(), epsilon))
-        {
-            std::cout << "update i = " << i << std::endl;
-            PV(belief_kf.covariance());
-            PV(belief_other.covariance());
-        }
+//        if (!fl::are_similar(belief_other.covariance(), belief_kf.covariance(), epsilon))
+//        {
+//            std::cout << "update i = " << i << std::endl;
+//            PV(belief_kf.covariance());
+//            PV(belief_other.covariance());
+//        }
 
         ASSERT_TRUE(
             fl::are_similar(belief_other.mean(), belief_kf.mean(), epsilon));
@@ -305,13 +305,13 @@ TYPED_TEST_P(GaussianFilterLinearVsXTest, predict_and_update)
             fl::are_similar(belief_other.covariance(), belief_kf.covariance(), epsilon));
     }
 
-    PV(belief_kf.mean());
-    PV(belief_other.mean());
+//    PV(belief_kf.mean());
+//    PV(belief_other.mean());
 
-    PV(belief_kf.covariance());
-    PV(belief_other.covariance());
+//    PV(belief_kf.covariance());
+//    PV(belief_other.covariance());
 
-    std::cout << other_filter.name() << std::endl;
+//    std::cout << other_filter.name() << std::endl;
 }
 
 
