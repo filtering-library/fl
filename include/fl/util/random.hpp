@@ -43,9 +43,9 @@ namespace fl
 {
 
 /**
- * Mersenne Twister specialization mt11213b \cite matsumoto1998mersenne
  * \ingroup random
  *
+ * \brief Mersenne Twister specialization mt11213b \cite matsumoto1998mersenne
  *
  * mt11213b is slightly faster than mt19937
  */
@@ -58,32 +58,23 @@ typedef std::mersenne_twister_engine<
                 0xffe50000, 17,
                 1812433253 > mt11213b;
 
+
+static unsigned int initial_seed =  std::time(0);
+static unsigned int seed_inc = initial_seed;
+
 /**
- * \return A seed. If fl_USE_RANDOM_SEED was set true the seed is set to the
+ * \ingroup random
+ * \brief A seed. If fl_USE_RANDOM_SEED was set true the seed is set to the
  * current time, otherwise, the seed will be 1.
  *
- * \ingroup random
  */
-
-
-
-/*
- * seeds:
- * 1428922077: with resampling LPC<3>
- * 1428922712: no resampling: LPC<3>, LPC<5>
- */
-static unsigned int initial_seed =  std::time(0);
-//static unsigned int initial_seed =  1428922712;
-static unsigned int seed_inc = initial_seed;
 inline unsigned int seed()
 {
-//    return std::time(0) + (++seed_inc);
-    return (++seed_inc);
-//#ifdef fl_USE_RANDOM_SEED
-//    return (unsigned int) std::time(0);
-//#else
-//    return 1;
-//#endif
+#ifdef fl_USE_RANDOM_SEED
+    return seed_inc++;
+#else
+    return 1;
+#endif
 }
 
 }
