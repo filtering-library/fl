@@ -88,11 +88,15 @@ fl_add_test(
 fl_add_test(NAME exception
             SOURCES exception/exception_test.cpp)
 
-# == Sigma Point Transforms ================================================== #
+# == Sigma Point Transforms & Quadrature ===================================== #
 
 fl_add_test(
     NAME        unscented_transform_test
     SOURCES     gaussian_filter/unscented_transform_test.cpp)
+
+fl_add_test(
+    NAME        sigma_point_quadrature
+    SOURCES     gaussian_filter/sigma_point_quadrature_test.cpp)
 
 # == Gaussian filters tests ================================================== #
 

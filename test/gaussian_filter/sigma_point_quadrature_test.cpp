@@ -257,7 +257,7 @@ public:
 
         EXPECT_FALSE(result_gaussian.is_approx(expect_gaussian));
 
-        PointSet<VariateA, Quadrature::number_of_points<VariateA,VariateB>()> Z;
+        PointSet<VariateB, Quadrature::number_of_points<VariateA,VariateB>()> Z;
         quadrature.propergate_gaussian(mean_f, p_A, p_B, Z);
 
         auto mean = Z.center();
@@ -294,7 +294,7 @@ public:
 
         PointSet<VariateA, Quadrature::number_of_points<VariateA,VariateB>()> X;
         PointSet<VariateB, Quadrature::number_of_points<VariateA,VariateB>()> Y;
-        PointSet<VariateA, Quadrature::number_of_points<VariateA,VariateB>()> Z;
+        PointSet<VariateB, Quadrature::number_of_points<VariateA,VariateB>()> Z;
         quadrature.propergate_gaussian(mean_f, p_A, p_B, X, Y, Z);
 
         auto mean = Z.center();
@@ -365,6 +365,40 @@ public:
         EXPECT_TRUE(result_gaussian.is_approx(expect_gaussian));
     }
 
+    void integrate_moments_fxy_pxy()
+    {
+        using namespace fl;
+
+        // compute the expected integration result analytically
+        auto expect_gaussian = GaussianB(DimB);
+
+        expect_gaussian.mean(f(p_A.mean(), p_B.mean()));
+        expect_gaussian.covariance(
+            H * p_A.covariance() * H.transpose() + p_B.covariance());
+
+        // define the expected mean lambda function
+        // here we use a simple identity function
+        auto mean_f = [&] (const VariateA& x, const VariateB& y) -> VariateB
+        {
+            return f(x, y);
+        };
+
+        // integrate mean and covariance
+        auto mean = typename FirstMomentOf<VariateB>::Type();
+        auto cov = typename SecondMomentOf<VariateB>::Type();
+        quadrature.integrate_moments(mean_f, p_A, p_B, mean, cov);
+
+        // create the gaussian which will contail the integration results
+        auto result_gaussian = GaussianB(DimB);
+
+        EXPECT_FALSE(result_gaussian.is_approx(expect_gaussian));
+
+        result_gaussian.mean(mean);
+        result_gaussian.covariance(cov);
+
+        EXPECT_TRUE(result_gaussian.is_approx(expect_gaussian));
+    }
+
 protected:
     /* parameter of the linear function f(x) = A*x */
     MatrixAA F;
@@ -416,6 +450,11 @@ TYPED_TEST_P(SigmaPointQuadratureTests, integrate_moments_fx_px)
     TestFixture::integrate_moments_fx_px();
 }
 
+TYPED_TEST_P(SigmaPointQuadratureTests, integrate_moments_fxy_pxy)
+{
+    TestFixture::integrate_moments_fxy_pxy();
+}
+
 REGISTER_TYPED_TEST_CASE_P(SigmaPointQuadratureTests,
                            integrate_fx_px,
                            integrate_fxy_pxy,
@@ -423,7 +462,8 @@ REGISTER_TYPED_TEST_CASE_P(SigmaPointQuadratureTests,
                            propergate_gaussian_X_Z,
                            propergate_gaussian_pxy_Z,
                            propergate_gaussian_pxy_X_Y_Z,
-                           integrate_moments_fx_px);
+                           integrate_moments_fx_px,
+                           integrate_moments_fxy_pxy);
 
 template <int DimensionA, int DimensionB>
 struct TestConfiguration
@@ -436,17 +476,19 @@ struct TestConfiguration
 };
 
 typedef ::testing::Types<
-//            fl::StaticTest<TestConfiguration<1, 1>>,
-            fl::StaticTest<TestConfiguration<2, 2>>/*,
+            fl::StaticTest<TestConfiguration<1, 1>>,
+            fl::StaticTest<TestConfiguration<2, 2>>,
             fl::StaticTest<TestConfiguration<3, 3>>,
             fl::StaticTest<TestConfiguration<6, 3>>,
             fl::StaticTest<TestConfiguration<3, 6>>,
             fl::StaticTest<TestConfiguration<24,3>>,
+            fl::StaticTest<TestConfiguration<50,50>>,
             fl::DynamicTest<TestConfiguration<2, 2>>,
             fl::DynamicTest<TestConfiguration<3, 3>>,
             fl::DynamicTest<TestConfiguration<6, 3>>,
             fl::DynamicTest<TestConfiguration<3, 6>>,
-            fl::DynamicTest<TestConfiguration<24, 3>>*/
+            fl::DynamicTest<TestConfiguration<24, 3>>,
+            fl::DynamicTest<TestConfiguration<50, 50>>
         > TestTypes;
 
 INSTANTIATE_TYPED_TEST_CASE_P(SigmaPointQuadratureTestCases,
