@@ -129,23 +129,44 @@ public:
     /// const functions ********************************************************
 
     // sampling ----------------------------------------------------------------
-    virtual Variate map_standard_normal(const StandardVariate& gaussian_sample) const
+    virtual Variate map_standard_normal(const StandardVariate& gaussian_sample,
+                                        int& index) const
     {
         StandardVariate scaled_sample = gaussian_sample / std::sqrt(2.0);
         StandardVariate uniform_sample = 0.5 * (1.0 + std::erf(scaled_sample));
 
-        return map_standard_uniform(uniform_sample);
+        return map_standard_uniform(uniform_sample, index);
+    }
+
+    virtual Variate map_standard_uniform(const StandardVariate& uniform_sample,
+                                         int& index) const
+    {
+        index = 0;
+        for (index = 0; index < cumul_distr_.size(); ++index)
+        {
+            if (cumul_distr_[index] >= uniform_sample) break;
+        }
+
+        return locations_[index];
+    }
+
+    using StdGaussianMapping::sample;
+
+    virtual Variate sample(int& index) const
+    {
+        return map_standard_normal(this->standard_gaussian_.sample(), index);
+    }
+
+    virtual Variate map_standard_normal(const StandardVariate& gaussian_sample) const
+    {
+        int index;
+        return map_standard_normal(gaussian_sample, index);
     }
 
     virtual Variate map_standard_uniform(const StandardVariate& uniform_sample) const
     {
-        int i = 0;
-        for (i = 0; i < cumul_distr_.size(); ++i)
-        {
-            if (cumul_distr_[i] >= uniform_sample) break;
-        }
-
-        return locations_[i];
+        int index;
+        return map_standard_uniform(uniform_sample, index);
     }
 
 
