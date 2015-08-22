@@ -95,7 +95,7 @@ public:
            return obsrv_function.observation(x, w);
         };
 
-        quadrature.integrate_to_points(h, prior_belief, noise_distr_, X, Y, Z);
+        quadrature.propergate_gaussian(h, prior_belief, noise_distr_, X, Y, Z);
 
         auto&& prediction = Z.center();
         auto&& Z_c = Z.points();

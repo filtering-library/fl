@@ -94,7 +94,7 @@ public:
             return state_transition_funtion.state(x, v, u);
         };
 
-        quadrature.integrate_to_points(f, prior_belief, noise_distr_, X, Y, Z);
+        quadrature.propergate_gaussian(f, prior_belief, noise_distr_, X, Y, Z);
 
         /*
          * Obtain the centered points matrix of the prediction. The columns of
