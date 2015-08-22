@@ -644,6 +644,19 @@ public:
         updated_externally(DiagonalPrecisionMatrix);
     }
 
+    /**
+     * \brief Returns true if the specified Gaussian is close to this one w.r.t.
+     *        \a an epsilon.
+     *
+     * \throws See covariance() and mean()
+     */
+    template <typename OtherVariate>
+    bool is_approx(const Gaussian<OtherVariate>& other)
+    {
+        return fl::are_similar(mean(), other.mean()) &&
+               fl::are_similar(covariance(), other.covariance());
+    }
+
 protected:
     /** \cond internal */
     /**
