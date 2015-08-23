@@ -56,9 +56,6 @@ public:
     typedef fl::Gaussian<VariateA> GaussianA;
     typedef fl::Gaussian<VariateB> GaussianB;
 
-    typedef typename GaussianA::SecondMoment SecondMomentA;
-    typedef typename GaussianB::SecondMoment SecondMomentB;
-
     typedef Eigen::Matrix<fl::Real, SizeA, SizeA> MatrixAA;
     typedef Eigen::Matrix<fl::Real, SizeB, SizeA> MatrixAB;
 
@@ -106,16 +103,14 @@ public:
 
         // define the expected mean lambda function
         // here we use a simple identity function
-        auto mean_f = [&] (const VariateA& x) -> VariateA { return f(x); };
+        auto mean_f = [&] (const VariateA& x) { return f(x); };
 
         // define the expected covariance lambda function
-        auto cov_f = [&] (const VariateA& x) -> SecondMomentA
+        auto cov_f = [&] (const VariateA& x)
         {
-            return (f(x) - result_gaussian.mean()) *
-                   (f(x) - result_gaussian.mean()).transpose();
+            return ((f(x) - result_gaussian.mean()) *
+                    (f(x) - result_gaussian.mean()).transpose()).eval();
         };
-
-        // EXPECT_FALSE(result_gaussian.is_approx(expect_gaussian, eps, true));
 
         // integrate mean and covariance
         result_gaussian.mean(quadrature.integrate(mean_f, p_A));
@@ -138,19 +133,17 @@ public:
 
         // define the expected mean lambda function
         // here we use a simple identity function
-        auto mean_f = [&] (const VariateA& x, const VariateB& y) -> VariateB
+        auto mean_f = [&] (const VariateA& x, const VariateB& y)
         {
             return f(x, y);
         };
 
         // define the expected covariance lambda function
-        auto cov_f = [&] (const VariateA& x, const VariateB& y) -> SecondMomentB
+        auto cov_f = [&] (const VariateA& x, const VariateB& y)
         {
-            return (f(x, y) - result_gaussian.mean()) *
-                   (f(x, y) - result_gaussian.mean()).transpose();
+            return ((f(x, y) - result_gaussian.mean()) *
+                    (f(x, y) - result_gaussian.mean()).transpose()).eval();
         };
-
-        // EXPECT_FALSE(result_gaussian.is_approx(expect_gaussian, eps, true));
 
         // integrate mean and covariance
         result_gaussian.mean(quadrature.integrate(mean_f, p_A, p_B));
@@ -170,9 +163,7 @@ public:
 
         // define the expected mean lambda function
         // here we use a simple identity function
-        auto mean_f = [&] (const VariateA& x) -> VariateA { return f(x); };
-
-        // EXPECT_FALSE(result_gaussian.is_approx(expect_gaussian, eps, true));
+        auto mean_f = [&] (const VariateA& x) { return f(x); };
 
         enum { SetSize = Quadrature::template size<VariateA>() };
 
@@ -202,9 +193,7 @@ public:
 
         // define the expected mean lambda function
         // here we use a simple identity function
-        auto mean_f = [&] (const VariateA& x) -> VariateA { return f(x); };
-
-        // EXPECT_FALSE(result_gaussian.is_approx(expect_gaussian, eps, true));
+        auto mean_f = [&] (const VariateA& x) { return f(x); };
 
         enum { SetSize = Quadrature::template size<VariateA>() };
 
@@ -254,12 +243,10 @@ public:
 
         // define the expected mean lambda function
         // here we use a simple identity function
-        auto mean_f = [&] (const VariateA& x, const VariateB& y) -> VariateB
+        auto mean_f = [&] (const VariateA& x, const VariateB& y)
         {
             return f(x, y);
         };
-
-        // EXPECT_FALSE(result_gaussian.is_approx(expect_gaussian, eps, true));
 
         enum { SetSize = Quadrature::template size<VariateA, VariateB>() };
 
@@ -292,12 +279,10 @@ public:
 
         // define the expected mean lambda function
         // here we use a simple identity function
-        auto mean_f = [&] (const VariateA& x, const VariateB& y) -> VariateB
+        auto mean_f = [&] (const VariateA& x, const VariateB& y)
         {
             return f(x, y);
         };
-
-        // EXPECT_FALSE(result_gaussian.is_approx(expect_gaussian, eps, true));
 
         enum { SetSize = Quadrature::template size<VariateA, VariateB>() };
 
@@ -359,9 +344,7 @@ public:
 
         // define the expected mean lambda function
         // here we use a simple identity function
-        auto mean_f = [&] (const VariateA& x) -> VariateA { return f(x); };
-
-        // EXPECT_FALSE(result_gaussian.is_approx(expect_gaussian, eps, true));
+        auto mean_f = [&] (const VariateA& x) { return f(x); };
 
         // integrate mean and covariance
         auto mean = typename FirstMomentOf<VariateA>::Type();
@@ -387,7 +370,7 @@ public:
 
         // define the expected mean lambda function
         // here we use a simple identity function
-        auto mean_f = [&] (const VariateA& x, const VariateB& y) -> VariateB
+        auto mean_f = [&] (const VariateA& x, const VariateB& y)
         {
             return f(x, y);
         };
@@ -399,8 +382,6 @@ public:
 
         // create the gaussian which will contail the integration results
         auto result_gaussian = GaussianB(DimB);
-
-        // EXPECT_FALSE(result_gaussian.is_approx(expect_gaussian, eps, true));
 
         result_gaussian.mean(mean);
         result_gaussian.covariance(cov);
