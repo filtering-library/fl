@@ -88,15 +88,11 @@ fl_add_test(
 fl_add_test(NAME exception
             SOURCES exception/exception_test.cpp)
 
-# == Sigma Point Transforms & Quadrature ===================================== #
+# == Sigma Point Transforms ================================================== #
 
 fl_add_test(
     NAME        unscented_transform_test
     SOURCES     gaussian_filter/unscented_transform_test.cpp)
-
-#fl_add_test(
-#    NAME        sigma_point_quadrature
-#    SOURCES     gaussian_filter/sigma_point_quadrature_test.cpp)
 
 # == Gaussian filters tests ================================================== #
 
@@ -112,14 +108,14 @@ fl_add_test(
             gaussian_filter/gaussian_filter_test_suite.hpp
             gaussian_filter/unscented_kalman_filter_test.cpp)
 
-##
+## gaussian_filter test
 add_subdirectory(gaussian_filter)
 
-#fl_add_test(
-#    NAME    robust_gaussian_filter
-#    SOURCES typecast.hpp
-#            gaussian_filter/gaussian_filter_test_suite.hpp
-#            gaussian_filter/robust_gaussian_filter_test.cpp)
+fl_add_test(
+    NAME    robust_gaussian_filter
+    SOURCES typecast.hpp
+            gaussian_filter/gaussian_filter_test_suite.hpp
+            gaussian_filter/robust_gaussian_filter_test.cpp)
 
 ## == Particle filters tests ================================================= #
 ##catkin_add_gtest(particle_filter_test
