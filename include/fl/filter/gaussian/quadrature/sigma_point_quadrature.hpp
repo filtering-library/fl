@@ -519,7 +519,8 @@ public:
 
         for (int i = 1; i < point_count; ++i)
         {
-            Z.point(i, f(X[i], Y[i]), X.weights(i).w_mean, X.weights(i).w_cov);
+            auto y = f(X[i], Y[i]);
+            Z.point(i, y, X.weights(i).w_mean, X.weights(i).w_cov);
         }
     }
 
