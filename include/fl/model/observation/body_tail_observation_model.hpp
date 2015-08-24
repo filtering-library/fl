@@ -27,6 +27,7 @@
 #include <fl/util/traits.hpp>
 #include <fl/util/math.hpp>
 #include <fl/exception/exception.hpp>
+#include <fl/util/descriptor.hpp>
 #include <fl/model/observation/interface/observation_function.hpp>
 #include <fl/model/observation/interface/observation_density.hpp>
 
@@ -59,8 +60,8 @@ struct Traits<BodyTailObsrvModel<BodyModel, TailModel>>
     typedef typename VariateOfSize<
                 JoinSizes<
                     MaxOf<
-                        SizeOf< typename BodyModel::Noise >::Value,
-                        SizeOf< typename TailModel::Noise >::Value
+                        SizeOf<typename BodyModel::Noise>::Value,
+                        SizeOf<typename TailModel::Noise>::Value
                     >::Value,
                     1
                 >::Value
@@ -117,7 +118,8 @@ template <
 >
 class BodyTailObsrvModel
     : public Traits<BodyTailObsrvModel<BodyModel, TailModel>>::ObsrvFunction,
-      public Traits<BodyTailObsrvModel<BodyModel, TailModel>>::ObsrvDensity
+      public Traits<BodyTailObsrvModel<BodyModel, TailModel>>::ObsrvDensity,
+      public Descriptor
 {
 private:
     typedef BodyTailObsrvModel<BodyModel, TailModel> This;
@@ -154,7 +156,7 @@ public:
      */
     BodyTailObsrvModel(const BodyModel& body,
                        const TailModel& tail,
-                       Real weight_threshold)
+                       Real weight_threshold = 0.1)
         : body_(body),
           tail_(tail),
           weight_threshold_(weight_threshold)
@@ -297,6 +299,23 @@ public:
     const TailModel& tail_model() const
     {
         return tail_;
+    }
+
+    virtual std::string name() const
+    {
+        return "BodyTailObsrvModel<"
+                + this->list_arguments(
+                            body_model().name(),
+                            tail_model().name())
+                + ">";
+    }
+
+    virtual std::string description() const
+    {
+        return "Body-Tail- observation model with "
+                + this->list_descriptions(
+                            body_model().description(),
+                            tail_model().description());
     }
 
 protected:
