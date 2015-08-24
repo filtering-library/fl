@@ -33,6 +33,13 @@
 namespace fl
 {
 
+namespace internal
+{
+
+enum RobustFeatureDimension { RobustFeatureDimExt = 2 };
+
+}
+
 /**
  * \ingroup observation_models
  *
@@ -47,11 +54,13 @@ class RobustFeatureObsrvModel
                  /* Obsrv type of the size SizeOf<ObsrvModel::Obsrv> + 2 */
                  typename VariateOfSize<
                      JoinSizes<
-                         SizeOf<typename ObsrvModel::Obsrv>::Value, 2
+                         SizeOf<typename ObsrvModel::Obsrv>::Value,
+                         internal::RobustFeatureDimExt
                      >::Value
                  >::Type,
                  typename ObsrvModel::State,
-                 typename ObsrvModel::Noise>
+                 typename ObsrvModel::Noise>,
+      public Descriptor
 
 {
 private:
@@ -71,7 +80,8 @@ public:
      */
     typedef typename VariateOfSize<
                          JoinSizes<
-                             SizeOf<typename ObsrvModel::Obsrv>::Value, 2
+                             SizeOf<typename ObsrvModel::Obsrv>::Value,
+                             internal::RobustFeatureDimExt
                          >::Value
                      >::Type Obsrv;
 
@@ -106,7 +116,7 @@ public:
      */
     Obsrv observation(const State& state, const Noise& noise) const override
     {
-        Obsrv y = feature_obsrv(obsrv_model_.observation(state, noise));
+        Obsrv y = feature_obsrv(obsrv_model_.observation(state, noise), state);
         return y; // RVO
     }
 
@@ -114,24 +124,27 @@ public:
      * \brief Computes the robust feature given an input feature fron the
      *        source observation model
      */
-    virtual Obsrv feature_obsrv(const InputObsrv& input_obsrv) const
+    virtual Obsrv feature_obsrv(
+        const InputObsrv& input_obsrv, const State& state) const
     {
-        Obsrv y(obsrv_dimension());
+        auto y = Obsrv(obsrv_dimension());
 
-        Real prob_body = body_gaussian_.probability(input_obsrv);
-        Real prob_tail = obsrv_model_.tail_model().probability(input_obsrv);
-        Real weight = obsrv_model_.weight_threshold();
+        auto prob_y = body_gaussian_.probability(input_obsrv);
+        auto prob_tail = obsrv_model_
+                            .tail_model()
+                            .probability(input_obsrv, state);
 
-        Real normalizer = (Real(1) - weight) * prob_body + weight * prob_tail;
+        y(0) = prob_tail;
+        if (internal::RobustFeatureDimExt == 2) y(1) = prob_y;
+        y.bottomRows(obsrv_model_.obsrv_dimension()) = prob_y * input_obsrv;
 
-        y(0) = prob_body;
-        y(1) = prob_body;
-        y.bottomRows(obsry_model_.obsrv_dimension()) = prob_body * input_obsrv;
-
+        auto weight = obsrv_model_.weight_threshold();
+        auto normalizer = (Real(1) - weight) * prob_y + weight * prob_tail;
         y /= normalizer;
 
         return y;
     }
+
 
     /**
      * \brief Sets the feature function (feature observation modek) and
@@ -141,11 +154,14 @@ public:
      *
      * PAPER REF
      */
-    virtual void parameter(const Gaussian<InputObsrv>& body_gaussian,
-                           const State& mean_state)
+    virtual void parameters(
+        const State& mean_state,
+        const typename FirstMomentOf<InputObsrv>::Type& mean_obsrv,
+        const typename SecondMomentOf<InputObsrv>::Type& cov_obsrv)
     {
-        body_gaussian_ = body_gaussian;
         mean_state_ = mean_state;
+        body_gaussian_.mean(mean_obsrv);
+        body_gaussian_.covariance(cov_obsrv);
     }
 
     /**
@@ -153,7 +169,7 @@ public:
      */
     int obsrv_dimension() const override
     {
-        return obsrv_model_.obsrv_dimension() + 2;
+        return obsrv_model_.obsrv_dimension() + internal::RobustFeatureDimExt;
     }
 
     int noise_dimension() const override
@@ -174,6 +190,19 @@ public:
     const ObsrvModel& embedded_obsrv_model() const
     {
         return obsrv_model_;
+    }
+
+    virtual std::string name() const
+    {
+        return "RobustFeatureObsrvModel<"
+                + this->list_arguments(embedded_obsrv_model().name())
+                + ">";
+    }
+
+    virtual std::string description() const
+    {
+        return "Robust feature observation model with "
+                + this->list_descriptions(embedded_obsrv_model().description());
     }
 
 protected:
