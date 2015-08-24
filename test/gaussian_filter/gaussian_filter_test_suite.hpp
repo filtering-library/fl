@@ -30,6 +30,7 @@
 #include <cmath>
 #include <iostream>
 
+#include <fl/util/profiling.hpp>
 #include <fl/util/math/linear_algebra.hpp>
 #include <fl/filter/filter_interface.hpp>
 
@@ -65,60 +66,83 @@ protected:
     typedef Eigen::Matrix<fl::Real, InputSize, 1> Input;
     typedef Eigen::Matrix<fl::Real, ObsrvSize, 1> Obsrv;
 
-    typedef fl::LinearStateTransitionModel<State, Input> LinearStateTransition;
-    typedef fl::LinearDecorrelatedGaussianObservationModel<Obsrv, State> LinearObservation;
-    //typedef fl::LinearGaussianObservationModel<Obsrv, State> LinearObservation;
-
-
-    typedef typename Configuration::template FilterDefinition<
-                LinearStateTransition,
-                LinearObservation
-            > FilterDefinition;
-
-    typedef typename FilterDefinition::Type Filter;
-
     GaussianFilterTest()
         : predict_steps_(30),
-          predict_update_steps_(30)
+          predict_update_steps_(1000)
     { }
 
-    Filter create_filter() const
+    struct ModelFactory
     {
-        return Configuration::create_filter(
-                LinearStateTransition(StateDim, InputDim),
-                LinearObservation(ObsrvDim, StateDim));
-    }
+        typedef fl::LinearStateTransitionModel<
+                    State, Input
+                > LinearStateTransition;
 
-    void setup_models(Filter& filter, ModelSetup setup)
-    {
-        auto A = filter.process_model().create_dynamics_matrix();
-        auto Q = filter.process_model().create_noise_matrix();
+        typedef fl::LinearGaussianObservationModel<
+                    Obsrv, State
+                > LinearObservation;
 
-        auto H = filter.obsrv_model().create_sensor_matrix();
-        auto R = filter.obsrv_model().create_noise_matrix();
-
-        switch (setup)
+        LinearStateTransition create_linear_state_model()
         {
-        case Random:
-            A.setRandom();
-            H.setRandom();
-            Q.setRandom();
-            R.setRandom();
-            break;
+            auto model = LinearStateTransition(StateDim, InputDim);
 
-        case Identity:
-            A.setIdentity();
-            H.setIdentity();
-            Q.setIdentity();
-            R.setIdentity();
-            break;
+            auto A = model.create_dynamics_matrix();
+            auto Q = model.create_noise_matrix();
+
+            switch (setup)
+            {
+            case Random:
+                A.setRandom();
+                Q.setRandom();
+                break;
+
+            case Identity:
+                A.setIdentity();
+                Q.setIdentity();
+                break;
+            }
+
+            model.dynamics_matrix(A);
+            model.noise_matrix(Q);
+
+            return model;
         }
 
-        filter.process_model().dynamics_matrix(A);
-        filter.process_model().noise_matrix(Q);
+        LinearObservation create_observation_model()
+        {
+            auto model = LinearObservation(ObsrvDim, StateDim);
 
-        filter.obsrv_model().sensor_matrix(H);
-        filter.obsrv_model().noise_matrix(R);
+            auto H = model.create_sensor_matrix();
+            auto R = model.create_noise_matrix();
+
+            switch (setup)
+            {
+            case Random:
+                H.setRandom();
+                R.setRandom();
+                break;
+
+            case Identity:
+                H.setIdentity();
+                R.setIdentity();
+                break;
+            }
+
+            model.sensor_matrix(H);
+            model.noise_matrix(R);
+
+            return model;
+        }
+
+        ModelSetup setup;
+    };
+
+    typedef typename Configuration::template FilterDefinition<
+        ModelFactory
+    >::Type Filter;
+
+    Filter create_filter(ModelSetup setup = Identity) const
+    {
+        return Configuration::create_filter(ModelFactory{setup});
     }
 
     State zero_state() { return State::Zero(StateDim); }
@@ -136,36 +160,32 @@ protected:
 
 TYPED_TEST_CASE_P(GaussianFilterTest);
 
-TYPED_TEST_P(GaussianFilterTest, init_predict)
-{
-    typedef TestFixture This;
+//TYPED_TEST_P(GaussianFilterTest, init_predict)
+//{
+//    typedef TestFixture This;
 
-    auto filter = This::create_filter();
-    auto belief = filter.create_belief();
+//    auto filter = This::create_filter();
+//    auto belief = filter.create_belief();
 
-    std::cout << "filter.name():\n\n"
-              << filter.name() << std::endl<< std::endl;
-    std::cout << "\nfilter.description():\n\n"
-              << filter.description() << std::endl<< std::endl;
+//    EXPECT_TRUE(belief.mean().isZero());
+//    EXPECT_TRUE(belief.covariance().isIdentity());
 
-    EXPECT_TRUE(belief.mean().isZero());
-    EXPECT_TRUE(belief.covariance().isIdentity());
+//    std::cout << filter.name() << std::endl;
+//    std::cout << filter.description() << std::endl;
 
-    filter.predict(belief, This::zero_input(), belief);
+//    filter.predict(belief, This::zero_input(), belief);
 
-    auto Q = filter.process_model().noise_covariance();
+//    auto Q = filter.process_model().noise_covariance();
 
-    EXPECT_TRUE(belief.mean().isZero());
-    EXPECT_TRUE(fl::are_similar(belief.covariance(), 2. * Q));
-}
+//    EXPECT_TRUE(belief.mean().isZero());
+//    EXPECT_TRUE(fl::are_similar(belief.covariance(), 2. * Q));
+//}
 
 TYPED_TEST_P(GaussianFilterTest, predict_then_update)
 {
     typedef TestFixture This;
 
-    auto filter = This::create_filter();
-    This::setup_models(filter, This::Random);
-
+    auto filter = This::create_filter(This::Random);
     auto belief = filter.create_belief();
 
     EXPECT_TRUE(belief.covariance().ldlt().isPositive());
@@ -180,46 +200,11 @@ TYPED_TEST_P(GaussianFilterTest, predict_then_update)
     }
 }
 
-//TYPED_TEST_P(GaussianFilterTest, predict_and_update)
-//{
-//    typedef TestFixture This;
-
-//    auto filter = This::create_filter();
-//    This::setup_models(filter, This::Random);
-
-//    auto belief_A = filter.create_belief();
-//    auto belief_B = filter.create_belief();
-
-//    EXPECT_TRUE(belief_A.covariance().ldlt().isPositive());
-//    EXPECT_TRUE(belief_B.covariance().ldlt().isPositive());
-
-//    for (int i = 0; i < This::predict_update_steps_; ++i)
-//    {
-//        const auto y = This::rand_obsrv();
-//        const auto u = This::zero_input();
-
-//        filter.predict(belief_A, u, belief_A);
-//        filter.update(belief_A, y, belief_A);
-
-//        filter.predict_and_update(belief_B, u, y, belief_B);
-
-//        ASSERT_TRUE(
-//            fl::are_similar(belief_A.mean(), belief_B.mean()));
-//        ASSERT_TRUE(
-//            fl::are_similar(belief_A.covariance(), belief_B.covariance()));
-
-//        ASSERT_TRUE(belief_A.covariance().ldlt().isPositive());
-//        ASSERT_TRUE(belief_B.covariance().ldlt().isPositive());
-//    }
-//}
-
 TYPED_TEST_P(GaussianFilterTest, predict_loop)
 {
     typedef TestFixture This;
 
-    auto filter = This::create_filter();
-    This::setup_models(filter, This::Identity);
-
+    auto filter = This::create_filter(This::Identity);
     auto belief = filter.create_belief();
 
     EXPECT_TRUE(belief.covariance().ldlt().isPositive());
@@ -232,81 +217,10 @@ TYPED_TEST_P(GaussianFilterTest, predict_loop)
     EXPECT_TRUE(belief.covariance().ldlt().isPositive());
 }
 
-//TYPED_TEST_P(GaussianFilterTest, predict_multiple_function_loop)
-//{
-//    typedef TestFixture This;
-
-//    auto filter = This::create_filter();
-//    This::setup_models(filter, This::Identity);
-
-//    auto belief = filter.create_belief();
-
-//    EXPECT_TRUE(belief.covariance().ldlt().isPositive());
-
-//    for (int i = 0; i < This::predict_steps_; ++i)
-//    {
-//        filter.predict(belief, This::zero_input(), 1, belief);
-//    }
-
-//    EXPECT_TRUE(belief.covariance().ldlt().isPositive());
-//}
-
-//TYPED_TEST_P(GaussianFilterTest, predict_multiple)
-//{
-//    typedef TestFixture This;
-
-//    auto filter = This::create_filter();
-//    This::setup_models(filter, This::Identity);
-
-//    auto belief = filter.create_belief();
-
-//    EXPECT_TRUE(belief.covariance().ldlt().isPositive());
-
-//    filter.predict(belief, This::zero_input(), This::predict_steps_, belief);
-
-//    EXPECT_TRUE(belief.covariance().ldlt().isPositive());
-//}
-
-//TYPED_TEST_P(GaussianFilterTest, predict_loop_vs_predict_multiple)
-//{
-//    typedef TestFixture This;
-
-//    auto filter = This::create_filter();
-//    This::setup_models(filter, This::Identity);
-
-//    auto belief_A = filter.create_belief();
-//    auto belief_B = filter.create_belief();
-
-//    EXPECT_TRUE(belief_A.covariance().ldlt().isPositive());
-
-//    for (int i = 0; i < This::predict_update_steps_; ++i)
-//    {
-//        filter.predict(belief_A, This::zero_input(), belief_A);
-//    }
-
-//    filter.predict(belief_B,
-//                   This::zero_input(),
-//                   This::predict_update_steps_,
-//                   belief_B);
-
-//    EXPECT_TRUE(belief_A.covariance().ldlt().isPositive());
-//    EXPECT_TRUE(belief_B.covariance().ldlt().isPositive());
-
-//    EXPECT_TRUE(
-//        fl::are_similar(belief_A.mean(), belief_B.mean()));
-//    EXPECT_TRUE(
-//        fl::are_similar(belief_A.covariance(), belief_B.covariance()));
-//}
-
 REGISTER_TYPED_TEST_CASE_P(GaussianFilterTest,
-                           init_predict,
+                           //init_predict,
                            predict_then_update,
-                           //predict_and_update,
                            predict_loop);
-                           /*,
-                           predict_multiple_function_loop,
-                           predict_multiple,
-                           predict_loop_vs_predict_multiple*/
 
 
 #endif
