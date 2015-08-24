@@ -400,6 +400,22 @@ bool is_diagonal(const Eigen::MatrixBase<Derived>& m)
     return z.isZero();
 }
 
+
+template <typename MatrixA, typename VectorsB>
+VectorsB solve(const Eigen::MatrixBase<MatrixA>& A,
+               const VectorsB& B)
+{
+    VectorsB x = A.householderQr().solve(B).eval();
+    return x; //RVO
+}
+
+template <typename Xpr>
+auto eval(Xpr&& xpr) -> decltype(xpr.eval())
+{
+    auto xpr_value = xpr.eval();
+    return xpr_value;
+}
+
 }
 
 #endif

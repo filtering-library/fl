@@ -47,7 +47,8 @@
     #define MEASURE(text)
 #endif
 
-#define PV(mat) std::cout << #mat << "\n" << mat.transpose() << "\n\n";
+#define PV(mat) std::cout << #mat << "\n" << mat << "\n\n";
+#define PVT(mat) std::cout << #mat << "\n" << mat.transpose() << "\n\n";
 //#define PV(mat)
 
 #endif
