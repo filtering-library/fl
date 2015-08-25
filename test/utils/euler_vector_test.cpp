@@ -168,6 +168,42 @@ TEST(euler_vector, rotation_matrix_set)
 }
 
 
+TEST(euler_vector, rescale)
+{
+    for(int i = 0; i < 1000; i++)
+    {
+        EulerVector vector = Eigen::Vector3i::Random().cast<Real>();
+
+        EulerVector rescaled_vector = vector;
+        rescaled_vector.rescale();
+
+        EXPECT_TRUE(rescaled_vector.angle() <= M_PI);
+
+        Eigen::Vector4d rescaled_coeffs = rescaled_vector.quaternion().coeffs();
+        Eigen::Vector4d coeffs = vector.quaternion().coeffs();
+
+        EXPECT_TRUE(    rescaled_coeffs.isApprox(coeffs, 0.0001)
+                        || rescaled_coeffs.isApprox(-coeffs, 0.0001)   );
+    }
+
+    for(int i = 0; i < 1000; i++)
+    {
+        EulerVector vector = EulerVector::Random();
+
+        EulerVector rescaled_vector = vector;
+        rescaled_vector.rescale();
+
+        EXPECT_TRUE(rescaled_vector.angle() <= M_PI);
+
+        Eigen::Vector4d rescaled_coeffs = rescaled_vector.quaternion().coeffs();
+        Eigen::Vector4d coeffs = vector.quaternion().coeffs();
+
+        EXPECT_TRUE(    rescaled_coeffs.isApprox(coeffs, 0.0001)
+                        || rescaled_coeffs.isApprox(-coeffs, 0.0001)   );
+    }
+}
+
+
 
 
 
