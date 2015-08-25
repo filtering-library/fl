@@ -405,7 +405,10 @@ template <typename MatrixA, typename VectorsB>
 VectorsB solve(const Eigen::MatrixBase<MatrixA>& A,
                const VectorsB& B)
 {
-    VectorsB x = A.householderQr().solve(B).eval();
+    // householderQr() was not providing always a solution
+    //VectorsB x = A.householderQr().solve(B).eval();
+
+    VectorsB x = A.colPivHouseholderQr().solve(B).eval();
     return x; //RVO
 }
 

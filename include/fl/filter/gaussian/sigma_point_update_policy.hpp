@@ -114,9 +114,9 @@ public:
         posterior_belief.mean(x_updated);
         posterior_belief.covariance(cov_xx_updated);
 
-//        auto K = (cov_xy * cov_yy.inverse()).eval();
-//        posterior_belief.mean(X.mean() + K * innovation);
-//        posterior_belief.covariance(cov_xx - K * cov_yy * K.transpose());
+        //        auto K = (cov_xy * cov_yy.inverse()).eval();
+        //        posterior_belief.mean(X.mean() + K * innovation);
+        //        posterior_belief.covariance(cov_xx - K * cov_yy * K.transpose());
     }
 
     virtual std::string name() const
