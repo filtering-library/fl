@@ -106,8 +106,8 @@ public:
     virtual ~TDistribution() { }
 
     /**
-     * \brief Returns a t-distribution sample of the type \c Variate determined by
-     * mapping a standard normal sample into the t-distribution sample space
+     * \brief Returns a t-distribution sample of the type \c Variate determined
+     * by mapping a standard normal sample into the t-distribution sample space
      *
      * \param sample    Standard normal sample
      *

@@ -23,6 +23,7 @@
 #define FL__FILTER__GAUSSIAN__ROBUST_GAUSSIAN_FILTER_HPP
 
 #include <fl/util/meta.hpp>
+#include <fl/util/profiling.hpp>
 #include <fl/util/traits.hpp>
 #include <fl/filter/gaussian/gaussian_filter_nonlinear_generic.hpp>
 #include <fl/filter/gaussian/sigma_point_additive_uncorrelated_update_policy.hpp>
@@ -133,28 +134,32 @@ public:
                         const Obsrv& obsrv,
                         Belief& posterior_belief)
     {
-        typedef typename FeatureObsrvModel::Noise Noise;
+        typedef typename ObservationFunction::Noise Noise;
 
-        Gaussian<Obsrv> body_distr(obsrv_model().obsrv_dimension());
         Gaussian<Noise> noise_distr(obsrv_model().noise_dimension());
 
-        auto&& h = [=](const State& x, const Noise& w)
+        auto&& h = [&](const State& x, const Noise& w)
         {
            return obsrv_model().observation(x, w);
         };
 
+        auto y_mean = typename FirstMomentOf<Obsrv>::Type();
+        auto y_cov = typename SecondMomentOf<Obsrv>::Type();
+
         gaussian_filter_
             .quadrature()
-            .integrate_moments(h, predicted_belief, noise_distr, body_distr);
+            .integrate_moments(h, predicted_belief, noise_distr, y_mean, y_cov);
 
         gaussian_filter_
             .obsrv_model()
-            .parameters(body_distr, predicted_belief.mean());
+            .parameters(predicted_belief.mean(), y_mean, y_cov);
+
+        auto feature_y =  gaussian_filter_
+                            .obsrv_model()
+                            .feature_obsrv(obsrv, predicted_belief.mean());
 
         gaussian_filter_
-            .update(predicted_belief,
-                    gaussian_filter_.obsrv_model().feature_obsrv(obsrv),
-                    posterior_belief);
+            .update(predicted_belief, feature_y, posterior_belief);
     }
 
 public: /* factory functions */

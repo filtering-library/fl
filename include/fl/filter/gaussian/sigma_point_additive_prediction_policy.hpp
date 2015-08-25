@@ -67,7 +67,7 @@ public:
                     const Input& u,
                     Belief& predicted_belief)
     {
-        auto&& f = [=](const State& x)
+        auto&& f = [&](const State& x)
         {
             return additive_state_transition_function.expected_state(x, u);
         };

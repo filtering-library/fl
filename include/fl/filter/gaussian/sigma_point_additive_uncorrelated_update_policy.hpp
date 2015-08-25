@@ -69,7 +69,7 @@ public:
                     const Obsrv& obsrv,
                     Belief& posterior_belief)
     {
-        auto&& h = [=](const State& x)
+        auto&& h = [&](const State& x)
         {
            return obsrv_function.expected_observation(x);
         };

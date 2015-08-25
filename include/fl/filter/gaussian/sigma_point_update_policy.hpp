@@ -90,7 +90,7 @@ public:
 
         noise_distr_.dimension(obsrv_function.noise_dimension());
 
-        auto&& h = [=](const State& x, const Noise& w)
+        auto&& h = [&](const State& x, const Noise& w)
         {
            return obsrv_function.observation(x, w);
         };
@@ -106,10 +106,17 @@ public:
         auto cov_xx = (X_c * W.asDiagonal() * X_c.transpose()).eval();
         auto cov_yy = (Z_c * W.asDiagonal() * Z_c.transpose()).eval();
         auto cov_xy = (X_c * W.asDiagonal() * Z_c.transpose()).eval();
-        auto K = (cov_xy * cov_yy.inverse()).eval();
+        auto cov_yx = cov_xy.transpose().eval();
 
-        posterior_belief.mean(X.mean() + K * innovation);
-        posterior_belief.covariance(cov_xx - K * cov_yy * K.transpose());
+        auto x_updated = (X.mean() + cov_xy * solve(cov_yy, innovation)).eval();
+        auto cov_xx_updated = (cov_xx - cov_xy * solve(cov_yy, cov_yx)).eval();
+
+        posterior_belief.mean(x_updated);
+        posterior_belief.covariance(cov_xx_updated);
+
+        //        auto K = (cov_xy * cov_yy.inverse()).eval();
+        //        posterior_belief.mean(X.mean() + K * innovation);
+        //        posterior_belief.covariance(cov_xx - K * cov_yy * K.transpose());
     }
 
     virtual std::string name() const

@@ -40,24 +40,26 @@ struct UnscentedKalmanFilterTestConfiguration
         ObsrvDim = ObsrvDimension
     };
 
-    template <typename StateTransitionModel, typename ObservationModel>
+    template <typename ModelFactory>
     struct FilterDefinition
     {
-        //typedef SigmaPointQuadrature<UnscentedTransform> Quadrature;
         typedef UnscentedQuadrature Quadrature;
 
         typedef GaussianFilter<
-                        StateTransitionModel,
-                        ObservationModel,
+                        typename ModelFactory::LinearStateTransition,
+                        typename ModelFactory::LinearObservation,
                         Quadrature
                 > Type;
     };
 
-    template <typename F, typename H>
-    static typename FilterDefinition<F, H>::Type create_filter(F&& f, H&& h)
+    template <typename ModelFactory>
+    static typename FilterDefinition<ModelFactory>::Type
+    create_filter(ModelFactory&& factory)
     {
-        return typename FilterDefinition<F, H>::Type(
-            f, h, UnscentedQuadrature());
+        return typename FilterDefinition<ModelFactory>::Type(
+            factory.create_linear_state_model(),
+            factory.create_observation_model(),
+            UnscentedQuadrature());
     }
 };
 

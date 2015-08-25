@@ -452,6 +452,8 @@ public:
      */
     Real log_probability(const Variate& vector) const override
     {
+        // assert(has_full_rank());
+
         if(has_full_rank())
         {
             return log_normalizer() - 0.5

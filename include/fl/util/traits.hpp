@@ -25,6 +25,7 @@
 #include <Eigen/Dense>
 
 #include "types.hpp"
+#include "profiling.hpp"
 
 namespace fl
 {

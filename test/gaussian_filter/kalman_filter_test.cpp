@@ -38,19 +38,22 @@ struct KalmanFilterTestConfiguration
         ObsrvDim = ObsrvDimension
     };
 
-    template <typename StateTransitionModel, typename ObservationModel>
+    template <typename ModelFactory>
     struct FilterDefinition
     {
         typedef fl::GaussianFilter<
-                    StateTransitionModel,
-                    ObservationModel
+                    typename ModelFactory::LinearStateTransition,
+                    typename ModelFactory::LinearObservation
                 > Type;
     };
 
-    template <typename F, typename H>
-    static typename FilterDefinition<F, H>::Type create_filter(F&& f, H&& h)
+    template <typename ModelFactory>
+    static typename FilterDefinition<ModelFactory>::Type
+    create_filter(ModelFactory&& factory)
     {
-        return typename FilterDefinition<F, H>::Type(f, h);
+        return typename FilterDefinition<ModelFactory>::Type(
+            factory.create_linear_state_model(),
+            factory.create_observation_model());
     }
 };
 

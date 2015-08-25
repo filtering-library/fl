@@ -89,7 +89,7 @@ public:
 
         noise_distr_.dimension(state_transition_funtion.noise_dimension());
 
-        auto&& f = [=](const State& x, const Noise& v)
+        auto&& f = [&](const State& x, const Noise& v)
         {
             return state_transition_funtion.state(x, v, u);
         };
