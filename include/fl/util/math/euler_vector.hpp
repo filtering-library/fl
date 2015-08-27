@@ -85,6 +85,8 @@ public:
     virtual void angle_axis(const Scalar& angle, const Axis& axis)
     {
         *this = angle * axis;
+
+        rescale();
     }
     virtual void angle_axis(const AngleAxis& ang_axis)
     {
@@ -97,6 +99,25 @@ public:
     virtual void rotation_matrix(const RotationMatrix& rot_mat)
     {
         angle_axis(AngleAxis(rot_mat));
+    }
+    virtual void rescale() // make sure the norm is in [0,Pi]
+    {
+        Scalar alpha = angle();
+
+        if(alpha <= M_PI)
+        {
+            return;
+        }
+        if(alpha > 2 * M_PI)
+        {
+            alpha -= std::floor(alpha / (2 * M_PI)) * 2 * M_PI;
+        }
+        if(alpha > M_PI)
+        {
+            alpha -= 2 * M_PI;
+        }
+
+        (*this) = axis() * alpha;
     }
 };
 
