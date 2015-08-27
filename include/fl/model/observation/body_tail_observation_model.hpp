@@ -199,6 +199,19 @@ public:
     }
 
     /**
+     * \brief Predicts the expected observation given a \a state. That is
+     *        \f$\mathbb{E}[y] \mathrm{expected_observation}(\mathbb{E}[x])\f$
+     *
+     * \param state
+     * \return Expected observation given a \a state
+     */
+    virtual Obsrv expected_observation(const State& state) const
+    {
+        auto y = body_.expected_observation(state);
+        return y; // RVO
+    }
+
+    /**
      * \brief Evalues the probability of the specified \a obsrv, i.e.
      * \f$p(y \mid x)\f$ where \f$y =\f$ \a obsrv and \f$x =\f$ \a state.
      *

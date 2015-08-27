@@ -154,7 +154,7 @@ public:
             .obsrv_model()
             .parameters(predicted_belief.mean(), y_mean, y_cov);
 
-        auto feature_y =  gaussian_filter_
+        auto feature_y = gaussian_filter_
                             .obsrv_model()
                             .feature_obsrv(obsrv, predicted_belief.mean());
 

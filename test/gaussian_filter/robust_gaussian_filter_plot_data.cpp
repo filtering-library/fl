@@ -29,6 +29,9 @@
 #include <fl/model/observation/body_tail_observation_model.hpp>
 #include <fl/model/observation/linear_gaussian_observation_model.hpp>
 
+#include <vector>
+#include <fstream>
+
 using namespace fl;
 
 template <typename TestType>
@@ -112,10 +115,10 @@ struct RobutGaussianFilterPlotData
         return model;
     }
 
-    typedef UnscentedQuadrature Quadrature;
-//        typedef fl::SigmaPointQuadrature<
-//                    fl::MonteCarloTransform<
-//                        fl::ConstantPointCountPolicy<1000>>> Quadrature;
+//    typedef UnscentedQuadrature Quadrature;
+    typedef fl::SigmaPointQuadrature<
+                fl::MonteCarloTransform<
+                    fl::LinearPointCountPolicy<10>>> Quadrature;
 
     typedef RobustGaussianFilter<
                 ProcessModel,
@@ -157,24 +160,62 @@ int main(int nargs, char** vargs)
                 StaticTest<Config>
             >::Filter Filter;
 
-    RobutGaussianFilterPlotData<StaticTest<Config>> rgf_pd;
+    typedef RobutGaussianFilterPlotData<StaticTest<Config>> RgfPlotData;
+    typedef typename Filter::Obsrv Obsrv;
+    typedef typename Filter::State State;
+    typedef typename Filter::Belief Belief;
+    typedef typename RgfPlotData::ProcessModel::Noise StateNoise;
+
+    RgfPlotData rgf_pd;
 
     auto rgf = rgf_pd.create_filter(
                    rgf_pd.create_linear_state_model(),
                    rgf_pd.create_body_tail_observation_model(
                        rgf_pd.create_linear_gaussian_observation_model(1.0),
                        rgf_pd.create_linear_cauchy_observation_model(10.0),
-                       0.1));
-
-    auto belief = rgf.create_belief();
-
-    rgf.predict(belief, rgf_pd.zero_input(), belief);
-    rgf.update(belief, rgf_pd.rand_obsrv(), belief);
+                       0.01));
 
     PV(rgf.name());
-    PV(rgf.description());
-    PV(belief.mean());
-    PV(belief.covariance());
+    PV(rgf.description());;
+
+    struct SimData
+    {
+        Belief belief;
+        Obsrv y;
+        State x;
+    };
+
+    int iterations = 100;
+
+    auto& f = rgf.process_model();
+    auto& h = rgf.obsrv_model();
+
+    auto noise_gaussian = StandardGaussian<StateNoise>();
+
+    auto data = std::vector<SimData>(iterations);
+    data[0].belief = rgf.create_belief();
+    data[0].x = data[0].belief.mean();
+    data[0].y = h.expected_observation(data[0].x);
+
+    std::ofstream filestream("plot.txt", std::ofstream::out);
+
+    for (int i = 1; i < iterations; ++i)
+    {
+        data[i].x = f.state(data[i-1].x, noise_gaussian.sample(), rgf_pd.zero_input());
+        data[i].y = h.expected_observation(data[i].x);
+
+        if (i > 50 && i < 55)
+        {
+            data[i].y += Obsrv::Ones()*10;
+        }
+
+        rgf.predict(data[i-1].belief, rgf_pd.zero_input(), data[i].belief);
+        rgf.update(data[i].belief, data[i].y, data[i].belief);
+
+        filestream << data[i].x << " "  << data[i].y << " " <<  data[i].belief.mean() << "\n";
+    }
+
+    filestream.close();
 
     return 0;
 }

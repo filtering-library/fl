@@ -87,6 +87,11 @@ public:
         return sensor_matrix_ * state + density_.map_standard_normal(noise);
     }
 
+    Obsrv exxpetced_observation(const State& state)
+    {
+        return sensor_matrix_ * state;
+    }
+
     Real log_probability(const Obsrv& obsrv, const State& state) const override
     {
         density_.location(sensor_matrix_ * state);
