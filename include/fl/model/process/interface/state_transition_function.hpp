@@ -49,6 +49,10 @@ public:
      */
     virtual ~StateTransitionFunction() { }
 
+    /// \todo: we should have a second function state which does not require
+    /// a control input. this function would represent the uncontrolled
+    /// dynamics. in most cases this would just call the function below
+    /// with a zero input for the controls.
     virtual State state(const State& prev_state,
                         const Noise& noise,
                         const Input& input) const = 0;
