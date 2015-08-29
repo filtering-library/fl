@@ -58,10 +58,6 @@ typedef std::mersenne_twister_engine<
                 0xffe50000, 17,
                 1812433253 > mt11213b;
 
-
-static unsigned int initial_seed =  std::time(0);
-static unsigned int seed_inc = initial_seed;
-
 /**
  * \ingroup random
  * \brief A seed. If fl_USE_RANDOM_SEED was set true the seed is set to the
@@ -71,6 +67,7 @@ static unsigned int seed_inc = initial_seed;
 inline unsigned int seed()
 {
 #ifdef fl_USE_RANDOM_SEED
+    static unsigned int seed_inc = std::time(0);
     return seed_inc++;
 #else
     return 1;
