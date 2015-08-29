@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package>
   <name>fl</name>
-  <version>0.0.0</version>
+  <version>0.1.2</version>
   <description>The filtering_library package</description>
 
   <maintainer email="jan.issac@gmail.com">Jan Issac</maintainer>
@@ -14,9 +14,6 @@
   <author email="manuel.wuthrich@gmail.com">Manuel Wuethrich</author>
 
   <buildtool_depend>catkin</buildtool_depend>
-
-  <build_depend>cmake_modules</build_depend>
-
   <export>
     <!-- <metapackage/> -->
   </export>
