@@ -4,7 +4,7 @@ project(fl)
 ############################
 # Options                  #
 ############################
-option(fl_USE_CATKIN "Use catkin build system" OFF)
+option(fl_USE_CATKIN "Use catkin build system" ON)
 option(fl_USE_RANDOM_SEED "Use random seeds for number generators" ON)
 set(fl_FLOATING_POINT_TYPE "double" CACHE STRING "fl::Real floating point type")
 
