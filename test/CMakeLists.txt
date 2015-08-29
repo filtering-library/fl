@@ -44,6 +44,10 @@ fl_add_test(
     NAME    body_tail_observation_model
     SOURCES model/observation/body_tail_observation_model_test.cpp)
 
+fl_add_test(
+    NAME    joint_observation_model_iid
+    SOURCES model/observation/joint_observation_model_iid_test.cpp)
+
 # == state transition model tests ============================================ #
 fl_add_test(
     NAME    linear_state_transition_model
