@@ -70,3 +70,4 @@ function(${PROJECT_NAME}_add_test)
             ${${PROJECT_NAME}_TEST_LIBS} ${${PROJECT_NAME}_LIBS})
     endif(NOT ${PROJECT_NAME}_USING_CATKIN)
 endfunction(${PROJECT_NAME}_add_test)
+

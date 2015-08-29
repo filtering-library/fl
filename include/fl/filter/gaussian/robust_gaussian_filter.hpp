@@ -134,13 +134,15 @@ public:
                         const Obsrv& obsrv,
                         Belief& posterior_belief)
     {
-        typedef typename ObservationFunction::Noise Noise;
+        typedef typename ObservationFunction::BodyObsrvModel::Noise Noise;
 
-        Gaussian<Noise> noise_distr(obsrv_model().noise_dimension());
+        auto body_noise_distr = Gaussian<Noise>(obsrv_model()
+                                                    .body_model()
+                                                    .noise_dimension());
 
         auto&& h = [&](const State& x, const Noise& w)
         {
-           return obsrv_model().observation(x, w);
+           return obsrv_model().body_model().observation(x, w);
         };
 
         auto y_mean = typename FirstMomentOf<Obsrv>::Type();
@@ -148,7 +150,8 @@ public:
 
         gaussian_filter_
             .quadrature()
-            .integrate_moments(h, predicted_belief, noise_distr, y_mean, y_cov);
+            .integrate_moments(
+                h, predicted_belief, body_noise_distr, y_mean, y_cov);
 
         gaussian_filter_
             .obsrv_model()
