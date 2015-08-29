@@ -49,6 +49,7 @@
 
 #define PV(mat) std::cout << #mat << "\n" << mat << "\n\n";
 #define PVT(mat) std::cout << #mat << "\n" << mat.transpose() << "\n\n";
+#define PF(flag) std::cout << #flag << ":=" << flag << "\n";
 //#define PV(mat)
 
 #endif
