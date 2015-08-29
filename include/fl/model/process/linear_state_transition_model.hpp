@@ -43,6 +43,9 @@ namespace fl
 template <typename State_, typename Input_>
 class LinearStateTransitionModel
     : public StateTransitionDensity<State_, Input_>,
+      /// \todo the second type below should be Noise_ which should also
+      /// be a template argument of this class, since the noise does
+      /// not necessarily have the same size as the state.
       public AdditiveStateTransitionFunction<State_, State_, Input_>,
       public Descriptor,
       private internal::LinearModelType

@@ -52,6 +52,8 @@ public:
     typedef Eigen::VectorBlock<Base, BLOCK_SIZE>   PositionBlock;
     typedef EulerBlock<Base>                       OrientationBlock;
 
+    typedef PoseBase<Eigen::Matrix<Real, 6, 1>>     PoseVector;
+
     // constructor and destructor **********************************************
     PoseBase(const Base& vector): Base(vector) { }
     virtual ~PoseBase() {}
@@ -88,6 +90,12 @@ public:
 
         return A;
     }
+    virtual PoseVector inverse() const
+    {
+        PoseVector inv(PoseVector::Zero());
+        inv.homogeneous(this->homogeneous().inverse());
+        return inv;
+    }
 
     // mutators ****************************************************************
     PositionBlock position()
@@ -108,6 +116,16 @@ public:
        orientation().rotation_matrix(A.rotation());
        position() = A.translation();
     }
+
+    // operators ***************************************************************
+    template <typename T>
+    PoseVector operator * (const PoseBase<T>& factor)
+    {
+        PoseVector product(PoseVector::Zero());
+        product.homogeneous(
+                    this->homogeneous() * factor.homogeneous());
+        return product;
+    }
 };
 
 
@@ -124,23 +142,6 @@ public:
     PoseVector(const Eigen::MatrixBase<T>& vector): Base(vector) { }
 
     virtual ~PoseVector() {}
-
-    // operators ***************************************************************
-    PoseVector operator * (const PoseVector& factor)
-    {
-        PoseVector product;
-        product.homogeneous(
-                    this->homogeneous() * factor.homogeneous());
-        return product;
-    }
-
-    // accessor ****************************************************************
-    virtual PoseVector inverse() const
-    {
-        PoseVector inv;
-        inv.homogeneous(this->homogeneous().inverse());
-        return inv;
-    }
 };
 
 

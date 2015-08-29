@@ -42,6 +42,8 @@ public:
     typedef Eigen::Quaternion<Scalar>       Quaternion;
     typedef Eigen::Matrix<Scalar, 3, 3>     RotationMatrix;
 
+    typedef EulerBase<Eigen::Matrix<Real, 3, 1>> EulerVector;
+
     // constructor and destructor **********************************************
     EulerBase(const Base& vector): Base(vector) { }
     virtual ~EulerBase() {}
@@ -79,6 +81,10 @@ public:
     virtual RotationMatrix rotation_matrix() const
     {
         return RotationMatrix(quaternion());
+    }
+    virtual EulerVector inverse() const
+    {
+        return EulerVector(-*this);
     }
 
     // mutators ****************************************************************
@@ -119,6 +125,15 @@ public:
 
         (*this) = axis() * alpha;
     }
+
+    // operators ***************************************************************
+    template <typename T>
+    EulerVector operator * (const EulerBase<T>& factor)
+    {
+        EulerVector product(EulerVector::Zero());
+        product.quaternion(this->quaternion() * factor.quaternion());
+        return product;
+    }
 };
 
 
@@ -135,20 +150,6 @@ public:
     EulerVector(const Eigen::MatrixBase<T>& vector): Base(vector) { }
 
     virtual ~EulerVector() {}
-
-    // operators ***************************************************************
-    EulerVector operator * (const EulerVector& factor)
-    {
-        EulerVector product;
-        product.quaternion(this->quaternion() * factor.quaternion());
-        return product;
-    }
-
-    // accessor ****************************************************************
-    virtual EulerVector inverse() const
-    {
-        return - (*this);
-    }
 };
 
 
