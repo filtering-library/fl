@@ -145,6 +145,23 @@ struct AdditiveUncorrelatedNoiseModelType { };
  */
 struct NonAdditiveNoiseModelType { };
 
+/**
+ * \internal
+ * \ingroup types
+ *
+ * \brief Base type of every iid JointObservationModel
+ */
+struct JointObservationModelIidType { };
+
+
+/**
+ * \internal
+ * \ingroup types
+ *
+ * \brief Base type of every id JointObservationModel
+ */
+struct JointObservationModelIdType { };
+
 }
 
 }
