@@ -41,7 +41,8 @@ template <typename T, int Count>
 struct MultipleOf
     //: CreateTypeSequence<Count, typename ForwardAdaptive<T>::Type>
 {
-    typedef typename ForwardAdaptive<T>::Type Type;
+    //typedef typename ForwardAdaptive<T>::Type Type;
+    typedef T Type;
 
     MultipleOf(const Type& instance, int instance_count = Count)
         : instance(instance),
