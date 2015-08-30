@@ -68,11 +68,20 @@ protected:
 
     GaussianFilterTest()
         : predict_steps_(30),
-          predict_update_steps_(1000)
+          predict_update_steps_(30)
     { }
 
     struct ModelFactory
     {
+        // Sizes will be 1 of the test type is static and it will fall back to
+        // -1 for dynamic size tests. This may be used as an expansion factor
+        // using fl::ExpandSizes<MySize, Sizes>::Value. If Sizes is equal to 1
+        // (Static) then ExpandSizes will simply multiply MySizes by 1 and
+        // everything is defined statically. On the other hand, if the Sizes
+        // is -1, fl::ExpandSizes will fallback to -1 indicating that the test
+        // type is dynamic.
+        enum : signed int { Sizes = fl::TestSize<1, TestType>::Value };
+
         typedef fl::LinearStateTransitionModel<
                     State, Input
                 > LinearStateTransition;
@@ -137,21 +146,25 @@ protected:
     };
 
     typedef typename Configuration::template FilterDefinition<
-        ModelFactory
-    >::Type Filter;
+                ModelFactory
+            >::Type Filter;
 
     Filter create_filter(ModelSetup setup = Identity) const
     {
         return Configuration::create_filter(ModelFactory{setup});
     }
 
-    State zero_state() { return State::Zero(StateDim); }
-    Input zero_input() { return Input::Zero(InputDim); }
-    Obsrv zero_obsrv() { return Obsrv::Zero(ObsrvDim); }
+    typename fl::Traits<Filter>::Input zero_input(const Filter& filter)
+    {
+        return fl::Traits<Filter>::Input::Zero(
+            filter.process_model().input_dimension());
+    }
 
-    State rand_state() { return State::Random(StateDim); }
-    Input rand_input() { return Input::Random(InputDim); }
-    Obsrv rand_obsrv() { return Obsrv::Random(ObsrvDim); }
+    typename fl::Traits<Filter>::Obsrv rand_obsrv(const Filter& filter)
+    {
+        return fl::Traits<Filter>::Obsrv::Random(
+            filter.obsrv_model().obsrv_dimension());
+    }
 
 protected:
     int predict_steps_;
@@ -185,19 +198,32 @@ TYPED_TEST_P(GaussianFilterTest, predict_then_update)
 {
     typedef TestFixture This;
 
-    auto filter = This::create_filter(This::Random);
+    auto filter = This::create_filter(This::Identity);
+
+    PV(filter.name());
+
     auto belief = filter.create_belief();
 
     EXPECT_TRUE(belief.covariance().ldlt().isPositive());
 
     for (int i = 0; i < This::predict_update_steps_; ++i)
     {
-        filter.predict(belief, This::zero_input(), belief);
+        filter.predict(belief, This::zero_input(filter), belief);
         ASSERT_TRUE(belief.covariance().ldlt().isPositive());
 
-        filter.update(belief, This::rand_obsrv(), belief);
+        filter.update(belief, This::rand_obsrv(filter), belief);
+
+        if (!belief.covariance().ldlt().isPositive())
+        {
+            PV(belief.mean());
+            PV(belief.covariance());
+        }
+
         ASSERT_TRUE(belief.covariance().ldlt().isPositive());
     }
+
+    PV(belief.mean());
+    PV(belief.covariance());
 }
 
 TYPED_TEST_P(GaussianFilterTest, predict_loop)
@@ -211,7 +237,7 @@ TYPED_TEST_P(GaussianFilterTest, predict_loop)
 
     for (int i = 0; i < This::predict_steps_; ++i)
     {
-        filter.predict(belief, This::zero_input(), belief);
+        filter.predict(belief, This::zero_input(filter), belief);
     }
 
     EXPECT_TRUE(belief.covariance().ldlt().isPositive());
