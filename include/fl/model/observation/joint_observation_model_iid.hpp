@@ -27,7 +27,9 @@
 #include <memory>
 #include <type_traits>
 
+#include <fl/util/types.hpp>
 #include <fl/util/traits.hpp>
+#include <fl/util/descriptor.hpp>
 #include <fl/util/meta.hpp>
 #include <fl/distribution/gaussian.hpp>
 
@@ -100,7 +102,9 @@ template <
 class JointObservationModel<MultipleOf<LocalObsrvModel, Count>>
     : public Traits<
                  JointObservationModel<MultipleOf<LocalObsrvModel, Count>>
-             >::ObservationFunctionBase
+             >::ObservationFunctionBase,
+      public Descriptor,
+      private internal::JointObservationModelIidType
 {
 private:
     /** Typdef of \c This for #from_traits(TypeName) helper */
@@ -177,6 +181,28 @@ public:
     const LocalObsrvModel& local_obsrv_model() const
     {
         return local_obsrv_model_;
+    }
+
+    virtual std::string name() const
+    {
+        return "JointObservationModel<MultipleOf<"
+                    + this->list_arguments(local_obsrv_model_.name()) +
+               ", Count>>";
+    }
+
+    virtual std::string description() const
+    {
+        return "Joint observation model of multiple local observation models "
+                " with non-additive noise.";
+    }
+
+    /**
+     *
+     * \brief Returns the number of local models within this joint model
+     */
+    virtual int count_local_models() const
+    {
+        return count_;
     }
 
 protected:
