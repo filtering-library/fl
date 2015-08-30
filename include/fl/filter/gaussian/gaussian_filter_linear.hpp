@@ -14,7 +14,7 @@
  */
 
 /**
- * \file gaussian_filter_kf.hpp
+ * \file gaussian_filter_linear.hpp
  * \date October 2014
  * \author Jan Issac (jan.issac@gmail.com)
  */
@@ -217,10 +217,25 @@ public:
                             obsrv_model().description());
     }
 
-    LinearStateTransitionModel& process_model() { return process_model_; }
-    LinearObservationModel& obsrv_model() { return obsrv_model_; }
-    const LinearStateTransitionModel& process_model() const { return process_model_; }
-    const LinearObservationModel& obsrv_model() const { return obsrv_model_; }
+    LinearStateTransitionModel& process_model()
+    {
+        return process_model_;
+    }
+
+    LinearObservationModel& obsrv_model()
+    {
+        return obsrv_model_;
+    }
+
+    const LinearStateTransitionModel& process_model() const
+    {
+        return process_model_;
+    }
+
+    const LinearObservationModel& obsrv_model() const
+    {
+        return obsrv_model_;
+    }
 
 protected:
     /** \cond internal */
