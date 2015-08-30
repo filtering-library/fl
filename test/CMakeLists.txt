@@ -112,6 +112,12 @@ fl_add_test(
             gaussian_filter/gaussian_filter_test_suite.hpp
             gaussian_filter/unscented_kalman_filter_test.cpp)
 
+fl_add_test(
+    NAME    multi_sensor_gaussian_filter
+    SOURCES typecast.hpp
+            gaussian_filter/gaussian_filter_test_suite.hpp
+            gaussian_filter/multi_sensor_gaussian_filter_test.cpp)
+
 ## gaussian_filter test
 add_subdirectory(gaussian_filter)
 
