@@ -84,7 +84,7 @@ struct MultiSensorGfTestConfiguration
 };
 
 typedef ::testing::Types<
-            StaticTest<MultiSensorGfTestConfiguration<3, 1, 1, 1000>>
+            StaticTest<MultiSensorGfTestConfiguration<12, 1, 3, 10>>
         > TestTypes;
 
 INSTANTIATE_TYPED_TEST_CASE_P(MultiSensorGaussianFilterTest,
