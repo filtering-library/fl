@@ -114,6 +114,11 @@ public:
         : Base(process_model, obsrv_model, quadrature)
     { }
 
+    /**
+     * \brief Overridable default destructor
+     */
+    virtual ~MultiSensorGaussianFilter() { }
+
     virtual std::string name() const
     {
         return "MultiSensorGaussianFilter<"
