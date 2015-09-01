@@ -95,128 +95,69 @@ public:
     typedef typename JointModel::Obsrv Obsrv;
     typedef typename JointModel::Noise Noise;
 
+    typedef typename Traits<JointModel>::LocalObsrv LocalObsrv;
+    typedef typename Traits<JointModel>::LocalNoise LocalObsrvNoise;
+
     enum : signed int
     {
         NumberOfPoints = SigmaPointQuadrature::number_of_points(
                              JoinSizes<
                                  SizeOf<State>::Value,
-                                 SizeOf<Noise>::Value
+                                 SizeOf<LocalObsrvNoise>::Value
                              >::Size)
     };
 
     typedef PointSet<State, NumberOfPoints> StatePointSet;
-    typedef PointSet<Noise, NumberOfPoints> NoisePointSet;
-    typedef PointSet<Obsrv, NumberOfPoints> ObsrvPointSet;
+    typedef PointSet<LocalObsrv, NumberOfPoints> LocalObsrvPointSet;
+    typedef PointSet<LocalObsrvNoise, NumberOfPoints> LocalNoisePointSet;
 
     template <
         typename Belief
     >
-    void operator()(const JointModel& obsrv_function,
+    void operator()(JointModel& obsrv_function,
                     const SigmaPointQuadrature& quadrature,
                     const Belief& prior_belief,
-                    const Obsrv& obsrv,
+                    const Obsrv& y,
                     Belief& posterior_belief)
     {
-        // static_assert() is non-additive
+        quadrature.transform_to_points(prior_belief, noise_distr_, p_X, p_Q);
 
-        INIT_PROFILING
-        noise_distr_.dimension(obsrv_function.noise_dimension());
-
-        auto&& h = [&](const State& x, const Noise& w)
+        auto& model = obsrv_function.local_obsrv_model();
+        auto&& h = [&](const State& x, const LocalObsrvNoise& w)
         {
-           return obsrv_function.observation(x, w);
+            return model.observation(x, w);
         };
 
-        quadrature.propergate_gaussian(h, prior_belief, noise_distr_, X, Y, Z);
-        MEASURE("Integrate");
+        auto&& mu_x = p_X.center();
+        auto&& X = p_X.points();
+        auto c_xx = cov(X, X);
+        auto c_xx_inv = c_xx.inverse().eval();
 
-        auto&& mu_y = Z.center();
-        auto&& mu_x = X.center();
-        auto&& Z_c = Z.points();
-        auto&& X_c = X.points();
-        auto&& W = X.covariance_weights_vector();
-        auto cov_xx = (X_c * W.asDiagonal() * X_c.transpose()).eval();
-        auto cov_xx_inv = (cov_xx.inverse()).eval();
-        auto innovation = (obsrv - mu_y).eval();
+        auto C = c_xx_inv;
+        auto D = State();
+        D.setZero(mu_x.size());
 
-        auto C = cov_xx_inv;
-        auto D = mu_x;
-        D.setZero();
+        const int sensors = obsrv_function.count_local_models();
+        for (int i = 0; i < sensors; ++i)
+        {
+            model.id(i);
+            quadrature.propergate_points(h, p_X, p_Q, p_Y);
 
-        const int dim_Z_i = obsrv_function.local_obsrv_model().obsrv_dimension();
-        const int obsrv_count = obsrv_function.count_local_models();
+            auto mu_y = p_Y.center();
+            auto Y = p_Y.points();
+            auto c_yy = cov(Y, Y);
+            auto c_xy = cov(X, Y);
+            auto c_yx = c_xy.transpose();
+            auto A_i = (c_yx * c_xx_inv).eval();
+            auto c_yy_given_x_inv = (c_yy - c_yx * c_xx_inv * c_xy).inverse();
+            auto T = (A_i.transpose() * c_yy_given_x_inv).eval();
 
-        MEASURE("Preparation");
-
-//        for (int i = 0; i < obsrv_count; ++i)
-//        {
-//            auto Z_i = Z_c.middleRows(i * dim_Z_i, dim_Z_i).eval();
-//            auto cov_xy_i = (X_c * W.asDiagonal() * Z_i.transpose()).eval();
-//            auto cov_yy_i = (Z_i * W.asDiagonal() * Z_i.transpose()).eval();
-//            auto innov_i  = innovation.middleRows(i * dim_Z_i, dim_Z_i).eval();
-
-//            auto A_i = (cov_xy_i.transpose() * cov_xx_inv).eval();
-
-//            auto cov_yy_i_inv_given_x =
-//                (cov_yy_i - cov_xy_i.transpose() * cov_xx_inv * cov_xy_i)
-//                    .inverse();
-
-//            auto T = (A_i.transpose() * cov_yy_i_inv_given_x).eval();
-
-//            C += T * A_i;
-//            D += T * innov_i;
-//        }
-
-
-        auto Z_0 = Z_c.middleRows(0 * dim_Z_i, dim_Z_i).eval();
-        auto cov_xy_0 = (X_c * W.asDiagonal() * Z_0.transpose()).eval();
-        auto cov_yy_0 = (Z_0 * W.asDiagonal() * Z_0.transpose()).eval();
-        auto innov_0  = innovation.middleRows(0 * dim_Z_i, dim_Z_i).eval();
-        auto A_0 = (cov_xy_0.transpose() * cov_xx_inv).eval();
-        auto cov_yy_i_inv_given_x =
-            (cov_yy_0 - cov_xy_0.transpose() * cov_xx_inv * cov_xy_0)
-                .inverse();
-        auto T0 = (A_0.transpose() * cov_yy_i_inv_given_x).eval();
-        MEASURE("Debugging temp preparation");
-
-
-        for (int i = 0; i < obsrv_count; ++i) { auto Z_i = Z_c.middleRows(i * dim_Z_i, dim_Z_i).eval(); }
-        MEASURE("auto Z_i = ...");
-
-        for (int i = 0; i < obsrv_count; ++i) { auto cov_xy_i = (X_c * W.asDiagonal() * Z_0.transpose()).eval(); }
-        MEASURE("auto cov_xy_i = ...");
-
-        for (int i = 0; i < obsrv_count; ++i) { auto cov_yy_i = (Z_0 * W.asDiagonal() * Z_0.transpose()).eval(); }
-        MEASURE("auto cov_yy_i = ...");
-
-        for (int i = 0; i < obsrv_count; ++i){ auto innov_i  = innovation.middleRows(i * dim_Z_i, dim_Z_i).eval(); }
-        MEASURE("auto innov_i = ...");
-
-        for (int i = 0; i < obsrv_count; ++i){ auto A_i = (cov_xy_0.transpose() * cov_xx_inv).eval(); }
-        MEASURE("auto A_i = ...");
-
-        for (int i = 0; i < obsrv_count; ++i){ auto cov_yy_i_inv_given_x =
-                    (cov_yy_0 - cov_xy_0.transpose() * cov_xx_inv * cov_xy_0)
-                        .inverse(); }
-        MEASURE("auto cov_yy_i_inv_given_x = ...");
-
-        for (int i = 0; i < obsrv_count; ++i){ auto T = (A_0.transpose() * cov_yy_i_inv_given_x).eval(); }
-        MEASURE("auto T = ...");
-
-        for (int i = 0; i < obsrv_count; ++i){ C += T0 * A_0; }
-        MEASURE("auto C = ...");
-
-        for (int i = 0; i < obsrv_count; ++i){ D += T0 * innov_0; }
-        MEASURE("auto D = ...");
-
-
+            C += T * A_i;
+            D += T * (y.middleRows(i * mu_y.size(), mu_y.size()) - mu_y);
+        }
 
         posterior_belief.covariance(C.inverse());
-        MEASURE("posterior_belief.covariance(C.inverse())");
         posterior_belief.mean(mu_x + posterior_belief.covariance() * D);
-        MEASURE("posterior_belief.mean(mu_x + posterior_belief.covariance() * D)");
-
-        std::cout << "==================================================================" << std::endl;
     }
 
     virtual std::string name() const
@@ -235,11 +176,20 @@ public:
                "models with non-additive noise.";
     }
 
+private:
+    template <typename A, typename B>
+    auto cov(const A& a, const B& b) -> decltype((a * b.transpose()).eval())
+    {
+        auto&& W = p_X.covariance_weights_vector().asDiagonal();
+        auto c = (a * W * b.transpose()).eval();
+        return c;
+    }
+
 protected:
-    StatePointSet X;
-    NoisePointSet Y;
-    ObsrvPointSet Z;
-    Gaussian<Noise> noise_distr_;
+    StatePointSet p_X;
+    LocalNoisePointSet p_Q;
+    LocalObsrvPointSet p_Y;
+    Gaussian<LocalObsrvNoise> noise_distr_;
 };
 
 }
