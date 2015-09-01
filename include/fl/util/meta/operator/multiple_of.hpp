@@ -37,11 +37,13 @@ namespace fl
  * an attempt to make the use of \c CreateTypeSequence more natural. It also
  * allows dynamic sizes if needed.
  */
-template <typename T, int Count>
+template <typename T, int Count_>
 struct MultipleOf
     //: CreateTypeSequence<Count, typename ForwardAdaptive<T>::Type>
 {
     //typedef typename ForwardAdaptive<T>::Type Type;
+
+    enum : signed int { Count = Count_ };
     typedef T Type;
 
     MultipleOf(const Type& instance, int instance_count = Count)
