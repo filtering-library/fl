@@ -34,7 +34,7 @@ namespace fl
 /**
  * \ingroup linear_algebra
  *
- * Blockweise matrix inversion using the Sherman-Morrision-Woodbury
+ * \brief Blockweise matrix inversion using the Sherman-Morrision-Woodbury
  * indentity given that \f$\Sigma^{-1}_{aa}\f$ of
  *
  * \f$
@@ -85,23 +85,10 @@ inline void smw_inverse(const MatrixAInv& A_inv,
     L_B = L_C.transpose();
 }
 
-//    auto CAinv = C * A_inv;
-//    auto AinvB = (A_inv * B).eval();
-
-//    L_D = (D - C * AinvB).inverse();
-
-//    auto L_D_CAinv = L_D * CAinv;
-
-//    L_A = A_inv + AinvB * L_D_CAinv;
-
-//    L_C = -L_D_CAinv;
-
-//    L_B = L_C.transpose();
-
 /**
  * \ingroup linear_algebra
  *
- * Blockweise matrix inversion using the Sherman-Morrision-Woodbury
+ * \brief Blockweise matrix inversion using the Sherman-Morrision-Woodbury
  * indentity given that \f$\Sigma^{-1}_{aa}\f$ of
  *
  * \f$
@@ -160,7 +147,7 @@ inline void smw_inverse(const MatrixAInv& A_inv,
 /**
  * \ingroup linear_algebra
  *
- * Blockweise matrix inversion using the Sherman-Morrision-Woodbury
+ * \brief Blockweise matrix inversion using the Sherman-Morrision-Woodbury
  * indentity given that \f$\Sigma^{-1}_{aa}\f$ of
  *
  * \f$
@@ -205,8 +192,8 @@ inline void smw_inverse(const MatrixAInv& A_inv,
 /**
  * \ingroup linear_algebra
  *
- * Normalizes the values of input vector such that their sum is equal to the
- * specified \c sum. For instance, any convex combination requires that the
+ * \brief Normalizes the values of input vector such that their sum is equal to
+ * the specified \c sum. For instance, any convex combination requires that the
  * weights of the weighted sum sums up to 1.
  */
 template <typename T>
@@ -229,8 +216,8 @@ inline std::vector<T> normalize(const std::vector<T>& input, T sum)
 }
 
 /**
- * \brief Constructs the quaternion matrix for the specified quaternion vetcor
  * \ingroup linear_algebra
+ * \brief Constructs the quaternion matrix for the specified quaternion vetcor
  *
  * \param q_xyzw  Quaternion vector
  *
@@ -250,7 +237,7 @@ inline Eigen::Matrix<double, 4, 3> quaternion_matrix(
 
 /**
  * \ingroup linear_algebra
- *
+ * \todo DOC
  */
 template <typename RegularMatrix, typename SquareRootMatrix>
 void square_root(const RegularMatrix& regular_matrix,
@@ -261,7 +248,7 @@ void square_root(const RegularMatrix& regular_matrix,
 
 /**
  * \ingroup linear_algebra
- *
+ * \todo DOC
  */
 template <typename RegularMatrix>
 void sqrt_diagonal(const RegularMatrix& regular_matrix,
@@ -276,13 +263,13 @@ void sqrt_diagonal(const RegularMatrix& regular_matrix,
 
 /**
  * \ingroup linear_algebra
- *
+ * \brief Computes the square root of each element of the regular_matrix
  */
 template <typename RegularMatrix, typename SquareRootVector>
-void sqrt_diagonal_vector(const RegularMatrix& regular_matrix,
+void sqrt_diagonal_vector(const RegularMatrix& diagonal_vector,
                               SquareRootVector& square_root)
 {
-    square_root = regular_matrix;
+    square_root = diagonal_vector;
     for (size_t i = 0; i < square_root.rows(); ++i)
     {
         square_root(i, 0) = std::sqrt(square_root(i, 0));
@@ -291,7 +278,8 @@ void sqrt_diagonal_vector(const RegularMatrix& regular_matrix,
 
 /**
  * \ingroup linear_algebra
- *
+ * \brief Inverts a diagonal matrix represented by a vector. The result is again
+ *        a vector of the inverted diagonal elements.
  */
 template <typename SrcDiagonalMatrix, typename DestDiagonalMatrix>
 void invert_diagonal_vector(const SrcDiagonalMatrix& diagonal,
@@ -309,7 +297,7 @@ void invert_diagonal_vector(const SrcDiagonalMatrix& diagonal,
 /**
  * \ingroup linear_algebra
  *
- * Computes the Frobenius norm of a given real matrix.
+ * \brief Computes the Frobenius norm of a given real matrix.
  *
  * The Frobenius norm is given by
  *
@@ -325,7 +313,7 @@ double frobenius_norm(const Eigen::MatrixBase<Derived>& a)
 
 /**
  * \ingroup linear_algebra
- * Checks whether two matrices of the same size are similiar w.r.t. some
+ * \brief Checks whether two matrices of the same size are similiar w.r.t. some
  * \f$\epsilon\f$.
  *
  * The similarity check is performed based on the Frobenius Norm
@@ -362,8 +350,7 @@ bool are_similar(const Eigen::MatrixBase<DerivedA>& a,
 
 /**
  * \ingroup linear_algebra
- *
- * Robust decomposition of M = L*L^T for positive semidefinite matrices
+ * \brief Robust decomposition of M = L*L^T for positive semidefinite matrices
  */
 template <typename Scalar, int Size>
 Eigen::Matrix<Scalar, Size, Size>
@@ -387,7 +374,7 @@ matrix_sqrt(Eigen::Matrix<Scalar, Size, Size> M)
 
 /**
  * \ingroup linear_algebra
- * Checks wheather the specified dense matrix has a diagonal form
+ * \brief Checks wheather the specified dense matrix has a diagonal form
  *
  * \return true if diagonal, false otherwise
  */
@@ -400,7 +387,10 @@ bool is_diagonal(const Eigen::MatrixBase<Derived>& m)
     return z.isZero();
 }
 
-
+/**
+ * \ingroup linear_algebra
+ * \brief Robust AX=B solver where X is a vector or a matrix
+ */
 template <typename MatrixA, typename VectorsB>
 VectorsB solve(const Eigen::MatrixBase<MatrixA>& A,
                const VectorsB& B)
@@ -410,13 +400,6 @@ VectorsB solve(const Eigen::MatrixBase<MatrixA>& A,
 
     VectorsB x = A.colPivHouseholderQr().solve(B).eval();
     return x; //RVO
-}
-
-template <typename Xpr>
-auto eval(Xpr&& xpr) -> decltype(xpr.eval())
-{
-    auto xpr_value = xpr.eval();
-    return xpr_value;
 }
 
 }

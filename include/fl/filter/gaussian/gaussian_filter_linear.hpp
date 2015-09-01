@@ -38,7 +38,7 @@ namespace fl
 {
 
 /**
- * \defgroup linear_gaussian_filter Linear Gaussian Filter (Kalman Filter)
+ * \defgroup linear_gaussian_filter Linear Gaussian Filter (aka Kalman Filter)
  * \ingroup filters
  */
 
