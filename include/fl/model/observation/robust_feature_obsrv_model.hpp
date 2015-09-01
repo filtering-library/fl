@@ -100,9 +100,12 @@ public:
      * \brief Constructs a robust feature observation model for the robust
      *        gaussian filter
      *
-     * \param obsrv_model   Source observation model
+     * \param obsrv_model   Reference to the source observation model
+     *
+     * \note This model takes only a reference of to an existing lvalue of the
+     *       source model
      */
-    explicit RobustFeatureObsrvModel(const ObsrvModel& obsrv_model)
+    explicit RobustFeatureObsrvModel(ObsrvModel& obsrv_model)
         : obsrv_model_(obsrv_model)
     { }
 
@@ -144,7 +147,6 @@ public:
 
         return y;
     }
-
 
     /**
      * \brief Sets the feature function (feature observation modek) and
@@ -206,12 +208,12 @@ public:
     }
 
 protected:
-    /* \cond internal */
+    /** \cond internal */
 
     /**
-     * \brief obsrv_model_ source observation model
+     * \brief Reference to the ource observation model
      */
-    ObsrvModel obsrv_model_;
+    ObsrvModel& obsrv_model_;
 
     /**
      * \brief \f${\cal N}(y_t\mid \mu_{y}, \Sigma_{yy})\f$
@@ -219,7 +221,7 @@ protected:
     Gaussian<InputObsrv> body_gaussian_;
 
     /**
-     * \brief \f$ \mu_x \f$
+     * \brief \f$\mu_x\f$
      */
     State mean_state_;
 
