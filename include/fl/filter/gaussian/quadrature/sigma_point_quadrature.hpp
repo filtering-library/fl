@@ -501,6 +501,21 @@ public:
             PointSet<decltype(f(VarA(), VarB())), size<VarA, VarB>()>& Z
         ) const
     {
+        transform_to_points(marginal_gaussian_a, marginal_gaussian_b, X, Y);
+        propergate_points(f, X, Y, Z);
+    }
+
+    template <
+        typename VarA,
+        typename VarB
+    >
+    void transform_to_points(
+            const Gaussian<VarA>& marginal_gaussian_a,
+            const Gaussian<VarB>& marginal_gaussian_b,
+            PointSet<VarA, size<VarA, VarB>()>& X,
+            PointSet<VarB, size<VarA, VarB>()>& Y
+        ) const
+    {
         const int dim_a = marginal_gaussian_a.dimension();
         const int dim_b = marginal_gaussian_b.dimension();
 
@@ -510,8 +525,25 @@ public:
         X.resize(dim_a, point_count);
         Y.resize(dim_b, point_count);
 
-        transform_(marginal_gaussian_a, augmented_dim, 0, X);
-        transform_(marginal_gaussian_b, augmented_dim, dim_a, Y);
+       transform_(marginal_gaussian_a, augmented_dim, 0, X);
+       transform_(marginal_gaussian_b, augmented_dim, dim_a, Y);
+    }
+
+
+    template <
+        typename Integrand,
+        typename PointSetX,
+        typename PointSetY,
+        typename PointSetZ
+    >
+    void propergate_points(
+            Integrand&& f,
+            PointSetX& X,
+            PointSetY& Y,
+            PointSetZ& Z
+        ) const
+    {
+        const int point_count = X.count_points();
 
         auto p0 = f(X[0], Y[0]);
         Z.resize(p0.size(), point_count);
@@ -523,6 +555,7 @@ public:
             Z.point(i, y, X.weights(i).w_mean, X.weights(i).w_cov);
         }
     }
+
 
     /**
      * \brief Integration function performing two integrations at once
