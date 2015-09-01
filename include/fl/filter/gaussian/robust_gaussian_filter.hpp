@@ -106,9 +106,10 @@ public:
     RobustGaussianFilter(const StateTransitionFunction& process_model,
                          const ObservationFunction& obsrv_model,
                          SpecializationArgs&& ... args)
-        : gaussian_filter_(
+        : obsrv_model_(obsrv_model),
+          gaussian_filter_(
               process_model,
-              FeatureObsrvModel(obsrv_model),
+              FeatureObsrvModel(obsrv_model_),
               std::forward<SpecializationArgs>(args)...)
     { }
 
@@ -219,6 +220,7 @@ public: /* accessors & mutators */
 
 protected:
     /** \cond internal */
+    ObservationFunction obsrv_model_;
     BaseGaussianFilter gaussian_filter_;
     /** \endcond */
 };
