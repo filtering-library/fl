@@ -21,15 +21,18 @@
 
 #pragma once
 
+
 #include <fl/util/meta.hpp>
 #include <fl/util/profiling.hpp>
 #include <fl/util/traits.hpp>
-#include <fl/filter/gaussian/sigma_point_additive_uncorrelated_update_policy.hpp>
-#include <fl/filter/gaussian/sigma_point_additive_prediction_policy.hpp>
-#include <fl/filter/gaussian/sigma_point_additive_update_policy.hpp>
-#include <fl/filter/gaussian/sigma_point_prediction_policy.hpp>
-#include <fl/filter/gaussian/sigma_point_update_policy.hpp>
-#include <fl/model/observation/robust_feature_obsrv_model.hpp>
+
+#include <fl/model/observation/robust_multi_sensor_feature_obsrv_model.hpp>
+
+#include <fl/filter/gaussian/update_policy/sigma_point_update_policy.hpp>
+#include <fl/filter/gaussian/update_policy/sigma_point_additive_update_policy.hpp>
+#include <fl/filter/gaussian/update_policy/sigma_point_additive_uncorrelated_update_policy.hpp>
+#include <fl/filter/gaussian/prediction_policy/sigma_point_prediction_policy.hpp>
+#include <fl/filter/gaussian/prediction_policy/sigma_point_additive_prediction_policy.hpp>
 
 #include <fl/filter/gaussian/multi_sensor_gaussian_filter.hpp>
 
@@ -40,8 +43,8 @@ namespace fl
 // Forward delcaration
 template<
     typename StateTransitionFunction,
-    typename JointObservationFunction,
-    typename ... Policies
+    typename JointObsrvModel,
+    typename Quadrature
 > class RobustMultiSensorGaussianFilter;
 
 /**
@@ -54,16 +57,16 @@ template<
  */
 template <
     typename StateTransitionFunction,
-    typename JointObservationFunction,
-    typename ... Policies
+    typename JointObsrvModel,
+    typename Quadrature
 >
 struct Traits<
-          RobustMultiSensorGaussianFilter<
-              StateTransitionFunction, JointObservationFunction, Policies...>>
+           RobustMultiSensorGaussianFilter<
+               StateTransitionFunction, JointObsrvModel, Quadrature>>
 {
     typedef typename StateTransitionFunction::State State;
     typedef typename StateTransitionFunction::Input Input;
-    typedef typename JointObservationFunction::Obsrv Obsrv;
+    typedef typename JointObsrvModel::Obsrv Obsrv;
     typedef Gaussian<State> Belief;
 };
 
@@ -73,55 +76,45 @@ struct Traits<
  */
 template<
     typename StateTransitionFunction,
-    typename JointObservationFunction,
-    typename ... Policies
+    typename JointObsrvModel,
+    typename Quadrature
 >
 class RobustMultiSensorGaussianFilter
     : public FilterInterface<
-                 MultiSensorGaussianFilter<
-                     StateTransitionFunction,
-                     JointObservationFunction,
-                     Policies...>>
+                RobustMultiSensorGaussianFilter<
+                    StateTransitionFunction, JointObsrvModel, Quadrature>>
 {
 public:
     typedef typename StateTransitionFunction::State State;
     typedef typename StateTransitionFunction::Input Input;
-    typedef typename JointObservationFunction::Obsrv Obsrv;
+    typedef typename JointObsrvModel::Obsrv Obsrv;
     typedef Gaussian<State> Belief;
 
-protected:
+private:
     /** \cond internal */
 
-    typedef typename JointObservationFunction::LocalModel LocalModel;
-    typedef typename JointObservationFunction::LocalObsrv LocalObsrv;
-    typedef typename JointObservationFunction::LocalObsrvNoise LocalObsrvNoise;
+    // Get the original local model types
+    enum : signed int { ModelCount = JointObsrvModel::ModelCount };
+    typedef typename JointObsrvModel::LocalModel PlainLocalModel;
 
-    /**
-     * \brief Local observation model used within the joint observation model
-     */
-    typedef typename JointObservationFunction::LocalModel LocalObsrvModel;
+    // Define local feature observation model
+    typedef RobustMultiSensorFeatureObsrvModel<
+                PlainLocalModel, ModelCount
+            > FeatureObsrvModel;
 
-    /**
-     * \brief Robust feature observation model type used internally.
-     */
-    typedef RobustFeatureObsrvModel<LocalObsrvModel> FeatureObsrvModel;
-
-    /**
-     * \brief Joint observation model
-     */
+    // Define robust joint feature observation model
     typedef JointObservationModel<
-                MultipleOf<
-                    FeatureObsrvModel,
-                    JointObservationFunction::ModelCount>
-            > JointFeatureObsrvModel;
-
+                MultipleOf<FeatureObsrvModel, ModelCount>
+            > RobustJointFeatureObsrvModel;
     /**
      * \brief Internal generic multi-sensor GaussianFilter for nonlinear
      *        problems
      */
     typedef MultiSensorGaussianFilter<
-                StateTransitionFunction, JointFeatureObsrvModel, Policies...
-            > BaseGaussianFilter;
+                StateTransitionFunction,
+                RobustJointFeatureObsrvModel,
+                Quadrature
+            > InternalMultiSensorGaussianFilter;
 
     /** \endcond */
 
@@ -131,12 +124,16 @@ public:
      */
     RobustMultiSensorGaussianFilter(
         const StateTransitionFunction& process_model,
-        const JointObservationFunction& joint_obsrv_model)
-        : gaussian_filter_(
+        const JointObsrvModel& joint_obsrv_model,
+        const Quadrature& quadrature)
+        : joint_obsrv_model_(joint_obsrv_model),
+          multi_sensor_gaussian_filter_(
               process_model,
-              JointFeatureObsrvModel(
-                  FeatureObsrvModel(joint_obsrv_model.local_obsrv_model()),
-                  joint_obsrv_model.count_local_models()))
+              RobustJointFeatureObsrvModel(
+                  FeatureObsrvModel(joint_obsrv_model_.local_obsrv_model(),
+                                    joint_obsrv_model_.count_local_models()),
+                  joint_obsrv_model_.count_local_models()),
+              quadrature)
     { }
 
     /**
@@ -151,7 +148,10 @@ public:
                          const Input& input,
                          Belief& predicted_belief)
     {
-        //gaussian_filter_.predict(prior_belief, input, predicted_belief);
+        multi_sensor_gaussian_filter_.predict(
+            prior_belief,
+            input,
+            predicted_belief);
     }
 
     /**
@@ -161,92 +161,121 @@ public:
                         const Obsrv& obsrv,
                         Belief& posterior_belief)
     {
-//        typedef typename ObservationFunction::BodyObsrvModel::Noise Noise;
+        typedef typename PlainLocalModel::Obsrv PlainObsrv;
+        typedef typename PlainLocalModel::BodyObsrvModel::Noise BodyNoise;
+        typedef typename RobustJointFeatureObsrvModel::Obsrv JointFeatureObsrv;
 
-//        auto body_noise_distr = Gaussian<Noise>(obsrv_model()
-//                                                    .body_model()
-//                                                    .noise_dimension());
+        auto joint_feature_y =
+            JointFeatureObsrv(
+                joint_feature_model()
+                    .obsrv_dimension());
 
-//        auto&& h = [&](const State& x, const Noise& w)
-//        {
-//           return obsrv_model().body_model().observation(x, w);
-//        };
+        auto local_body_noise_distr =
+            Gaussian<BodyNoise>(
+                obsrv_model()
+                    .local_obsrv_model()
+                    .body_model()
+                    .noise_dimension());
 
-//        auto y_mean = typename FirstMomentOf<Obsrv>::Type();
-//        auto y_cov = typename SecondMomentOf<Obsrv>::Type();
+        auto&& h = [&](const State& x, const BodyNoise& w)
+        {
+           return obsrv_model()
+                      .local_obsrv_model()
+                      .body_model()
+                      .observation(x, w);
+        };
 
-//        gaussian_filter_
-//            .quadrature()
-//            .integrate_moments(
-//                h, predicted_belief, body_noise_distr, y_mean, y_cov);
+        auto y_mean = typename FirstMomentOf<PlainObsrv>::Type();
+        auto y_cov = typename SecondMomentOf<PlainObsrv>::Type();
 
-//        gaussian_filter_
-//            .obsrv_model()
-//            .parameters(predicted_belief.mean(), y_mean, y_cov);
+        auto& local_obsrv_model = obsrv_model().local_obsrv_model();
+        auto& local_feature_model = joint_feature_model().local_obsrv_model();
 
-//        auto feature_y = gaussian_filter_
-//                            .obsrv_model()
-//                            .feature_obsrv(obsrv, predicted_belief.mean());
+        local_feature_model.mean_state(predicted_belief.mean());
 
-//        gaussian_filter_
-//            .update(predicted_belief, feature_y, posterior_belief);
+        const int local_obsrv_dim = local_obsrv_model.obsrv_dimension();
+        const int local_feature_dim = local_feature_model.obsrv_dimension();
+        const int sensor_count = joint_obsrv_model_.count_local_models();
+
+        for (int i = 0; i < sensor_count; ++i)
+        {
+            // set current sensor id to integrate the moments of the current
+            // sensor
+            local_feature_model._id(i);
+
+            multi_sensor_gaussian_filter_
+                .quadrature()
+                .integrate_moments(
+                    h, predicted_belief, local_body_noise_distr, y_mean, y_cov);
+
+            // set the current sensor's parameter
+            local_feature_model.body_moments(y_mean, y_cov, i);
+
+            joint_feature_y.middleRows(i * local_feature_dim, local_feature_dim) =
+                local_feature_model.feature_obsrv(
+                    obsrv.middleRows(i * local_obsrv_dim, local_obsrv_dim));
+        }
+
+        multi_sensor_gaussian_filter_
+            .update(predicted_belief, joint_feature_y, posterior_belief);
     }
 
 public: /* factory functions */
     virtual Belief create_belief() const
     {
-        auto belief = gaussian_filter_.create_belief();
+        auto belief = multi_sensor_gaussian_filter_.create_belief();
         return belief; // RVO
     }
 
 public: /* accessors & mutators */
     StateTransitionFunction& process_model()
     {
-        return gaussian_filter_.process_model();
+        return multi_sensor_gaussian_filter_.process_model();
     }
 
-    JointObservationFunction& obsrv_model()
+    JointObsrvModel& obsrv_model()
     {
-        return gaussian_filter_.obsrv_model().embedded_obsrv_model();
+        return joint_obsrv_model_;
     }
 
-    JointFeatureObsrvModel& robust_joint_feature_obsrv_model()
+    RobustJointFeatureObsrvModel& joint_feature_model()
     {
-        return gaussian_filter_.obsrv_model();
+        return multi_sensor_gaussian_filter_.obsrv_model();
     }
 
     const StateTransitionFunction& process_model() const
     {
-        return gaussian_filter_.process_model();
+        return multi_sensor_gaussian_filter_.process_model();
     }
 
-//    const JointObservationFunction& obsrv_model() const
-//    {
-//        return gaussian_filter_.obsrv_model().embedded_obsrv_model();
-//    }
-
-    const JointFeatureObsrvModel& robust_joint_feature_obsrv_model() const
+    const JointObsrvModel& obsrv_model() const
     {
-        return gaussian_filter_.obsrv_model();
+        return joint_obsrv_model_;
+    }
+
+    const RobustJointFeatureObsrvModel& joint_feature_model() const
+    {
+        return multi_sensor_gaussian_filter_.obsrv_model();
     }
 
     virtual std::string name() const
     {
-        return "RobustGaussianFilter<"
-                + this->list_arguments(
-                            gaussian_filter_.name())
+        return "RobustMultiSensorGaussianFilter<"
+                + this->list_arguments(multi_sensor_gaussian_filter_.name())
                 + ">";
     }
 
     virtual std::string description() const
     {
-        return "Robust GaussianFilter with"
-                + this->list_descriptions(gaussian_filter_.description());
+        return "Robust multi-sensor GaussianFilter with"
+                + this->list_descriptions(
+                      multi_sensor_gaussian_filter_.description());
     }
 
 protected:
     /** \cond internal */
-    BaseGaussianFilter gaussian_filter_;
+    JointObsrvModel joint_obsrv_model_;
+    InternalMultiSensorGaussianFilter multi_sensor_gaussian_filter_;
     /** \endcond */
 };
 
