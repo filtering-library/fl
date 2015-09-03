@@ -19,13 +19,11 @@
  * \author Manuel Wuthrich (manuel.wuthrich@gmail.com)
  * \author Jan Issac (jan.issac@gmail.com)
  */
+#pragma once
 
-#ifndef FL__DISTRIBUTION__DISCRETE_DISTRIBUTION_HPP
-#define FL__DISTRIBUTION__DISCRETE_DISTRIBUTION_HPP
 
 #include <Eigen/Core>
 
-// std
 #include <vector>
 
 #include <fl/util/types.hpp>
@@ -273,5 +271,3 @@ protected:
 };
 
 }
-
-#endif

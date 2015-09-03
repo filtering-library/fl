@@ -19,8 +19,8 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__FILTER__GAUSSIAN__POINT_SET_TRANSFORM_HPP
-#define FL__FILTER__GAUSSIAN__POINT_SET_TRANSFORM_HPP
+#pragma once
+
 
 #include <cstddef>
 #include <fl/util/meta.hpp>
@@ -162,5 +162,3 @@ public:
 };
 
 }
-
-#endif

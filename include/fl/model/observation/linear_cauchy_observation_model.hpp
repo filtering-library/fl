@@ -19,8 +19,8 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__MODEL__OBSERVATION__LINEAR_CAUCHY_OBSERVATION_MODEL_HPP
-#define FL__MODEL__OBSERVATION__LINEAR_CAUCHY_OBSERVATION_MODEL_HPP
+#pragma once
+
 
 #include <fl/util/traits.hpp>
 #include <fl/util/types.hpp>
@@ -153,4 +153,4 @@ private:
 
 }
 
-#endif
+

@@ -19,8 +19,8 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__MODEL__PROCESS__JOINT_PROCESS_MODEL_ID_HPP
-#define FL__MODEL__PROCESS__JOINT_PROCESS_MODEL_ID_HPP
+#pragma once
+
 
 #include <Eigen/Dense>
 
@@ -256,5 +256,5 @@ private:
 
 }
 
-#endif
+
 

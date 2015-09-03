@@ -19,8 +19,7 @@
  * \author Manuel Wuthrich (manuel.wuthrich@gmail.com)
  */
 
-#ifndef FL__DISTRIBUTION__TRUNCATED_GAUSSIAN_HPP
-#define FL__DISTRIBUTION__TRUNCATED_GAUSSIAN_HPP
+#pragma once
 
 
 #include <limits>
@@ -118,5 +117,3 @@ private:
 };
 
 }
-
-#endif

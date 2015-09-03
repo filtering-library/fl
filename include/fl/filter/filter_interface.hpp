@@ -19,8 +19,8 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__FILTER__FILTER_INTERFACE_HPP
-#define FL__FILTER__FILTER_INTERFACE_HPP
+#pragma once
+
 
 #include <fl/util/traits.hpp>
 #include <fl/util/descriptor.hpp>
@@ -114,5 +114,3 @@ public:
 };
 
 }
-
-#endif

@@ -19,8 +19,8 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__UTIL__META__OPTIONS_ARGUMENT_HPP
-#define FL__UTIL__META__OPTIONS_ARGUMENT_HPP
+#pragma once
+
 
 namespace fl
 {
@@ -90,4 +90,4 @@ struct MakeOptions : CombineOptions<T...> { };
 
 }
 
-#endif
+

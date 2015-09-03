@@ -19,8 +19,8 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__UTIL__MATH__SPECIA_FUNCTIONS_HPP
-#define FL__UTIL__MATH__SPECIA_FUNCTIONS_HPP
+#pragma once
+
 
 #include <Eigen/Dense>
 
@@ -333,4 +333,4 @@ template <> inline  double erfinv<double>(double x)
 
 }
 
-#endif
+

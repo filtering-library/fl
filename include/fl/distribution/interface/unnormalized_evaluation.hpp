@@ -19,9 +19,8 @@
  * \author Manuel Wuthrich (manuel.wuthrich@gmail.com)
  */
 
+#pragma once
 
-#ifndef FL__DISTRIBUTION__INTERFACE__UNNORMALIZED_EVAUATION_HPP
-#define FL__DISTRIBUTION__INTERFACE__UNNORMALIZED_EVAUATION_HPP
 
 #include <cmath>
 #include <fl/util/types.hpp>
@@ -72,5 +71,3 @@ public:
 };
 
 }
-
-#endif

@@ -19,8 +19,8 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__UTIL__META_HPP
-#define FL__UTIL__META_HPP
+#pragma once
+
 
 #include "meta/size_deduction.hpp"
 #include "meta/index_sequence.hpp"
@@ -33,4 +33,4 @@
 #include "meta/operator/forward_adaptive.hpp"
 #include "meta/operator/use_as.hpp"
 
-#endif
+

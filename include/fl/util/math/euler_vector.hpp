@@ -19,8 +19,8 @@
  * \author Manuel Wuthrich (manuel.wuthrich@gmail.com)
  */
 
-#ifndef FL__UTIL__MATH__EULER_VECTOR_HPP
-#define FL__UTIL__MATH__EULER_VECTOR_HPP
+#pragma once
+
 
 
 #include <Eigen/Dense>
@@ -173,4 +173,4 @@ public:
 
 }
 
-#endif
+

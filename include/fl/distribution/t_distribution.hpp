@@ -20,8 +20,8 @@
  * \author Cristina Garcia Cifuentes (c.garciacifuentes@gmail.com)
  */
 
-#ifndef FL__DISTRIBUTION__T_DISTRIBUTION_HPP
-#define FL__DISTRIBUTION__T_DISTRIBUTION_HPP
+#pragma once
+
 
 #include <Eigen/Dense>
 
@@ -320,5 +320,3 @@ private:
 };
 
 }
-
-#endif

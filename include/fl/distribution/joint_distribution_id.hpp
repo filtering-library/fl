@@ -19,14 +19,13 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__DISTRIBUTION__JOINT_DISTRIBUTION_ID_HPP
-#define FL__DISTRIBUTION__JOINT_DISTRIBUTION_ID_HPP
+#pragma once
+
 
 #include <Eigen/Dense>
 
 #include <fl/util/meta.hpp>
 #include <fl/util/traits.hpp>
-
 #include <fl/distribution/interface/moments.hpp>
 
 namespace fl
@@ -157,5 +156,3 @@ private:
 };
 
 }
-
-#endif

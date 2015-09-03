@@ -18,8 +18,8 @@
  * Max-Planck-Institute for Intelligent Systems
  */
 
-#ifndef FL__FILTER__PARTICLE__PARTICLE_FILTER_HPP
-#define FL__FILTER__PARTICLE__PARTICLE_FILTER_HPP
+#pragma once
+
 
 #include <fl/util/traits.hpp>
 #include <fl/filter/filter_interface.hpp>
@@ -208,5 +208,3 @@ protected:
 };
 
 }
-
-#endif

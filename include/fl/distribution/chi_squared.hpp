@@ -19,8 +19,7 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__DISTRIBUTION__CHI_SQUARED_HPP
-#define FL__DISTRIBUTION__CHI_SQUARED_HPP
+#pragma once
 
 #include <Eigen/Dense>
 
@@ -28,9 +27,10 @@
 
 #include <fl/util/meta.hpp>
 #include <fl/util/scalar_matrix.hpp>
-#include <fl/distribution/uniform_distribution.hpp>
-#include <fl/distribution/interface/evaluation.hpp>
-#include <fl/distribution/interface/standard_gaussian_mapping.hpp>
+
+#include "uniform_distribution.hpp"
+#include "interface/evaluation.hpp"
+#include "interface/standard_gaussian_mapping.hpp"
 
 namespace fl
 {
@@ -161,5 +161,3 @@ protected:
 };
 
 }
-
-#endif

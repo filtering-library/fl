@@ -19,8 +19,8 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__UTIL__META__SIZE_DEDUCTION_HPP
-#define FL__UTIL__META__SIZE_DEDUCTION_HPP
+#pragma once
+
 
 #include <fl/util/traits.hpp>
 
@@ -114,4 +114,4 @@ template <> struct ExpandSizes<> { enum: signed int { Size = 1, Value = 1 }; } ;
 
 }
 
-#endif
+

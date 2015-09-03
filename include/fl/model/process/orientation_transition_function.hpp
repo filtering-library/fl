@@ -19,8 +19,8 @@
  * \author Manuel Wuthrich (manuel.wuthrich@gmail.com)
  */
 
-#ifndef FL__MODEL__PROCESS__ORIENTATION_STATE_TRANSITION_FUNCTION_HPP
-#define FL__MODEL__PROCESS__ORIENTATION_STATE_TRANSITION_FUNCTION_HPP
+#pragma once
+
 
 #include <Eigen/Dense>
 
@@ -169,4 +169,4 @@ protected:
 
 }
 
-#endif
+

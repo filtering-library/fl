@@ -19,8 +19,8 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__MODEL__ADAPTIVE_MODEL_HPP
-#define FL__MODEL__ADAPTIVE_MODEL_HPP
+#pragma once
+
 
 #include <fl/util/types.hpp>
 
@@ -81,4 +81,4 @@ public:
 
 }
 
-#endif
+

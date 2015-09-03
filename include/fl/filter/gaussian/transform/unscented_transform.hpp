@@ -16,8 +16,8 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__FILTER__GAUSSIAN__UNSCENTED_TRANSFORM_HPP
-#define FL__FILTER__GAUSSIAN__UNSCENTED_TRANSFORM_HPP
+#pragma once
+
 
 #include <fl/util/traits.hpp>
 #include <fl/util/descriptor.hpp>
@@ -271,4 +271,3 @@ protected:
 
 }
 
-#endif

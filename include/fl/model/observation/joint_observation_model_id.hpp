@@ -19,8 +19,8 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__MODEL__OBSERVATION__JOINT_OBSERVATION_MODEL_ID_HPP
-#define FL__MODEL__OBSERVATION__JOINT_OBSERVATION_MODEL_ID_HPP
+#pragma once
+
 
 #include <Eigen/Dense>
 
@@ -270,4 +270,4 @@ private:
 
 }
 
-#endif
+

@@ -20,8 +20,8 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__MODEL__PROCESS__ADDITIVE_STATE_TRANSITION_FUNCTION_HPP
-#define FL__MODEL__PROCESS__ADDITIVE_STATE_TRANSITION_FUNCTION_HPP
+#pragma once
+
 
 #include <fl/util/traits.hpp>
 
@@ -76,4 +76,4 @@ public:
 
 }
 
-#endif
+

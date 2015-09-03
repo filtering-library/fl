@@ -19,8 +19,8 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__UTIL__META__INDEX_SEQUENCE_HPP
-#define FL__UTIL__META__INDEX_SEQUENCE_HPP
+#pragma once
+
 
 namespace fl
 {
@@ -62,4 +62,4 @@ struct CreateIndexSequence<0, Indices...>
 
 }
 
-#endif
+

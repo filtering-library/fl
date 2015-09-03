@@ -19,8 +19,8 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__UTIL__META__OPERATOR__FORWARD_ADAPTIVE_HPP
-#define FL__UTIL__META__OPERATOR__FORWARD_ADAPTIVE_HPP
+#pragma once
+
 
 #include <type_traits>
 
@@ -92,4 +92,4 @@ struct ForwardAdaptive<Model, Options<0>>
 
 }
 
-#endif
+

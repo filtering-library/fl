@@ -24,8 +24,8 @@
 #include <Eigen/Dense>
 #include <fl/util/meta.hpp>
 
-#ifndef FL__TEST__TYPECAST_HPP
-#define FL__TEST__TYPECAST_HPP
+#pragma once
+
 
 namespace fl
 {
@@ -77,5 +77,5 @@ struct IntegerTypeMap
 };
 
 }
-#endif
+
 

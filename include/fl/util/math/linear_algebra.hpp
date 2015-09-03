@@ -20,8 +20,8 @@
  * \author Manuel Wuthrich (manuel.wuthrich@gmail.com)
  */
 
-#ifndef FL__UTIL__MATH__LINEAR_ALGEBRA_HPP
-#define FL__UTIL__MATH__LINEAR_ALGEBRA_HPP
+#pragma once
+
 
 #include <Eigen/Dense>
 
@@ -404,4 +404,4 @@ VectorsB solve(const Eigen::MatrixBase<MatrixA>& A,
 
 }
 
-#endif
+

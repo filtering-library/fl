@@ -19,8 +19,8 @@
  * \author Manuel Wuthrich (manuel.wuthrich@gmail.com)
  */
 
-#ifndef FL__DISTRIBUTION__EXPONENTIAL_DISTRIBUTION_HPP
-#define FL__DISTRIBUTION__EXPONENTIAL_DISTRIBUTION_HPP
+#pragma once
+
 
 #include <limits>
 #include <cmath>
@@ -102,5 +102,3 @@ private:
 };
 
 }
-
-#endif

@@ -19,8 +19,8 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__MODEL__PROCESS__LINEAR_GAUSSIAN_PROCESS_MODEL_HPP
-#define FL__MODEL__PROCESS__LINEAR_GAUSSIAN_PROCESS_MODEL_HPP
+#pragma once
+
 
 #include <fl/util/traits.hpp>
 #include <fl/util/descriptor.hpp>
@@ -170,7 +170,7 @@ public: /* accessors & mutators */
 
     virtual int noise_dimension() const
     {
-        return density_.square_root().cols();
+        return density_.dimension();
     }
 
     virtual int input_dimension() const
@@ -229,4 +229,4 @@ protected:
 
 }
 
-#endif
+

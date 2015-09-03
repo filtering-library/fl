@@ -16,8 +16,8 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__FILTER__GAUSSIAN__SIGMA_POINT_QUADRATURE_HPP
-#define FL__FILTER__GAUSSIAN__SIGMA_POINT_QUADRATURE_HPP
+#pragma once
+
 
 #include <fl/util/meta.hpp>
 #include <fl/util/traits.hpp>
@@ -239,6 +239,7 @@ public:
             const Gaussian<VariateB>& marginal_gaussian_b)
     -> decltype(f(VariateA(), VariateB()))
     {
+
         enum : signed int { Size = number_of_points<VariateA, VariateB>() };
 
         const int dim_a = marginal_gaussian_a.dimension();
@@ -250,11 +251,11 @@ public:
         auto X_b = PointSet<VariateB, Size>(dim_b, point_count);
 
         transform_(marginal_gaussian_a, augmented_dim, 0, X_a);
+
         transform_(marginal_gaussian_b, augmented_dim, dim_a, X_b);
 
         auto E = f(X_a[0], X_b[0]);
         E *= X_a.weight(0);
-
         for (int i = 1; i < point_count; ++i)
         {
             E += X_a.weight(i) * f(X_a[i], X_b[i]);
@@ -730,5 +731,3 @@ protected:
 };
 
 }
-
-#endif

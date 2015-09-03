@@ -20,8 +20,8 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__DISTRIBUTION__INTERFACE__STANDARD_GAUSSIAN_MAPPING_HPP
-#define FL__DISTRIBUTION__INTERFACE__STANDARD_GAUSSIAN_MAPPING_HPP
+#pragma once
+
 
 #include <Eigen/Dense>
 
@@ -182,5 +182,3 @@ protected:
 };
 
 }
-
-#endif

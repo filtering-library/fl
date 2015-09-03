@@ -19,8 +19,8 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__MODEL__PROCESS__PROCESS_MODEL_INTERFACE_HPP
-#define FL__MODEL__PROCESS__PROCESS_MODEL_INTERFACE_HPP
+#pragma once
+
 
 #include <fl/util/traits.hpp>
 
@@ -166,4 +166,4 @@ public:
 
 }
 
-#endif
+

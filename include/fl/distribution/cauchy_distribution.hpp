@@ -19,13 +19,13 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__DISTRIBUTION__CAUCHY_DISTRIBUTION_HPP
-#define FL__DISTRIBUTION__CAUCHY_DISTRIBUTION_HPP
+#pragma once
+
 
 #include <Eigen/Dense>
 
 #include <fl/util/types.hpp>
-#include <fl/distribution/t_distribution.hpp>
+#include "t_distribution.hpp"
 
 namespace fl
 {
@@ -57,5 +57,3 @@ public:
 };
 
 }
-
-#endif

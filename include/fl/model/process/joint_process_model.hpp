@@ -19,10 +19,10 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__MODEL__PROCESS__JOINT_PROCESS_MODEL_HPP
-#define FL__MODEL__PROCESS__JOINT_PROCESS_MODEL_HPP
+#pragma once
+
 
 #include <fl/model/process/joint_process_model_id.hpp>
 #include <fl/model/process/joint_process_model_iid.hpp>
 
-#endif
+

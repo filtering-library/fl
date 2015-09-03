@@ -19,8 +19,8 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__UTIL__SCALAR_MATRIX_HPP
-#define FL__UTIL__SCALAR_MATRIX_HPP
+#pragma once
+
 
 #include <Eigen/Dense>
 #include <fl/util/types.hpp>
@@ -155,4 +155,4 @@ public:
 
 }
 
-#endif
+

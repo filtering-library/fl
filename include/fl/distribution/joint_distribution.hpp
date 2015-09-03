@@ -19,10 +19,9 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__DISTRIBUTION__JOINT_DISTRIBUTION_HPP
-#define FL__DISTRIBUTION__JOINT_DISTRIBUTION_HPP
+#pragma once
+
 
 #include <fl/distribution/joint_distribution_id.hpp>
 #include <fl/distribution/joint_distribution_iid.hpp>
 
-#endif

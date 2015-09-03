@@ -19,8 +19,8 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__UTIL__TYPES_HPP
-#define FL__UTIL__TYPES_HPP
+#pragma once
+
 
 #include <Eigen/Dense>
 
@@ -166,4 +166,4 @@ struct JointObservationModelIdType { };
 
 }
 
-#endif
+

@@ -19,10 +19,10 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__MODEL__OBSERVATION__JOINT_OBSERVATION_MODEL_HPP
-#define FL__MODEL__OBSERVATION__JOINT_OBSERVATION_MODEL_HPP
+#pragma once
+
 
 #include <fl/model/observation/joint_observation_model_id.hpp>
 #include <fl/model/observation/joint_observation_model_iid.hpp>
 
-#endif
+

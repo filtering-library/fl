@@ -5,8 +5,8 @@
  * \author Manuel Wuthrich (manuel.wuthrich@gmail.com)
  */
 
-#ifndef FL__DISTRIBUTION__STANDARD_GAUSSIAN_HPP
-#define FL__DISTRIBUTION__STANDARD_GAUSSIAN_HPP
+#pragma once
+
 
 #include <Eigen/Dense>
 
@@ -152,5 +152,3 @@ protected:
 };
 
 }
-
-#endif

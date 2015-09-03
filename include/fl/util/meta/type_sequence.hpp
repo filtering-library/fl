@@ -19,8 +19,8 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__UTIL__META__TYPE_SEQUENCE_HPP
-#define FL__UTIL__META__TYPE_SEQUENCE_HPP
+#pragma once
+
 
 namespace fl
 {
@@ -117,4 +117,4 @@ struct CreateTypeSequence<-1, Type>
 
 }
 
-#endif
+

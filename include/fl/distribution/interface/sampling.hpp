@@ -20,8 +20,8 @@
  * \author Manuel Wuthrich (manuel.wuthrich@gmail.com)
  */
 
-#ifndef FL__DISTRIBUTION__INTERFACE__SAMPLING_HPP
-#define FL__DISTRIBUTION__INTERFACE__SAMPLING_HPP
+#pragma once
+
 
 namespace fl
 {
@@ -49,5 +49,3 @@ public:
 };
 
 }
-
-#endif

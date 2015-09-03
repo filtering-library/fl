@@ -19,8 +19,8 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__UTIL__META__OPERATOR__ADAPTIVE_HPP
-#define FL__UTIL__META__OPERATOR__ADAPTIVE_HPP
+#pragma once
+
 
 #include <fl/util/meta/size_deduction.hpp>
 #include <fl/util/meta/operator/not_adaptive.hpp>
@@ -154,4 +154,4 @@ public:
 
 }
 
-#endif
+

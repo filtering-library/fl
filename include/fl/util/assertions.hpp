@@ -19,8 +19,8 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__UTIL__ASSERTIONS_HPP
-#define FL__UTIL__ASSERTIONS_HPP
+#pragma once
+
 
 #include <assert.h>
 #include <type_traits>
@@ -52,4 +52,4 @@
     static_assert(matrix::SizeAtCompileTime != Eigen::Dynamic,\
                   "Calling a dynamic size function on a fixed-size one.");
 
-#endif
+

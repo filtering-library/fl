@@ -19,8 +19,8 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__UTIL__META__OPERATOR__JOIN_HPP
-#define FL__UTIL__META__OPERATOR__JOIN_HPP
+#pragma once
+
 
 #include "adaptive.hpp"
 #include "multiple_of.hpp"
@@ -512,4 +512,4 @@ struct CollapseAdaptiveJoin<
 
 }
 
-#endif
+

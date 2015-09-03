@@ -19,17 +19,17 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__FILTER__GAUSSIAN__GAUSSIAN_FILTER_NONLINEAR_HPP
-#define FL__FILTER__GAUSSIAN__GAUSSIAN_FILTER_NONLINEAR_HPP
+#pragma once
+
 
 #include <fl/util/meta.hpp>
 #include <fl/util/traits.hpp>
 #include <fl/filter/gaussian/gaussian_filter_nonlinear_generic.hpp>
-#include <fl/filter/gaussian/sigma_point_additive_uncorrelated_update_policy.hpp>
-#include <fl/filter/gaussian/sigma_point_additive_prediction_policy.hpp>
-#include <fl/filter/gaussian/sigma_point_additive_update_policy.hpp>
-#include <fl/filter/gaussian/sigma_point_prediction_policy.hpp>
-#include <fl/filter/gaussian/sigma_point_update_policy.hpp>
+#include <fl/filter/gaussian/update_policy/sigma_point_update_policy.hpp>
+#include <fl/filter/gaussian/update_policy/sigma_point_additive_update_policy.hpp>
+#include <fl/filter/gaussian/update_policy/sigma_point_additive_uncorrelated_update_policy.hpp>
+#include <fl/filter/gaussian/prediction_policy/sigma_point_additive_prediction_policy.hpp>
+#include <fl/filter/gaussian/prediction_policy/sigma_point_prediction_policy.hpp>
 
 namespace fl
 {
@@ -176,4 +176,4 @@ public:
 
 }
 
-#endif
+

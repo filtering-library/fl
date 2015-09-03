@@ -18,8 +18,8 @@
  * \author Manuel Wuthrich (manuel.wuthrich@gmail.com)
  */
 
-#ifndef FL__UTIL__PROFILING_HPP
-#define FL__UTIL__PROFILING_HPP
+#pragma once
+
 
 #include <sys/time.h>
 #include <iostream>
@@ -52,4 +52,4 @@
 #define PF(flag) std::cout << #flag << ":=" << flag << "\n";
 //#define PV(mat)
 
-#endif
+

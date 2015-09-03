@@ -19,8 +19,8 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__DISTRIBUTION__JOINT_DISTRIBUTION_IID_HPP
-#define FL__DISTRIBUTION__JOINT_DISTRIBUTION_IID_HPP
+#pragma once
+
 
 #include <Eigen/Dense>
 
@@ -164,4 +164,4 @@ protected:
 
 }
 
-#endif
+

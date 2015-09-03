@@ -19,15 +19,14 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__FILTER__GAUSSIAN__POINT_SET_HPP
-#define FL__FILTER__GAUSSIAN__POINT_SET_HPP
+#pragma once
+
 
 #include <map>
 #include <cmath>
 #include <type_traits>
 
 #include <Eigen/Dense>
-
 
 #include <fl/util/meta.hpp>
 #include <fl/util/traits.hpp>
@@ -552,7 +551,7 @@ public:
      */
     Point center()
     {
-        const Point weighted_mean = mean();
+        Point weighted_mean = mean();
         const int point_count = points_.cols();
         for (int i = 0; i < point_count; ++i)
         {
@@ -597,5 +596,3 @@ protected:
 };
 
 }
-
-#endif

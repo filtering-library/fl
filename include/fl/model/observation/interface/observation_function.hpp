@@ -19,8 +19,8 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__MODEL__OBSERVATION__INTERFACE_OBSERVATION_FUNCTION_HPP
-#define FL__MODEL__OBSERVATION__INTERFACE_OBSERVATION_FUNCTION_HPP
+#pragma once
+
 
 #include <fl/util/types.hpp>
 #include <fl/util/traits.hpp>
@@ -89,7 +89,11 @@ public:
     virtual int id() const { return Id; }
 
     /**
-     * Sets the model id
+     * \brief Sets the model id for mulit-sensor use
+     *
+     * In some cases a single observation model may be used for multiple sensor
+     * of the same kind. It often suffices to alter the sensor id before
+     * evaluating the model.
      *
      * \param new_id    Model's new ID
      */
@@ -98,4 +102,4 @@ public:
 
 }
 
-#endif
+

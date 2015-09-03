@@ -19,8 +19,8 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__FILTER__GAUSSIAN__MULTI_SENSOR_GAUSSIAN_FILTER_HPP
-#define FL__FILTER__GAUSSIAN__MULTI_SENSOR_GAUSSIAN_FILTER_HPP
+#pragma once
+
 
 
 #include <Eigen/Dense>
@@ -28,7 +28,7 @@
 #include <fl/util/meta.hpp>
 #include <fl/util/traits.hpp>
 #include <fl/filter/gaussian/gaussian_filter.hpp>
-#include <fl/filter/gaussian/multi_sensor_sigma_point_update_policy.hpp>
+#include <fl/filter/gaussian/update_policy/multi_sensor_sigma_point_update_policy.hpp>
 
 namespace fl
 {
@@ -135,4 +135,4 @@ public:
 
 }
 
-#endif
+

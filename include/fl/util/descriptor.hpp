@@ -16,8 +16,8 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__UTIL__DESCRIPTOR_HPP
-#define FL__UTIL__DESCRIPTOR_HPP
+#pragma once
+
 
 #include <string>
 #include <tuple>
@@ -161,4 +161,4 @@ protected:
 
 }
 
-#endif
+

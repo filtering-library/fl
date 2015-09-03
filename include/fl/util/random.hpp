@@ -20,8 +20,8 @@
  * \author Manuel Wuthrich (manuel.wuthrich@gmail.com)
  */
 
-#ifndef FL__UTIL__RANDOM_HPP
-#define FL__UTIL__RANDOM_HPP
+#pragma once
+
 
 #include <ctime>
 #include <chrono>
@@ -76,4 +76,4 @@ inline unsigned int seed()
 
 }
 
-#endif
+

@@ -19,8 +19,8 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__UTIL__META__OPERATOR__USE_AS_HPP
-#define FL__UTIL__META__OPERATOR__USE_AS_HPP
+#pragma once
+
 
 #include <type_traits>
 #include <fl/util/types.hpp>
@@ -64,4 +64,4 @@ struct UseAs<NonAdditive<Model_>>
 
 }
 
-#endif
+

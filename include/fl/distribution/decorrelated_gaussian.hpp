@@ -19,8 +19,8 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__DISTRIBUTION__DECORRELATED_GAUSSIAN_HPP
-#define FL__DISTRIBUTION__DECORRELATED_GAUSSIAN_HPP
+#pragma once
+
 
 #include <Eigen/Dense>
 
@@ -761,5 +761,3 @@ protected:
 /** \} */
 
 }
-
-#endif

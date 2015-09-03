@@ -19,8 +19,8 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__UTIL__META__OPERATOR__NOT_ADAPTIVE_HPP
-#define FL__UTIL__META__OPERATOR__NOT_ADAPTIVE_HPP
+#pragma once
+
 
 #include <type_traits>
 
@@ -372,4 +372,4 @@ protected:
 
 }
 
-#endif
+

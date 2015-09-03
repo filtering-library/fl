@@ -16,8 +16,8 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__FILTER__GAUSSIAN__UNSCENTED_QUADRATURE_HPP
-#define FL__FILTER__GAUSSIAN__UNSCENTED_QUADRATURE_HPP
+#pragma once
+
 
 #include <fl/filter/gaussian/transform/unscented_transform.hpp>
 #include <fl/filter/gaussian/quadrature/sigma_point_quadrature.hpp>
@@ -43,5 +43,3 @@ public:
 };
 
 }
-
-#endif

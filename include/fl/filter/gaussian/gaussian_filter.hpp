@@ -19,16 +19,15 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__FILTER__GAUSSIAN__GAUSSIAN_FILTER_HPP
-#define FL__FILTER__GAUSSIAN__GAUSSIAN_FILTER_HPP
+#pragma once
 
-#include <fl/filter/gaussian/transform/unscented_transform.hpp>
-#include <fl/filter/gaussian/transform/monte_carlo_transform.hpp>
-#include <fl/filter/gaussian/quadrature/sigma_point_quadrature.hpp>
-#include <fl/filter/gaussian/quadrature/unscented_quadrature.hpp>
 
-#include <fl/filter/gaussian/gaussian_filter_linear.hpp>
-#include <fl/filter/gaussian/gaussian_filter_nonlinear_generic.hpp>
-#include <fl/filter/gaussian/gaussian_filter_nonlinear.hpp>
+#include "transform/unscented_transform.hpp"
+#include "transform/monte_carlo_transform.hpp"
 
-#endif
+#include "quadrature/sigma_point_quadrature.hpp"
+#include "quadrature/unscented_quadrature.hpp"
+
+#include "gaussian_filter_linear.hpp"
+#include "gaussian_filter_nonlinear.hpp"
+#include "gaussian_filter_nonlinear_generic.hpp"

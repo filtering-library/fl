@@ -19,11 +19,11 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__UTIL__MATH_HPP
-#define FL__UTIL__MATH_HPP
+#pragma once
+
 
 #include "math/general_functions.hpp"
 #include "math/special_functions.hpp"
 #include "math/linear_algebra.hpp"
 
-#endif
+

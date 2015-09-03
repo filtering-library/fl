@@ -19,8 +19,8 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__FILTER__GAUSSIAN__MONTE_CARLO_TRANSFORM_HPP
-#define FL__FILTER__GAUSSIAN__MONTE_CARLO_TRANSFORM_HPP
+#pragma once
+
 
 #include <fl/util/traits.hpp>
 #include <fl/distribution/gaussian.hpp>
@@ -261,5 +261,3 @@ public:
 };
 
 }
-
-#endif

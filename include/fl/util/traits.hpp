@@ -19,8 +19,8 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__UTIL__TRAITS_HPP
-#define FL__UTIL__TRAITS_HPP
+#pragma once
+
 
 #include <Eigen/Dense>
 
@@ -443,5 +443,5 @@ struct ForwardLinearModelOnly
 
 }
 
-#endif
+
 

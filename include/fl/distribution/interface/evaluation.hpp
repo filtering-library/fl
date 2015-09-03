@@ -20,9 +20,7 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-
-#ifndef FL__DISTRIBUTION__INTERFACE__EVAUATION_HPP
-#define FL__DISTRIBUTION__INTERFACE__EVAUATION_HPP
+#pragma once
 
 #include <cmath>
 
@@ -83,5 +81,3 @@ public:
 };
 
 }
-
-#endif

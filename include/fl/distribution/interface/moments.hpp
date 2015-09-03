@@ -20,8 +20,8 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__DISTRIBUTION__INTERFACE__MOMENTS_HPP
-#define FL__DISTRIBUTION__INTERFACE__MOMENTS_HPP
+#pragma once
+
 
 #include <fl/util/types.hpp>
 #include <fl/util/traits.hpp>
@@ -135,5 +135,3 @@ public:
 };
 
 }
-
-#endif

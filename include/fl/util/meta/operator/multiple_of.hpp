@@ -19,8 +19,8 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__UTIL__META__OPERATOR__MULTIPLE_OF_HPP
-#define FL__UTIL__META__OPERATOR__MULTIPLE_OF_HPP
+#pragma once
+
 
 #include <type_traits>
 
@@ -57,4 +57,4 @@ struct MultipleOf
 
 }
 
-#endif
+

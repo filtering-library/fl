@@ -19,8 +19,8 @@
  */
 
 
-#ifndef FL__UTIL__MATH__POSE_VELOCITY_VECTOR_HPP
-#define FL__UTIL__MATH__POSE_VELOCITY_VECTOR_HPP
+#pragma once
+
 
 #include <Eigen/Dense>
 #include <fl/util/types.hpp>
@@ -164,4 +164,4 @@ public:
 
 }
 
-#endif
+

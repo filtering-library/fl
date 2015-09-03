@@ -19,8 +19,7 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__FILTER__GAUSSIAN__GAUSSIAN_FILTER_NONLINEAR_GENERIC_HPP
-#define FL__FILTER__GAUSSIAN__GAUSSIAN_FILTER_NONLINEAR_GENERIC_HPP
+#pragma once
 
 
 #include <Eigen/Dense>
@@ -162,9 +161,8 @@ public:
 public: /* factory functions */
     virtual Belief create_belief() const
     {
-        // note: do not simplify!
         auto belief = Belief(process_model().state_dimension());
-        return belief;
+        return belief; // RVO
     }
 
 public: /* accessors & mutators */
@@ -233,4 +231,4 @@ protected:
 
 }
 
-#endif
+

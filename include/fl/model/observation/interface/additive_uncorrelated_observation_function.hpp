@@ -19,8 +19,8 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__MODEL__OBSERVATION__INTERFACE__ADDITIVE_UNCORRELATED_OBSERVATION_FUNCTION_HPP
-#define FL__MODEL__OBSERVATION__INTERFACE__ADDITIVE_UNCORRELATED_OBSERVATION_FUNCTION_HPP
+#pragma once
+
 
 #include <fl/util/traits.hpp>
 
@@ -50,4 +50,4 @@ public:
 
 }
 
-#endif
+

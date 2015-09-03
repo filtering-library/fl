@@ -20,8 +20,8 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__UTIL__MATH__GENERAL_FUNCTIONS_HPP
-#define FL__UTIL__MATH__GENERAL_FUNCTIONS_HPP
+#pragma once
+
 
 #include <cmath>
 #include <fl/util/types.hpp>
@@ -102,4 +102,4 @@ inline Real uniform_to_normal(Real u)
 
 }
 
-#endif
+

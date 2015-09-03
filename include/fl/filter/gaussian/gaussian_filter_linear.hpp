@@ -19,8 +19,8 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__FILTER__GAUSSIAN__GAUSSIAN_FILTER_KF_HPP
-#define FL__FILTER__GAUSSIAN__GAUSSIAN_FILTER_KF_HPP
+#pragma once
+
 
 #include <utility>
 
@@ -246,4 +246,4 @@ protected:
 
 }
 
-#endif
+

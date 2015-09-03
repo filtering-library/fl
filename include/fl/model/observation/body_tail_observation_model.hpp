@@ -19,8 +19,8 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__MODEL_OBSERVATION__BODY_TAIL_OBSERVATION_MODEL_HPP
-#define FL__MODEL_OBSERVATION__BODY_TAIL_OBSERVATION_MODEL_HPP
+#pragma once
+
 
 #include <type_traits>
 #include <fl/util/meta.hpp>
@@ -353,4 +353,4 @@ protected:
 
 }
 
-#endif
+

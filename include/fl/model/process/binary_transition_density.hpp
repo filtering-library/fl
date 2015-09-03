@@ -19,8 +19,8 @@
  * \author Manuel Wuthrich (manuel.wuthrich@gmail.com)
  */
 
-#ifndef FL__MODEL__PROCESS__BINARY_TRANSITION_DENSITY_HPP
-#define FL__MODEL__PROCESS__BINARY_TRANSITION_DENSITY_HPP
+#pragma once
+
 
 #include <fl/util/types.hpp>
 #include <iostream>
@@ -69,4 +69,4 @@ private:
 
 }
 
-#endif
+
