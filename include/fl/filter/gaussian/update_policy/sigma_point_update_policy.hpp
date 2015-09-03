@@ -19,8 +19,8 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__FILTER__GAUSSIAN__SIGMA_POINT_UPDATE_POLICY_HPP
-#define FL__FILTER__GAUSSIAN__SIGMA_POINT_UPDATE_POLICY_HPP
+#pragma once
+
 
 #include <Eigen/Dense>
 
@@ -111,6 +111,7 @@ public:
         auto x_updated = (X.mean() + cov_xy * solve(cov_yy, innovation)).eval();
         auto cov_xx_updated = (cov_xx - cov_xy * solve(cov_yy, cov_yx)).eval();
 
+        posterior_belief.dimension(prior_belief.dimension());
         posterior_belief.mean(x_updated);
         posterior_belief.covariance(cov_xx_updated);
 
@@ -144,4 +145,4 @@ protected:
 
 }
 
-#endif
+

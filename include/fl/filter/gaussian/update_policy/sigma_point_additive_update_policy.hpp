@@ -19,8 +19,8 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__FILTER__GAUSSIAN__SIGMA_POINT_ADDITIVE_UPDATE_POLICY_HPP
-#define FL__FILTER__GAUSSIAN__SIGMA_POINT_ADDITIVE_UPDATE_POLICY_HPP
+#pragma once
+
 
 #include <Eigen/Dense>
 
@@ -86,6 +86,7 @@ public:
         auto cov_xy = (X_c * W.asDiagonal() * Z_c.transpose()).eval();
         auto K = (cov_xy * cov_yy.inverse()).eval();
 
+        posterior_belief.dimension(prior_belief.dimension());
         posterior_belief.mean(X.mean() + K * innovation);
         posterior_belief.covariance(cov_xx - K * cov_yy * K.transpose());
     }
@@ -112,5 +113,5 @@ protected:
 
 }
 
-#endif
+
 
