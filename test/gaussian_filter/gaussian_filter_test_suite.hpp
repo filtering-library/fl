@@ -19,8 +19,8 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__TEST__GAUSSIAN_FILTER__GAUSSIAN_FILTER_TEST_SUITE_HPP
-#define FL__TEST__GAUSSIAN_FILTER__GAUSSIAN_FILTER_TEST_SUITE_HPP
+#pragma once
+
 
 #include <gtest/gtest.h>
 #include "../typecast.hpp"
@@ -53,7 +53,9 @@ protected:
 
         StateSize = fl::TestSize<StateDim, TestType>::Value,
         InputSize = fl::TestSize<InputDim, TestType>::Value,
-        ObsrvSize = fl::TestSize<ObsrvDim, TestType>::Value
+        ObsrvSize = fl::TestSize<ObsrvDim, TestType>::Value,
+
+        FilterIterations = Configuration::Iterations
     };
 
     enum ModelSetup
@@ -68,7 +70,7 @@ protected:
 
     GaussianFilterTest()
         : predict_steps_(30),
-          predict_update_steps_(30)
+          predict_update_steps_(FilterIterations)
     { }
 
     struct ModelFactory
@@ -208,16 +210,28 @@ TYPED_TEST_P(GaussianFilterTest, predict_then_update)
 
     for (int i = 0; i < This::predict_update_steps_; ++i)
     {
+        PF(i);
+//        PV(belief.mean());
+//        PV(belief.covariance());
+
         filter.predict(belief, This::zero_input(filter), belief);
+
+//        if (!belief.covariance().ldlt().isPositive())
+//        {
+//            PV(belief.mean());
+//            PV(belief.covariance());
+//        }
+
         ASSERT_TRUE(belief.covariance().ldlt().isPositive());
+
 
         filter.update(belief, This::rand_obsrv(filter), belief);
 
-        if (!belief.covariance().ldlt().isPositive())
-        {
-            PV(belief.mean());
-            PV(belief.covariance());
-        }
+//        if (!belief.covariance().ldlt().isPositive())
+//        {
+//            PV(belief.mean());
+//            PV(belief.covariance());
+//        }
 
         ASSERT_TRUE(belief.covariance().ldlt().isPositive());
     }
@@ -249,4 +263,4 @@ REGISTER_TYPED_TEST_CASE_P(GaussianFilterTest,
                            predict_loop);
 
 
-#endif
+
