@@ -30,14 +30,20 @@
 
 using namespace fl;
 
-template <int StateDimension, int InputDimension, int ObsrvDimension>
+template <
+    int StateDimension,
+    int InputDimension,
+    int ObsrvDimension,
+    int FilterIterations = 100
+>
 struct UnscentedKalmanFilterTestConfiguration
 {
     enum : signed int
     {
         StateDim = StateDimension,
         InputDim = InputDimension,
-        ObsrvDim = ObsrvDimension
+        ObsrvDim = ObsrvDimension,
+        Iterations = FilterIterations
     };
 
     template <typename ModelFactory>
