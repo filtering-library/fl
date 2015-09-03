@@ -35,7 +35,8 @@ template <
     int StateDimension,
     int InputDimension,
     int ObsrvDimension,
-    int Count               // Local observation model count
+    int Count,               // Local observation model count
+    int FilterIterations
 >
 struct MultiSensorGfTestConfiguration
 {
@@ -43,7 +44,8 @@ struct MultiSensorGfTestConfiguration
     {
         StateDim = StateDimension,
         InputDim = InputDimension,
-        ObsrvDim = ObsrvDimension
+        ObsrvDim = ObsrvDimension,
+        Iterations = FilterIterations
     };
 
     template <typename ModelFactory>
@@ -84,7 +86,7 @@ struct MultiSensorGfTestConfiguration
 };
 
 typedef ::testing::Types<
-            StaticTest<MultiSensorGfTestConfiguration<12, 1, 3, 10>>
+            StaticTest<MultiSensorGfTestConfiguration<12, 1, 3, 10, 100>>
         > TestTypes;
 
 INSTANTIATE_TYPED_TEST_CASE_P(MultiSensorGaussianFilterTest,

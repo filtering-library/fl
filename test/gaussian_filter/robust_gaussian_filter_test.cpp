@@ -34,14 +34,20 @@
 
 using namespace fl;
 
-template <int StateDimension, int InputDimension, int ObsrvDimension>
+template <
+    int StateDimension,
+    int InputDimension,
+    int ObsrvDimension,
+    int FilterIterations
+>
 struct RobutGaussianFilterTestConfiguration
 {
     enum : signed int
     {
         StateDim = StateDimension,
         InputDim = InputDimension,
-        ObsrvDim = ObsrvDimension
+        ObsrvDim = ObsrvDimension,
+        Iterations = FilterIterations
     };
 
     template <typename ModelFactory>
@@ -91,7 +97,7 @@ struct RobutGaussianFilterTestConfiguration
 
 
 typedef ::testing::Types<
-            StaticTest<RobutGaussianFilterTestConfiguration<1, 1, 1>>
+            StaticTest<RobutGaussianFilterTestConfiguration<1, 1, 1, 30>>
         > TestTypes;
 
 INSTANTIATE_TYPED_TEST_CASE_P(RobustGaussianFilterTest,
