@@ -28,22 +28,26 @@
 #include <fl/util/meta.hpp>
 #include <fl/filter/gaussian/quadrature/unscented_quadrature.hpp>
 #include <fl/filter/gaussian/robust_multi_sensor_gaussian_filter.hpp>
+#include <fl/model/observation/linear_cauchy_observation_model.hpp>
+#include <fl/model/observation/body_tail_observation_model.hpp>
+#include <fl/model/observation/linear_gaussian_observation_model.hpp>
 
 using namespace fl;
 
 template <
     int StateDimension,
-    int InputDimension,
     int ObsrvDimension,
-    int Count               // Local observation model count
+    int Count,               // Local observation model count
+    int FilterIterations
 >
 struct RobustMultiSensorGfTestConfiguration
 {
     enum : signed int
     {
         StateDim = StateDimension,
-        InputDim = InputDimension,
-        ObsrvDim = ObsrvDimension
+        InputDim = 1,
+        ObsrvDim = ObsrvDimension,
+        Iterations = FilterIterations
     };
 
     template <typename ModelFactory>
@@ -55,17 +59,43 @@ struct RobustMultiSensorGfTestConfiguration
             Size  = ExpandSizes<Count, ModelFactory::Sizes>::Value
         };
 
-        typedef typename ModelFactory::LinearObservation LocalObsrvModel;
+        // ================================================================== //
+        // == Define Process Model                                         == //
+        // ================================================================== //
+        typedef typename ModelFactory::LinearStateTransition ProcessModel;
+
+        // ================================================================== //
+        // == Define Body Tail Observation Model                           == //
+        // ================================================================== //
+        typedef typename ModelFactory::LinearObservation::Obsrv Obsrv;
+        typedef typename ModelFactory::LinearObservation::State State;
+
+        typedef fl::LinearCauchyObservationModel<Obsrv, State> CauchyModel;
+
+        typedef fl::BodyTailObsrvModel<
+                    typename ModelFactory::LinearObservation,
+                    CauchyModel
+                > BodyTailObsrvModel;
+
+        typedef BodyTailObsrvModel LocalObsrvModel;
+
+        // ================================================================== //
+        // == Define Joint Body Tail Observation Model                     == //
+        // ================================================================== //
         typedef JointObservationModel<
                     MultipleOf<LocalObsrvModel, Size>
                 > JointObsrvModel;
 
+        // ================================================================== //
+        // == Define Integration Quadrature                                == //
+        // ================================================================== //
         typedef UnscentedQuadrature Quadrature;
 
-        typedef MultiSensorGaussianFilter<
-                        typename ModelFactory::LinearStateTransition,
-                        JointObsrvModel,
-                        Quadrature
+        // ================================================================== //
+        // == Define the filter                                            == //
+        // ================================================================== //
+        typedef RobustMultiSensorGaussianFilter<
+                    ProcessModel, JointObsrvModel, Quadrature
                 > Type;
     };
 
@@ -73,18 +103,26 @@ struct RobustMultiSensorGfTestConfiguration
     static typename FilterDefinition<ModelFactory>::Type
     create_filter(ModelFactory&& factory)
     {
-        typedef typename
-        FilterDefinition<ModelFactory>::JointObsrvModel JointObsrvModel;
+        typedef FilterDefinition<ModelFactory> Definition;
 
-        return typename FilterDefinition<ModelFactory>::Type(
+        typedef typename Definition::Type Filter;
+        typedef typename Definition::CauchyModel CauchyModel;
+        typedef typename Definition::BodyTailObsrvModel BodyTailObsrvModel;
+        typedef typename Definition::JointObsrvModel JointObsrvModel;
+
+        auto body_model = factory.create_observation_model();
+        auto tail_model = CauchyModel();
+        tail_model.noise_covariance(tail_model.noise_covariance() * 10.);
+
+        return Filter(
             factory.create_linear_state_model(),
-            JointObsrvModel(factory.create_observation_model(), Count),
-            UnscentedQuadrature());
+            JointObsrvModel(BodyTailObsrvModel(body_model, tail_model, 0.1), Count),
+            typename Definition::Quadrature());
     }
 };
 
 typedef ::testing::Types<
-            StaticTest<RobustMultiSensorGfTestConfiguration<12, 1, 3, 10>>
+            StaticTest<RobustMultiSensorGfTestConfiguration<12, 1, 1200, 30>>
         > TestTypes;
 
 INSTANTIATE_TYPED_TEST_CASE_P(RobustMultiSensorGaussianFilterTest,
