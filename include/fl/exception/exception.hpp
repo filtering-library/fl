@@ -19,8 +19,8 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__EXCEPTION__EXCEPTION_HPP
-#define FL__EXCEPTION__EXCEPTION_HPP
+#pragma once
+
 
 #include <map>
 #include <string>
@@ -39,8 +39,8 @@
 
     #define fl_throw(excep) \
         fl::Exception::throw_exception(excep, \
-                                       fl_current_function, \
                                        __FILE__, \
+                                       fl_current_function, \
                                        __LINE__);
 //#else
 //    #define fl_throw(excep) throw excep;
@@ -153,7 +153,7 @@ protected:
 class OutOfBoundsException
         : public Exception
 {
-public:    
+public:
 
     /**
      * Creates an OutOfBoundsException with a default message
@@ -292,5 +292,3 @@ public:
 };
 
 }
-
-#endif
