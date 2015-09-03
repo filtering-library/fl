@@ -19,8 +19,8 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__FILTER__GAUSSIAN__SIGMA_POINT_ADDITIVE_UNCORRELATED_UPDATE_POLICY_HPP
-#define FL__FILTER__GAUSSIAN__SIGMA_POINT_ADDITIVE_UNCORRELATED_UPDATE_POLICY_HPP
+#pragma once
+
 
 #include <Eigen/Dense>
 
@@ -101,6 +101,7 @@ public:
         auto correction = (
            X_c * C * Y_c.transpose() *  R_inv.asDiagonal() * innovation).eval();
 
+        posterior_belief.dimension(prior_belief.dimension());
         posterior_belief.mean(X.mean() + correction);
         posterior_belief.covariance(X_c * C * X_c.transpose());
     }
@@ -127,5 +128,5 @@ protected:
 
 }
 
-#endif
+
 
