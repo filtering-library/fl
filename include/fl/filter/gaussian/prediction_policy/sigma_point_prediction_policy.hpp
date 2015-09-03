@@ -19,8 +19,8 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__FILTER__GAUSSIAN__SIGMA_POINT_PREDICTION_POLICY_HPP
-#define FL__FILTER__GAUSSIAN__SIGMA_POINT_PREDICTION_POLICY_HPP
+#pragma once
+
 
 #include <Eigen/Dense>
 
@@ -129,6 +129,7 @@ public:
          *
          * given that W is the diagonal matrix
          */
+        predicted_belief.dimension(prior_belief.dimension());
         predicted_belief.mean(Z.mean());
         predicted_belief.covariance(X_c * W.asDiagonal() * X_c.transpose());
     }
@@ -157,5 +158,3 @@ protected:
 };
 
 }
-
-#endif
