@@ -28,14 +28,20 @@
 
 #include <fl/filter/gaussian/gaussian_filter_linear.hpp>
 
-template <int StateDimension, int InputDimension, int ObsrvDimension>
+template <
+    int StateDimension,
+    int InputDimension,
+    int ObsrvDimension,
+    int FilterIterations = 100
+>
 struct KalmanFilterTestConfiguration
 {
     enum: signed int
     {
         StateDim = StateDimension,
         InputDim = InputDimension,
-        ObsrvDim = ObsrvDimension
+        ObsrvDim = ObsrvDimension,
+        Iterations = FilterIterations
     };
 
     template <typename ModelFactory>
