@@ -14,8 +14,8 @@
  */
 
 /**
- * \file robust_joint_feature_obsrv_model.hpp
- * \date August 2015
+ * \file robust_multi_sensor_feature_obsrv_model.hpp
+ * \date September 2015
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
@@ -26,8 +26,7 @@
 #include <fl/util/types.hpp>
 #include <fl/util/descriptor.hpp>
 #include <fl/distribution/gaussian.hpp>
-#include <fl/model/observation/interface/observation_density.hpp>
-#include <fl/model/observation/interface/observation_function.hpp>
+#include <fl/model/observation/robust_feature_obsrv_model.hpp>
 
 namespace fl
 {
@@ -35,28 +34,18 @@ namespace fl
 /**
  * \ingroup observation_models
  *
- * \brief Represents a joint observation function or model which takes an
- *     arbitrary observation model (one that implements an ObservationFunction
- *     & a ObservationDensity) as an argument and maps it into a feature space
- *     used by the RobustGaussianFilter.
+ * \brief Represents an observation function or model which takes an arbitrary
+ *        observation model (one that implements an ObservationFunction & a
+ *        an ObservationDensity) as an argument and maps it into a feature space
+ *        used by the RobustGaussianFilter.
  */
-template <typename ObsrvModel>
-class RobustJointFeatureObsrvModel
-    : public ObservationFunction<
-                 /* Obsrv type of the size SizeOf<ObsrvModel::Obsrv> + 2 */
-                 typename VariateOfSize<
-                     JoinSizes<
-                         SizeOf<typename ObsrvModel::Obsrv>::Value,
-                         internal::RobustFeatureDimExt
-                     >::Value
-                 >::Type,
-                 typename ObsrvModel::State,
-                 typename ObsrvModel::Noise>,
-      public Descriptor
+template <typename ObsrvModel, int SensorsCount>
+class RobustMultiSensorFeatureObsrvModel
+    : public RobustFeatureObsrvModel<ObsrvModel>
 
 {
 private:
-    typedef RobustFeatureObsrvModel<ObsrvModel> This;
+    typedef RobustFeatureObsrvModel<ObsrvModel> RobustFeatureObsrvModelBase;
 
 public:
     /**
@@ -66,156 +55,128 @@ public:
      */
     typedef typename ObsrvModel::Obsrv InputObsrv;
 
-    /**
-     * \brief \a Obsrv (\f$y_t\f$) type which is a variate of the size
-     *        SizeOf<InputObsrv> + 2. \a Obsrv reside in the feature space.
-     */
-    typedef typename VariateOfSize<
-                         JoinSizes<
-                             SizeOf<typename ObsrvModel::Obsrv>::Value,
-                             internal::RobustFeatureDimExt
-                         >::Value
-                     >::Type Obsrv;
-
-    /**
-     * \brief \a State (\f$x_t\f$) type which is the same as ObsrvModel::State
-     */
-    typedef typename ObsrvModel::State State;
-
-    /**
-     * \brief \a Noise (\f$x_t\f$) type which is the same as ObsrvModel::Noise
-     */
-    typedef typename ObsrvModel::Noise Noise;
+private:
+    // Remove body_moments(mean, cov) of RobustFeatureObsrvModel from public
+    // interface.
+    using RobustFeatureObsrvModelBase::body_moments;
 
 public:
     /**
      * \brief Constructs a robust feature observation model for the robust
      *        gaussian filter
      *
-     * \param obsrv_model   Source observation model
+     * \param obsrv_model
+     *          Reference to the source observation model
+     *
+     * \note This model takes only a reference of to an existing lvalue of the
+     *       source model
      */
-    explicit RobustFeatureObsrvModel(const ObsrvModel& obsrv_model)
-        : obsrv_model_(obsrv_model)
+    explicit RobustMultiSensorFeatureObsrvModel(
+            ObsrvModel& obsrv_model,
+            int sensor_count)
+        : RobustFeatureObsrvModelBase(obsrv_model),
+          body_gaussians_(sensor_count),
+          id_(0)
     { }
 
     /**
      * \brief Overridable default destructor
      */
-    virtual ~RobustFeatureObsrvModel() { }
-
-    /**
-     * \brief observation Returns a feature mapped observation
-     */
-    Obsrv observation(const State& state, const Noise& noise) const override
-    {
-        Obsrv y = feature_obsrv(obsrv_model_.observation(state, noise), state);
-        return y; // RVO
-    }
-
-    /**
-     * \brief Computes the robust feature given an input feature fron the
-     *        source observation model
-     */
-    virtual Obsrv feature_obsrv(
-        const InputObsrv& input_obsrv, const State& state) const
-    {
-        auto y = Obsrv(obsrv_dimension());
-
-        auto prob_y = body_gaussian_.probability(input_obsrv);
-        auto prob_tail = obsrv_model_
-                            .tail_model()
-                            .probability(input_obsrv, state);
-
-        y(0) = prob_tail;
-        if (internal::RobustFeatureDimExt == 2) y(1) = prob_y;
-        y.bottomRows(obsrv_model_.obsrv_dimension()) = prob_y * input_obsrv;
-
-        auto weight = obsrv_model_.weight_threshold();
-        auto normalizer = (Real(1) - weight) * prob_y + weight * prob_tail;
-        y /= normalizer;
-
-        return y;
-    }
-
-
-    /**
-     * \brief Sets the feature function (feature observation modek) and
-     *        parameters
-     * \param body_gaussian     \f${\cal N}(y_t\mid \mu_{y}, \Sigma_{yy})\f$
-     * \param mean_state        \f$ \mu_x \f$
-     *
-     * PAPER REF
-     */
-    virtual void parameters(
-        const State& mean_state,
-        const typename FirstMomentOf<InputObsrv>::Type& mean_obsrv,
-        const typename SecondMomentOf<InputObsrv>::Type& cov_obsrv)
-    {
-        mean_state_ = mean_state;
-        body_gaussian_.mean(mean_obsrv);
-        body_gaussian_.covariance(cov_obsrv);
-    }
-
-    /**
-     * \brief Returns the dimension of the \a Obsrv which is dim(\a Obsrv) + 2
-     */
-    int obsrv_dimension() const override
-    {
-        return obsrv_model_.obsrv_dimension() + internal::RobustFeatureDimExt;
-    }
-
-    int noise_dimension() const override
-    {
-        return obsrv_model_.noise_dimension();
-    }
-
-    int state_dimension() const override
-    {
-        return obsrv_model_.state_dimension();
-    }
-
-    ObsrvModel& embedded_obsrv_model()
-    {
-        return obsrv_model_;
-    }
-
-    const ObsrvModel& embedded_obsrv_model() const
-    {
-        return obsrv_model_;
-    }
+    virtual ~RobustMultiSensorFeatureObsrvModel() { }
 
     virtual std::string name() const
     {
-        return "RobustFeatureObsrvModel<"
-                + this->list_arguments(embedded_obsrv_model().name())
+        return "RobustMultiSensorFeatureObsrvModel<"
+                + this->list_arguments(
+                      this->embedded_obsrv_model().name())
                 + ">";
     }
 
     virtual std::string description() const
     {
-        return "Robust feature observation model with "
-                + this->list_descriptions(embedded_obsrv_model().description());
+        return "Robust feature observation model for multi-sensor filtering with "
+                + this->list_descriptions(
+                      this->embedded_obsrv_model().description());
     }
 
+    /**
+     * \brief Sets the feature function body moments for the specified sensor
+     *        with the ID \ id
+     * \param body_gaussian
+     *          \f${\cal N}(y_t\mid \mu_{y}, \Sigma_{yy})\f$
+     *
+     * \todo PAPER REF
+     */
+    virtual void body_moments(
+        const typename FirstMomentOf<InputObsrv>::Type& mean_obsrv,
+        const typename SecondMomentOf<InputObsrv>::Type& cov_obsrv,
+        int id)
+    {
+        assert(mean_obsrv.size() == cov_obsrv.rows());
+        assert(mean_obsrv.size() == cov_obsrv.cols());
+
+        body_gaussians_(id).dimension(mean_obsrv.size());
+        body_gaussians_(id).mean(mean_obsrv);
+        body_gaussians_(id).covariance(cov_obsrv);
+    }
+
+    /**
+     * \return Model id number
+     *
+     * In case of multiple sensors of the same kind, this function returns the
+     * id of the individual model.
+     */
+    int id() const
+    {
+        return id_;
+    }
+
+    /**
+     * \brief Sets the model id for mulit-sensor use
+     *
+     * In some cases a single observation model may be used for multiple sensor
+     * of the same kind. It often suffices to alter the sensor id before
+     * evaluating the model.
+     *
+     * \param new_id    Model's new ID
+     *
+     * Sets the current feature model id and updates the body_gaussian for this
+     * particular sensor
+     */
+    void id(int new_id) override
+    {
+        id_ = new_id;
+
+        RobustFeatureObsrvModelBase::body_moments(
+            body_gaussians_(id_).mean(),
+            body_gaussians_(id_).covariance());
+    }
+
+    Eigen::Array<Gaussian<InputObsrv>, SensorsCount, 1>& body_gaussians()
+    {
+        return body_gaussians_;
+    }
+
+    Gaussian<InputObsrv>& body_gaussian()
+    {
+        return body_gaussians_(id_);
+    }
+
+public:
+    /** \cond internal */
+
+    void _id(int new_id)
+    {
+        id_ = new_id;
+    }
+
+    /** \endcond */
+
 protected:
-    /* \cond internal */
-
-    /**
-     * \brief obsrv_model_ source observation model
-     */
-    ObsrvModel obsrv_model_;
-
-    /**
-     * \brief \f${\cal N}(y_t\mid \mu_{y}, \Sigma_{yy})\f$
-     */
-    Gaussian<InputObsrv> body_gaussian_;
-
-    /**
-     * \brief \f$ \mu_x \f$
-     */
-    State mean_state_;
-
-    /* \endcond */
+    /** \cond internal */
+    Eigen::Array<Gaussian<InputObsrv>, SensorsCount, 1> body_gaussians_;
+    int id_;
+    /** \endcond */
 };
 
 }
