@@ -19,18 +19,18 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__FILTER__GAUSSIAN__ROBUST_GAUSSIAN_FILTER_HPP
-#define FL__FILTER__GAUSSIAN__ROBUST_GAUSSIAN_FILTER_HPP
+#pragma once
+
 
 #include <fl/util/meta.hpp>
 #include <fl/util/profiling.hpp>
 #include <fl/util/traits.hpp>
 #include <fl/filter/gaussian/gaussian_filter_nonlinear_generic.hpp>
-#include <fl/filter/gaussian/sigma_point_additive_uncorrelated_update_policy.hpp>
-#include <fl/filter/gaussian/sigma_point_additive_prediction_policy.hpp>
-#include <fl/filter/gaussian/sigma_point_additive_update_policy.hpp>
-#include <fl/filter/gaussian/sigma_point_prediction_policy.hpp>
-#include <fl/filter/gaussian/sigma_point_update_policy.hpp>
+#include <fl/filter/gaussian/update_policy/sigma_point_update_policy.hpp>
+#include <fl/filter/gaussian/update_policy/sigma_point_additive_update_policy.hpp>
+#include <fl/filter/gaussian/update_policy/sigma_point_additive_uncorrelated_update_policy.hpp>
+#include <fl/filter/gaussian/prediction_policy/sigma_point_additive_prediction_policy.hpp>
+#include <fl/filter/gaussian/prediction_policy/sigma_point_prediction_policy.hpp>
 #include <fl/model/observation/robust_feature_obsrv_model.hpp>
 
 namespace fl
@@ -154,13 +154,10 @@ public:
             .integrate_moments(
                 h, predicted_belief, body_noise_distr, y_mean, y_cov);
 
-        gaussian_filter_
-            .obsrv_model()
-            .parameters(predicted_belief.mean(), y_mean, y_cov);
+        gaussian_filter_.obsrv_model().mean_state(predicted_belief.mean());
+        gaussian_filter_.obsrv_model().body_moments(y_mean, y_cov);
 
-        auto feature_y = gaussian_filter_
-                            .obsrv_model()
-                            .feature_obsrv(obsrv, predicted_belief.mean());
+        auto feature_y = gaussian_filter_.obsrv_model().feature_obsrv(obsrv);
 
         gaussian_filter_
             .update(predicted_belief, feature_y, posterior_belief);
@@ -227,4 +224,4 @@ protected:
 
 }
 
-#endif
+
