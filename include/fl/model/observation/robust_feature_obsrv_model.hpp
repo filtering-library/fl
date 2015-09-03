@@ -19,8 +19,8 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__MODEL__OBSERVATION__ROBUST_FEATURE_OBSRV_MODEL_HPP
-#define FL__MODEL__OBSERVATION__ROBUST_FEATURE_OBSRV_MODEL_HPP
+#pragma once
+
 
 #include <fl/util/meta.hpp>
 #include <fl/util/traits.hpp>
@@ -106,7 +106,8 @@ public:
      *       source model
      */
     explicit RobustFeatureObsrvModel(ObsrvModel& obsrv_model)
-        : obsrv_model_(obsrv_model)
+        : obsrv_model_(obsrv_model),
+          body_gaussian_(obsrv_model.obsrv_dimension())
     { }
 
     /**
@@ -119,7 +120,7 @@ public:
      */
     Obsrv observation(const State& state, const Noise& noise) const override
     {
-        Obsrv y = feature_obsrv(obsrv_model_.observation(state, noise), state);
+        Obsrv y = feature_obsrv(obsrv_model_.observation(state, noise));
         return y; // RVO
     }
 
@@ -127,15 +128,14 @@ public:
      * \brief Computes the robust feature given an input feature fron the
      *        source observation model
      */
-    virtual Obsrv feature_obsrv(
-        const InputObsrv& input_obsrv, const State& state) const
+    virtual Obsrv feature_obsrv(const InputObsrv& input_obsrv) const
     {
         auto y = Obsrv(obsrv_dimension());
 
         auto prob_y = body_gaussian_.probability(input_obsrv);
         auto prob_tail = obsrv_model_
                             .tail_model()
-                            .probability(input_obsrv, state);
+                            .probability(input_obsrv, mean_state_);
 
         y(0) = prob_tail;
         if (internal::RobustFeatureDimExt == 2) y(1) = prob_y;
@@ -148,20 +148,45 @@ public:
         return y;
     }
 
+//    /**
+//     * \brief Sets the feature function (feature observation modek) and
+//     *        parameters
+//     * \param body_gaussian     \f${\cal N}(y_t\mid \mu_{y}, \Sigma_{yy})\f$
+//     * \param mean_state        \f$ \mu_x \f$
+//     *
+//     * PAPER REF
+//     */
+//    virtual void parameters(
+//        const State& mean_state,
+//        const typename FirstMomentOf<InputObsrv>::Type& mean_obsrv,
+//        const typename SecondMomentOf<InputObsrv>::Type& cov_obsrv)
+//    {
+//        mean_state_ = mean_state;
+//        body_gaussian_.mean(mean_obsrv);
+//        body_gaussian_.covariance(cov_obsrv);
+//    }
+
     /**
-     * \brief Sets the feature function (feature observation modek) and
-     *        parameters
-     * \param body_gaussian     \f${\cal N}(y_t\mid \mu_{y}, \Sigma_{yy})\f$
+     * \brief Sets the feature function \a mean_state;
      * \param mean_state        \f$ \mu_x \f$
      *
-     * PAPER REF
+     * \todo PAPER REF
      */
-    virtual void parameters(
-        const State& mean_state,
+    virtual void mean_state(const State& mean_state)
+    {
+        mean_state_ = mean_state;
+    }
+
+    /**
+     * \brief Sets the feature function body moments
+     * \param body_gaussian     \f${\cal N}(y_t\mid \mu_{y}, \Sigma_{yy})\f$
+     *
+     * \todo PAPER REF
+     */
+    virtual void body_moments(
         const typename FirstMomentOf<InputObsrv>::Type& mean_obsrv,
         const typename SecondMomentOf<InputObsrv>::Type& cov_obsrv)
     {
-        mean_state_ = mean_state;
         body_gaussian_.mean(mean_obsrv);
         body_gaussian_.covariance(cov_obsrv);
     }
@@ -230,4 +255,4 @@ protected:
 
 }
 
-#endif
+
