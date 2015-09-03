@@ -19,8 +19,8 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__FILTER__GAUSSIAN__MULTI_SENSOR_SIGMA_POINT_UPDATE_POLICY_HPP
-#define FL__FILTER__GAUSSIAN__MULTI_SENSOR_SIGMA_POINT_UPDATE_POLICY_HPP
+#pragma once
+
 
 #include <Eigen/Dense>
 
@@ -111,26 +111,33 @@ public:
     typedef PointSet<LocalObsrv, NumberOfPoints> LocalObsrvPointSet;
     typedef PointSet<LocalObsrvNoise, NumberOfPoints> LocalNoisePointSet;
 
-    template <
-        typename Belief
-    >
+    template <typename Belief>
     void operator()(JointModel& obsrv_function,
                     const SigmaPointQuadrature& quadrature,
                     const Belief& prior_belief,
                     const Obsrv& y,
                     Belief& posterior_belief)
     {
+        auto& model = obsrv_function.local_obsrv_model();
+        noise_distr_.dimension(model.noise_dimension());
+
         quadrature.transform_to_points(prior_belief, noise_distr_, p_X, p_Q);
 
-        auto& model = obsrv_function.local_obsrv_model();
         auto&& h = [&](const State& x, const LocalObsrvNoise& w)
         {
             return model.observation(x, w);
         };
 
-        auto&& mu_x = p_X.center();
-        auto&& X = p_X.points();
-        auto c_xx = cov(X, X);
+        /// \todo write unit test why this *.center() followed by .points()
+        /// introduces a bug
+//        auto&& mu_x = p_X.center();
+//        auto&& X = p_X.points();
+
+        auto&& mu_x = p_X.mean();
+        auto&& X = p_X.centered_points();
+
+        auto&& W = p_X.covariance_weights_vector();
+        auto c_xx = (X * W.asDiagonal() * X.transpose()).eval();
         auto c_xx_inv = c_xx.inverse().eval();
 
         auto C = c_xx_inv;
@@ -138,6 +145,10 @@ public:
         D.setZero(mu_x.size());
 
         const int sensors = obsrv_function.count_local_models();
+        const int dim_y = y.size() / sensors;// p_Y.dimension();
+
+        assert(y.size() % sensors == 0);
+
         for (int i = 0; i < sensors; ++i)
         {
             model.id(i);
@@ -145,17 +156,19 @@ public:
 
             auto mu_y = p_Y.center();
             auto Y = p_Y.points();
-            auto c_yy = cov(Y, Y);
-            auto c_xy = cov(X, Y);
-            auto c_yx = c_xy.transpose();
+            auto c_yy = (Y * W.asDiagonal() * Y.transpose()).eval();
+            auto c_xy = (X * W.asDiagonal() * Y.transpose()).eval();
+            auto c_yx = c_xy.transpose().eval();
             auto A_i = (c_yx * c_xx_inv).eval();
-            auto c_yy_given_x_inv = (c_yy - c_yx * c_xx_inv * c_xy).inverse();
-            auto T = (A_i.transpose() * c_yy_given_x_inv).eval();
+            auto c_yy_given_x = (c_yy - c_yx * c_xx_inv * c_xy).eval();
 
-            C += T * A_i;
-            D += T * (y.middleRows(i * mu_y.size(), mu_y.size()) - mu_y);
+            auto innovation = (y.middleRows(i * dim_y, dim_y) - mu_y).eval();
+
+            C += A_i.transpose() * solve(c_yy_given_x, A_i);
+            D += A_i.transpose() * solve(c_yy_given_x, innovation);
         }
 
+        posterior_belief.dimension(prior_belief.dimension());
         posterior_belief.covariance(C.inverse());
         posterior_belief.mean(mu_x + posterior_belief.covariance() * D);
     }
@@ -177,13 +190,14 @@ public:
     }
 
 private:
-    template <typename A, typename B>
-    auto cov(const A& a, const B& b) -> decltype((a * b.transpose()).eval())
-    {
-        auto&& W = p_X.covariance_weights_vector().asDiagonal();
-        auto c = (a * W * b.transpose()).eval();
-        return c;
-    }
+//    template <typename A, typename B>
+//    auto cov(const A& a, const B& b)
+//    -> typename std::remove_reference<decltype((a * b.transpose()).eval())>::type
+//    {
+//        auto&& W = p_X.covariance_weights_vector().asDiagonal();
+//        auto c = (a * W * b.transpose()).eval();
+//        return c;
+//    }
 
 protected:
     StatePointSet p_X;
@@ -193,5 +207,3 @@ protected:
 };
 
 }
-
-#endif
