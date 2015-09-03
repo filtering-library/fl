@@ -19,8 +19,8 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#ifndef FL__MODEL__OBSERVATION__JOINT_OBSERVATION_MODEL_IID_HPP
-#define FL__MODEL__OBSERVATION__JOINT_OBSERVATION_MODEL_IID_HPP
+#pragma once
+
 
 #include <Eigen/Dense>
 
@@ -54,20 +54,19 @@ struct Traits<JointObservationModel<MultipleOf<ObsrvModel, Count>>>
     enum : signed int { ModelCount = Count };
 
     typedef ObsrvModel LocalObsrvModel;
+    typedef typename ObsrvModel::State State;
     typedef typename ObsrvModel::Obsrv::Scalar Scalar;
     typedef typename ObsrvModel::Obsrv LocalObsrv;
-    typedef typename ObsrvModel::State LocalState;
     typedef typename ObsrvModel::Noise LocalNoise;
 
     enum : signed int
     {
-        StateDim = SizeOf<LocalState>::Value,
+        StateDim = SizeOf<State>::Value,
         ObsrvDim = ExpandSizes<SizeOf<LocalObsrv>::Value, Count>::Value,
         NoiseDim = ExpandSizes<SizeOf<LocalNoise>::Value, Count>::Value
     };
 
     typedef Eigen::Matrix<Scalar, ObsrvDim, 1> Obsrv;
-    typedef Eigen::Matrix<Scalar, StateDim, 1> State;
     typedef Eigen::Matrix<Scalar, NoiseDim, 1> Noise;
 
     typedef ObservationFunction<Obsrv, State, Noise> ObservationFunctionBase;
@@ -107,13 +106,18 @@ class JointObservationModel<MultipleOf<LocalObsrvModel, Count>>
       private internal::JointObservationModelIidType
 {
 private:
-    /** Typdef of \c This for #from_traits(TypeName) helper */
     typedef JointObservationModel<MultipleOf<LocalObsrvModel,Count>> This;
 
 public:
+    enum : signed int { ModelCount = Count };
+
+    typedef LocalObsrvModel LocalModel;
+    typedef typename Traits<This>::LocalObsrv LocalObsrv;
+    typedef typename Traits<This>::LocalNoise LocalNoise;
+
     typedef typename Traits<This>::Obsrv Obsrv;
-    typedef typename Traits<This>::State State;
     typedef typename Traits<This>::Noise Noise;
+    typedef typename Traits<This>::State State;
 
 public:
     JointObservationModel(
@@ -266,4 +270,4 @@ protected:
 
 }
 
-#endif
+
