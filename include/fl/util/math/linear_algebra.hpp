@@ -392,11 +392,36 @@ bool is_diagonal(const Eigen::MatrixBase<Derived>& m)
  * \brief Robust AX=B solver where X is a vector or a matrix
  */
 template <typename MatrixA, typename VectorsB>
-VectorsB solve(const Eigen::MatrixBase<MatrixA>& A,
-               const VectorsB& B)
+VectorsB solve(
+    const Eigen::MatrixBase<MatrixA>& A,
+    const VectorsB& B,
+    typename std::enable_if<VectorsB::RowsAtCompileTime==1>::type* = 0)
 {
     // householderQr() was not providing always a solution
     //VectorsB x = A.householderQr().solve(B).eval();
+
+    assert(A.cols() == B.rows());
+    assert(A.cols() == 1);
+    assert(A.rows() == 1);
+
+    VectorsB x = B / A(0);
+    return x; //RVO
+}
+
+/**
+ * \ingroup linear_algebra
+ * \brief Robust AX=B solver where X is a vector or a matrix
+ */
+template <typename MatrixA, typename VectorsB>
+VectorsB solve(
+    const Eigen::MatrixBase<MatrixA>& A,
+    const VectorsB& B,
+    typename std::enable_if<(VectorsB::RowsAtCompileTime != 1)>::type* = 0)
+{
+    // householderQr() was not providing always a solution
+    //VectorsB x = A.householderQr().solve(B).eval();
+
+    assert(A.cols() == B.rows());
 
     VectorsB x = A.colPivHouseholderQr().solve(B).eval();
     return x; //RVO
