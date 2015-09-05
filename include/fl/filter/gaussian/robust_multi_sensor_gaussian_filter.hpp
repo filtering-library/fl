@@ -199,7 +199,6 @@ public:
         const int local_feature_dim = local_feature_model.obsrv_dimension();
         const int sensor_count = joint_obsrv_model_.count_local_models();
 
-        INIT_PROFILING
         for (int i = 0; i < sensor_count; ++i)
         {
             if (!std::isfinite(y(i)))
@@ -225,11 +224,9 @@ public:
                 local_feature_model.feature_obsrv(
                     y.middleRows(i * local_obsrv_dim, local_obsrv_dim));
         }
-        MEASURE("local_feature_model.body_moments");
 
         multi_sensor_gaussian_filter_
             .update(predicted_belief, joint_feature_y, posterior_belief);
-        MEASURE("multi_sensor_gaussian_filter_.update");
     }
 
 
