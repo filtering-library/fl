@@ -148,24 +148,6 @@ public:
         return y;
     }
 
-//    /**
-//     * \brief Sets the feature function (feature observation modek) and
-//     *        parameters
-//     * \param body_gaussian     \f${\cal N}(y_t\mid \mu_{y}, \Sigma_{yy})\f$
-//     * \param mean_state        \f$ \mu_x \f$
-//     *
-//     * PAPER REF
-//     */
-//    virtual void parameters(
-//        const State& mean_state,
-//        const typename FirstMomentOf<InputObsrv>::Type& mean_obsrv,
-//        const typename SecondMomentOf<InputObsrv>::Type& cov_obsrv)
-//    {
-//        mean_state_ = mean_state;
-//        body_gaussian_.mean(mean_obsrv);
-//        body_gaussian_.covariance(cov_obsrv);
-//    }
-
     /**
      * \brief Sets the feature function \a mean_state;
      * \param mean_state        \f$ \mu_x \f$
@@ -218,6 +200,11 @@ public:
     {
         return obsrv_model_;
     }
+
+
+    virtual int id() const { return obsrv_model_.id(); }
+
+    virtual void id(int new_id) { obsrv_model_.id(new_id); }
 
     virtual std::string name() const
     {
