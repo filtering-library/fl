@@ -51,7 +51,7 @@ namespace fl
  */
 typedef FloatingPoint Real;
 
-
+typedef Eigen::Matrix<Real, 1, 1> Vector1d;
 
 /**
  * \ingroup types
