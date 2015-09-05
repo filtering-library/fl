@@ -170,6 +170,8 @@ public:
     typedef from_traits(Weights);
     typedef from_traits(WeightVector);
 
+    static_assert(Points_ != 0, "Invalid point count");
+
 public:
     /**
      * \brief Creates a PointSet
