@@ -158,7 +158,7 @@ public:
      * \copydoc FilterInterface::update
      */
     virtual void update(const Belief& predicted_belief,
-                        const Obsrv& obsrv,
+                        const Obsrv& y,
                         Belief& posterior_belief)
     {
         typedef typename PlainLocalModel::Obsrv PlainObsrv;
@@ -169,6 +169,7 @@ public:
             JointFeatureObsrv(
                 joint_feature_model()
                     .obsrv_dimension());
+        joint_feature_y.setZero();
 
         auto local_body_noise_distr =
             Gaussian<BodyNoise>(
@@ -177,13 +178,14 @@ public:
                     .body_model()
                     .noise_dimension());
 
-        auto&& h = [&](const State& x, const BodyNoise& w)
+        auto h = [&](const State& x, const BodyNoise& w)
         {
-           return obsrv_model()
-                      .local_obsrv_model()
-                      .body_model()
-                      .observation(x, w);
+           return joint_obsrv_model_
+                        .local_obsrv_model()
+                        .body_model()
+                        .observation(x, w);
         };
+
 
         auto y_mean = typename FirstMomentOf<PlainObsrv>::Type();
         auto y_cov = typename SecondMomentOf<PlainObsrv>::Type();
@@ -197,11 +199,19 @@ public:
         const int local_feature_dim = local_feature_model.obsrv_dimension();
         const int sensor_count = joint_obsrv_model_.count_local_models();
 
+        INIT_PROFILING
         for (int i = 0; i < sensor_count; ++i)
         {
+            if (!std::isfinite(y(i)))
+            {
+                joint_feature_y(i * local_feature_dim) =
+                    std::numeric_limits<Real>::quiet_NaN();
+                continue;
+            }
+
             // set current sensor id to integrate the moments of the current
             // sensor
-            local_feature_model._id(i);
+            local_feature_model.id(i);
 
             multi_sensor_gaussian_filter_
                 .quadrature()
@@ -213,12 +223,15 @@ public:
 
             joint_feature_y.middleRows(i * local_feature_dim, local_feature_dim) =
                 local_feature_model.feature_obsrv(
-                    obsrv.middleRows(i * local_obsrv_dim, local_obsrv_dim));
+                    y.middleRows(i * local_obsrv_dim, local_obsrv_dim));
         }
+        MEASURE("local_feature_model.body_moments");
 
         multi_sensor_gaussian_filter_
             .update(predicted_belief, joint_feature_y, posterior_belief);
+        MEASURE("multi_sensor_gaussian_filter_.update");
     }
+
 
 public: /* factory functions */
     virtual Belief create_belief() const
@@ -226,6 +239,7 @@ public: /* factory functions */
         auto belief = multi_sensor_gaussian_filter_.create_belief();
         return belief; // RVO
     }
+
 
 public: /* accessors & mutators */
     StateTransitionFunction& process_model()
