@@ -47,9 +47,11 @@
     #define MEASURE(text)
 #endif
 
+#define PShape(mat) std::cout << #mat << " (" << mat.rows() << ", " << mat.cols() << ")" << "\n\n";
 #define PV(mat) std::cout << #mat << "\n" << mat << "\n\n";
 #define PVT(mat) std::cout << #mat << "\n" << mat.transpose() << "\n\n";
 #define PF(flag) std::cout << #flag << ":=" << flag << "\n";
+#define PInfo(text) std::cout << "Info: " << text << "\n";
 //#define PV(mat)
 
 
