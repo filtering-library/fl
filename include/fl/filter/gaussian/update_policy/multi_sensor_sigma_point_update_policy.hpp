@@ -144,13 +144,21 @@ public:
         auto D = State();
         D.setZero(mu_x.size());
 
-        const int sensors = obsrv_function.count_local_models();
-        const int dim_y = y.size() / sensors;// p_Y.dimension();
+        const int sensor_count = obsrv_function.count_local_models();
+        const int dim_y = y.size() / sensor_count;// p_Y.dimension();
 
-        assert(y.size() % sensors == 0);
+        assert(y.size() % sensor_count == 0);
 
-        for (int i = 0; i < sensors; ++i)
+        for (int i = 0; i < sensor_count; ++i)
         {
+            bool valid = true;
+            for (int k = i * dim_y; k < i * dim_y + dim_y; ++k)
+            {
+                if (!std::isfinite(y(k))) valid = false;
+            }
+
+            if (!valid) continue;
+
             model.id(i);
             quadrature.propergate_points(h, p_X, p_Q, p_Y);
 
