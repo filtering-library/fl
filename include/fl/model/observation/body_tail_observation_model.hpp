@@ -303,6 +303,15 @@ public:
         return body_;
     }
 
+
+    virtual int id() const override { return body_.id(); }
+
+    virtual void id(int new_id) override
+    {
+        body_.id(new_id);
+        tail_.id(new_id);
+    }
+
     /**
      * \brief Const reference to the tail observation model part
      */
