@@ -147,6 +147,8 @@ public:
     {
         id_ = new_id;
 
+        RobustFeatureObsrvModelBase::id(new_id);
+
         RobustFeatureObsrvModelBase::body_moments(
             body_gaussians_(id_).mean(),
             body_gaussians_(id_).covariance());
@@ -161,16 +163,6 @@ public:
     {
         return body_gaussians_(id_);
     }
-
-public:
-    /** \cond internal */
-
-    void _id(int new_id)
-    {
-        id_ = new_id;
-    }
-
-    /** \endcond */
 
 protected:
     /** \cond internal */
