@@ -132,18 +132,39 @@ public:
     {
         auto y = Obsrv(obsrv_dimension());
 
+        auto weight = obsrv_model_.weight_threshold();
         auto prob_y = body_gaussian_.probability(input_obsrv);
         auto prob_tail = obsrv_model_
                             .tail_model()
                             .probability(input_obsrv, mean_state_);
 
-        y(0) = prob_tail;
-        if (internal::RobustFeatureDimExt == 2) y(1) = prob_y;
-        y.bottomRows(obsrv_model_.obsrv_dimension()) = prob_y * input_obsrv;
+        auto normalizer = 1.0 / ((1.0 - weight) * prob_y + weight * prob_tail);
 
-        auto weight = obsrv_model_.weight_threshold();
-        auto normalizer = (Real(1) - weight) * prob_y + weight * prob_tail;
-        y /= normalizer;
+        if(std::isfinite(normalizer))
+        {
+            y(0) = weight * prob_tail;
+            if (internal::RobustFeatureDimExt == 2) y(1) =
+                                                    (1.0 - weight) *  prob_y;
+            y.bottomRows(obsrv_model_.obsrv_dimension()) =
+                                        (1.0 - weight) * prob_y * input_obsrv;
+            y *= normalizer;
+        }
+        else if(weight == 0)
+        {
+            y(0) = 0.0;
+            if (internal::RobustFeatureDimExt == 2) y(1) = 1.0;
+            y.bottomRows(obsrv_model_.obsrv_dimension()) = input_obsrv;
+        }
+        else // if the normalizer is not finite, we assume that the
+        {
+            std::cout << "normalizer in robust feature is not finite " <<
+                      "     weight: " << weight << "   y: " << y.transpose()
+                         << "     normalizer: " << normalizer << std::endl;
+            exit(-1);
+
+        }
+
+
 
         return y;
     }
