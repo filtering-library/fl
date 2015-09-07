@@ -19,7 +19,7 @@
  * \author Jan Issac (jan.issac@gmail.com)
  */
 
-#pragme once
+#pragma once
 
 #include <Eigen/Dense>
 
