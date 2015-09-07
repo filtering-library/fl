@@ -44,11 +44,11 @@ public:
 
 public:
     UniformObservationModel(
-        Real min_depth,
-        Real max_depth,
+        Real min_value,
+        Real max_value,
         int state_dim = DimensionOf<State>::Value)
         : state_dim_(state_dim),
-          density_(min_depth, max_depth)
+          density_(min_value, max_value)
     { }
 
     Real log_probability(const Obsrv& obsrv, const State& state) const override
