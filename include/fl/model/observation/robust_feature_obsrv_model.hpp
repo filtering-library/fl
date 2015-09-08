@@ -140,7 +140,22 @@ public:
 
         auto normalizer = 1.0 / ((1.0 - weight) * prob_y + weight * prob_tail);
 
-        if(std::isfinite(normalizer))
+
+        if(weight == 0)
+        {
+            y(0) = 0.0;
+            if (internal::RobustFeatureDimExt == 2) y(1) = 1.0;
+            y.bottomRows(obsrv_model_.obsrv_dimension()) = input_obsrv;
+        }
+        else if( !std::isfinite(1.0 / (weight * prob_tail)) )
+        {
+            std::cout << "prob_tail is too small: " << prob_tail <<
+                      "     weight: " << weight <<
+                         "   input_obsrv: " << input_obsrv.transpose()
+                         << "     normalizer: " << normalizer << std::endl;
+            exit(-1);
+        }
+        else if(std::isfinite(normalizer))
         {
             y(0) = weight * prob_tail;
             if (internal::RobustFeatureDimExt == 2) y(1) =
@@ -149,16 +164,11 @@ public:
                                         (1.0 - weight) * prob_y * input_obsrv;
             y *= normalizer;
         }
-        else if(weight == 0)
-        {
-            y(0) = 0.0;
-            if (internal::RobustFeatureDimExt == 2) y(1) = 1.0;
-            y.bottomRows(obsrv_model_.obsrv_dimension()) = input_obsrv;
-        }
         else // if the normalizer is not finite, we assume that the
         {
             std::cout << "normalizer in robust feature is not finite " <<
-                      "     weight: " << weight << "   y: " << y.transpose()
+                      "     weight: " << weight <<
+                         "   input_obsrv: " << input_obsrv.transpose()
                          << "     normalizer: " << normalizer << std::endl;
             exit(-1);
 
