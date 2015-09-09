@@ -38,14 +38,14 @@ namespace fl
  * \ingroup distributions
  */
 class UniformDistribution
-    : public Evaluation<ScalarMatrix>,
-      public StandardGaussianMapping<ScalarMatrix, 1>
+    : public Evaluation<Vector1d>,
+      public StandardGaussianMapping<Vector1d, 1>
 {
 private:
-    typedef StandardGaussianMapping<ScalarMatrix, 1> StdGaussianMappingBase;
+    typedef StandardGaussianMapping<Vector1d, 1> StdGaussianMappingBase;
 
 public:
-    typedef ScalarMatrix Variate;
+    typedef Vector1d Variate;
 
     /**
      * \brief Represents the StandardGaussianMapping standard variate type which
@@ -74,7 +74,7 @@ public:
     {
         assert(x.size() == 1);
 
-        if(x < min_ || x > max_) return 0;
+        if(x(0) < min_ || x(0) > max_) return 0;
 
         return density_;
     }
@@ -83,7 +83,7 @@ public:
     {
         assert(x.size() == 1);
 
-        if(x < min_ || x > max_)
+        if(x(0) < min_ || x(0) > max_)
         {
             return -std::numeric_limits<Real>::infinity();
         }
@@ -96,9 +96,12 @@ public:
         assert(sample.size() == 1);
 
         // map from a gaussian to a uniform distribution
-        Real standard_uniform_sample = fl::normal_to_uniform(sample);
+        Real standard_uniform_sample = fl::normal_to_uniform(sample(0));
 
-        return mean_ + (standard_uniform_sample - 0.5) * delta_;;
+        Variate v;
+        v(0) = mean_ + (standard_uniform_sample - 0.5) * delta_;
+
+        return v;
     }
 
 private:
