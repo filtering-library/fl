@@ -186,6 +186,25 @@ public:
                         .observation(x, w);
         };
 
+        enum : signed int
+        {
+            NumberOfPoints =
+                Quadrature::number_of_points(
+                    JoinSizes<
+                        SizeOf<State>::Value,
+                        SizeOf<BodyNoise>::Value
+                    >::Value)
+        };
+
+        PointSet<State, NumberOfPoints> X;
+        PointSet<BodyNoise, NumberOfPoints> Y;
+        PointSet<PlainObsrv, NumberOfPoints> Z;
+
+        multi_sensor_gaussian_filter_
+           .quadrature()
+           .transform_to_points(predicted_belief, local_body_noise_distr, X, Y);
+
+        auto W = X.covariance_weights_vector().asDiagonal();
 
         auto y_mean = typename FirstMomentOf<PlainObsrv>::Type();
         auto y_cov = typename SecondMomentOf<PlainObsrv>::Type();
@@ -199,6 +218,8 @@ public:
         const int local_feature_dim = local_feature_model.obsrv_dimension();
         const int sensor_count = joint_obsrv_model_.count_local_models();
 
+        INIT_PROFILING
+        // compute body_tail_obsrv_model parameters
         for (int i = 0; i < sensor_count; ++i)
         {
             if (!std::isfinite(y(i)))
@@ -208,22 +229,31 @@ public:
                 continue;
             }
 
-            // set current sensor id to integrate the moments of the current
-            // sensor
-            local_feature_model.id(i);
+//            multi_sensor_gaussian_filter_
+//                .quadrature()
+//                .integrate_moments(
+//                    h, predicted_belief, local_body_noise_distr, y_mean, y_cov);
 
             multi_sensor_gaussian_filter_
                 .quadrature()
-                .integrate_moments(
-                    h, predicted_belief, local_body_noise_distr, y_mean, y_cov);
+                .propergate_points(h, X, Y, Z);
+
+            y_mean = Z.center();
+            auto Z_c = Z.points();
+            y_cov = (Z_c * W * Z_c.transpose());
 
             // set the current sensor's parameter
             local_feature_model.body_moments(y_mean, y_cov, i);
+
+            // set current sensor id to integrate the moments of the current
+            // sensor
+            //local_feature_model.id(i);
 
             joint_feature_y.middleRows(i * local_feature_dim, local_feature_dim) =
                 local_feature_model.feature_obsrv(
                     y.middleRows(i * local_obsrv_dim, local_obsrv_dim));
         }
+        MEASURE("local feature computation");
 
         multi_sensor_gaussian_filter_
             .update(predicted_belief, joint_feature_y, posterior_belief);
