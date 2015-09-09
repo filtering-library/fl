@@ -120,7 +120,8 @@ public:
      */
     Obsrv observation(const State& state, const Noise& noise) const override
     {
-        Obsrv y = feature_obsrv(obsrv_model_.observation(state, noise));
+        auto input_obsrv = obsrv_model_.observation(state, noise);
+        Obsrv y = feature_obsrv(input_obsrv);
         return y; // RVO
     }
 
@@ -149,10 +150,11 @@ public:
         }
         else if( !std::isfinite(1.0 / (weight * prob_tail)) )
         {
-            std::cout << "prob_tail is too small: " << prob_tail <<
-                      "     weight: " << weight <<
-                         "   input_obsrv: " << input_obsrv.transpose()
-                         << "     normalizer: " << normalizer << std::endl;
+            std::cout << "prob_tail is too small: " << prob_tail
+                      << "    weight: " << weight
+                      << "    input_obsrv: " << input_obsrv.transpose()
+                      << "    normalizer: " << normalizer
+                      << std::endl;
             exit(-1);
         }
         else if(std::isfinite(normalizer))
@@ -166,10 +168,11 @@ public:
         }
         else // if the normalizer is not finite, we assume that the
         {
-            std::cout << "normalizer in robust feature is not finite " <<
-                      "     weight: " << weight <<
-                         "   input_obsrv: " << input_obsrv.transpose()
-                         << "     normalizer: " << normalizer << std::endl;
+            std::cout << "normalizer in robust feature is not finite "
+                      << "    weight: " << weight
+                      << "    input_obsrv: " << input_obsrv.transpose()
+                      << "    normalizer: " << normalizer
+                      << std::endl;
             exit(-1);
 
         }
