@@ -89,7 +89,7 @@ public:
 
         noise_distr_.dimension(state_transition_funtion.noise_dimension());
 
-        auto&& f = [&](const State& x, const Noise& v)
+        auto f = [&](const State& x, const Noise& v)
         {
             return state_transition_funtion.state(x, v, u);
         };
@@ -107,7 +107,7 @@ public:
          *
          * mu_r = Sum w_mean[i] X_r[i]
          */
-        auto&& X_c = Z.centered_points();
+        auto X_c = Z.centered_points();
 
         /*
          * Obtain the weights of point as a vector
@@ -116,7 +116,7 @@ public:
          *
          * Note that the covariance weights are used.
          */
-        auto&& W = Z.covariance_weights_vector();
+        auto W = Z.covariance_weights_vector();
 
         /*
          * Compute and set the moments

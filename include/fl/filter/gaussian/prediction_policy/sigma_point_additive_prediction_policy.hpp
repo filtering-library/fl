@@ -67,7 +67,7 @@ public:
                     const Input& u,
                     Belief& predicted_belief)
     {
-        auto&& f = [&](const State& x)
+        auto f = [&](const State& x)
         {
             return additive_state_transition_function.expected_state(x, u);
         };
@@ -85,7 +85,7 @@ public:
          *
          * mu_r = Sum w_mean[i] X_r[i]
          */
-        auto&& X_c = Z.centered_points();
+        auto X_c = Z.centered_points();
 
         /*
          * Obtain the weights of point as a vector
@@ -94,7 +94,7 @@ public:
          *
          * Note that the covariance weights are used.
          */
-        auto&& W = Z.covariance_weights_vector();
+        auto W = Z.covariance_weights_vector();
 
         /*
          * Compute and set the moments
