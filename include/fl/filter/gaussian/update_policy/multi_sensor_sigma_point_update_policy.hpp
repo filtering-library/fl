@@ -21,6 +21,9 @@
 
 #pragma once
 
+#include <errno.h>
+#include <signal.h>
+#include <assert.h>
 
 #include <Eigen/Dense>
 
@@ -154,7 +157,11 @@ public:
             bool valid = true;
             for (int k = i * dim_y; k < i * dim_y + dim_y; ++k)
             {
-                if (!std::isfinite(y(k))) valid = false;
+                if (!std::isfinite(y(k)))
+                {
+                    valid = false;
+                    break;
+                }
             }
 
             if (!valid) continue;
@@ -179,6 +186,12 @@ public:
         posterior_belief.dimension(prior_belief.dimension());
         posterior_belief.covariance(C.inverse());
         posterior_belief.mean(mu_x + posterior_belief.covariance() * D);
+
+//        if (posterior_belief.mean().topRows(3).array().abs().sum() > 10.)
+//        {
+//            PVT(y);
+//            raise(SIGTRAP);
+//        }
     }
 
     virtual std::string name() const
