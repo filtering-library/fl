@@ -39,7 +39,7 @@ namespace fl
 {
 
 // Forward declarations
-template <typename...> class MultiSensorSigmaPointUpdatePolicy;
+template <typename...> class MultiSensorSigmaPointUpdatePolizzle;
 
 /**
  * \internal
@@ -48,7 +48,7 @@ template <
     typename SigmaPointQuadrature,
     typename NonJoinObservationModel
 >
-class MultiSensorSigmaPointUpdatePolicy<
+class MultiSensorSigmaPointUpdatePolizzle<
           SigmaPointQuadrature,
           NonJoinObservationModel>
 {
@@ -73,10 +73,10 @@ template <
     typename SigmaPointQuadrature,
     typename MultipleOfLocalObsrvModel
 >
-class MultiSensorSigmaPointUpdatePolicy<
+class MultiSensorSigmaPointUpdatePolizzle<
           SigmaPointQuadrature,
           JointObservationModel<MultipleOfLocalObsrvModel>>
-    : public MultiSensorSigmaPointUpdatePolicy<
+    : public MultiSensorSigmaPointUpdatePolizzle<
                 SigmaPointQuadrature,
                 NonAdditive<JointObservationModel<MultipleOfLocalObsrvModel>>>
 { };
@@ -85,7 +85,7 @@ template <
     typename SigmaPointQuadrature,
     typename MultipleOfLocalObsrvModel
 >
-class MultiSensorSigmaPointUpdatePolicy<
+class MultiSensorSigmaPointUpdatePolizzle<
           SigmaPointQuadrature,
           NonAdditive<JointObservationModel<MultipleOfLocalObsrvModel>>>
     : public Descriptor
@@ -204,6 +204,7 @@ public:
             auto c_yy = (1.0 - weight) * c_yy_body + weight * c_yy_tail;
             auto c_xy = (1.0 - weight) * c_xy_body + weight * c_xy_tail;
 
+
             auto c_yx = c_xy.transpose().eval();
             auto A_i = (c_yx * c_xx_inv).eval();
             auto c_yy_given_x = (c_yy - c_yx * c_xx_inv * c_xy).eval();
@@ -227,7 +228,7 @@ public:
 
     virtual std::string name() const
     {
-        return "MultiSensorSigmaPointUpdatePolicy<"
+        return "MultiSensorSigmaPointUpdatePolizzle<"
                 + this->list_arguments(
                        "SigmaPointQuadrature",
                        "NonAdditive<ObservationFunction>")
