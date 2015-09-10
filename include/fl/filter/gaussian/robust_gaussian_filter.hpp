@@ -41,13 +41,13 @@ namespace fl
 template<
     typename StateTransitionFunction,
     typename ObservationFunction,
+    typename Quadrature,
     typename ... Policies
 > class RobustGaussianFilter;
 
 /**
  * \internal
  * \ingroup nonlinear_gaussian_filter
- * \ingroup generic_nonlinear_gaussian_filter
  *
  * Traits for generic GaussianFilter based on quadrature (numeric integration)
  * with customizable policies, i.e implementations of the time and measurement
@@ -56,11 +56,15 @@ template<
 template <
     typename StateTransitionFunction,
     typename ObservationFunction,
+    typename Quadrature,
     typename ... Policies
 >
 struct Traits<
           RobustGaussianFilter<
-              StateTransitionFunction, ObservationFunction, Policies...>>
+              StateTransitionFunction,
+              ObservationFunction,
+              Quadrature,
+              Policies...>>
 {
     typedef typename StateTransitionFunction::State State;
     typedef typename StateTransitionFunction::Input Input;
@@ -68,20 +72,32 @@ struct Traits<
     typedef Gaussian<State> Belief;
 };
 
-
 /**
  * \ingroup nonlinear_gaussian_filter
- * \ingroup generic_nonlinear_gaussian_filter
+ * \brief Represents a Gaussian filter for nonlinear estimation using
+ *        robustification in PAPER REF.
+ *        Currently the filter assumes \a ObservationFunction to be of the type
+ *        a \a BodyTailObservationModel<BodtModelType, TailModelType>.
+ *
+ *        This filter may be used in the same fashion as any Gaussian filter.
+ *        That is, the Quadrature and the prediction as well as the update
+ *        policies are customizatble. The customization is identical to the
+ *        Gaussian filter. For more details on custom policies
+ *        see GaussianFilter!
  */
 template<
     typename StateTransitionFunction,
     typename ObservationFunction,
+    typename Quadrature,
     typename ... Policies
 >
 class RobustGaussianFilter
     : public FilterInterface<
                  RobustGaussianFilter<
-                     StateTransitionFunction, ObservationFunction, Policies...>>
+                     StateTransitionFunction,
+                     ObservationFunction,
+                     Quadrature,
+                     Policies...>>
 {
 public:
     typedef typename StateTransitionFunction::State State;
@@ -95,7 +111,10 @@ public:
     typedef RobustFeatureObsrvModel<ObservationFunction> FeatureObsrvModel;
 
     typedef GaussianFilter<
-                StateTransitionFunction, FeatureObsrvModel, Policies...
+                StateTransitionFunction,
+                FeatureObsrvModel,
+                Quadrature,
+                Policies...
             > BaseGaussianFilter;
 
 public:
@@ -105,11 +124,13 @@ public:
     template <typename ... SpecializationArgs>
     RobustGaussianFilter(const StateTransitionFunction& process_model,
                          const ObservationFunction& obsrv_model,
+                         const Quadrature& quadrature,
                          SpecializationArgs&& ... args)
         : obsrv_model_(obsrv_model),
           gaussian_filter_(
               process_model,
               FeatureObsrvModel(obsrv_model_),
+              quadrature,
               std::forward<SpecializationArgs>(args)...)
     { }
 
@@ -135,30 +156,43 @@ public:
                         const Obsrv& obsrv,
                         Belief& posterior_belief)
     {
+        /* ------------------------------------------ */
+        /* - Body model observation function lambda - */
+        /* ------------------------------------------ */
         typedef typename ObservationFunction::BodyObsrvModel::Noise Noise;
 
-        auto body_noise_distr = Gaussian<Noise>(obsrv_model()
-                                                    .body_model()
-                                                    .noise_dimension());
-
-        auto&& h = [&](const State& x, const Noise& w)
+        auto&& h_body = [&](const State& x, const Noise& w)
         {
            return obsrv_model().body_model().observation(x, w);
         };
 
+        /* ------------------------------------------ */
+        /* - Compute and set the feature parameter  - */
+        /* - E[h_body(x, w)], Cov(h_body(x, w)) and - */
+        /* - E[x]                                   - */
+        /* ------------------------------------------ */
         auto y_mean = typename FirstMomentOf<Obsrv>::Type();
         auto y_cov = typename SecondMomentOf<Obsrv>::Type();
-
-        gaussian_filter_
-            .quadrature()
+        quadrature()
             .integrate_moments(
-                h, predicted_belief, body_noise_distr, y_mean, y_cov);
+                h_body,
+                predicted_belief,
+                Gaussian<Noise>(obsrv_model().body_model().noise_dimension()),
+                y_mean,
+                y_cov);
 
-        gaussian_filter_.obsrv_model().mean_state(predicted_belief.mean());
-        gaussian_filter_.obsrv_model().body_moments(y_mean, y_cov);
+        robust_feature_obsrv_model().mean_state(predicted_belief.mean());
+        robust_feature_obsrv_model().body_moments(y_mean, y_cov);
 
-        auto feature_y = gaussian_filter_.obsrv_model().feature_obsrv(obsrv);
+        /* ------------------------------------------ */
+        /* - compute feature using feature model    - */
+        /* ------------------------------------------ */
+        auto feature_y = robust_feature_obsrv_model().feature_obsrv(obsrv);
 
+        /* ------------------------------------------ */
+        /* - use the feature to update with a       - */
+        /* - standard embedded GaussianFilter       - */
+        /* ------------------------------------------ */
         gaussian_filter_
             .update(predicted_belief, feature_y, posterior_belief);
     }
@@ -181,9 +215,9 @@ public: /* accessors & mutators */
         return gaussian_filter_.obsrv_model().embedded_obsrv_model();
     }
 
-    FeatureObsrvModel& robust_feature_obsrv_model()
+    Quadrature& quadrature()
     {
-        return gaussian_filter_.obsrv_model();
+        return gaussian_filter_.quadrature();
     }
 
     const StateTransitionFunction& process_model() const
@@ -196,12 +230,12 @@ public: /* accessors & mutators */
         return gaussian_filter_.obsrv_model().embedded_obsrv_model();
     }
 
-    const FeatureObsrvModel& robust_feature_obsrv_model() const
+    const Quadrature& quadrature() const
     {
-        return gaussian_filter_.obsrv_model();
+        return gaussian_filter_.quadrature();
     }
 
-    virtual std::string name() const
+    std::string name() const override
     {
         return "RobustGaussianFilter<"
                 + this->list_arguments(
@@ -209,11 +243,24 @@ public: /* accessors & mutators */
                 + ">";
     }
 
-    virtual std::string description() const
+    std::string description() const override
     {
         return "Robust GaussianFilter with"
                 + this->list_descriptions(gaussian_filter_.description());
     }
+
+protected:
+    FeatureObsrvModel& robust_feature_obsrv_model()
+    {
+        return gaussian_filter_.obsrv_model();
+    }
+
+    typename ObservationFunction::BodyObsrvModel body_model()
+    {
+        return obsrv_model().body_model();
+    }
+
+
 
 protected:
     /** \cond internal */
