@@ -21,9 +21,7 @@
 
 #pragma once
 
-#include <errno.h>
-#include <signal.h>
-#include <assert.h>
+
 
 #include <Eigen/Dense>
 
@@ -112,7 +110,7 @@ public:
 
     typedef PointSet<State, NumberOfPoints> StatePointSet;
     typedef PointSet<LocalObsrv, NumberOfPoints> LocalObsrvPointSet;
-    typedef PointSet<Vector1d, NumberOfPoints> LocalNoisePointSet;
+    typedef PointSet<LocalObsrvNoise, NumberOfPoints> LocalNoisePointSet;
 
     template <typename Belief>
     void operator()(JointModel& obsrv_function,
@@ -121,32 +119,34 @@ public:
                     const Obsrv& y,
                     Belief& posterior_belief)
     {
+        StatePointSet p_X;
+        LocalNoisePointSet p_Q;
+        LocalObsrvPointSet p_Y;
+        Gaussian<LocalObsrvNoise> noise_distr_;
+
+
         auto& model = obsrv_function.local_obsrv_model();
         noise_distr_.dimension(model.noise_dimension());
 
         quadrature.transform_to_points(prior_belief, noise_distr_, p_X, p_Q);
 
-//        auto&& h = [&](const State& x, const LocalObsrvNoise& w)
-//        {
-//            return model.observation(x, w);
-//        };
 
+        // create noise and state samples --------------------------------------
+        PointSet<Vector1d, NumberOfPoints> p_Q_partial;
 
-        auto&& h_body = [&](const State& x, const fl::Vector1d& w)
+        for(int i = 0; i < NumberOfPoints; i++)
         {
-            return model.feature_obsrv(model.embedded_obsrv_model().body_model().observation(x, w));
-        };
+            p_Q_partial.point(i, p_Q.point(i).topRows(1), p_Q.weight(i));
+        }
+        // ---------------------------------------------------------------------
 
 
-        auto&& h_tail = [&](const State& x, const fl::Vector1d& w)
+
+
+        auto&& h = [&](const State& x, const LocalObsrvNoise& w)
         {
-            return model.feature_obsrv(model.embedded_obsrv_model().tail_model().observation(x, w));
+            return model.observation(x, w);
         };
-
-        /// \todo write unit test why this *.center() followed by .points()
-        /// introduces a bug
-//        auto&& mu_x = p_X.center();
-//        auto&& X = p_X.points();
 
         auto&& mu_x = p_X.mean();
         auto&& X = p_X.centered_points();
@@ -164,6 +164,10 @@ public:
 
         assert(y.size() % sensor_count == 0);
 
+
+
+
+
         for (int i = 0; i < sensor_count; ++i)
         {
             bool valid = true;
@@ -180,29 +184,140 @@ public:
 
             model.id(i);
 
+            quadrature.propergate_points(h, p_X, p_Q, p_Y);
 
+            auto mu_y = p_Y.center();
 
-            quadrature.propergate_points(h_body, p_X, p_Q, p_Y);
-            auto mu_y_body = p_Y.center();
+            valid = true;
+            for (int k = 0; k < dim_y; ++k)
+            {
+                if (!std::isfinite(mu_y(k)))
+                {
+                    valid = false;
+                    break;
+                }
+            }
+            if (!valid) continue;
+
             auto Y = p_Y.points();
-            auto c_yy_body = (Y * W.asDiagonal() * Y.transpose()).eval();
-            auto c_xy_body = (X * W.asDiagonal() * Y.transpose()).eval();
+            auto c_yy = (Y * W.asDiagonal() * Y.transpose()).eval();
+            auto c_xy = (X * W.asDiagonal() * Y.transpose()).eval();
 
 
 
-            quadrature.propergate_points(h_tail, p_X, p_Q, p_Y);
-            auto mu_y_tail = p_Y.center();
-            Y = p_Y.points();
-            auto c_yy_tail = (Y * W.asDiagonal() * Y.transpose()).eval();
-            auto c_xy_tail = (X * W.asDiagonal() * Y.transpose()).eval();
+            // integrate body --------------------------------------------------
+            auto&& h_body = [&](const State& x, const fl::Vector1d& w)
+            {
+                auto obsrv =
+                    model.embedded_obsrv_model().body_model().observation(x, w);
+                auto feature = model.feature_obsrv(obsrv);
+                return feature;
+            };
+            PointSet<LocalObsrv, NumberOfPoints> p_Y_body;
+            quadrature.propergate_points(h_body, p_X, p_Q_partial, p_Y_body);
+            Eigen::Vector3d mu_y_body = p_Y_body.mean();
+
+            valid = true;
+            for (int k = 0; k < dim_y; ++k)
+            {
+                if (!std::isfinite(mu_y_body(k)))
+                {
+                    valid = false;
+                    break;
+                }
+            }
+            if (!valid) continue;
+
+
+            Eigen::Matrix<double, 3, NumberOfPoints> Y_body = p_Y_body.centered_points();
+            Eigen::Matrix<double, 3, 3> c_yy_body = (Y_body * W.asDiagonal() * Y_body.transpose()).eval();
+            Eigen::Matrix<double, 6, 3> c_xy_body = (X * W.asDiagonal() * Y_body.transpose()).eval();
+            // -----------------------------------------------------------------
+
+            // integrate tail --------------------------------------------------
+            auto&& h_tail = [&](const State& x, const fl::Vector1d& w)
+            {
+                return model.feature_obsrv(
+                   model.embedded_obsrv_model().tail_model().observation(x, w));
+            };
+            PointSet<LocalObsrv, NumberOfPoints> p_Y_tail;
+            quadrature.propergate_points(h_tail, p_X, p_Q_partial, p_Y_tail);
+            Eigen::Vector3d mu_y_tail = p_Y_tail.mean();
+            Eigen::Matrix<double, 3, NumberOfPoints> Y_tail = p_Y_tail.centered_points();
+            Eigen::Matrix<double, 3, 3> c_yy_tail = (Y_tail * W.asDiagonal() * Y_tail.transpose()).eval();
+            Eigen::Matrix<double, 6, 3> c_xy_tail = (X * W.asDiagonal() * Y_tail.transpose()).eval();
+            // -----------------------------------------------------------------
+
+
+            // sum it up -------------------------------------------------------
+//            double weight = model.embedded_obsrv_model().weight_threshold();
+//            mu_y = ((1.0 - weight) * mu_y_body + weight * mu_y_tail).eval();
+//            c_yy = ((1.0 - weight) * c_yy_body + weight * c_yy_tail).eval();
+//            c_xy = ((1.0 - weight) * c_xy_body + weight * c_xy_tail).eval();
+            // -----------------------------------------------------------------
+
+
+//            PF(mu_y.transpose());
+//            PF(mu_y_body.transpose());
+
+//            PF(c_yy);
+//            PF(c_yy_body);
+
+//            PF(c_xy);
+//            PF(c_xy_body);
+
+
+            if(!mu_y.isApprox(mu_y_body))
+            {
+                PF(mu_y.transpose());
+                PF(mu_y_body.transpose());
+
+                std::cout << "py: " << std::endl << Y << std::endl;
+                std::cout << "py_body: " << std::endl << Y_body << std::endl;
+
+
+                std::cout << "py: " << std::endl << Y.rowwise().sum() << std::endl;
+                std::cout << "py_body: " << std::endl << Y_body.rowwise().sum() << std::endl;
+
+
+                PF(p_Y_body.points());
+                exit(-1);
+            }
+
+            if(!c_yy.isApprox(c_yy_body))
+            {
+                PF(c_yy);
+                PF(c_yy_body);
+                exit(-1);
+
+            }
+            if(!c_xy.isApprox(c_xy_body))
+            {
+                PF(c_xy);
+                PF(c_xy_body);
+                exit(-1);
+
+            }
+
+
+//            // sum it up -------------------------------------------------------
+//            mu_y =  mu_y_body;
+//            c_yy =  c_yy_body;
+//            c_xy = c_xy_body;
+//            // -----------------------------------------------------------------
 
 
 
 
-            auto weight = model.embedded_obsrv_model().weight_threshold();
-            auto mu_y = (1.0 - weight) * mu_y_body + weight * mu_y_tail;
-            auto c_yy = (1.0 - weight) * c_yy_body + weight * c_yy_tail;
-            auto c_xy = (1.0 - weight) * c_xy_body + weight * c_xy_tail;
+
+
+
+
+
+
+
+
+
 
 
             auto c_yx = c_xy.transpose().eval();
@@ -211,19 +326,24 @@ public:
 
             auto innovation = (y.middleRows(i * dim_y, dim_y) - mu_y).eval();
 
-            C += A_i.transpose() * solve(c_yy_given_x, A_i);
-            D += A_i.transpose() * solve(c_yy_given_x, innovation);
+            Eigen::MatrixXd c_yy_given_x_inv_A_i =
+                c_yy_given_x.colPivHouseholderQr().solve(A_i).eval();
+            Eigen::MatrixXd c_yy_given_x_inv_innovation =
+                c_yy_given_x.colPivHouseholderQr().solve(innovation).eval();
+
+            C += A_i.transpose() * c_yy_given_x_inv_A_i;
+            D += A_i.transpose() * c_yy_given_x_inv_innovation;
+
+            //            C += A_i.transpose() * solve(c_yy_given_x, A_i);
+            //            D += A_i.transpose() * solve(c_yy_given_x, innovation);
+
+//            break_on_fail(
+//                D.array().square().sum() < 1.e9);
         }
 
         posterior_belief.dimension(prior_belief.dimension());
         posterior_belief.covariance(C.inverse());
         posterior_belief.mean(mu_x + posterior_belief.covariance() * D);
-
-//        if (posterior_belief.mean().topRows(3).array().abs().sum() > 10.)
-//        {
-//            PVT(y);
-//            raise(SIGTRAP);
-//        }
     }
 
     virtual std::string name() const
@@ -241,23 +361,7 @@ public:
                "for joint observation model of multiple local observation "
                "models with non-additive noise.";
     }
-
-private:
-//    template <typename A, typename B>
-//    auto cov(const A& a, const B& b)
-//    -> typename std::remove_reference<decltype((a * b.transpose()).eval())>::type
-//    {
-//        auto&& W = p_X.covariance_weights_vector().asDiagonal();
-//        auto c = (a * W * b.transpose()).eval();
-//        return c;
-//    }
-
-protected:
-    StatePointSet p_X;
-    LocalNoisePointSet p_Q;
-    LocalObsrvPointSet p_Y;
-
-    Gaussian<Vector1d> noise_distr_;
 };
 
 }
+

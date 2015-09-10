@@ -29,6 +29,9 @@
 #include <fl/util/traits.hpp>
 #include <fl/filter/gaussian/gaussian_filter.hpp>
 #include <fl/filter/gaussian/update_policy/multi_sensor_sigma_point_update_policy.hpp>
+#include <fl/filter/gaussian/update_policy/multi_sensor_sigma_point_update_polizzle.hpp>
+
+
 
 namespace fl
 {
@@ -82,7 +85,7 @@ class MultiSensorGaussianFilter<
                SigmaPointPredictPolicy<
                    Quadrature,
                    typename AdditivityOf<StateTransitionFunction>::Type>,
-               MultiSensorSigmaPointUpdatePolicy<
+               MultiSensorSigmaPointUpdatePolizzle<
                    Quadrature,
                    typename AdditivityOf<JointObservationFunction>::Type>>
 #else
@@ -102,7 +105,7 @@ public:
                 SigmaPointPredictPolicy<
                     Quadrature,
                     typename AdditivityOf<StateTransitionFunction>::Type>,
-                MultiSensorSigmaPointUpdatePolicy<
+                MultiSensorSigmaPointUpdatePolizzle<
                     Quadrature,
                     typename AdditivityOf<JointObservationFunction>::Type>
             > Base;
