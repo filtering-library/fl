@@ -197,12 +197,12 @@ public:
         };
 
         PointSet<State, NumberOfPoints> X;
-        PointSet<BodyNoise, NumberOfPoints> Y;
+        PointSet<BodyNoise, NumberOfPoints> R;
         PointSet<PlainObsrv, NumberOfPoints> Z;
 
         multi_sensor_gaussian_filter_
            .quadrature()
-           .transform_to_points(predicted_belief, local_body_noise_distr, X, Y);
+           .transform_to_points(predicted_belief, local_body_noise_distr, X, R);
 
         auto W = X.covariance_weights_vector().asDiagonal();
 
@@ -218,40 +218,50 @@ public:
         const int local_feature_dim = local_feature_model.obsrv_dimension();
         const int sensor_count = joint_obsrv_model_.count_local_models();
 
+        low_level_obsrv_bg.setZero(sensor_count, 1);
+        low_level_obsrv_fg.setZero(sensor_count, 1);
+        low_level_obsrv_nan.setZero(sensor_count, 1);
+
         INIT_PROFILING
         // compute body_tail_obsrv_model parameters
         for (int i = 0; i < sensor_count; ++i)
         {
             if (!std::isfinite(y(i)))
             {
+                low_level_obsrv_nan(i) = 0.25;
+
                 joint_feature_y(i * local_feature_dim) =
                     std::numeric_limits<Real>::quiet_NaN();
                 continue;
             }
 
-//            multi_sensor_gaussian_filter_
-//                .quadrature()
-//                .integrate_moments(
-//                    h, predicted_belief, local_body_noise_distr, y_mean, y_cov);
-
+            joint_obsrv_model_.local_obsrv_model().body_model().id(i);
             multi_sensor_gaussian_filter_
                 .quadrature()
-                .propergate_points(h, X, Y, Z);
+                .propergate_points(h, X, R, Z);
 
-            y_mean = Z.center();
-            auto Z_c = Z.points();
+            y_mean = Z.mean();
+            //! \todo BG changes
+            if (!std::isfinite(y_mean(0)))
+            {
+                low_level_obsrv_bg(i) = 0.50;
+
+                joint_feature_y(i * local_feature_dim) =
+                    std::numeric_limits<Real>::infinity();
+
+                continue;
+            }
+            auto Z_c = Z.centered_points();
             y_cov = (Z_c * W * Z_c.transpose());
 
             // set the current sensor's parameter
             local_feature_model.body_moments(y_mean, y_cov, i);
 
-            // set current sensor id to integrate the moments of the current
-            // sensor
-            //local_feature_model.id(i);
-
             joint_feature_y.middleRows(i * local_feature_dim, local_feature_dim) =
                 local_feature_model.feature_obsrv(
                     y.middleRows(i * local_obsrv_dim, local_obsrv_dim));
+
+            low_level_obsrv_fg(i) = 0.75;
         }
         MEASURE("local feature computation");
 
@@ -318,6 +328,11 @@ protected:
     JointObsrvModel joint_obsrv_model_;
     InternalMultiSensorGaussianFilter multi_sensor_gaussian_filter_;
     /** \endcond */
+
+public:
+    Eigen::VectorXd low_level_obsrv_bg;
+    Eigen::VectorXd low_level_obsrv_fg;
+    Eigen::VectorXd low_level_obsrv_nan;
 };
 
 }
