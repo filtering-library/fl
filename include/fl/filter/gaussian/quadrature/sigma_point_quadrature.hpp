@@ -519,7 +519,7 @@ public:
         ) const
     {
         transform_to_points(marginal_gaussian_a, marginal_gaussian_b, X, Y);
-        propergate_points(f, X, Y, Z);
+        propagate_points(f, X, Y, Z);
     }
 
     template <
@@ -553,7 +553,7 @@ public:
         typename PointSetY,
         typename PointSetZ
     >
-    void propergate_points(
+    void propagate_points(
             Integrand&& f,
             PointSetX& X,
             PointSetY& Y,
