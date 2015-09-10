@@ -133,10 +133,24 @@ public:
 
         // create noise and state samples --------------------------------------
         PointSet<Vector1d, NumberOfPoints> p_Q_partial;
+        auto&& W_body = p_X.covariance_weights_vector();
+        auto&& W_tail = p_X.covariance_weights_vector();
 
         for(int i = 0; i < NumberOfPoints; i++)
         {
             p_Q_partial.point(i, p_Q.point(i).topRows(1), p_Q.weight(i));
+
+            Real w_normal = p_Q.point(i).bottomRows(1)(0);
+            Real w_uniform = fl::normal_to_uniform(w_normal);
+
+            if(w_uniform > model.embedded_obsrv_model().weight_threshold())
+            {
+                W_body(i) = 0;
+            }
+            else
+            {
+                W_tail(i) = 0;
+            }
         }
         // ---------------------------------------------------------------------
 
@@ -186,7 +200,7 @@ public:
 
             quadrature.propagate_points(h, p_X, p_Q, p_Y);
 
-            auto mu_y = p_Y.center();
+            auto mu_y = p_Y.mean();
 
             valid = true;
             for (int k = 0; k < dim_y; ++k)
@@ -199,7 +213,7 @@ public:
             }
             if (!valid) continue;
 
-            auto Y = p_Y.points();
+            auto Y = p_Y.centered_points();
             auto c_yy = (Y * W.asDiagonal() * Y.transpose()).eval();
             auto c_xy = (X * W.asDiagonal() * Y.transpose()).eval();
 
@@ -215,23 +229,17 @@ public:
             };
             PointSet<LocalObsrv, NumberOfPoints> p_Y_body;
             quadrature.propagate_points(h_body, p_X, p_Q_partial, p_Y_body);
-            Eigen::Vector3d mu_y_body = p_Y_body.mean();
 
-            valid = true;
-            for (int k = 0; k < dim_y; ++k)
-            {
-                if (!std::isfinite(mu_y_body(k)))
-                {
-                    valid = false;
-                    break;
-                }
-            }
-            if (!valid) continue;
+            Eigen::Vector3d mu_y_body =
+                    (p_Y_body.points() * W_body.asDiagonal()).rowwise().sum();
 
-
-            Eigen::Matrix<double, 3, NumberOfPoints> Y_body = p_Y_body.centered_points();
-            Eigen::Matrix<double, 3, 3> c_yy_body = (Y_body * W.asDiagonal() * Y_body.transpose()).eval();
-            Eigen::Matrix<double, 6, 3> c_xy_body = (X * W.asDiagonal() * Y_body.transpose()).eval();
+//            Eigen::Vector3d mu_y_body = p_Y_body.mean();
+            Eigen::Matrix<double, 3, NumberOfPoints> Y_body =
+                    p_Y_body.centered_points();
+            Eigen::Matrix<double, 3, 3> c_yy_body =
+                    (Y_body * W_body.asDiagonal() * Y_body.transpose()).eval();
+            Eigen::Matrix<double, 6, 3> c_xy_body =
+                    (X * W_body.asDiagonal() * Y_body.transpose()).eval();
             // -----------------------------------------------------------------
 
             // integrate tail --------------------------------------------------
@@ -242,19 +250,27 @@ public:
             };
             PointSet<LocalObsrv, NumberOfPoints> p_Y_tail;
             quadrature.propagate_points(h_tail, p_X, p_Q_partial, p_Y_tail);
-            Eigen::Vector3d mu_y_tail = p_Y_tail.mean();
-            Eigen::Matrix<double, 3, NumberOfPoints> Y_tail = p_Y_tail.centered_points();
-            Eigen::Matrix<double, 3, 3> c_yy_tail = (Y_tail * W.asDiagonal() * Y_tail.transpose()).eval();
-            Eigen::Matrix<double, 6, 3> c_xy_tail = (X * W.asDiagonal() * Y_tail.transpose()).eval();
+
+
+            Eigen::Vector3d mu_y_tail =
+                    (p_Y_tail.points() * W_tail.asDiagonal()).rowwise().sum();
+
+//            Eigen::Vector3d mu_y_tail = p_Y_tail.mean();
+            Eigen::Matrix<double, 3, NumberOfPoints> Y_tail =
+                                                p_Y_tail.centered_points();
+            Eigen::Matrix<double, 3, 3> c_yy_tail =
+                          (Y_tail * W_tail.asDiagonal() * Y_tail.transpose()).eval();
+            Eigen::Matrix<double, 6, 3> c_xy_tail =
+                            (X * W_tail.asDiagonal() * Y_tail.transpose()).eval();
             // -----------------------------------------------------------------
 
 
-            // sum it up -------------------------------------------------------
+//            // sum it up -------------------------------------------------------
 //            double weight = model.embedded_obsrv_model().weight_threshold();
 //            mu_y = ((1.0 - weight) * mu_y_body + weight * mu_y_tail).eval();
 //            c_yy = ((1.0 - weight) * c_yy_body + weight * c_yy_tail).eval();
 //            c_xy = ((1.0 - weight) * c_xy_body + weight * c_xy_tail).eval();
-            // -----------------------------------------------------------------
+//            // -----------------------------------------------------------------
 
 
 //            PF(mu_y.transpose());
@@ -267,37 +283,80 @@ public:
 //            PF(c_xy_body);
 
 
-            if(!mu_y.isApprox(mu_y_body))
+//            if(!mu_y.isApprox(mu_y_body))
+//            {
+//                PF(mu_y.transpose());
+//                PF(mu_y_body.transpose());
+
+//                std::cout << "py: " << std::endl << Y << std::endl;
+//                std::cout << "py_body: " << std::endl << Y_body << std::endl;
+
+
+//                std::cout << "py: " << std::endl << Y.rowwise().sum() << std::endl;
+//                std::cout << "py_body: " << std::endl << Y_body.rowwise().sum() << std::endl;
+
+
+//                PF(p_Y_body.points());
+//                exit(-1);
+//            }
+
+//            if(!c_yy.isApprox(c_yy_body))
+//            {
+//                PF(c_yy);
+//                PF(c_yy_body);
+//                exit(-1);
+
+//            }
+//            if(!c_xy.isApprox(c_xy_body))
+//            {
+//                PF(c_xy);
+//                PF(c_xy_body);
+//                exit(-1);
+
+//            }
+
+
+
+
+            if(!mu_y.isApprox(mu_y_body + mu_y_tail))
             {
-                PF(mu_y.transpose());
-                PF(mu_y_body.transpose());
-
-                std::cout << "py: " << std::endl << Y << std::endl;
-                std::cout << "py_body: " << std::endl << Y_body << std::endl;
-
-
-                std::cout << "py: " << std::endl << Y.rowwise().sum() << std::endl;
-                std::cout << "py_body: " << std::endl << Y_body.rowwise().sum() << std::endl;
+                std::cout << "mean " << std::endl
+                          << mu_y.transpose() << std::endl;
+                std::cout << "composed mean " << std::endl
+                          << (mu_y_body + mu_y_tail).transpose() << std::endl;
 
 
-                PF(p_Y_body.points());
+
+                std::cout << "weighted tail points" << std::endl
+                     << (p_Y_tail.points() * W_tail.asDiagonal()) << std::endl;
+
+                std::cout << "weighted body points" << std::endl
+                     << (p_Y_body.points() * W_body.asDiagonal()) << std::endl;
+
+
+                std::cout << "weighted points" << std::endl
+                     << (p_Y.points() * W.asDiagonal()) << std::endl;
+
                 exit(-1);
             }
 
-            if(!c_yy.isApprox(c_yy_body))
+            if(!c_yy.isApprox(c_yy_body + c_yy_tail))
             {
                 PF(c_yy);
-                PF(c_yy_body);
+                PF(c_yy_tail);
                 exit(-1);
 
             }
-            if(!c_xy.isApprox(c_xy_body))
+            if(!c_xy.isApprox(c_xy_body + c_xy_tail))
             {
                 PF(c_xy);
-                PF(c_xy_body);
+                PF(c_xy_tail);
                 exit(-1);
 
             }
+
+
+
 
 
 //            // sum it up -------------------------------------------------------
