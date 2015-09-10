@@ -22,7 +22,6 @@
 #pragma once
 
 
-
 #include <Eigen/Dense>
 
 #include <fl/util/meta.hpp>
@@ -67,6 +66,14 @@ class MultiSensorSigmaPointUpdatePolicy<
 };
 
 
+/**
+ * \brief Represents an update policy update for multiple sensors. This instance
+ *        expects a \a JointObservationModel<>. The model is forwarded  as
+ *        NonAdditive<JointObservationModel> to the actual
+ *        implementation. In case you want to use the model as Additive, you may
+ *        specify this explicitly using Additive<JointObservationModel> or
+ *        UseAsAdditive<JointObservationModel>::Type
+ */
 template <
     typename SigmaPointQuadrature,
     typename MultipleOfLocalObsrvModel
@@ -79,6 +86,13 @@ class MultiSensorSigmaPointUpdatePolicy<
                 NonAdditive<JointObservationModel<MultipleOfLocalObsrvModel>>>
 { };
 
+
+/**
+ * \brief Represents an update policy update functor for multiple sensors.
+ *        This instance expects a \a NonAdditive<JointObservationModel<>>.
+ *        The implementation exploits factorization in the joint observation.
+ *        The update is performed for each sensor separately.
+ */
 template <
     typename SigmaPointQuadrature,
     typename MultipleOfLocalObsrvModel
@@ -90,27 +104,11 @@ class MultiSensorSigmaPointUpdatePolicy<
 {
 public:
     typedef JointObservationModel<MultipleOfLocalObsrvModel> JointModel;
-    typedef typename MultipleOfLocalObsrvModel::Type LocalModel;
 
     typedef typename JointModel::State State;
     typedef typename JointModel::Obsrv Obsrv;
-    typedef typename JointModel::Noise Noise;
-
-    typedef typename Traits<JointModel>::LocalObsrv LocalObsrv;
-    typedef typename Traits<JointModel>::LocalNoise LocalObsrvNoise;
-
-    enum : signed int
-    {
-        NumberOfPoints = SigmaPointQuadrature::number_of_points(
-                             JoinSizes<
-                                 SizeOf<State>::Value,
-                                 SizeOf<LocalObsrvNoise>::Value
-                             >::Size)
-    };
-
-    typedef PointSet<State, NumberOfPoints> StatePointSet;
-    typedef PointSet<LocalObsrv, NumberOfPoints> LocalObsrvPointSet;
-    typedef PointSet<LocalObsrvNoise, NumberOfPoints> LocalNoisePointSet;
+    typedef typename JointModel::LocalObsrv LocalObsrv;
+    typedef typename JointModel::LocalNoise LocalObsrvNoise;
 
     template <typename Belief>
     void operator()(JointModel& obsrv_function,
@@ -119,100 +117,106 @@ public:
                     const Obsrv& y,
                     Belief& posterior_belief)
     {
-        StatePointSet p_X;
-        LocalNoisePointSet p_Q;
-        LocalObsrvPointSet p_Y;
-        Gaussian<LocalObsrvNoise> noise_distr_;
+        auto& sensor_model = obsrv_function.local_obsrv_model();
 
-
-        auto& model = obsrv_function.local_obsrv_model();
-        noise_distr_.dimension(model.noise_dimension());
-
-        quadrature.transform_to_points(prior_belief, noise_distr_, p_X, p_Q);
-
-        auto&& h = [&](const State& x, const LocalObsrvNoise& w)
+        /* ------------------------------------------ */
+        /* - Determine the number of quadrature     - */
+        /* - points needed for the given quadrature - */
+        /* - in conjunction with the joint Gaussian - */
+        /* - p(State, LocalObsrvNoise)              - */
+        /* ------------------------------------------ */
+        enum : signed int
         {
-            return model.observation(x, w);
+            NumberOfPoints = SigmaPointQuadrature::number_of_points(
+                                 JoinSizes<
+                                     SizeOf<State>::Value,
+                                     SizeOf<LocalObsrvNoise>::Value
+                                 >::Size)
         };
 
-        /// \todo write unit test why this *.center() followed by .points()
-        /// introduces a bug
-//        auto&& mu_x = p_X.center();
-//        auto&& X = p_X.points();
+        /* ------------------------------------------ */
+        /* - PointSets                              - */
+        /* - [p_X, p_Q] ~ p(State, LocalObsrvNoise) - */
+        /* ------------------------------------------ */
+        PointSet<State, NumberOfPoints> p_X;
+        PointSet<LocalObsrvNoise, NumberOfPoints> p_Q;
 
-        auto&& mu_x = p_X.mean();
-        auto&& X = p_X.centered_points();
+        /* ------------------------------------------ */
+        /* - PointSet [p_Y] = h(p_X, p_Q)           - */
+        /* ------------------------------------------ */
+        PointSet<LocalObsrv, NumberOfPoints> p_Y;
 
-        auto&& W = p_X.covariance_weights_vector();
-        auto c_xx = (X * W.asDiagonal() * X.transpose()).eval();
-        auto c_xx_inv = c_xx.inverse().eval();
+        /* ------------------------------------------ */
+        /* - Transform p(State, LocalObsrvNoise) to - */
+        /* - point sets [p_X, p_Q]                  - */
+        /* ------------------------------------------ */
+        quadrature.transform_to_points(
+            prior_belief,
+            Gaussian<LocalObsrvNoise>(sensor_model.noise_dimension()),
+            p_X,
+            p_Q);
 
+        /* ------------------------------------------ */
+        /* - Compute expected moments of the state  - */
+        /* - E[X], Cov(X, X)                        - */
+        /* ------------------------------------------ */
+        auto W = p_X.covariance_weights_vector().asDiagonal();
+        auto mu_x = p_X.mean();
+        auto X = p_X.centered_points();
+        auto c_xx_inv = (X * W * X.transpose()).inverse().eval();
+
+        /* ------------------------------------------ */
+        /* - Temporary accumulators which will be   - */
+        /* - used to updated the belief             - */
+        /* ------------------------------------------ */
         auto C = c_xx_inv;
         auto D = State();
         D.setZero(mu_x.size());
 
         const int sensor_count = obsrv_function.count_local_models();
-        const int dim_y = y.size() / sensor_count;// p_Y.dimension();
+        const int dim_y = y.size() / sensor_count;
 
-        assert(y.size() % sensor_count == 0);
-
+        /* ------------------------------------------ */
+        /* - lambda of the sensor observation       - */
+        /* - function                               - */
+        /* ------------------------------------------ */
+        auto&& h = [&](const State& x, const LocalObsrvNoise& w)
+        {
+            return sensor_model.observation(x, w);
+        };
 
 
         for (int i = 0; i < sensor_count; ++i)
         {
-            bool valid = true;
-            for (int k = i * dim_y; k < i * dim_y + dim_y; ++k)
-            {
-                if (!std::isfinite(y(k)))
-                {
-                    valid = false;
-                    break;
-                }
-            }
+            // validate sensor value, i.e. make sure it is finite
+            if (!is_valid(y, i * dim_y, i * dim_y + dim_y)) continue;
 
-            if (!valid) continue;
-
-            model.id(i);
-
+            // select current sensor and propagate the points through h(x, w)
+            sensor_model.id(i);
             quadrature.propergate_points(h, p_X, p_Q, p_Y);
 
-            auto mu_y = p_Y.center();
+            // comute expected moments of the observation and validate
+            auto mu_y = p_Y.mean();
+            if (!is_valid(mu_y, 0, dim_y)) continue;
 
-            valid = true;
-            for (int k = 0; k < dim_y; ++k)
-            {
-                if (!std::isfinite(mu_y(k)))
-                {
-                    valid = false;
-                    break;
-                }
-            }
-            if (!valid) continue;
-
-            auto Y = p_Y.points();
-            auto c_yy = (Y * W.asDiagonal() * Y.transpose()).eval();
-            auto c_xy = (X * W.asDiagonal() * Y.transpose()).eval();
+            // update accumulatorsa according to the equations in PAPER REF
+            auto Y = p_Y.centered_points();
+            auto c_xy = (X * W * Y.transpose()).eval();
             auto c_yx = c_xy.transpose().eval();
             auto A_i = (c_yx * c_xx_inv).eval();
-            auto c_yy_given_x = (c_yy - c_yx * c_xx_inv * c_xy).eval();
+            auto c_yy_given_x = (
+                     (Y * W * Y.transpose()) - c_yx * c_xx_inv * c_xy
+                 ).eval();
 
             auto innovation = (y.middleRows(i * dim_y, dim_y) - mu_y).eval();
-
-            Eigen::MatrixXd c_yy_given_x_inv_A_i =
-                c_yy_given_x.colPivHouseholderQr().solve(A_i).eval();
-            Eigen::MatrixXd c_yy_given_x_inv_innovation =
-                c_yy_given_x.colPivHouseholderQr().solve(innovation).eval();
-
-            C += A_i.transpose() * c_yy_given_x_inv_A_i;
-            D += A_i.transpose() * c_yy_given_x_inv_innovation;
-
-            //            C += A_i.transpose() * solve(c_yy_given_x, A_i);
-            //            D += A_i.transpose() * solve(c_yy_given_x, innovation);
-
-//            break_on_fail(
-//                D.array().square().sum() < 1.e9);
+            C += A_i.transpose() * solve(c_yy_given_x, A_i);
+            D += A_i.transpose() * solve(c_yy_given_x, innovation);
         }
 
+        /* ------------------------------------------ */
+        /* - Update belief according to PAPER REF   - */
+        /* ------------------------------------------ */
+        // make sure the posterior has the correct dimension
         posterior_belief.dimension(prior_belief.dimension());
         posterior_belief.covariance(C.inverse());
         posterior_belief.mean(mu_x + posterior_belief.covariance() * D);
@@ -235,21 +239,20 @@ public:
     }
 
 private:
-//    template <typename A, typename B>
-//    auto cov(const A& a, const B& b)
-//    -> typename std::remove_reference<decltype((a * b.transpose()).eval())>::type
-//    {
-//        auto&& W = p_X.covariance_weights_vector().asDiagonal();
-//        auto c = (a * W * b.transpose()).eval();
-//        return c;
-//    }
-protected:
-//    StatePointSet p_X;
-//    LocalNoisePointSet p_Q;
-//    LocalObsrvPointSet p_Y;
-//    Gaussian<LocalObsrvNoise> noise_distr_;
+    /**
+     * \brief Checks whether all vector components within the range (start, end)
+     *        are finiate, i.e. not NAN nor Inf.
+     */
+    template <typename Vector>
+    bool is_valid(Vector&& vector, int start, int end) const
+    {
+        for (int k = start; k < end; ++k)
+        {
+            if (!std::isfinite(vector(k))) return false;
+        }
 
-
+        return true;
+    }
 };
 
 }
