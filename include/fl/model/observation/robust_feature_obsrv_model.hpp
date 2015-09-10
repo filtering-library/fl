@@ -134,7 +134,14 @@ public:
         auto y = Obsrv(obsrv_dimension());
 
         //! \todo BG changes
-        if(!std::isfinite(input_obsrv(0))) return y;
+        if(!std::isfinite(input_obsrv(0)))
+        {
+            for(int i = 0; i < y.size(); i++)
+            {
+                y(i) = std::numeric_limits<Real>::infinity();
+            }
+            return y;
+        }
 
         auto weight = obsrv_model_.weight_threshold();
         auto prob_y = body_gaussian_.probability(input_obsrv);
