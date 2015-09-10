@@ -184,7 +184,7 @@ public:
 
             model.id(i);
 
-            quadrature.propergate_points(h, p_X, p_Q, p_Y);
+            quadrature.propagate_points(h, p_X, p_Q, p_Y);
 
             auto mu_y = p_Y.center();
 
@@ -214,7 +214,7 @@ public:
                 return feature;
             };
             PointSet<LocalObsrv, NumberOfPoints> p_Y_body;
-            quadrature.propergate_points(h_body, p_X, p_Q_partial, p_Y_body);
+            quadrature.propagate_points(h_body, p_X, p_Q_partial, p_Y_body);
             Eigen::Vector3d mu_y_body = p_Y_body.mean();
 
             valid = true;
@@ -241,7 +241,7 @@ public:
                    model.embedded_obsrv_model().tail_model().observation(x, w));
             };
             PointSet<LocalObsrv, NumberOfPoints> p_Y_tail;
-            quadrature.propergate_points(h_tail, p_X, p_Q_partial, p_Y_tail);
+            quadrature.propagate_points(h_tail, p_X, p_Q_partial, p_Y_tail);
             Eigen::Vector3d mu_y_tail = p_Y_tail.mean();
             Eigen::Matrix<double, 3, NumberOfPoints> Y_tail = p_Y_tail.centered_points();
             Eigen::Matrix<double, 3, 3> c_yy_tail = (Y_tail * W.asDiagonal() * Y_tail.transpose()).eval();
