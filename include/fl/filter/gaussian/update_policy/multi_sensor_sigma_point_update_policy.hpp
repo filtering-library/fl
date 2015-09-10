@@ -193,7 +193,7 @@ public:
 
             // select current sensor and propagate the points through h(x, w)
             sensor_model.id(i);
-            quadrature.propergate_points(h, p_X, p_Q, p_Y);
+            quadrature.propagate_points(h, p_X, p_Q, p_Y);
 
             // comute expected moments of the observation and validate
             auto mu_y = p_Y.mean();

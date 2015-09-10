@@ -238,7 +238,7 @@ public:
             joint_obsrv_model_.local_obsrv_model().body_model().id(i);
             multi_sensor_gaussian_filter_
                 .quadrature()
-                .propergate_points(h, X, R, Z);
+                .propagate_points(h, X, R, Z);
 
             y_mean = Z.mean();
             //! \todo BG changes
