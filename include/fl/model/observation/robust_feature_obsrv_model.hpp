@@ -133,6 +133,9 @@ public:
     {
         auto y = Obsrv(obsrv_dimension());
 
+        //! \todo BG changes
+        if(!std::isfinite(input_obsrv(0))) return y;
+
         auto weight = obsrv_model_.weight_threshold();
         auto prob_y = body_gaussian_.probability(input_obsrv);
         auto prob_tail = obsrv_model_
@@ -140,7 +143,6 @@ public:
                             .probability(input_obsrv, mean_state_);
 
         auto normalizer = 1.0 / ((1.0 - weight) * prob_y + weight * prob_tail);
-
 
         if(weight == 0)
         {
@@ -176,8 +178,6 @@ public:
             exit(-1);
 
         }
-
-
 
         return y;
     }
@@ -253,7 +253,7 @@ public:
                 + this->list_descriptions(embedded_obsrv_model().description());
     }
 
-protected:
+public:
     /** \cond internal */
 
     /**
