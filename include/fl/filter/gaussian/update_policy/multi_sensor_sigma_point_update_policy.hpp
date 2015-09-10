@@ -21,9 +21,7 @@
 
 #pragma once
 
-#include <errno.h>
-#include <signal.h>
-#include <assert.h>
+
 
 #include <Eigen/Dense>
 
@@ -121,6 +119,12 @@ public:
                     const Obsrv& y,
                     Belief& posterior_belief)
     {
+        StatePointSet p_X;
+        LocalNoisePointSet p_Q;
+        LocalObsrvPointSet p_Y;
+        Gaussian<LocalObsrvNoise> noise_distr_;
+
+
         auto& model = obsrv_function.local_obsrv_model();
         noise_distr_.dimension(model.noise_dimension());
 
@@ -152,6 +156,8 @@ public:
 
         assert(y.size() % sensor_count == 0);
 
+
+
         for (int i = 0; i < sensor_count; ++i)
         {
             bool valid = true;
@@ -167,9 +173,22 @@ public:
             if (!valid) continue;
 
             model.id(i);
+
             quadrature.propergate_points(h, p_X, p_Q, p_Y);
 
             auto mu_y = p_Y.center();
+
+            valid = true;
+            for (int k = 0; k < dim_y; ++k)
+            {
+                if (!std::isfinite(mu_y(k)))
+                {
+                    valid = false;
+                    break;
+                }
+            }
+            if (!valid) continue;
+
             auto Y = p_Y.points();
             auto c_yy = (Y * W.asDiagonal() * Y.transpose()).eval();
             auto c_xy = (X * W.asDiagonal() * Y.transpose()).eval();
@@ -179,19 +198,24 @@ public:
 
             auto innovation = (y.middleRows(i * dim_y, dim_y) - mu_y).eval();
 
-            C += A_i.transpose() * solve(c_yy_given_x, A_i);
-            D += A_i.transpose() * solve(c_yy_given_x, innovation);
+            Eigen::MatrixXd c_yy_given_x_inv_A_i =
+                c_yy_given_x.colPivHouseholderQr().solve(A_i).eval();
+            Eigen::MatrixXd c_yy_given_x_inv_innovation =
+                c_yy_given_x.colPivHouseholderQr().solve(innovation).eval();
+
+            C += A_i.transpose() * c_yy_given_x_inv_A_i;
+            D += A_i.transpose() * c_yy_given_x_inv_innovation;
+
+            //            C += A_i.transpose() * solve(c_yy_given_x, A_i);
+            //            D += A_i.transpose() * solve(c_yy_given_x, innovation);
+
+//            break_on_fail(
+//                D.array().square().sum() < 1.e9);
         }
 
         posterior_belief.dimension(prior_belief.dimension());
         posterior_belief.covariance(C.inverse());
         posterior_belief.mean(mu_x + posterior_belief.covariance() * D);
-
-//        if (posterior_belief.mean().topRows(3).array().abs().sum() > 10.)
-//        {
-//            PVT(y);
-//            raise(SIGTRAP);
-//        }
     }
 
     virtual std::string name() const
@@ -219,12 +243,13 @@ private:
 //        auto c = (a * W * b.transpose()).eval();
 //        return c;
 //    }
-
 protected:
-    StatePointSet p_X;
-    LocalNoisePointSet p_Q;
-    LocalObsrvPointSet p_Y;
-    Gaussian<LocalObsrvNoise> noise_distr_;
+//    StatePointSet p_X;
+//    LocalNoisePointSet p_Q;
+//    LocalObsrvPointSet p_Y;
+//    Gaussian<LocalObsrvNoise> noise_distr_;
+
+
 };
 
 }

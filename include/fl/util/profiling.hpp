@@ -20,7 +20,9 @@
 
 #pragma once
 
-
+#include <errno.h>
+#include <signal.h>
+#include <assert.h>
 #include <sys/time.h>
 #include <iostream>
 
@@ -49,9 +51,41 @@
 
 #define PShape(mat) std::cout << #mat << " (" << mat.rows() << ", " << mat.cols() << ")" << "\n\n";
 #define PV(mat) std::cout << #mat << "\n" << mat << "\n\n";
-#define PVT(mat) std::cout << #mat << "\n" << mat.transpose() << "\n\n";
+#define PVT(mat) std::cout << #mat << "\n" << mat.transpose() << "\n";
 #define PF(flag) std::cout << #flag << ":=" << flag << "\n";
 #define PInfo(text) std::cout << "Info: " << text << "\n";
-//#define PV(mat)
 
+#ifdef NDEBUG
+#define break_on_fail(expr) (static_cast<void> (0))
+#else
 
+namespace fl
+{
+namespace internal
+{
+__attribute__ ((always_inline)) inline void __break_on_fail(
+    __const char *__assertion,
+    __const char *__file,
+    unsigned int __line,
+    __const char *__function
+) __THROW
+{
+    std::cout << "fl::breakpoint: " << __assertion << " failed at"
+              << __file << ":"
+              << __line << std::endl
+              << __function << " "
+              << std::endl;
+
+    raise(SIGTRAP);
+}
+}
+}
+#define break_on_fail(expr)             \
+  ((expr)                               \
+   ? (static_cast<void> (0))            \
+   : fl::internal::__break_on_fail (    \
+        __STRING(expr),                 \
+        __FILE__,                       \
+        __LINE__,                       \
+        __PRETTY_FUNCTION__))
+#endif
