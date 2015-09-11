@@ -495,20 +495,20 @@ public:
 
 
 
-                std::cout << "tail points" << std::endl
-                     << p_Y_tail.points()  << std::endl;
-                std::cout << "body points" << std::endl
-                     << p_Y_body.points()  << std::endl;
-                std::cout << "points" << std::endl
-                     << p_Y.points() << std::endl;
+//                std::cout << "tail points" << std::endl
+//                     << p_Y_tail.points()  << std::endl;
+//                std::cout << "body points" << std::endl
+//                     << p_Y_body.points()  << std::endl;
+//                std::cout << "points" << std::endl
+//                     << p_Y.points() << std::endl;
 
 
-                std::cout << "tail weights" << std::endl
-                     << W_tail.transpose()  << std::endl;
-                std::cout << "body weights" << std::endl
-                     << W_body.transpose()  << std::endl;
-                std::cout << "weights" << std::endl
-                     << W.transpose() << std::endl;
+//                std::cout << "tail weights" << std::endl
+//                     << W_tail.transpose()  << std::endl;
+//                std::cout << "body weights" << std::endl
+//                     << W_body.transpose()  << std::endl;
+//                std::cout << "weights" << std::endl
+//                     << W.transpose() << std::endl;
 
                 exit(-1);
             }
@@ -524,20 +524,20 @@ public:
 
 
 
-                std::cout << "tail points" << std::endl
-                     << p_Y_tail.points()  << std::endl;
-                std::cout << "body points" << std::endl
-                     << p_Y_body.points()  << std::endl;
-                std::cout << "points" << std::endl
-                     << p_Y.points() << std::endl;
+//                std::cout << "tail points" << std::endl
+//                     << p_Y_tail.points()  << std::endl;
+//                std::cout << "body points" << std::endl
+//                     << p_Y_body.points()  << std::endl;
+//                std::cout << "points" << std::endl
+//                     << p_Y.points() << std::endl;
 
 
-                std::cout << "tail weights" << std::endl
-                     << W_tail.transpose()  << std::endl;
-                std::cout << "body weights" << std::endl
-                     << W_body.transpose()  << std::endl;
-                std::cout << "weights" << std::endl
-                     << W.transpose() << std::endl;
+//                std::cout << "tail weights" << std::endl
+//                     << W_tail.transpose()  << std::endl;
+//                std::cout << "body weights" << std::endl
+//                     << W_body.transpose()  << std::endl;
+//                std::cout << "weights" << std::endl
+//                     << W.transpose() << std::endl;
 
 
 
@@ -553,20 +553,20 @@ public:
                 PF(c_xy - c_xy_total);
 
 
-                std::cout << "tail points" << std::endl
-                     << p_Y_tail.points()  << std::endl;
-                std::cout << "body points" << std::endl
-                     << p_Y_body.points()  << std::endl;
-                std::cout << "points" << std::endl
-                     << p_Y.points() << std::endl;
+//                std::cout << "tail points" << std::endl
+//                     << p_Y_tail.points()  << std::endl;
+//                std::cout << "body points" << std::endl
+//                     << p_Y_body.points()  << std::endl;
+//                std::cout << "points" << std::endl
+//                     << p_Y.points() << std::endl;
 
 
-                std::cout << "tail weights" << std::endl
-                     << W_tail.transpose()  << std::endl;
-                std::cout << "body weights" << std::endl
-                     << W_body.transpose()  << std::endl;
-                std::cout << "weights" << std::endl
-                     << W.transpose() << std::endl;
+//                std::cout << "tail weights" << std::endl
+//                     << W_tail.transpose()  << std::endl;
+//                std::cout << "body weights" << std::endl
+//                     << W_body.transpose()  << std::endl;
+//                std::cout << "weights" << std::endl
+//                     << W.transpose() << std::endl;
 
                 exit(-1);
 
@@ -576,11 +576,11 @@ public:
 
 
 
-//            // sum it up -------------------------------------------------------
-//            mu_y =  mu_y_body;
-//            c_yy =  c_yy_body;
-//            c_xy = c_xy_body;
-//            // -----------------------------------------------------------------
+            // sum it up -------------------------------------------------------
+            mu_y =  mu_y_total;
+            c_yy =  c_yy_total;
+            c_xy = c_xy_total;
+            // -----------------------------------------------------------------
 
 
 
