@@ -265,6 +265,13 @@ public:
 
             Eigen::Vector3d mu_y_body =
                     (p_Y_body.points() * W_body.asDiagonal()).rowwise().sum();
+
+            auto mu_x_body =
+                    (p_X.points() * W_body.asDiagonal()).rowwise().sum();
+
+            //            Eigen::Vector3d mu_y_body = p_Y_body.mean();
+
+
             valid = true;
             for (int k = 0; k < dim_y; ++k)
             {
@@ -277,9 +284,15 @@ public:
             if (!valid) continue;
 
 
-//            Eigen::Vector3d mu_y_body = p_Y_body.mean();
-            Eigen::Matrix<double, 3, NumberOfPoints> Y_body =
-                    p_Y_body.centered_points();
+//            Eigen::Matrix<double, 3, NumberOfPoints> Y_body =
+//                    p_Y_body.centered_points();
+            Eigen::Matrix<double, 3, NumberOfPoints> Y_body = p_Y_body.points();
+            for(int i = 0; i < Y_body.cols(); i++)
+            {
+                Y_body.col(i) = Y_body.col(i) - mu_y_body;
+            }
+
+
             Eigen::Matrix<double, 3, 3> c_yy_body =
                     (Y_body * W_body.asDiagonal() * Y_body.transpose()).eval();
             Eigen::Matrix<double, 6, 3> c_xy_body =
@@ -290,104 +303,119 @@ public:
 
 
 
-            Eigen::Matrix<double, 3, NumberOfPoints> points = p_Y_body.points();
-            auto weights = W_body;
+//            Eigen::Matrix<double, 3, NumberOfPoints> points = p_Y_body.points();
+//            auto weights = W_body;
 
-            Eigen::Vector3d mean = (points * weights.asDiagonal()).rowwise().sum();
+//            Eigen::Vector3d mean = (points * weights.asDiagonal()).rowwise().sum();
 
-
-            // first version --------------------------------------------------
-            Eigen::Matrix3d cov_1 = points * weights.asDiagonal() * points.transpose()
-                                    - mean * mean.transpose();
-
-            // second version --------------------------------------------------
-            Eigen::Matrix3d cov_2;
-            cov_2.setZero();
-
-            for(int i = 0; i < weights.size(); i++)
-            {
-                cov_2 = cov_2 + weights(i) * (points.col(i) - mean) *
-                        (points.col(i) - mean).transpose();
-            }
-            if(!cov_1.isApprox(cov_1))
-            {
-                PF(cov_1);
-                PF(cov_2);
-                PF(cov_1-cov_2);
-                exit(-1);
-            }
-
-
-            // third version --------------------------------------------------
-            Eigen::Matrix3d cov_3;
-            Eigen::Matrix<double, 3, NumberOfPoints> centered_points = points;
-            for(int i = 0; i < NumberOfPoints; i++)
-            {
-                centered_points.col(i) = centered_points.col(i) - mean;
-            }
-            cov_3 = centered_points * weights.asDiagonal() * centered_points.transpose();
-            if(!cov_1.isApprox(cov_3))
-            {
-                PF(cov_3);
-                PF(cov_1);
-                PF(cov_1-cov_3);
-                exit(-1);
-            }
+//            if(!mean.isApprox(mu_y_body))
+//            {
+//                PF(mu_y_body);
+//                PF(mean);
+//                PF(mean-mu_y_body);
+//                exit(-1);
+//            }
 
 
 
-            // comparision -----------------------------------------------
-            if(!cov_3.isApprox(c_yy_body))
-            {
-                PF(cov_3);
-                PF(c_yy_body);
-                PF(c_yy_body - cov_3);
+//            // first version --------------------------------------------------
+//            Eigen::Matrix3d cov_1 = points * weights.asDiagonal() * points.transpose()
+//                                    - mean * mean.transpose();
+
+//            // second version --------------------------------------------------
+//            Eigen::Matrix3d cov_2;
+//            cov_2.setZero();
+
+//            for(int i = 0; i < weights.size(); i++)
+//            {
+//                cov_2 = cov_2 + weights(i) * (points.col(i) - mean) *
+//                        (points.col(i) - mean).transpose();
+//            }
+//            if(!cov_1.isApprox(cov_1))
+//            {
+//                PF(cov_1);
+//                PF(cov_2);
+//                PF(cov_1-cov_2);
+//                exit(-1);
+//            }
 
 
+//            // third version --------------------------------------------------
+//            Eigen::Matrix3d cov_3;
+//            Eigen::Matrix<double, 3, NumberOfPoints> centered_points = points;
+//            for(int i = 0; i < centered_points.size(); i++)
+//            {
+//                centered_points.col(i) = centered_points.col(i) - mean;
+//            }
 
-                std::cout << "centered_points" << std::endl
-                     << centered_points  << std::endl;
-                std::cout << "Y_body" << std::endl
-                     << Y_body  << std::endl;
 
-                PF(centered_points.rowwise().sum());
-                PF(Y_body.rowwise().sum());
-
-
-                exit(-1);
-            }
+//            cov_3 = centered_points * weights.asDiagonal() * centered_points.transpose();
 
 
 
 
-            // non centered moments
-            auto m_yy_body = c_yy_body + mu_y_body * mu_y_body.transpose();
-
-
-            auto body_points = p_Y_body.points();
-            auto mu_y_body_2 = (body_points * W_body.asDiagonal()).rowwise().sum();
-            auto m_yy_body_2 =
-                body_points * W_body.asDiagonal() * body_points.transpose();
-            auto c_yy_body_2 = m_yy_body_2 - mu_y_body_2 * mu_y_body_2.transpose();
-
+//            if(!cov_1.isApprox(cov_3, 0.0000001))
+//            {
+//                PF(cov_3);
+//                PF(cov_1);
+//                PF(cov_1-cov_3);
+//                exit(-1);
+//            }
 
 
 
-            if(!m_yy_body.isApprox(m_yy_body_2))
-            {
-                PF(m_yy_body_2);
-                PF(m_yy_body);
-                PF(m_yy_body_2 - m_yy_body);
-                exit(-1);
-            }
+//            // comparision -----------------------------------------------
+//            if(!cov_3.isApprox(c_yy_body))
+//            {
+//                PF(cov_3);
+//                PF(c_yy_body);
+//                PF(c_yy_body - cov_3);
 
-            if(!c_yy_body.isApprox(c_yy_body_2))
-            {
-                PF(c_yy_body_2);
-                PF(c_yy_body);
-                PF(c_yy_body_2 - c_yy_body);
-                exit(-1);
-            }
+
+
+//                std::cout << "centered_points" << std::endl
+//                     << centered_points  << std::endl;
+//                std::cout << "Y_body" << std::endl
+//                     << Y_body  << std::endl;
+
+//                PF(centered_points.rowwise().sum());
+//                PF(Y_body.rowwise().sum());
+
+
+//                exit(-1);
+//            }
+
+
+
+
+//            // non centered moments
+//            auto m_yy_body = c_yy_body + mu_y_body * mu_y_body.transpose();
+
+
+//            auto body_points = p_Y_body.points();
+//            auto mu_y_body_2 = (body_points * W_body.asDiagonal()).rowwise().sum();
+//            auto m_yy_body_2 =
+//                body_points * W_body.asDiagonal() * body_points.transpose();
+//            auto c_yy_body_2 = m_yy_body_2 - mu_y_body_2 * mu_y_body_2.transpose();
+
+
+
+
+//            if(!m_yy_body.isApprox(m_yy_body_2))
+//            {
+//                PF(m_yy_body_2);
+//                PF(m_yy_body);
+//                PF(m_yy_body_2 - m_yy_body);
+//                exit(-1);
+//            }
+
+//            if(!c_yy_body.isApprox(c_yy_body_2))
+//            {
+//                PF(c_yy_body_2);
+//                PF(c_yy_body);
+//                PF(c_yy_body_2 - c_yy_body);
+//                exit(-1);
+//            }
 //            exit(-1);
             // -----------------------------------------------------------------
 
@@ -404,9 +432,23 @@ public:
             Eigen::Vector3d mu_y_tail =
                     (p_Y_tail.points() * W_tail.asDiagonal()).rowwise().sum();
 
+            Eigen::Matrix<double, 3, NumberOfPoints> Y_tail = p_Y_tail.points();
+            for(int i = 0; i < Y_tail.cols(); i++)
+            {
+                Y_tail.col(i) = Y_tail.col(i) - mu_y_tail;
+            }
+
+            auto mu_x_tail =
+                    (p_X.points() * W_tail.asDiagonal()).rowwise().sum();
+
+
 //            Eigen::Vector3d mu_y_tail = p_Y_tail.mean();
-            Eigen::Matrix<double, 3, NumberOfPoints> Y_tail =
-                                                p_Y_tail.centered_points();
+//            Eigen::Matrix<double, 3, NumberOfPoints> Y_tail =
+//                                                p_Y_tail.centered_points();
+
+
+
+
             Eigen::Matrix<double, 3, 3> c_yy_tail =
                           (Y_tail * W_tail.asDiagonal() * Y_tail.transpose()).eval();
             Eigen::Matrix<double, 6, 3> c_xy_tail =
@@ -420,10 +462,8 @@ public:
             auto mu_y_total = (b * mu_y_body + t * mu_y_tail).eval();
 
 
-
-
-
-
+            // non centered moments
+            auto m_yy_body = c_yy_body + mu_y_body * mu_y_body.transpose();
             auto m_yy_tail = c_yy_tail + mu_y_tail * mu_y_tail.transpose();
             auto m_yy_total = b * m_yy_body + t * m_yy_tail;
 
@@ -431,102 +471,18 @@ public:
             auto c_yy_total = (m_yy_total - mu_y_total * mu_y_total.transpose());
 
 
-
-
-
-            auto tail_points = p_Y_tail.points();
-            auto second_moment_tail =
-                tail_points * W_tail.asDiagonal() * tail_points.transpose();
-
-//            PF(second_moment_tail);
-//            PF(m_yy_tail);
-//            PF(second_moment_tail - m_yy_tail);
-
-
-            auto finaledidum = b * m_yy_body_2 + t * second_moment_tail
-                    - mu_y_total * mu_y_total.transpose();
-
-//            PF(finaledidum);
-//            PF(c_yy_total - finaledidum);
-//            PF(c_yy - finaledidum);
-
-//            exit(-1);
-
-
-
-
-
-
-
-
-
-//            auto mu_delta_body = (mu_y_total - mu_y_body).eval();
-//            PF(c_yy_body);
-//            c_yy_body = (c_yy_body + mu_delta_body * mu_delta_body.transpose()).eval();
-//            PF(c_yy_body);
-//            auto mu_delta_tail = (mu_y_total - mu_y_tail).eval();
-//            PF(c_yy_tail);
-//            c_yy_tail = (c_yy_tail + mu_delta_tail * mu_delta_tail.transpose()).eval();
-//            PF(c_yy_tail);
-//            auto c_yy_total = (b * c_yy_body + t * c_yy_tail).eval();
-
             auto c_xy_total = (b * c_xy_body + t * c_xy_tail).eval();
 
-
-//            // sum it up -------------------------------------------------------
-//            double weight = model.embedded_obsrv_model().weight_threshold();
-//            mu_y = ((1.0 - weight) * mu_y_body + weight * mu_y_tail).eval();
-//            c_yy = ((1.0 - weight) * c_yy_body + weight * c_yy_tail).eval();
-//            c_xy = ((1.0 - weight) * c_xy_body + weight * c_xy_tail).eval();
-//            // -----------------------------------------------------------------
-
-
-//            PF(mu_y.transpose());
-//            PF(mu_y_body.transpose());
-
-//            PF(c_yy);
-//            PF(c_yy_body);
-
-//            PF(c_xy);
-//            PF(c_xy_body);
-
-
-//            if(!mu_y.isApprox(mu_y_body))
-//            {
-//                PF(mu_y.transpose());
-//                PF(mu_y_body.transpose());
-
-//                std::cout << "py: " << std::endl << Y << std::endl;
-//                std::cout << "py_body: " << std::endl << Y_body << std::endl;
-
-
-//                std::cout << "py: " << std::endl << Y.rowwise().sum() << std::endl;
-//                std::cout << "py_body: " << std::endl << Y_body.rowwise().sum() << std::endl;
-
-
-//                PF(p_Y_body.points());
-//                exit(-1);
-//            }
-
-//            if(!c_yy.isApprox(c_yy_body))
-//            {
-//                PF(c_yy);
-//                PF(c_yy_body);
-//                exit(-1);
-
-//            }
-//            if(!c_xy.isApprox(c_xy_body))
-//            {
-//                PF(c_xy);
-//                PF(c_xy_body);
-//                exit(-1);
-
-//            }
+            /// todo: this extra shit should not be necessesary and is only for
+            /// comparsiosn
+            c_xy_total = c_xy_total - b * (mu_x_body - mu_x) * (mu_y - mu_y_body).transpose();
+            c_xy_total = c_xy_total - t * (mu_x_tail - mu_x) * (mu_y - mu_y_tail).transpose();
 
 
 
+            double epsilon = 0.00000001;
 
-            if(!mu_y.isApprox(mu_y_total))
+            if(!mu_y.isApprox(mu_y_total, epsilon))
             {
                 std::cout << "mean " << std::endl
                           << mu_y.transpose() << std::endl;
@@ -557,7 +513,7 @@ public:
                 exit(-1);
             }
 
-            if(!c_yy.isApprox(c_yy_total))
+            if(!c_yy.isApprox(c_yy_total, epsilon))
             {
                 PF(c_yy);
                 PF(c_yy_total);
@@ -590,10 +546,11 @@ public:
                 exit(-1);
 
             }
-            if(!c_xy.isApprox(c_xy_total))
+            if(!c_xy.isApprox(c_xy_total, epsilon))
             {
                 PF(c_xy);
                 PF(c_xy_total);
+                PF(c_xy - c_xy_total);
 
 
                 std::cout << "tail points" << std::endl
