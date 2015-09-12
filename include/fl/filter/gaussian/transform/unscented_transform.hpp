@@ -49,7 +49,7 @@ public:
      * \param beta      UT Scaling parameter beta  (2.0 is optimal for Gaussian)
      * \param kappa     UT Scaling parameter kappa (higher order parameter)
      */
-    UnscentedTransform(Real alpha = 1.0, Real beta = 2., Real kappa = 0.)
+    UnscentedTransform(Real alpha = 0.5, Real beta = 2., Real kappa = 0.)
         : PointSetTransform<UnscentedTransform>(this),
           alpha_(alpha),
           beta_(beta),
@@ -211,6 +211,8 @@ public:
      */
     Real weight_cov_0(Real dim) const
     {
+        //alpha_ = 1./dim;
+
         return weight_mean_0(dim) + (1 - alpha_ * alpha_ + beta_);
     }
 
@@ -239,6 +241,8 @@ public:
      */
     Real lambda_scalar(Real dim) const
     {
+        //alpha_ = 1./dim;
+
         return alpha_ * alpha_ * (dim + kappa_) - dim;
     }
 
@@ -261,9 +265,10 @@ public:
         return name();
     }
 
+
 protected:
     /** \cond INTERNAL */
-    Real alpha_;
+    mutable Real alpha_;
     Real beta_;
     Real kappa_;
     /** \endcond */
