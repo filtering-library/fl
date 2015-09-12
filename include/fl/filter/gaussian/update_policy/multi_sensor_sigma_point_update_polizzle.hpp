@@ -163,27 +163,6 @@ public:
 
             model.id(i);
 
-//            quadrature.propagate_points(h, p_X, p_Q, p_Y);
-
-//            auto mu_y = p_Y.mean();
-
-//            valid = true;
-//            for (int k = 0; k < dim_y; ++k)
-//            {
-//                if (!std::isfinite(mu_y(k)))
-//                {
-//                    valid = false;
-//                    break;
-//                }
-//            }
-//            if (!valid) continue;
-
-//            auto Y = p_Y.centered_points();
-//            auto c_yy = (Y * W.asDiagonal() * Y.transpose()).eval();
-//            auto c_xy = (X * W.asDiagonal() * Y.transpose()).eval();
-
-
-
             // integrate body --------------------------------------------------
             auto&& h_body = [&](const State& x, const fl::Vector1d& w)
             {
@@ -255,6 +234,7 @@ public:
             auto c_yy = (m_yy - mu_y * mu_y.transpose());
 
 
+
             auto c_xy = (b * c_xy_body + t * c_xy_tail).eval();
 
             /// todo: this extra shit should not be necessesary and is only for
@@ -279,12 +259,6 @@ public:
 
             C += A_i.transpose() * c_yy_given_x_inv_A_i;
             D += A_i.transpose() * c_yy_given_x_inv_innovation;
-
-            //            C += A_i.transpose() * solve(c_yy_given_x, A_i);
-            //            D += A_i.transpose() * solve(c_yy_given_x, innovation);
-
-//            break_on_fail(
-//                D.array().square().sum() < 1.e9);
         }
 
         posterior_belief.dimension(prior_belief.dimension());
