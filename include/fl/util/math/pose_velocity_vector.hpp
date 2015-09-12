@@ -107,7 +107,10 @@ public:
     {
         pose().affine(A);
     }
-
+    virtual void set_zero_pose()
+    {
+        pose().setZero();
+    }
     typename PoseBlock<Base>::PositionBlock position()
     {
       return pose().position();

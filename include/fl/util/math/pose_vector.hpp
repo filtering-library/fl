@@ -116,7 +116,10 @@ public:
        orientation().rotation_matrix(A.rotation());
        position() = A.translation();
     }
-
+    virtual void set_zero_pose()
+    {
+        this->setZero();
+    }
     // operators ***************************************************************
     template <typename T>
     PoseVector operator * (const PoseBase<T>& factor)
