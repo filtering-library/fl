@@ -222,6 +222,8 @@ public:
         low_level_obsrv_fg.setZero(sensor_count, 1);
         low_level_obsrv_nan.setZero(sensor_count, 1);
 
+        mean_obsrv.setZero(sensor_count);
+
         INIT_PROFILING
         // compute body_tail_obsrv_model parameters
         for (int i = 0; i < sensor_count; ++i)
@@ -241,6 +243,7 @@ public:
                 .propagate_points(h, X, R, Z);
 
             y_mean = Z.mean();
+            mean_obsrv(i) = y_mean(0);
             //! \todo BG changes
             if (!std::isfinite(y_mean(0)))
             {
@@ -269,6 +272,7 @@ public:
             .update(predicted_belief, joint_feature_y, posterior_belief);
     }
 
+    Eigen::VectorXd mean_obsrv;
 
 public: /* factory functions */
     virtual Belief create_belief() const
@@ -289,11 +293,6 @@ public: /* accessors & mutators */
         return joint_obsrv_model_;
     }
 
-    RobustJointFeatureObsrvModel& joint_feature_model()
-    {
-        return multi_sensor_gaussian_filter_.obsrv_model();
-    }
-
     const StateTransitionFunction& process_model() const
     {
         return multi_sensor_gaussian_filter_.process_model();
@@ -304,23 +303,24 @@ public: /* accessors & mutators */
         return joint_obsrv_model_;
     }
 
-    const RobustJointFeatureObsrvModel& joint_feature_model() const
-    {
-        return multi_sensor_gaussian_filter_.obsrv_model();
-    }
-
-    virtual std::string name() const
+    std::string name() const override
     {
         return "RobustMultiSensorGaussianFilter<"
                 + this->list_arguments(multi_sensor_gaussian_filter_.name())
                 + ">";
     }
 
-    virtual std::string description() const
+    std::string description() const override
     {
         return "Robust multi-sensor GaussianFilter with"
                 + this->list_descriptions(
                       multi_sensor_gaussian_filter_.description());
+    }
+
+protected:
+    RobustJointFeatureObsrvModel& joint_feature_model()
+    {
+        return multi_sensor_gaussian_filter_.obsrv_model();
     }
 
 protected:
