@@ -224,7 +224,6 @@ public:
 
         mean_obsrv.setZero(sensor_count);
 
-        INIT_PROFILING
         // compute body_tail_obsrv_model parameters
         for (int i = 0; i < sensor_count; ++i)
         {
@@ -237,7 +236,8 @@ public:
                 continue;
             }
 
-            joint_obsrv_model_.local_obsrv_model().body_model().id(i);
+//            joint_obsrv_model_.local_obsrv_model().body_model().id(i);
+            local_feature_model.id(i);
             multi_sensor_gaussian_filter_
                 .quadrature()
                 .propagate_points(h, X, R, Z);
@@ -260,6 +260,7 @@ public:
             // set the current sensor's parameter
             local_feature_model.body_moments(y_mean, y_cov, i);
 
+            local_feature_model.id(i);
             auto feature = local_feature_model.feature_obsrv(
                         y.middleRows(i * local_obsrv_dim, local_obsrv_dim));
 
@@ -268,13 +269,7 @@ public:
 
             low_level_obsrv_fg(i) = 0.75;
 
-//            std::cout << "mean: " << y_mean
-//                      << "    std: " << std::sqrt(y_cov(0,0))
-//                      << "   y - mean: " << y(i) - y_mean(0)
-//                      << "   phi: " << feature.transpose() << std::endl;
-
         }
-        MEASURE("local feature computation");
 
         multi_sensor_gaussian_filter_
             .update(predicted_belief, joint_feature_y, posterior_belief);
