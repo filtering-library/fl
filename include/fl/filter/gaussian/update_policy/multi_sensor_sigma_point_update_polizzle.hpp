@@ -261,16 +261,7 @@ public:
                 c_yy_given_x.colPivHouseholderQr().solve(innovation).eval();
 
             C += A_i.transpose() * c_yy_given_x_inv_A_i;
-            auto delta = A_i.transpose() * c_yy_given_x_inv_innovation;
-            std::cout << "delta: " << delta.transpose() << std::endl;
-            std::cout << "A " << std::endl << A_i << std::endl
-                         << "c_yy_given_x_inv_innovation" << std::endl
-                            << c_yy_given_x_inv_innovation.transpose()
-                            << std::endl << std::endl;
-            PF(y.middleRows(i * dim_y, dim_y));
-            PF(c_xy);
-            PF(c_yy);
-
+            auto delta = (A_i.transpose() * c_yy_given_x_inv_innovation).eval();
 
             D += delta;
         }
