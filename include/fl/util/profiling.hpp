@@ -89,3 +89,5 @@ __attribute__ ((always_inline)) inline void __break_on_fail(
         __LINE__,                       \
         __PRETTY_FUNCTION__))
 #endif
+
+#define pass_or_die(expr) if (!(expr)) { std::cout << #expr << std::endl; exit(-1); }
