@@ -54,7 +54,11 @@ public:
           alpha_(alpha),
           beta_(beta),
           kappa_(kappa)
-    { }
+    {
+        PF(alpha_);
+        PF(beta_);
+        PF(kappa_);
+    }
 
 
     /**
