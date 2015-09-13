@@ -188,18 +188,6 @@ public:
 
         }
 
-//        if(y(0) < 0.9)
-//        {
-//            std::cout << "feature: " << y.transpose()
-//                      << "    weight: " << weight
-//                      << "    input_obsrv: " << input_obsrv.transpose()
-//                      << "    normalizer: " << normalizer
-//                      << std::endl;
-
-//            std::cout << "prob_y " << prob_y << "  prob_tail: " << prob_tail <<
-//                         std::endl;
-//        }
-
         return y;
     }
 
