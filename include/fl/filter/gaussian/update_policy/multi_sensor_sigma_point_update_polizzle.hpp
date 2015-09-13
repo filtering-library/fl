@@ -123,7 +123,6 @@ public:
     {
         StatePointSet p_X;
         LocalNoisePointSet p_Q;
-        LocalObsrvPointSet p_Y;
         Gaussian<LocalObsrvNoise> noise_distr;
 
         /// todo: we might have to set the size of the noise distr;
@@ -131,10 +130,10 @@ public:
         auto& model = obsrv_function.local_obsrv_model();
         quadrature.transform_to_points(prior_belief, noise_distr, p_X, p_Q);
 
-        auto&& mu_x = p_X.mean();
-        auto&& X = p_X.centered_points();
+        auto mu_x = p_X.mean();
+        auto X = p_X.centered_points();
 
-        auto&& W = p_X.covariance_weights_vector();
+        auto W = p_X.covariance_weights_vector();
         auto c_xx = (X * W.asDiagonal() * X.transpose()).eval();
         auto c_xx_inv = c_xx.inverse().eval();
 
@@ -150,6 +149,7 @@ public:
         for (int i = 0; i < sensor_count; ++i)
         {
             bool valid = true;
+
             for (int k = i * dim_y; k < i * dim_y + dim_y; ++k)
             {
                 if (!std::isfinite(y(k)))
@@ -164,7 +164,8 @@ public:
             model.id(i);
 
             // integrate body --------------------------------------------------
-            auto&& h_body = [&](const State& x, const fl::Vector1d& w)
+            auto h_body = [&](const State& x,
+                              const typename LocalModel::EmbeddedObsrvModel::BodyObsrvModel::Noise& w)
             {
                 auto obsrv =
                     model.embedded_obsrv_model().body_model().observation(x, w);
@@ -174,7 +175,9 @@ public:
             PointSet<LocalObsrv, NumberOfPoints> p_Y_body;
             quadrature.propagate_points(h_body, p_X, p_Q, p_Y_body);
 
-            Eigen::Vector3d mu_y_body = p_Y_body.mean();
+
+
+            auto mu_y_body = p_Y_body.mean();
             valid = true;
             for (int k = 0; k < dim_y; ++k)
             {
@@ -187,18 +190,20 @@ public:
             if (!valid) continue;
 
 
-            Eigen::Matrix<double, 3, NumberOfPoints> Y_body =
-                                                    p_Y_body.centered_points();
 
-            Eigen::Matrix<double, 3, 3> c_yy_body =
+
+            auto Y_body = p_Y_body.centered_points();
+
+            auto c_yy_body =
                     (Y_body * W.asDiagonal() * Y_body.transpose()).eval();
-            Eigen::Matrix<double, 6, 3> c_xy_body =
+            auto c_xy_body =
                     (X * W.asDiagonal() * Y_body.transpose()).eval();
 
 
 
             // integrate tail --------------------------------------------------
-            auto&& h_tail = [&](const State& x, const fl::Vector1d& w)
+            auto h_tail = [&](const State& x,
+                    const typename LocalModel::EmbeddedObsrvModel::TailObsrvModel::Noise& w)
             {
                 auto obsrv = model.embedded_obsrv_model().tail_model().observation(x, w);
                 auto feature = model.feature_obsrv(obsrv);
@@ -207,21 +212,21 @@ public:
             PointSet<LocalObsrv, NumberOfPoints> p_Y_tail;
             quadrature.propagate_points(h_tail, p_X, p_Q, p_Y_tail);
 
-            Eigen::Vector3d mu_y_tail = p_Y_tail.mean();
-            Eigen::Matrix<double, 3, NumberOfPoints> Y_tail =
-                                                p_Y_tail.centered_points();
+
+            auto mu_y_tail = p_Y_tail.mean();
+            auto Y_tail = p_Y_tail.centered_points();
 
 
-            Eigen::Matrix<double, 3, 3> c_yy_tail =
+            auto c_yy_tail =
                           (Y_tail * W.asDiagonal() * Y_tail.transpose()).eval();
-            Eigen::Matrix<double, 6, 3> c_xy_tail =
+            auto c_xy_tail =
                             (X * W.asDiagonal() * Y_tail.transpose()).eval();
             // -----------------------------------------------------------------
 
 
             // fuse ------------------------------------------------------------
-            double t = model.embedded_obsrv_model().weight_threshold();
-            double b = 1.0 - t;
+            Real t = model.embedded_obsrv_model().weight_threshold();
+            Real b = 1.0 - t;
             auto mu_y = (b * mu_y_body + t * mu_y_tail).eval();
 
 
@@ -244,22 +249,21 @@ public:
 
 
 
-
-
             auto c_yx = c_xy.transpose().eval();
             auto A_i = (c_yx * c_xx_inv).eval();
             auto c_yy_given_x = (c_yy - c_yx * c_xx_inv * c_xy).eval();
 
             auto innovation = (y.middleRows(i * dim_y, dim_y) - mu_y).eval();
 
-            Eigen::MatrixXd c_yy_given_x_inv_A_i =
+            auto c_yy_given_x_inv_A_i =
                 c_yy_given_x.colPivHouseholderQr().solve(A_i).eval();
-            Eigen::MatrixXd c_yy_given_x_inv_innovation =
+            auto c_yy_given_x_inv_innovation =
                 c_yy_given_x.colPivHouseholderQr().solve(innovation).eval();
 
             C += A_i.transpose() * c_yy_given_x_inv_A_i;
             D += A_i.transpose() * c_yy_given_x_inv_innovation;
         }
+
 
         posterior_belief.dimension(prior_belief.dimension());
         posterior_belief.covariance(C.inverse());

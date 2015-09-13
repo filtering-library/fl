@@ -67,6 +67,8 @@ private:
     typedef RobustFeatureObsrvModel<ObsrvModel> This;
 
 public:
+    typedef ObsrvModel EmbeddedObsrvModel;
+
     /**
      * \brief \a InputObsrv type which is the same as
      *        ObsrvModel::Obsrv. \a InputObsrv is mapped into the feature space.

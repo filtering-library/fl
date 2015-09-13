@@ -92,7 +92,8 @@ public:
     /**
      * \brief Creates a SigmaPointQuadrature
      */
-    SigmaPointQuadrature() { }
+    template <typename ... Args>
+    SigmaPointQuadrature(Args...args) : transform_(args...) { }
 
 
     /**

@@ -166,6 +166,11 @@ public:
         : PointSetTransform<MonteCarloTransform<PointCountPolicy>>(this)
     { }
 
+    template <typename ... Args>
+    MonteCarloTransform(Args...args)
+        : PointSetTransform<MonteCarloTransform<PointCountPolicy>>(this)
+    { }
+
     /**
      * \copydoc PointSetTransform::forward(const Gaussian&,
      *                                     PointSet&) const
