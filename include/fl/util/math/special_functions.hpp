@@ -55,8 +55,8 @@ static constexpr double GAMMA =
  */
 inline double igamma(const double a, const double z)
 {
-    static constexpr double EPS = std::numeric_limits<double>::epsilon();
-    static constexpr double FPMIN = std::numeric_limits<double>::min() / EPS;
+    static const double EPS = std::numeric_limits<double>::epsilon();
+    static const double FPMIN = std::numeric_limits<double>::min() / EPS;
 
     if (z <= 0.) return std::numeric_limits<double>::quiet_NaN();
 
@@ -173,13 +173,13 @@ inline double exponential_integral(double z)
 {
     if (z < 10.) return igamma(0., z);
 
-    static constexpr double G = std::exp(-fl::GAMMA);
-    static constexpr double b = std::sqrt((2. * (1.-G)) / (G * (2. - G)));
-    static constexpr double h_inf = ((1.-G) * (std::pow(G, 2.) - 6. * G + 12.))
+    static const double G = std::exp(-fl::GAMMA);
+    static const double b = std::sqrt((2. * (1.-G)) / (G * (2. - G)));
+    static const double h_inf = ((1.-G) * (std::pow(G, 2.) - 6. * G + 12.))
                                      / (3. * G * std::pow((2. - G), 2.) * b);
 
-    static constexpr double q_frac = 20. / 47.;
-    static constexpr double q_expx = std::sqrt(31. / 26.);
+    static const double q_frac = 20. / 47.;
+    static const double q_expx = std::sqrt(31. / 26.);
 
     const double q = q_frac * std::pow(z, q_expx);
     const double h = 1. / (1. + z * std::sqrt(z)) + (h_inf * q) / (1. + q);

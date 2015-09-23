@@ -34,7 +34,7 @@ namespace fl
  * \brief Sigmoid function
  * \ingroup general_functions
  */
-constexpr Real sigmoid(const Real& x)
+inline Real sigmoid(const Real& x)
 {
     return 1.0 / (1.0 + std::exp(-x));
 }
@@ -43,7 +43,7 @@ constexpr Real sigmoid(const Real& x)
  * \brief log odd
  * \ingroup general_functions
  */
-constexpr Real logit(const Real& x)
+inline Real logit(const Real& x)
 {
     return std::log(x / (1.0 - x));
 }
@@ -80,7 +80,7 @@ inline bool check_epsilon_bounds(Real d, Real epsilon)
  */
 inline Real normal_to_uniform(Real snv)
 {
-    static constexpr Real sqrt_of_2 = std::sqrt(Real(2));
+    static const Real sqrt_of_2 = std::sqrt(Real(2));
 
     Real u = (1 + std::erf(snv / sqrt_of_2)) / Real(2);
     return u;
@@ -94,7 +94,7 @@ inline Real normal_to_uniform(Real snv)
  */
 inline Real uniform_to_normal(Real u)
 {
-    static constexpr Real sqrt_of_2 = std::sqrt(Real(2));
+    static const Real sqrt_of_2 = std::sqrt(Real(2));
 
     Real snv = fl::erfinv(Real(2) * u - 1) * sqrt_of_2;
     return snv;

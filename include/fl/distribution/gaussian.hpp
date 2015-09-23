@@ -199,12 +199,12 @@ public:
     /**
      * \brief Overridable default destructor
      */
-    virtual ~Gaussian() { }
+    virtual ~Gaussian() noexcept { }
 
     /**
      * \return Gaussian dimension
      */
-    virtual constexpr int dimension() const
+    virtual int dimension() const
     {
         return StdGaussianMappingBase::standard_variate_dimension();
     }

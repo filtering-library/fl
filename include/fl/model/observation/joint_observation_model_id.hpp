@@ -128,7 +128,7 @@ public:
     /**
      * \brief Overridable default destructor
      */
-    ~JointObservationModel() { }
+    virtual ~JointObservationModel() noexcept { }
 
     /**
      * \copydoc ObservationModelInterface::predict_obsrv
@@ -154,7 +154,7 @@ public:
      *
      * Determines the joint size of the state vector of all models
      */
-    virtual constexpr int state_dimension() const
+    virtual int state_dimension() const
     {
         return expand_state_dimension(CreateIndexSequence<sizeof...(Models)>());
     }
@@ -164,7 +164,7 @@ public:
      *
      * Determines the joint size of the noise vector of all models
      */
-    virtual constexpr int noise_dimension() const
+    virtual int noise_dimension() const
     {
         return expand_noise_dimension(CreateIndexSequence<sizeof...(Models)>());
     }
@@ -174,7 +174,7 @@ public:
      *
      * Determines the joint size of the observation vector of all models
      */
-    virtual constexpr int obsrv_dimension() const
+    virtual int obsrv_dimension() const
     {
         return expand_obsrv_dimension(CreateIndexSequence<sizeof...(Models)>());
     }

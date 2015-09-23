@@ -75,7 +75,7 @@ template <int Size> struct IsDynamic
     static_assert(Size > Eigen::Dynamic, "Invalid static size");
 
     static constexpr bool value = false;
-    constexpr operator bool () { return value; }
+    constexpr operator bool () const { return value; }
 };
 
 /**
@@ -96,7 +96,7 @@ template <int Size> struct IsDynamic
 template <> struct IsDynamic<Eigen::Dynamic>
 {
     static constexpr bool value = true;
-    constexpr operator bool () { return value; }
+    constexpr operator bool () const { return value; }
 };
 
 /**
@@ -119,7 +119,7 @@ template <int Size> struct IsFixed
     static_assert(Size > Eigen::Dynamic, "Invalid static size");
 
     static constexpr bool value = true;
-    constexpr operator bool () { return value; }
+    constexpr operator bool () const { return value; }
 };
 
 /**
@@ -139,7 +139,7 @@ template <int Size> struct IsFixed
 template <> struct IsFixed<Eigen::Dynamic>
 {
     static constexpr bool value = false;
-    constexpr operator bool () { return value; }
+    constexpr operator bool () const { return value; }
 };
 
 /**
@@ -166,7 +166,7 @@ template <typename Matrix> struct DimensionOf
                                     ? Matrix::RowsAtCompileTime
                                     : 0 };
 
-    constexpr operator int () { return Value; }
+    constexpr operator int () const { return Value; }
 };
 
 /**
@@ -179,7 +179,7 @@ template <typename Matrix> struct SizeOf
 {
     enum : signed int { Value = Matrix::SizeAtCompileTime };
 
-    constexpr operator int () { return Value; }
+    constexpr operator int () const { return Value; }
 };
 
 /**
@@ -190,7 +190,7 @@ template <int Dimension> struct ToDimension
 {
     enum : signed int { Value = Dimension == Eigen::Dynamic ? 0 : Dimension };
 
-    constexpr operator int () { return Value; }
+    constexpr operator int () const { return Value; }
 };
 
 
@@ -203,7 +203,7 @@ template <int A, int B> struct MaxOf
 {
     enum : signed int { Value = (A > B) ? A : B };
     static constexpr int value = (A > B) ? A : B;
-    constexpr operator int () { return Value; }
+    constexpr operator int () const { return Value; }
 };
 
 /**
@@ -215,7 +215,7 @@ template <int A, int B> struct MinOf
 {
     enum : signed int { Value = (A < B) ? A : B };
     static constexpr int value = (A < B) ? A : B;
-    constexpr operator int () { return Value; }
+    constexpr operator int () const { return Value; }
 };
 
 /**

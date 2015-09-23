@@ -150,12 +150,12 @@ public:
     /**
      * \brief Overridable default destructor
      */
-    virtual ~DecorrelatedGaussian() { }
+    virtual ~DecorrelatedGaussian() noexcept { }
 
     /**
      * \return Gaussian dimension
      */
-    virtual constexpr int dimension() const
+    virtual int dimension() const
     {
         return StdGaussianMappingInterface::standard_variate_dimension();
     }

@@ -47,7 +47,7 @@ public:
     /**
      * \brief Overridable default destructor
      */
-    virtual ~StateTransitionFunction() { }
+    virtual ~StateTransitionFunction() noexcept { }
 
     /// \todo: we should have a second function state which does not require
     /// a control input. this function would represent the uncontrolled
@@ -148,17 +148,17 @@ public:
     /**
      * \return \f$\dim(x_t)\f$, dimension of the state
      */
-    virtual constexpr int state_dimension() const = 0;
+    virtual int state_dimension() const = 0;
 
     /**
      * \return \f$\dim(v_t)\f$, dimension of the noise
      */
-    virtual constexpr int noise_dimension() const = 0;
+    virtual int noise_dimension() const = 0;
 
     /**
      * \return \f$\dim(u_t)\f$, dimension of the control input
      */
-    virtual constexpr int input_dimension() const = 0;
+    virtual int input_dimension() const = 0;
 };
 
 

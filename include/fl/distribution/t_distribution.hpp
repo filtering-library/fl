@@ -103,7 +103,7 @@ public:
     /**
      * \brief Overridable default destructor
      */
-    virtual ~TDistribution() { }
+    virtual ~TDistribution() noexcept { }
 
     /**
      * \brief Returns a t-distribution sample of the type \c Variate determined
@@ -155,7 +155,7 @@ public:
     /**
      * \brief Returns the Gaussian variate dimension
      */
-    virtual constexpr int dimension() const
+    virtual int dimension() const
     {
         return normal_.dimension();
     }

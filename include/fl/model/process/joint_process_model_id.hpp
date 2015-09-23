@@ -121,14 +121,14 @@ public:
     /**
      * \brief Overridable default destructor
      */
-    ~JointProcessModel() { }
+    virtual ~JointProcessModel() noexcept { }
 
     /**
      * \copydoc ProcessModelInterface::state_dimension
      *
      * Determines the joint size of the state vector of all models
      */
-    virtual constexpr int state_dimension() const
+    virtual int state_dimension() const
     {
         return expand_state_dimension(CreateIndexSequence<sizeof...(Models)>());
     }
@@ -138,7 +138,7 @@ public:
      *
      * Determines the joint size of the noise vector of all models
      */
-    virtual constexpr int noise_dimension() const
+    virtual int noise_dimension() const
     {
         return expand_noise_dimension(CreateIndexSequence<sizeof...(Models)>());
     }
@@ -148,7 +148,7 @@ public:
      *
      * Determines the joint size of the input vector of all models
      */
-    virtual constexpr int input_dimension() const
+    virtual int input_dimension() const
     {
         return expand_input_dimension(CreateIndexSequence<sizeof...(Models)>());
     }
