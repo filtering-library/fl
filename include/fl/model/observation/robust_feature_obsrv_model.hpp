@@ -145,7 +145,7 @@ public:
             return y;
         }
 
-        auto weight = obsrv_model_.weight_threshold();
+        auto weight = obsrv_model_.tail_weight();
         auto prob_y = body_gaussian_.probability(input_obsrv);
         auto prob_tail = obsrv_model_
                             .tail_model()

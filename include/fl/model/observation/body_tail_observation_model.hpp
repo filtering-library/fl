@@ -159,21 +159,21 @@ public:
      *
      * \param body      Body observation model
      * \param tail      Tail observation model
-     * \param weight_threshold
+     * \param tail_weight
      *                  \f$\in [0, 1]\f$ which determines the model selection.
-     *                  Any value below the weight_threshold selects the tail,
+     *                  Any value below the tail_weight selects the tail,
      *                  otherwise the body is selected
      */
     BodyTailObsrvModel(const BodyModel& body,
                        const TailModel& tail,
-                       Real weight_threshold = 0.1)
+                       Real tail_weight = 0.1)
         : body_(body),
           tail_(tail),
-          weight_threshold_(weight_threshold)
+          tail_weight_(tail_weight)
     {
-        if (weight_threshold_ < Real(0) || weight_threshold_  > Real(1))
+        if (tail_weight_ < Real(0) || tail_weight_  > Real(1))
         {
-            fl_throw(Exception("weight_threshold must be in [0; 1]"));
+            fl_throw(Exception("tail_weight must be in [0; 1]"));
         }
     }
 
@@ -185,7 +185,7 @@ public:
      *
      * The result is either from the body or the tail model. The selection is
      * based on the last component of the noise variate. If it exceeds the
-     * body-tail-model weight_threshold, the body model is evaluated, otherwise the
+     * body-tail-model tail_weight, the body model is evaluated, otherwise the
      * tail is selected. The noise variate size is give as specified by
      * noise_dimension()
      */
@@ -193,12 +193,12 @@ public:
     {
         assert(noise.size() == noise_dimension());
 
-        // use the last noise component as a weight_threshold to select the model
+        // use the last noise component as a tail_weight to select the model
         // since the noise is a standard normal variate, we transform it into
-        // a uniformly distributed variate before weight_thresholding
+        // a uniformly distributed variate before tail_weighting
         Real u = fl::normal_to_uniform(noise.bottomRows(1)(0));
 
-        if(u > weight_threshold_)
+        if(u > tail_weight_)
         {
             auto noise_body = noise.topRows(body_.noise_dimension()).eval();
             auto y = body_.observation(state, noise_body);
@@ -225,8 +225,8 @@ public:
         Real prob_body = body_.probability(obsrv, state);
         Real prob_tail = tail_.probability(obsrv, state);
 
-        return (Real(1) - weight_threshold_) * prob_body +
-                          weight_threshold_  * prob_tail;
+        return (Real(1) - tail_weight_) * prob_body +
+                          tail_weight_  * prob_tail;
     }
 
     /**
@@ -274,11 +274,11 @@ public:
     }
 
     /**
-     * \brief Returns the weight_threshold between body and tail model
+     * \brief Returns the tail_weight between body and tail model
      */
-    Real weight_threshold() const
+    Real tail_weight() const
     {
-        return weight_threshold_;
+        return tail_weight_;
     }
 
     /**
@@ -353,11 +353,11 @@ protected:
     TailModel tail_;
 
     /**
-     * \brief weight_threshold \f$\in [0, 1]\f$ which determines the model
-     *        selection. Any value below the weight_threshold selects the tail,
+     * \brief tail_weight \f$\in [0, 1]\f$ which determines the model
+     *        selection. Any value below the tail_weight selects the tail,
      *        otherwise the body is selected.
      */
-    Real weight_threshold_;
+    Real tail_weight_;
 
     /** \endcond */
 };
