@@ -75,7 +75,7 @@ public:
     /**
      * \brief Overridable default destructor
      */
-    virtual ~Moments() { }
+    virtual ~Moments() noexcept { }
 
     /**
      * \brief Returns the first moment of the underlying distribution, the mean
@@ -116,7 +116,7 @@ public:
     /**
      * \brief Overridable default destructor
      */
-    virtual ~Moments() { }
+    virtual ~Moments() noexcept { }
 };
 
 /**
@@ -131,7 +131,7 @@ public:
     /**
      * \brief Overridable default destructor
      */
-    virtual ~Moments() { }
+    virtual ~Moments() noexcept { }
 };
 
 }

@@ -120,7 +120,7 @@ public:
     /**
      * \brief Overridable default destructor
      */
-    virtual ~MultiSensorGaussianFilter() { }
+    virtual ~MultiSensorGaussianFilter() noexcept { }
 
     virtual std::string name() const
     {

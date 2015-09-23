@@ -44,7 +44,7 @@ public:
     /**
      * \brief Overridable default destructor
      */
-    virtual ~ObservationDensity() { }
+    virtual ~ObservationDensity() noexcept { }
 
     /// \todo should add the unnormalized log probability interface
 
@@ -106,7 +106,7 @@ public:
     /**
      * \brief Overridable default destructor
      */
-    virtual ~SwitchingObservationDensity() { }
+    virtual ~SwitchingObservationDensity() noexcept { }
 
     /// \todo should add the unnormalized log probability interface
 

@@ -51,7 +51,7 @@ public:
     /**
      * \brief Overridable default destructor
      */
-    virtual ~Evaluation() { }
+    virtual ~Evaluation() noexcept { }
 
     /**
      * \brief Determines the probability for the specified variate.

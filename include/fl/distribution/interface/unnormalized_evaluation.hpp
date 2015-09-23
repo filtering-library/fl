@@ -44,7 +44,7 @@ template <typename Variate>
 class UnnormalizedEvaluation
 {
 public:
-    virtual ~UnnormalizedEvaluation() { }
+    virtual ~UnnormalizedEvaluation() noexcept { }
 
     /**
      * \brief Determines the normalized or unnormalized probability for the

@@ -46,7 +46,7 @@ public:
 
     // constructor and destructor **********************************************
     EulerBase(const Base& vector): Base(vector) { }
-    virtual ~EulerBase() {}
+    virtual ~EulerBase() noexcept {}
 
     // operators ***************************************************************
     template <typename T>
@@ -149,7 +149,7 @@ public:
     template <typename T>
     EulerVector(const Eigen::MatrixBase<T>& vector): Base(vector) { }
 
-    virtual ~EulerVector() {}
+    virtual ~EulerVector() noexcept {}
 };
 
 
@@ -166,7 +166,7 @@ public:
     // constructor and destructor **********************************************
     EulerBlock(const Block& block): Base(block) { }
     EulerBlock(Vector& vector, int start): Base(Block(vector, start)) { }
-    virtual ~EulerBlock() {}
+    virtual ~EulerBlock() noexcept {}
 };
 
 

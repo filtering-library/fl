@@ -45,7 +45,7 @@ public:
     /**
      * \brief Overridable default destructor
      */
-    virtual ~AdditiveNoiseModel() { }
+    virtual ~AdditiveNoiseModel() noexcept { }
 
     virtual NoiseMatrix noise_matrix() const = 0;
     virtual NoiseMatrix noise_covariance() const = 0;

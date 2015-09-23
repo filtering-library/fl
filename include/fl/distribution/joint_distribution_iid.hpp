@@ -92,7 +92,7 @@ public:
     /**
      * \brief Overridable default destructor
      */
-    virtual ~JointDistribution() { }
+    virtual ~JointDistribution() noexcept { }
 
     virtual Variate mean() const
     {

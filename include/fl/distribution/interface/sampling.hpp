@@ -40,7 +40,7 @@ public:
     /**
      * \brief Overridable default destructor
      */
-    virtual ~Sampling() { }
+    virtual ~Sampling() noexcept { }
 
     /**
      * \return A random sample of the underlying distribution \f[x \sim p(x)\f]

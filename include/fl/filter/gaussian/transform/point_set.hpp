@@ -207,7 +207,7 @@ public:
     /**
      * \brief Overridable default destructor
      */
-    virtual ~PointSet() { }
+    virtual ~PointSet() noexcept { }
 
     /**
      * \brief Resizes a dynamic-size PointSet

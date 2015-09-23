@@ -59,7 +59,7 @@ public:
         set_uniform(size);
     }
 
-    virtual ~DiscreteDistribution() { }
+    virtual ~DiscreteDistribution() noexcept { }
 
     /// non-const functions ****************************************************
 
@@ -95,8 +95,10 @@ public:
         log_unnormalized_prob_mass(log_prob_mass_ + delta);
     }
 
-    virtual void set_uniform(int new_size = size())
+    virtual void set_uniform(int new_size = -1)
     {
+        if (new_size == -1) new_size = size();
+
         log_unnormalized_prob_mass(Function::Zero(new_size));
     }
 

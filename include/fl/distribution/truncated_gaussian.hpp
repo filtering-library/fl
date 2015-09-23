@@ -53,7 +53,7 @@ public:
         ComputeAuxiliaryParameters();
     }
 
-    virtual ~TruncatedGaussian() { }
+    virtual ~TruncatedGaussian() noexcept { }
 
     virtual void parameters(Real mean, Real sigma, Real min, Real max)
     {

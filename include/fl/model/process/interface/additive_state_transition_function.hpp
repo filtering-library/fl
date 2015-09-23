@@ -58,7 +58,7 @@ public:
     /**
      * \brief Overridable default destructor
      */
-    virtual ~AdditiveStateTransitionFunction() { }
+    virtual ~AdditiveStateTransitionFunction() noexcept { }
 
     virtual State expected_state(const State& prev_state,
                                  const Input& input) const = 0;

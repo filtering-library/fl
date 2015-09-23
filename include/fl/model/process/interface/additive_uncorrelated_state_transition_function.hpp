@@ -52,7 +52,7 @@ public:
     /**
      * \brief Overridable default destructor
      */
-    virtual ~AdditiveUncorrelatedStateTransitionFunction() { }
+    virtual ~AdditiveUncorrelatedStateTransitionFunction() noexcept { }
 
     virtual const NoiseDiagonal& noise_diagonal_matrix() const = 0;
     virtual const NoiseDiagonal& noise_diagonal_covariance() const = 0;

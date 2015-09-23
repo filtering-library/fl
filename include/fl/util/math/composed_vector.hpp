@@ -39,7 +39,7 @@ public:
     template <typename T>
     ComposedVector(const Eigen::MatrixBase<T>& vector): Vector(vector) { }
 
-    virtual ~ComposedVector() {}
+    virtual ~ComposedVector() noexcept {}
 
     // operators ***************************************************************
     template <typename T>

@@ -103,7 +103,7 @@ public:
     /**
      * \brief Overridable default destructor
      */
-    virtual ~LinearStateTransitionModel() { }
+    virtual ~LinearStateTransitionModel() noexcept { }
 
     virtual State expected_state(const State& state,
                                  const Input& input) const

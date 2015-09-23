@@ -63,7 +63,7 @@ public:
     /**
      * \brief Overridable default destructor
      */
-    virtual ~ApproximateMoments() { }
+    virtual ~ApproximateMoments() noexcept { }
 
     /**
      * \brief Returns the first moment approximation, the mean
@@ -92,7 +92,7 @@ public:
     /**
      * \brief Overridable default destructor
      */
-    virtual ~ApproximateMoments() { }
+    virtual ~ApproximateMoments() noexcept { }
 };
 
 /**
@@ -106,7 +106,7 @@ public:
     /**
      * \brief Overridable default destructor
      */
-    virtual ~ApproximateMoments() { }
+    virtual ~ApproximateMoments() noexcept { }
 };
 
 }

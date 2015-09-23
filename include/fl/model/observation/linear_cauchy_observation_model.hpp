@@ -80,7 +80,7 @@ public:
     /**
      * \brief Overridable default destructor
      */
-    virtual ~LinearCauchyObservationModel() { }
+    virtual ~LinearCauchyObservationModel() noexcept { }
 
     Obsrv observation(const State& state, const Noise& noise) const override
     {

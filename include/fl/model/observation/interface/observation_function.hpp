@@ -50,7 +50,7 @@ public:
     /**
      * \brief Overridable default destructor
      */
-    virtual ~ObservationFunction() { }
+    virtual ~ObservationFunction() noexcept { }
 
     /**
      * Evaluates the model function \f$y = h(x, w)\f$ where \f$x\f$ is the state

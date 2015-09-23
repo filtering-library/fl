@@ -69,7 +69,7 @@ public:
     /**
      * \brief Overridable default destructor
      */
-    virtual ~StandardGaussianMapping() { }
+    virtual ~StandardGaussianMapping() noexcept { }
 
     /**
      * \brief Mapps a standard normal variate onto a sample of the underlying
@@ -141,7 +141,7 @@ public:
     /**
      * \brief Overridable default destructor
      */
-    virtual ~StandardGaussianMapping() { }
+    virtual ~StandardGaussianMapping() noexcept { }
 
     /**
      * \brief Mapps a one dimensional standard normal variate onto a sample of

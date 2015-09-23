@@ -120,7 +120,7 @@ public:
     /**
      * \brief Overridable default destructor
      */
-    virtual ~GaussianFilter() { }
+    virtual ~GaussianFilter() noexcept { }
 
     /**
      * \copydoc FilterInterface::predict

@@ -94,7 +94,7 @@ public:
     /**
      * \brief Overridable default destructor
      */
-    virtual ~ParticleFilter() { }
+    virtual ~ParticleFilter() noexcept { }
 
     /**
      * \copydoc FilterInterface::predict

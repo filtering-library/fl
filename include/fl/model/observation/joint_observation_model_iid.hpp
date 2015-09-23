@@ -140,7 +140,7 @@ public:
     /**
      * \brief Overridable default destructor
      */
-    ~JointObservationModel() { }
+    virtual ~JointObservationModel() noexcept { }
 
     Obsrv observation(const State& state, const Noise& noise) const override
     {

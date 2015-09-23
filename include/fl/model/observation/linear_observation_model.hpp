@@ -100,7 +100,7 @@ public:
     /**
      * \brief Overridable default destructor
      */
-    virtual ~LinearObservationModel() { }
+    virtual ~LinearObservationModel() noexcept { }
 
     /**
      * \brief expected_observation

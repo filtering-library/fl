@@ -48,7 +48,7 @@ public:
     /**
      * \brief Overridable default destructor
      */
-    virtual ~StateTransitionDensity() { }
+    virtual ~StateTransitionDensity() noexcept { }
 
 
     /// \todo should add the unnormalized log probability interface

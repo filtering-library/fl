@@ -92,7 +92,7 @@ public:
     /**
      * \brief Overridable default destructor
      */
-    virtual ~LinearDecorrelatedGaussianObservationModel() { }
+    virtual ~LinearDecorrelatedGaussianObservationModel() noexcept { }
 
     /**
      * \brief expected_observation

@@ -56,7 +56,7 @@ public:
 
     // constructor and destructor **********************************************
     PoseBase(const Base& vector): Base(vector) { }
-    virtual ~PoseBase() {}
+    virtual ~PoseBase() noexcept {}
 
     // operators ***************************************************************
     template <typename T>
@@ -144,7 +144,7 @@ public:
     template <typename T>
     PoseVector(const Eigen::MatrixBase<T>& vector): Base(vector) { }
 
-    virtual ~PoseVector() {}
+    virtual ~PoseVector() noexcept {}
 };
 
 
@@ -161,7 +161,7 @@ public:
     // constructor and destructor **********************************************
     PoseBlock(const Block& block): Base(block) { }
     PoseBlock(Vector& vector, int start): Base(Block(vector, start)) { }
-    virtual ~PoseBlock() {}
+    virtual ~PoseBlock() noexcept {}
 };
 
 

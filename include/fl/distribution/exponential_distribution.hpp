@@ -54,7 +54,7 @@ public:
         exp_lambda_max_ = std::exp(-lambda_*max);
     }
 
-    virtual ~ExponentialDistribution() { }
+    virtual ~ExponentialDistribution() noexcept { }
 
     virtual Real probability(const Real& input) const
     {

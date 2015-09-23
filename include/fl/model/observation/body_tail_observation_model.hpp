@@ -177,6 +177,8 @@ public:
         }
     }
 
+    virtual ~BodyTailObsrvModel() noexcept { }
+
     /**
      * \brief Returns an observation prediction based on the provided state and
      *        noise variate.

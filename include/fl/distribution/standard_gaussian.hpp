@@ -57,7 +57,7 @@ public:
         cov_.setIdentity();
     }
 
-    virtual ~StandardGaussian() { }
+    virtual ~StandardGaussian() noexcept { }
 
     virtual StandardVariate sample() const
     {

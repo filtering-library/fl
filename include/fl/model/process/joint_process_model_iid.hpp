@@ -111,7 +111,7 @@ public:
         assert(count_ > 0);
     }
 
-    ~JointProcessModel() { }
+    virtual ~JointProcessModel() noexcept { }
 
     virtual State predict_state(double delta_time,
                                 const State& state,

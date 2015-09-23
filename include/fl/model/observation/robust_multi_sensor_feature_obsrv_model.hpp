@@ -82,7 +82,7 @@ public:
     /**
      * \brief Overridable default destructor
      */
-    virtual ~RobustMultiSensorFeatureObsrvModel() { }
+    virtual ~RobustMultiSensorFeatureObsrvModel() noexcept { }
 
     virtual std::string name() const
     {

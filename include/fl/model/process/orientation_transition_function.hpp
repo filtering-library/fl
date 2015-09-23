@@ -68,7 +68,7 @@ public:
 public:
     OrientationStateTransitionFunction() { }
 
-    virtual ~OrientationStateTransitionFunction() { }
+    virtual ~OrientationStateTransitionFunction() noexcept { }
 
 public:
     // state format: (euler_vector, angular_velocity)

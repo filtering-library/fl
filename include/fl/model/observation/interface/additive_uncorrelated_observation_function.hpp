@@ -45,7 +45,7 @@ public:
     /**
      * \brief Overridable default destructor
      */
-    virtual ~AdditiveUncorrelatedObservationFunction() { }
+    virtual ~AdditiveUncorrelatedObservationFunction() noexcept { }
 };
 
 }

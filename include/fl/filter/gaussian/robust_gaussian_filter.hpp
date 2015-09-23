@@ -137,7 +137,7 @@ public:
     /**
      * \brief Overridable default destructor
      */
-    virtual ~RobustGaussianFilter() { }
+    virtual ~RobustGaussianFilter() noexcept { }
 
     /**
      * \copydoc FilterInterface::predict

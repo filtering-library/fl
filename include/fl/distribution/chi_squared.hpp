@@ -83,7 +83,7 @@ public:
     /**
      * \brief Overridable default destructor
      */
-    virtual ~ChiSquared() { }
+    virtual ~ChiSquared() noexcept { }
 
     /**
      * \brief Returns aa t-distribution sample of the type \c Variate determined

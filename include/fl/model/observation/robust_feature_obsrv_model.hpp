@@ -115,7 +115,7 @@ public:
     /**
      * \brief Overridable default destructor
      */
-    virtual ~RobustFeatureObsrvModel() { }
+    virtual ~RobustFeatureObsrvModel() noexcept { }
 
     /**
      * \brief observation Returns a feature mapped observation

@@ -68,7 +68,7 @@ public:
         init();
     }
 
-    virtual ~UniformDistribution() { }
+    virtual ~UniformDistribution() noexcept { }
 
     Real probability(const Variate& x) const override
     {
