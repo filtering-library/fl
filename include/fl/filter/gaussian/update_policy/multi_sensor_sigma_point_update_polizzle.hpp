@@ -102,18 +102,9 @@ public:
     typedef typename Traits<JointModel>::LocalObsrv LocalObsrv;
     typedef Vector1d LocalObsrvNoise;
 
-    enum : signed int
-    {
-        NumberOfPoints = SigmaPointQuadrature::number_of_points(
-                             JoinSizes<
-                                 SizeOf<State>::Value,
-                                 SizeOf<LocalObsrvNoise>::Value
-                             >::Size)
-    };
-
-    typedef PointSet<State, NumberOfPoints> StatePointSet;
-    typedef PointSet<LocalObsrv, NumberOfPoints> LocalObsrvPointSet;
-    typedef PointSet<LocalObsrvNoise, NumberOfPoints> LocalNoisePointSet;
+//    typedef PointSet<State, NumberOfPoints> StatePointSet;
+//    typedef PointSet<LocalObsrv, NumberOfPoints> LocalObsrvPointSet;
+//    typedef PointSet<LocalObsrvNoise, NumberOfPoints> LocalNoisePointSet;
 
     template <typename Belief>
     void operator()(JointModel& obsrv_function,
@@ -122,15 +113,40 @@ public:
                     const Obsrv& y,
                     Belief& posterior_belief)
     {
-        StatePointSet p_X;
-        LocalNoisePointSet p_Q;
-        Gaussian<LocalObsrvNoise> noise_distr;
-
-        /// todo: we might have to set the size of the noise distr;
-
         auto& feature_model = obsrv_function.local_obsrv_model();
         auto& body_tail_model = feature_model.embedded_obsrv_model();
-        quadrature.transform_to_points(prior_belief, noise_distr, p_X, p_Q);
+
+        /* ------------------------------------------ */
+        /* - Determine the number of quadrature     - */
+        /* - points needed for the given quadrature - */
+        /* - in conjunction with the joint Gaussian - */
+        /* - p(State, LocalObsrvNoise)              - */
+        /* ------------------------------------------ */
+        enum : signed int
+        {
+            NumberOfPoints = SigmaPointQuadrature::number_of_points(
+                                 JoinSizes<
+                                     SizeOf<State>::Value,
+                                     SizeOf<LocalObsrvNoise>::Value
+                                 >::Size)
+        };
+
+        /* ------------------------------------------ */
+        /* - PointSets                              - */
+        /* - [p_X, p_Q] ~ p(State, LocalObsrvNoise) - */
+        /* ------------------------------------------ */
+        PointSet<State, NumberOfPoints> p_X;
+        PointSet<LocalObsrvNoise, NumberOfPoints> p_Q;
+
+        /* ------------------------------------------ */
+        /* - Transform p(State, LocalObsrvNoise) to - */
+        /* - point sets [p_X, p_Q]                  - */
+        /* ------------------------------------------ */
+        quadrature.transform_to_points(
+            prior_belief,
+            Gaussian<LocalObsrvNoise>(feature_model.noise_dimension()),
+            p_X,
+            p_Q);
 
         auto mu_x = p_X.mean();
         auto X = p_X.centered_points();
@@ -144,9 +160,7 @@ public:
         D.setZero(mu_x.size());
 
         const int sensor_count = obsrv_function.count_local_models();
-        const int dim_y = y.size() / sensor_count;// p_Y.dimension();
-
-        assert(y.size() % sensor_count == 0);
+        const int dim_y = y.size() / sensor_count;
 
         for (int i = 0; i < sensor_count; ++i)
         {
@@ -160,14 +174,15 @@ public:
             /* ------------------------------------------ */
             auto h_body = [&](const State& x,const typename BodyModel::Noise& w)
             {
-                auto obsrv = body_tail_model.body_model().observation(x, w);
-                auto feature = feature_model.feature_obsrv(obsrv);
-                return feature;
+                return feature_model.feature_obsrv(
+                            body_tail_model.body_model().observation(x, w));
             };
             PointSet<LocalObsrv, NumberOfPoints> p_Y_body;
             quadrature.propagate_points(h_body, p_X, p_Q, p_Y_body);
             auto mu_y_body = p_Y_body.mean();
+
             if (!is_valid(mu_y_body, 0, dim_y)) continue;
+
             auto Y_body = p_Y_body.centered_points();
             auto c_yy_body = (Y_body * W * Y_body.transpose()).eval();
             auto c_xy_body = (X * W * Y_body.transpose()).eval();
@@ -177,9 +192,8 @@ public:
             /* ------------------------------------------ */
             auto h_tail = [&](const State& x,const typename TailModel::Noise& w)
             {
-                auto obsrv = body_tail_model.tail_model().observation(x, w);
-                auto feature = feature_model.feature_obsrv(obsrv);
-                return feature;
+                return feature_model.feature_obsrv(
+                            body_tail_model.tail_model().observation(x, w));
             };
             PointSet<LocalObsrv, NumberOfPoints> p_Y_tail;
             quadrature.propagate_points(h_tail, p_X, p_Q, p_Y_tail);
@@ -187,22 +201,21 @@ public:
             auto Y_tail = p_Y_tail.centered_points();
             auto c_yy_tail = (Y_tail * W * Y_tail.transpose()).eval();
             auto c_xy_tail = (X * W * Y_tail.transpose()).eval();
-            // -----------------------------------------------------------------
 
-
-            // fuse ------------------------------------------------------------
-            Real t = body_tail_model.tail_weight();
-            Real b = 1.0 - t;
-            auto mu_y = (b * mu_y_body + t * mu_y_tail).eval();
+            /* ------------------------------------------ */
+            /* - Fuse and center                        - */
+            /* ------------------------------------------ */
+            Real w = body_tail_model.tail_weight();
+            auto mu_y = ((1.0 - w) * mu_y_body + w * mu_y_tail).eval();
 
             // non centered moments
             auto m_yy_body = (c_yy_body + mu_y_body * mu_y_body.transpose()).eval();
             auto m_yy_tail = (c_yy_tail + mu_y_tail * mu_y_tail.transpose()).eval();
-            auto m_yy = (b * m_yy_body + t * m_yy_tail).eval();
+            auto m_yy = ((1.0 - w) * m_yy_body + w * m_yy_tail).eval();
 
             // center
             auto c_yy = (m_yy - mu_y * mu_y.transpose()).eval();
-            auto c_xy = (b * c_xy_body + t * c_xy_tail).eval();
+            auto c_xy = ((1.0 - w) * c_xy_body + w * c_xy_tail).eval();
 
             auto c_yx = c_xy.transpose().eval();
             auto A_i = (c_yx * c_xx_inv).eval();
