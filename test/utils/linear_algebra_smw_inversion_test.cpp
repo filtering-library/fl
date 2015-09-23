@@ -33,10 +33,11 @@
 typedef Eigen::Matrix<double, 3, 1> State;
 typedef Eigen::Matrix<double, 1, 1> Observation;
 
-const int INV_DIMENSION = 14;
 const int SUBSAMPLING_FACTOR = 8;
 const int OBSERVATION_DIMENSION = (640*480)/(SUBSAMPLING_FACTOR*SUBSAMPLING_FACTOR);
-const int INVERSION_ITERATIONS = OBSERVATION_DIMENSION * 30;
+
+//const int INV_DIMENSION = 14;
+//const int INVERSION_ITERATIONS = OBSERVATION_DIMENSION * 30;
 
 TEST(InversionTests, SMWInversion)
 {
