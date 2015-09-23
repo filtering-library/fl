@@ -90,16 +90,17 @@ class MultiSensorSigmaPointUpdatePolizzle<
 {
 public:
     typedef JointObservationModel<MultipleOfLocalObsrvModel> JointModel;
-    typedef typename MultipleOfLocalObsrvModel::Type LocalModel;
+    typedef typename MultipleOfLocalObsrvModel::Type LocalFeatureModel;
+    typedef typename LocalFeatureModel::EmbeddedObsrvModel BodyTailModel;
+    typedef typename BodyTailModel::BodyObsrvModel BodyModel;
+    typedef typename BodyTailModel::TailObsrvModel TailModel;
 
     typedef typename JointModel::State State;
     typedef typename JointModel::Obsrv Obsrv;
     typedef typename JointModel::Noise Noise;
 
     typedef typename Traits<JointModel>::LocalObsrv LocalObsrv;
-//    typedef typename Traits<JointModel>::LocalNoise LocalObsrvNoise;
     typedef Vector1d LocalObsrvNoise;
-
 
     enum : signed int
     {
@@ -127,14 +128,15 @@ public:
 
         /// todo: we might have to set the size of the noise distr;
 
-        auto& model = obsrv_function.local_obsrv_model();
+        auto& feature_model = obsrv_function.local_obsrv_model();
+        auto& body_tail_model = feature_model.embedded_obsrv_model();
         quadrature.transform_to_points(prior_belief, noise_distr, p_X, p_Q);
 
         auto mu_x = p_X.mean();
         auto X = p_X.centered_points();
 
-        auto W = p_X.covariance_weights_vector();
-        auto c_xx = (X * W.asDiagonal() * X.transpose()).eval();
+        auto W = p_X.covariance_weights_vector().asDiagonal();
+        auto c_xx = (X * W * X.transpose()).eval();
         auto c_xx_inv = c_xx.inverse().eval();
 
         auto C = c_xx_inv;
@@ -148,125 +150,72 @@ public:
 
         for (int i = 0; i < sensor_count; ++i)
         {
-            bool valid = true;
+            // validate sensor value, i.e. make sure it is finite
+            if (!is_valid(y, i * dim_y, i * dim_y + dim_y)) continue;
 
-            for (int k = i * dim_y; k < i * dim_y + dim_y; ++k)
+            feature_model.id(i);
+
+            /* ------------------------------------------ */
+            /* - Integrate body                         - */
+            /* ------------------------------------------ */
+            auto h_body = [&](const State& x,const typename BodyModel::Noise& w)
             {
-                if (!std::isfinite(y(k)))
-                {
-                    valid = false;
-                    break;
-                }
-            }
-
-            if (!valid) continue;
-
-            model.id(i);
-
-            // integrate body --------------------------------------------------
-            auto h_body = [&](const State& x,
-                              const typename LocalModel::EmbeddedObsrvModel::BodyObsrvModel::Noise& w)
-            {
-                auto obsrv =
-                    model.embedded_obsrv_model().body_model().observation(x, w);
-                auto feature = model.feature_obsrv(obsrv);
+                auto obsrv = body_tail_model.body_model().observation(x, w);
+                auto feature = feature_model.feature_obsrv(obsrv);
                 return feature;
             };
             PointSet<LocalObsrv, NumberOfPoints> p_Y_body;
             quadrature.propagate_points(h_body, p_X, p_Q, p_Y_body);
-
-
-
             auto mu_y_body = p_Y_body.mean();
-            valid = true;
-            for (int k = 0; k < dim_y; ++k)
-            {
-                if (!std::isfinite(mu_y_body(k)))
-                {
-                    valid = false;
-                    break;
-                }
-            }
-            if (!valid) continue;
-
-
-
-
+            if (!is_valid(mu_y_body, 0, dim_y)) continue;
             auto Y_body = p_Y_body.centered_points();
+            auto c_yy_body = (Y_body * W * Y_body.transpose()).eval();
+            auto c_xy_body = (X * W * Y_body.transpose()).eval();
 
-            auto c_yy_body =
-                    (Y_body * W.asDiagonal() * Y_body.transpose()).eval();
-            auto c_xy_body =
-                    (X * W.asDiagonal() * Y_body.transpose()).eval();
-
-
-
-            // integrate tail --------------------------------------------------
-            auto h_tail = [&](const State& x,
-                    const typename LocalModel::EmbeddedObsrvModel::TailObsrvModel::Noise& w)
+            /* ------------------------------------------ */
+            /* - Integrate tail                         - */
+            /* ------------------------------------------ */
+            auto h_tail = [&](const State& x,const typename TailModel::Noise& w)
             {
-                auto obsrv = model.embedded_obsrv_model().tail_model().observation(x, w);
-                auto feature = model.feature_obsrv(obsrv);
+                auto obsrv = body_tail_model.tail_model().observation(x, w);
+                auto feature = feature_model.feature_obsrv(obsrv);
                 return feature;
             };
             PointSet<LocalObsrv, NumberOfPoints> p_Y_tail;
             quadrature.propagate_points(h_tail, p_X, p_Q, p_Y_tail);
-
-
             auto mu_y_tail = p_Y_tail.mean();
             auto Y_tail = p_Y_tail.centered_points();
-
-
-            auto c_yy_tail =
-                          (Y_tail * W.asDiagonal() * Y_tail.transpose()).eval();
-            auto c_xy_tail =
-                            (X * W.asDiagonal() * Y_tail.transpose()).eval();
+            auto c_yy_tail = (Y_tail * W * Y_tail.transpose()).eval();
+            auto c_xy_tail = (X * W * Y_tail.transpose()).eval();
             // -----------------------------------------------------------------
 
 
             // fuse ------------------------------------------------------------
-            Real t = model.embedded_obsrv_model().weight_threshold();
+            Real t = body_tail_model.tail_weight();
             Real b = 1.0 - t;
             auto mu_y = (b * mu_y_body + t * mu_y_tail).eval();
 
-
             // non centered moments
-            auto m_yy_body = c_yy_body + mu_y_body * mu_y_body.transpose();
-            auto m_yy_tail = c_yy_tail + mu_y_tail * mu_y_tail.transpose();
-            auto m_yy = b * m_yy_body + t * m_yy_tail;
+            auto m_yy_body = (c_yy_body + mu_y_body * mu_y_body.transpose()).eval();
+            auto m_yy_tail = (c_yy_tail + mu_y_tail * mu_y_tail.transpose()).eval();
+            auto m_yy = (b * m_yy_body + t * m_yy_tail).eval();
 
             // center
-            auto c_yy = (m_yy - mu_y * mu_y.transpose());
-
-
-
+            auto c_yy = (m_yy - mu_y * mu_y.transpose()).eval();
             auto c_xy = (b * c_xy_body + t * c_xy_tail).eval();
-
-            /// todo: this extra shit should not be necessesary and is only for
-            /// comparsiosn
-//            c_xy = c_xy - b * (mu_x_body - mu_x) * (mu_y - mu_y_body).transpose();
-//            c_xy = c_xy - t * (mu_x_tail - mu_x) * (mu_y - mu_y_tail).transpose();
-
-
 
             auto c_yx = c_xy.transpose().eval();
             auto A_i = (c_yx * c_xx_inv).eval();
             auto c_yy_given_x = (c_yy - c_yx * c_xx_inv * c_xy).eval();
-
             auto innovation = (y.middleRows(i * dim_y, dim_y) - mu_y).eval();
 
-            auto c_yy_given_x_inv_A_i =
-                c_yy_given_x.colPivHouseholderQr().solve(A_i).eval();
-            auto c_yy_given_x_inv_innovation =
-                c_yy_given_x.colPivHouseholderQr().solve(innovation).eval();
-
-            C += A_i.transpose() * c_yy_given_x_inv_A_i;
-            auto delta = (A_i.transpose() * c_yy_given_x_inv_innovation).eval();
-
-            D += delta;
+            C += A_i.transpose() * solve(c_yy_given_x, A_i);
+            D += A_i.transpose() * solve(c_yy_given_x, innovation);
         }
 
-
+        /* ------------------------------------------ */
+        /* - Update belief according to PAPER REF   - */
+        /* ------------------------------------------ */
         posterior_belief.dimension(prior_belief.dimension());
         posterior_belief.covariance(C.inverse());
         posterior_belief.mean(mu_x + posterior_belief.covariance() * D);
@@ -286,6 +235,21 @@ public:
         return "Multi-Sensor Sigma Point based filter update policy "
                "for joint observation model of multiple local observation "
                "models with non-additive noise.";
+    }
+private:
+    /**
+     * \brief Checks whether all vector components within the range (start, end)
+     *        are finiate, i.e. not NAN nor Inf.
+     */
+    template <typename Vector>
+    bool is_valid(Vector&& vector, int start, int end) const
+    {
+        for (int k = start; k < end; ++k)
+        {
+            if (!std::isfinite(vector(k))) return false;
+        }
+
+        return true;
     }
 };
 
