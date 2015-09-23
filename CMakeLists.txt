@@ -12,6 +12,7 @@ set(fl_FLOATING_POINT_TYPE "double" CACHE STRING "fl::Real floating point type")
 # Flags                    #
 ############################
 # Enable c++11 GCC 4.6 or greater required
+add_definitions(-DEIGEN_STACK_ALLOCATION_LIMIT=1638400)
 add_definitions(-DEIGEN_MPL2_ONLY=1)
 add_definitions(-std=c++0x -O3)
 add_definitions(-DPROFILING_ON=1) #print profiling output
@@ -20,6 +21,9 @@ add_definitions(-Wall)
 add_definitions(-Wno-unused-local-typedefs)
 add_definitions(-Wno-deprecated-declarations)
 add_definitions(-Wno-comment)
+
+# for eigen-3.1.2
+add_definitions(-Wno-deprecated-register)
 
 ############################
 # Setup                    #
