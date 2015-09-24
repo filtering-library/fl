@@ -45,7 +45,7 @@ template<
     typename StateTransitionFunction,
     typename JointObsrvModel,
     typename Quadrature
-> class XRobustMultiSensorGaussianFilter;
+> class RobustMultiSensorGaussianFilter;
 
 /**
  * \internal
@@ -61,7 +61,7 @@ template <
     typename Quadrature
 >
 struct Traits<
-           XRobustMultiSensorGaussianFilter<
+           RobustMultiSensorGaussianFilter<
                StateTransitionFunction, JointObsrvModel, Quadrature>>
 {
     typedef typename StateTransitionFunction::State State;
@@ -79,9 +79,9 @@ template<
     typename JointObsrvModel,
     typename Quadrature
 >
-class XRobustMultiSensorGaussianFilter
+class RobustMultiSensorGaussianFilter
     : public FilterInterface<
-                XRobustMultiSensorGaussianFilter<
+                RobustMultiSensorGaussianFilter<
                     StateTransitionFunction, JointObsrvModel, Quadrature>>
 {
 public:
@@ -95,11 +95,11 @@ private:
 
     // Get the original local model types
     enum : signed int { ModelCount = JointObsrvModel::ModelCount };
-    typedef typename JointObsrvModel::LocalModel PlainLocalModel;
+    typedef typename JointObsrvModel::LocalModel BodyTailModel;
 
     // Define local feature observation model
     typedef RobustMultiSensorFeatureObsrvModel<
-                PlainLocalModel, ModelCount
+                BodyTailModel, ModelCount
             > FeatureObsrvModel;
 
     // Define robust joint feature observation model
@@ -122,7 +122,7 @@ public:
     /**
      * \brief Creates a RobustGaussianFilter
      */
-    XRobustMultiSensorGaussianFilter(
+    RobustMultiSensorGaussianFilter(
         const StateTransitionFunction& process_model,
         const JointObsrvModel& joint_obsrv_model,
         const Quadrature& quadrature)
@@ -161,121 +161,164 @@ public:
                         const Obsrv& y,
                         Belief& posterior_belief)
     {
-        typedef typename PlainLocalModel::Obsrv PlainObsrv;
-        typedef typename PlainLocalModel::BodyObsrvModel::Noise BodyNoise;
-        typedef typename RobustJointFeatureObsrvModel::Obsrv JointFeatureObsrv;
+        auto& quadrature = multi_sensor_gaussian_filter_.quadrature();
+        auto& feature_model = joint_feature_model().local_obsrv_model();
+        auto& body_tail_model = feature_model.embedded_obsrv_model();
 
-        auto joint_feature_y =
-            JointFeatureObsrv(
-                joint_feature_model()
-                    .obsrv_dimension());
-        joint_feature_y.setZero();
+        typedef typename BodyTailModel::Obsrv LocalObsrv;
+        typedef typename FeatureObsrvModel::Obsrv LocalFeature;
+        typedef typename BodyTailModel::BodyObsrvModel::Noise LocalObsrvNoise;
 
-        auto local_body_noise_distr =
-            Gaussian<BodyNoise>(
-                obsrv_model()
-                    .local_obsrv_model()
-                    .body_model()
-                    .noise_dimension());
-
-        auto h = [&](const State& x, const BodyNoise& w)
-        {
-           return joint_obsrv_model_
-                        .local_obsrv_model()
-                        .body_model()
-                        .observation(x, w);
-        };
-
+        /* ------------------------------------------ */
+        /* - Determine the number of quadrature     - */
+        /* - points needed for the given quadrature - */
+        /* - in conjunction with the joint Gaussian - */
+        /* - p(State, LocalObsrvNoise)              - */
+        /* ------------------------------------------ */
         enum : signed int
         {
-            NumberOfPoints =
-                Quadrature::number_of_points(
-                    JoinSizes<
-                        SizeOf<State>::Value,
-                        SizeOf<BodyNoise>::Value
-                    >::Value)
+            NumberOfPoints = Quadrature::number_of_points(
+                                 JoinSizes<
+                                     SizeOf<State>::Value,
+                                     SizeOf<LocalObsrvNoise>::Value
+                                 >::Size)
         };
 
-        PointSet<State, NumberOfPoints> X;
-        PointSet<BodyNoise, NumberOfPoints> R;
-        PointSet<PlainObsrv, NumberOfPoints> Z;
+        /* ------------------------------------------ */
+        /* - PointSets                              - */
+        /* - [p_X, p_Q] ~ p(State, LocalObsrvNoise) - */
+        /* ------------------------------------------ */
+        PointSet<State, NumberOfPoints> p_X;
+        PointSet<LocalObsrvNoise, NumberOfPoints> p_R;
 
-        multi_sensor_gaussian_filter_
-           .quadrature()
-           .transform_to_points(predicted_belief, local_body_noise_distr, X, R);
+        /* ------------------------------------------ */
+        /* - Transform p(State, LocalObsrvNoise) to - */
+        /* - point sets [p_X, p_Q]                  - */
+        /* ------------------------------------------ */
+        quadrature.transform_to_points(
+            predicted_belief,
+            Gaussian<LocalObsrvNoise>(body_tail_model.noise_dimension()),
+            p_X,
+            p_R);
 
-        auto W = X.covariance_weights_vector().asDiagonal();
+        auto mu_x = p_X.mean();
+        auto X = p_X.centered_points();
 
-        auto y_mean = typename FirstMomentOf<PlainObsrv>::Type();
-        auto y_cov = typename SecondMomentOf<PlainObsrv>::Type();
+        auto W = p_X.covariance_weights_vector().asDiagonal();
+        auto c_xx = (X * W * X.transpose()).eval();
+        auto c_xx_inv = c_xx.inverse().eval();
 
-        auto& local_obsrv_model = obsrv_model().local_obsrv_model();
-        auto& local_feature_model = joint_feature_model().local_obsrv_model();
+        auto C = c_xx_inv;
+        auto D = State();
+        D.setZero(mu_x.size());
 
-        local_feature_model.mean_state(predicted_belief.mean());
-
-        const int local_obsrv_dim = local_obsrv_model.obsrv_dimension();
-        const int local_feature_dim = local_feature_model.obsrv_dimension();
         const int sensor_count = joint_obsrv_model_.count_local_models();
+        const int dim_y = body_tail_model.obsrv_dimension();
 
-        low_level_obsrv_bg.setZero(sensor_count, 1);
-        low_level_obsrv_fg.setZero(sensor_count, 1);
-        low_level_obsrv_nan.setZero(sensor_count, 1);
+        auto h = [&](const State& x, const LocalObsrvNoise& w)
+        {
+            return body_tail_model.body_model().observation(x, w);
+        };
 
-        mean_obsrv.setZero(sensor_count);
+        auto h_body = [&](const State& x, const LocalObsrvNoise& w)
+        {
+            return feature_model.feature_obsrv(
+                        body_tail_model.body_model().observation(x, w));
+        };
+        auto h_tail = [&](const State& x, const LocalObsrvNoise& w)
+        {
+            return feature_model.feature_obsrv(
+                        body_tail_model.tail_model().observation(x, w));
+        };
+
+        PointSet<LocalObsrv, NumberOfPoints> p_Y_body;
+        PointSet<LocalFeature, NumberOfPoints> p_F_body;
+        PointSet<LocalFeature, NumberOfPoints> p_F_tail;
+
+        auto y_mean = typename FirstMomentOf<LocalObsrv>::Type();
+        auto y_cov = typename SecondMomentOf<LocalObsrv>::Type();
+
+        feature_model.mean_state(predicted_belief.mean());
 
         // compute body_tail_obsrv_model parameters
         for (int i = 0; i < sensor_count; ++i)
         {
-            if (!std::isfinite(y(i)))
-            {
-                low_level_obsrv_nan(i) = 0.25;
+            // validate sensor value, i.e. make sure it is finite
+            if (!std::isfinite(y(i))) continue;
 
-                joint_feature_y(i * local_feature_dim) =
-                    std::numeric_limits<Real>::quiet_NaN();
-                continue;
-            }
+            feature_model.id(i);
 
-//            joint_obsrv_model_.local_obsrv_model().body_model().id(i);
-            local_feature_model.id(i);
-            multi_sensor_gaussian_filter_
-                .quadrature()
-                .propagate_points(h, X, R, Z);
+            /* ------------------------------------------ */
+            /* - Compute feature parameters             - */
+            /* ------------------------------------------ */
+            quadrature.propagate_points(h, p_X, p_R, p_Y_body);
 
-            y_mean = Z.mean();
-            mean_obsrv(i) = y_mean(0);
-            //! \todo BG changes
-            if (!std::isfinite(y_mean(0)))
-            {
-                low_level_obsrv_bg(i) = 0.50;
+            y_mean = p_Y_body.mean();
+            if (!std::isfinite(y_mean(0))) continue;
 
-                joint_feature_y(i * local_feature_dim) =
-                    std::numeric_limits<Real>::infinity();
-
-                continue;
-            }
-            auto Z_c = Z.centered_points();
+            auto Z_c = p_Y_body.centered_points();
             y_cov = (Z_c * W * Z_c.transpose());
 
             // set the current sensor's parameter
-            local_feature_model.body_moments(y_mean, y_cov, i);
+            feature_model.body_moments(y_mean, y_cov);
 
-            local_feature_model.id(i);
-            auto feature = local_feature_model.feature_obsrv(
-                        y.middleRows(i * local_obsrv_dim, local_obsrv_dim));
+            /* ------------------------------------------ */
+            /* - Integrate body                         - */
+            /* ------------------------------------------ */
+            quadrature.propagate_points(h_body, p_X, p_R, p_F_body);
+            auto mu_y_body = p_F_body.mean();
 
-            joint_feature_y.middleRows(i * local_feature_dim, local_feature_dim) =
-                    feature;
+            // validate sensor value, i.e. make sure it is finite
+            if (!std::isfinite(mu_y_body(0))) continue;
 
-            low_level_obsrv_fg(i) = 0.75;
+            auto Y_body = p_F_body.centered_points();
+            auto c_yy_body = (Y_body * W * Y_body.transpose()).eval();
+            auto c_xy_body = (X * W * Y_body.transpose()).eval();
 
+            /* ------------------------------------------ */
+            /* - Integrate tail                         - */
+            /* ------------------------------------------ */
+            quadrature.propagate_points(h_tail, p_X, p_R, p_F_tail);
+            auto mu_y_tail = p_F_tail.mean();
+            auto Y_tail = p_F_tail.centered_points();
+            auto c_yy_tail = (Y_tail * W * Y_tail.transpose()).eval();
+            auto c_xy_tail = (X * W * Y_tail.transpose()).eval();
+
+            /* ------------------------------------------ */
+            /* - Fuse and center                        - */
+            /* ------------------------------------------ */
+            auto w = body_tail_model.tail_weight();
+            auto mu_y = ((1.0 - w) * mu_y_body + w * mu_y_tail).eval();
+
+            // non centered moments
+            auto m_yy_body = (c_yy_body + mu_y_body * mu_y_body.transpose()).eval();
+            auto m_yy_tail = (c_yy_tail + mu_y_tail * mu_y_tail.transpose()).eval();
+            auto m_yy = ((1.0 - w) * m_yy_body + w * m_yy_tail).eval();
+
+            // center
+            auto c_yy = (m_yy - mu_y * mu_y.transpose()).eval();
+            auto c_xy = ((1.0 - w) * c_xy_body + w * c_xy_tail).eval();
+
+            auto c_yx = c_xy.transpose().eval();
+            auto A_i = (c_yx * c_xx_inv).eval();
+            auto c_yy_given_x = (c_yy - c_yx * c_xx_inv * c_xy).eval();
+
+            auto feature =
+                    feature_model.feature_obsrv(y.middleRows(i * dim_y, dim_y));
+            auto innovation = (feature - mu_y).eval();
+
+            C += A_i.transpose() * solve(c_yy_given_x, A_i);
+            D += A_i.transpose() * solve(c_yy_given_x, innovation);
         }
 
-        multi_sensor_gaussian_filter_
-            .update(predicted_belief, joint_feature_y, posterior_belief);
+        /* ------------------------------------------ */
+        /* - Update belief according to PAPER REF   - */
+        /* ------------------------------------------ */
+        posterior_belief.dimension(predicted_belief.dimension());
+        posterior_belief.covariance(C.inverse());
+        posterior_belief.mean(mu_x + posterior_belief.covariance() * D);
     }
 
-    Eigen::VectorXd mean_obsrv;
 
 public: /* factory functions */
     virtual Belief create_belief() const
@@ -331,11 +374,6 @@ protected:
     JointObsrvModel joint_obsrv_model_;
     InternalMultiSensorGaussianFilter multi_sensor_gaussian_filter_;
     /** \endcond */
-
-public:
-    Eigen::VectorXd low_level_obsrv_bg;
-    Eigen::VectorXd low_level_obsrv_fg;
-    Eigen::VectorXd low_level_obsrv_nan;
 };
 
 }

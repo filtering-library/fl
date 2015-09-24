@@ -35,6 +35,7 @@
 #include <fl/filter/gaussian/prediction_policy/sigma_point_additive_prediction_policy.hpp>
 
 #include <fl/filter/gaussian/multi_sensor_gaussian_filter.hpp>
+#include <fl/filter/gaussian/X_robust_multi_sensor_gaussian_filter.hpp>
 
 namespace fl
 {
@@ -45,7 +46,7 @@ template<
     typename StateTransitionFunction,
     typename JointObsrvModel,
     typename Quadrature
-> class RobustMultiSensorGaussianFilter;
+> class XRobustMultiSensorGaussianFilter;
 
 /**
  * \internal
@@ -61,7 +62,7 @@ template <
     typename Quadrature
 >
 struct Traits<
-           RobustMultiSensorGaussianFilter<
+           XRobustMultiSensorGaussianFilter<
                StateTransitionFunction, JointObsrvModel, Quadrature>>
 {
     typedef typename StateTransitionFunction::State State;
@@ -79,9 +80,9 @@ template<
     typename JointObsrvModel,
     typename Quadrature
 >
-class RobustMultiSensorGaussianFilter
+class XRobustMultiSensorGaussianFilter
     : public FilterInterface<
-                RobustMultiSensorGaussianFilter<
+                XRobustMultiSensorGaussianFilter<
                     StateTransitionFunction, JointObsrvModel, Quadrature>>
 {
 public:
@@ -122,7 +123,7 @@ public:
     /**
      * \brief Creates a RobustGaussianFilter
      */
-    RobustMultiSensorGaussianFilter(
+    XRobustMultiSensorGaussianFilter(
         const StateTransitionFunction& process_model,
         const JointObsrvModel& joint_obsrv_model,
         const Quadrature& quadrature)
@@ -139,7 +140,7 @@ public:
     /**
      * \brief Overridable default destructor
      */
-    virtual ~RobustMultiSensorGaussianFilter() noexcept { }
+    virtual ~XRobustMultiSensorGaussianFilter() noexcept { }
 
     /**
      * \copydoc FilterInterface::predict

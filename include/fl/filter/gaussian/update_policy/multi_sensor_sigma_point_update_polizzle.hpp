@@ -90,8 +90,8 @@ class MultiSensorSigmaPointUpdatePolizzle<
 {
 public:
     typedef JointObservationModel<MultipleOfLocalObsrvModel> JointModel;
-    typedef typename MultipleOfLocalObsrvModel::Type LocalFeatureModel;
-    typedef typename LocalFeatureModel::EmbeddedObsrvModel BodyTailModel;
+    typedef typename MultipleOfLocalObsrvModel::Type FeatureObsrvModel;
+    typedef typename FeatureObsrvModel::EmbeddedObsrvModel BodyTailModel;
     typedef typename BodyTailModel::BodyObsrvModel BodyModel;
     typedef typename BodyTailModel::TailObsrvModel TailModel;
 
@@ -99,12 +99,8 @@ public:
     typedef typename JointModel::Obsrv Obsrv;
     typedef typename JointModel::Noise Noise;
 
-    typedef typename Traits<JointModel>::LocalObsrv LocalObsrv;
+    typedef typename Traits<JointModel>::LocalObsrv LocalFeature;
     typedef Vector1d LocalObsrvNoise;
-
-//    typedef PointSet<State, NumberOfPoints> StatePointSet;
-//    typedef PointSet<LocalObsrv, NumberOfPoints> LocalObsrvPointSet;
-//    typedef PointSet<LocalObsrvNoise, NumberOfPoints> LocalNoisePointSet;
 
     template <typename Belief>
     void operator()(JointModel& obsrv_function,
@@ -136,7 +132,7 @@ public:
         /* - [p_X, p_Q] ~ p(State, LocalObsrvNoise) - */
         /* ------------------------------------------ */
         PointSet<State, NumberOfPoints> p_X;
-        PointSet<LocalObsrvNoise, NumberOfPoints> p_Q;
+        PointSet<LocalObsrvNoise, NumberOfPoints> p_R;
 
         /* ------------------------------------------ */
         /* - Transform p(State, LocalObsrvNoise) to - */
@@ -146,7 +142,7 @@ public:
             prior_belief,
             Gaussian<LocalObsrvNoise>(feature_model.noise_dimension()),
             p_X,
-            p_Q);
+            p_R);
 
         auto mu_x = p_X.mean();
         auto X = p_X.centered_points();
@@ -162,6 +158,19 @@ public:
         const int sensor_count = obsrv_function.count_local_models();
         const int dim_y = y.size() / sensor_count;
 
+        auto h_body = [&](const State& x,const typename BodyModel::Noise& w)
+        {
+            return feature_model.feature_obsrv(
+                        body_tail_model.body_model().observation(x, w));
+        };
+        auto h_tail = [&](const State& x,const typename TailModel::Noise& w)
+        {
+            return feature_model.feature_obsrv(
+                        body_tail_model.tail_model().observation(x, w));
+        };
+        PointSet<LocalFeature, NumberOfPoints> p_Y_body;
+        PointSet<LocalFeature, NumberOfPoints> p_Y_tail;
+
         for (int i = 0; i < sensor_count; ++i)
         {
             // validate sensor value, i.e. make sure it is finite
@@ -172,15 +181,11 @@ public:
             /* ------------------------------------------ */
             /* - Integrate body                         - */
             /* ------------------------------------------ */
-            auto h_body = [&](const State& x,const typename BodyModel::Noise& w)
-            {
-                return feature_model.feature_obsrv(
-                            body_tail_model.body_model().observation(x, w));
-            };
-            PointSet<LocalObsrv, NumberOfPoints> p_Y_body;
-            quadrature.propagate_points(h_body, p_X, p_Q, p_Y_body);
+
+            quadrature.propagate_points(h_body, p_X, p_R, p_Y_body);
             auto mu_y_body = p_Y_body.mean();
 
+            // validate sensor value, i.e. make sure it is finite
             if (!is_valid(mu_y_body, 0, dim_y)) continue;
 
             auto Y_body = p_Y_body.centered_points();
@@ -190,13 +195,7 @@ public:
             /* ------------------------------------------ */
             /* - Integrate tail                         - */
             /* ------------------------------------------ */
-            auto h_tail = [&](const State& x,const typename TailModel::Noise& w)
-            {
-                return feature_model.feature_obsrv(
-                            body_tail_model.tail_model().observation(x, w));
-            };
-            PointSet<LocalObsrv, NumberOfPoints> p_Y_tail;
-            quadrature.propagate_points(h_tail, p_X, p_Q, p_Y_tail);
+            quadrature.propagate_points(h_tail, p_X, p_R, p_Y_tail);
             auto mu_y_tail = p_Y_tail.mean();
             auto Y_tail = p_Y_tail.centered_points();
             auto c_yy_tail = (Y_tail * W * Y_tail.transpose()).eval();
@@ -205,7 +204,7 @@ public:
             /* ------------------------------------------ */
             /* - Fuse and center                        - */
             /* ------------------------------------------ */
-            Real w = body_tail_model.tail_weight();
+            auto w = body_tail_model.tail_weight();
             auto mu_y = ((1.0 - w) * mu_y_body + w * mu_y_tail).eval();
 
             // non centered moments
