@@ -1,3 +1,4 @@
+
 /*
  * This is part of the FL library, a C++ Bayesian filtering library
  * (https://github.com/filtering-library)
@@ -25,7 +26,7 @@
 
 #include <Eigen/Dense>
 
-#include <vector>
+#include <array>
 #include <string>
 #include <cstddef>
 #include <type_traits>
@@ -175,6 +176,12 @@ protected:
 
         Attributes                /**< Total number of attribute */
     };
+
+    /**
+     * \brief Flags array type which contains the content status if different
+     *        distribution representation
+     */
+    typedef std::array<bool, Attributes> FlagArray;
     /** \endcond */
 
 public:
@@ -188,11 +195,12 @@ public:
      *                  initialized to 0.
      */
     explicit Gaussian(int dim = DimensionOf<Variate>()):
-        StdGaussianMappingBase(dim),
-        dirty_(Attributes, true)
+        StdGaussianMappingBase(dim)
     {
         static_assert(Variate::SizeAtCompileTime != 0,
                       "Illegal static dimension");
+
+        std::fill(dirty_.begin(), dirty_.end(), true);
         set_standard();
     }
 
@@ -236,10 +244,10 @@ public:
 
         if (is_dirty(CovarianceMatrix) && is_dirty(DiagonalCovarianceMatrix))
         {
-            switch (select_first_representation({DiagonalSquareRootMatrix,
-                                                 DiagonalPrecisionMatrix,
-                                                 SquareRootMatrix,
-                                                 PrecisionMatrix}))
+            switch (select_first_representation<4>({{DiagonalSquareRootMatrix,
+                                                    DiagonalPrecisionMatrix,
+                                                    SquareRootMatrix,
+                                                    PrecisionMatrix}}))
             {
             case SquareRootMatrix:
                 covariance_ = square_root_ * square_root_.transpose();
@@ -298,10 +306,10 @@ public:
         {
             const SecondMoment& cov = covariance();
 
-            switch (select_first_representation({DiagonalCovarianceMatrix,
-                                                 DiagonalSquareRootMatrix,
-                                                 CovarianceMatrix,
-                                                 SquareRootMatrix}))
+            switch (select_first_representation<4>({{DiagonalCovarianceMatrix,
+                                                    DiagonalSquareRootMatrix,
+                                                    CovarianceMatrix,
+                                                    SquareRootMatrix}}))
             {
             case CovarianceMatrix:
             case SquareRootMatrix:
@@ -351,10 +359,10 @@ public:
         {
             const SecondMoment& cov = covariance();
 
-            switch (select_first_representation({DiagonalCovarianceMatrix,
-                                                 DiagonalPrecisionMatrix,
-                                                 CovarianceMatrix,
-                                                 PrecisionMatrix}))
+            switch (select_first_representation<4>({{DiagonalCovarianceMatrix,
+                                                    DiagonalPrecisionMatrix,
+                                                    CovarianceMatrix,
+                                                    PrecisionMatrix}}))
             {
             case CovarianceMatrix:
             case PrecisionMatrix:
@@ -751,8 +759,10 @@ protected:
      * beginning of the initialization-list. Diagonal forms can be converted
      * most efficiently other  representations.
      */
+    template <int AttributeCount>
     Attribute select_first_representation(
-        const std::vector<Attribute>& representations) const noexcept
+        const std::array<Attribute, AttributeCount>& representations
+    ) const noexcept
     {
         for (auto& rep: representations)  if (!is_dirty(rep)) return rep;
         return Attributes;
@@ -768,7 +778,7 @@ protected:
     mutable bool full_rank_;           /**< \brief full rank flag */
     mutable Real log_norm_;            /**< \brief log normalizing constant */
     mutable Real determinant_;         /**< \brief determinant of covariance */
-    mutable std::vector<bool> dirty_;  /**< \brief data validity flags */
+    mutable FlagArray dirty_;          /**< \brief data validity flags */
     /** \endcond */
 };
 
