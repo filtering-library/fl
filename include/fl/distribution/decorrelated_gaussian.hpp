@@ -126,6 +126,12 @@ protected:
 
         Attributes                   /**< Total number of attribute */
     };
+
+    /**
+     * \brief Flags array type which contains the content status if different
+     *        distribution representation
+     */
+    typedef std::array<bool, Attributes> FlagArray;
     /** \endcond */
 
 public:
@@ -139,11 +145,11 @@ public:
      *                  initialized to 0.
      */
     explicit DecorrelatedGaussian(int dim = DimensionOf<Variate>()):
-        StdGaussianMappingInterface(dim),
-        dirty_(Attributes, true)
+        StdGaussianMappingInterface(dim)
     {
         static_assert(SizeOf<Variate>::Value != 0, "Illegal static dimension");
 
+        std::fill(dirty_.begin(), dirty_.end(), true);
         set_standard();
     }
 
@@ -193,8 +199,9 @@ public:
 
         if (is_dirty(DiagonalCovarianceMatrix))
         {
-            switch (select_first_representation({DiagonalSquareRootMatrix,
-                                                 DiagonalPrecisionMatrix}))
+            switch (select_first_representation<2>(
+                        {{ DiagonalSquareRootMatrix,
+                           DiagonalPrecisionMatrix }}))
             {
             case DiagonalSquareRootMatrix:
             {
@@ -244,8 +251,9 @@ public:
 
         if (is_dirty(DiagonalPrecisionMatrix))
         {
-            switch (select_first_representation({DiagonalCovarianceMatrix,
-                                                 DiagonalSquareRootMatrix}))
+            switch (select_first_representation<2>(
+                        {{ DiagonalCovarianceMatrix,
+                           DiagonalSquareRootMatrix}}))
             {
             case DiagonalCovarianceMatrix:
             case DiagonalSquareRootMatrix:
@@ -290,8 +298,9 @@ public:
 
         if (is_dirty(DiagonalSquareRootMatrix))
         {
-            switch (select_first_representation({DiagonalCovarianceMatrix,
-                                                 DiagonalPrecisionMatrix}))
+            switch (select_first_representation<2>(
+                        {{ DiagonalCovarianceMatrix,
+                           DiagonalPrecisionMatrix }}))
             {
             case DiagonalCovarianceMatrix:
             case DiagonalPrecisionMatrix:
@@ -327,9 +336,10 @@ public:
         {
             full_rank_ = true;
 
-            switch (select_first_representation({DiagonalCovarianceMatrix,
-                                                 DiagonalPrecisionMatrix,
-                                                 DiagonalSquareRootMatrix}))
+            switch (select_first_representation<3>(
+                        {{ DiagonalCovarianceMatrix,
+                           DiagonalPrecisionMatrix,
+                           DiagonalSquareRootMatrix }}))
             {
             case DiagonalCovarianceMatrix:
                 full_rank_ = has_full_rank(covariance());
@@ -716,8 +726,10 @@ protected:
      * beginning of the initialization-list. Diagonal forms can be converted
      * most efficiently other  representations.
      */
-    virtual Attribute select_first_representation(
-            const std::vector<Attribute>& representations) const noexcept
+    template <int AttributeCount>
+    Attribute select_first_representation(
+        const std::array<Attribute, AttributeCount>& representations
+    ) const noexcept
     {
         for (auto& rep: representations)  if (!is_dirty(rep)) return rep;
         return Attributes;
@@ -754,7 +766,7 @@ protected:
     mutable bool full_rank_;                  /**< \brief full rank flag */
     mutable Real log_norm_;                   /**< \brief log normalizing const */
     mutable Real determinant_;         /**< \brief determinant of covariance */
-    mutable std::vector<bool> dirty_;         /**< \brief data validity flags */
+    mutable FlagArray dirty_;          /**< \brief data validity flags */
     /** \endcond */
 };
 
