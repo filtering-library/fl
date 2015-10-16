@@ -14,7 +14,7 @@ set(fl_FLOATING_POINT_TYPE "double" CACHE STRING "fl::Real floating point type")
 # Enable c++11 GCC 4.6 or greater required
 add_definitions(-DEIGEN_STACK_ALLOCATION_LIMIT=1638400)
 add_definitions(-DEIGEN_MPL2_ONLY=1)
-add_definitions(-std=c++0x -O3)
+add_definitions(-std=c++0x)
 add_definitions(-DPROFILING_ON=1) #print profiling output
 
 add_definitions(-Wall)
@@ -28,10 +28,18 @@ add_definitions(-Wno-deprecated-register)
 ############################
 # Setup                    #
 ############################
-set(fl_INCLUDE_DIRS include)
+#set(fl_INCLUDE_DIRS include)
 set(fl_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 set(CMAKE_MODULE_PATH ${fl_MODULE_PATH})
 include(${fl_MODULE_PATH}/definitions.cmake)
+
+############################
+# Exports                 ##
+############################
+set(fl_FOUND TRUE PARENT_SCOPE)
+set(fl_INCLUDE_DIRS ../fl/include ${Eigen_INCLUDE_DIRS} PARENT_SCOPE)
+set(fl_DEFINITIONS ${Eigen_DEFINITIONS} PARENT_SCOPE)
+set(fl_DEPENDS Eigen PARENT_SCOPE)
 
 ############################
 # Library Version          #
@@ -47,6 +55,13 @@ add_definitions(${Eigen_DEFINITIONS})
 
 find_package(Boost REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
+
+#find_package(OpenMP)
+#if(OPENMP_FOUND)
+#    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+#    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+#    message (WARNING "${OpenMP_C_FLAGS} ${OpenMP_CXX_FLAGS}")
+#endif()
 
 ############################
 ## catkin                  #
@@ -83,6 +98,14 @@ include(${fl_MODULE_PATH}/doxygen.cmake)
 # Library info summary     #
 ############################
 include(${fl_MODULE_PATH}/info.cmake)
+
+info_begin()
+  info_project("::fl:: Filtering Library" ${PROJECT_VERSION})
+  info_header("Setup:")
+  info_item("Using Catkin" "${fl_USING_CATKIN}")
+  info_item("Using random seed" "${fl_USE_RANDOM_SEED}")
+  info_item("Using fl::Real floating point type" ${fl_FLOATING_POINT_TYPE})
+info_end()
 
 ############################
 # Build                    #

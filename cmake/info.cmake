@@ -1,37 +1,45 @@
-string(ASCII 27 Esc)
+############################
+# Info gen. functions      #
+############################
+# I'm sure there is a better way of doing this...
+execute_process(
+    COMMAND bash -c
+        "v=`ps -o stat= -p $PPID`
+         [[ $v == *+* ]] || [[ $v == *s* ]] && echo YES || echo NO"
+    OUTPUT_VARIABLE ISATTY
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-set(fl_USING_CATKIN_STR "no")
-set(fl_USING_RANDOM_SEED_STR "no")
-set(fl_FLOATING_POINT_TYPE_STR "default")
+if(ISATTY STREQUAL "YES")
+    string(ASCII 27 Esc)
+    set(COLOR_BORDER "${Esc}[35m")
+    set(COLOR_HEADER "${Esc}[34m")
+    set(COLOR_BOLD   "${Esc}[1m")
+    set(COLOR_CLEAR  "${Esc}[m")
+else(ISATTY STREQUAL "YES")
+    set(COLOR_BORDER "")
+    set(COLOR_HEADER "")
+    set(COLOR_BOLD   "")
+    set(COLOR_CLEAR  "")
+endif(ISATTY STREQUAL "YES")
 
-if(fl_USING_CATKIN)
-    set(fl_USING_CATKIN_STR "yes")
-endif(fl_USING_CATKIN)
+function(info_begin)
+  message(STATUS "${COLOR_BORDER}=================================================${COLOR_CLEAR}")
+endfunction(info_begin)
 
-if(fl_USE_RANDOM_SEED)
-    set(fl_USING_RANDOM_SEED_STR "yes")
-endif(fl_USE_RANDOM_SEED)
+function(info_end)
+  message(STATUS "${COLOR_BORDER}=====${COLOR_CLEAR}")
+endfunction(info_end)
 
-if(fl_FLOATING_POINT_TYPE STREQUAL "float")
-    set(fl_FLOATING_POINT_TYPE_STR "float")
-elseif(fl_FLOATING_POINT_TYPE STREQUAL "double")
-    set(fl_FLOATING_POINT_TYPE_STR "double")
-elseif(fl_FLOATING_POINT_TYPE STREQUAL "long double")
-    set(fl_FLOATING_POINT_TYPE_STR "long double")
-else(fl_FLOATING_POINT_TYPE STREQUAL "float")
-    set(fl_FLOATING_POINT_TYPE_STR "double")
-endif(fl_FLOATING_POINT_TYPE STREQUAL "float")
+function(info_project project_name project_version)
+message(STATUS "${COLOR_BORDER}== ${COLOR_CLEAR} ${COLOR_HEADER}${project_name}${COLOR_CLEAR}")
+message(STATUS "${COLOR_BORDER}== ${COLOR_CLEAR} Version: ${COLOR_BOLD}${project_version}${COLOR_CLEAR}")
+endfunction(info_package)
 
-set(fl_COLOR "${Esc}[3;35m")
-set(fl_COLOR_CLEAR "${Esc}[m")
+function(info_header list_header)
+  message(STATUS "${COLOR_BORDER}== ${COLOR_CLEAR} ")
+  message(STATUS "${COLOR_BORDER}== ${COLOR_CLEAR} ${COLOR_BOLD}${list_header}")
+endfunction(info_header)
 
-message(STATUS "${fl_COLOR} ================================================= ${fl_COLOR_CLEAR}")
-message(STATUS "${fl_COLOR} == ${Esc}[3;34m Filtering Library ${fl_COLOR_CLEAR}")
-message(STATUS "${fl_COLOR} == ${Esc}[3;34m Version${Esc}[1;34m ${PROJECT_VERSION} ${fl_COLOR_CLEAR}")
-message(STATUS "${fl_COLOR} == ${fl_COLOR_CLEAR}")
-message(STATUS "${fl_COLOR} == ${Esc}[1;34m Setup: ${fl_COLOR_CLEAR}")
-message(STATUS "${fl_COLOR} == ${fl_COLOR_CLEAR} - Using Catkin: ${fl_USING_CATKIN_STR}")
-message(STATUS "${fl_COLOR} == ${fl_COLOR_CLEAR} - Using random seeds: ${fl_USING_RANDOM_SEED_STR}")
-message(STATUS "${fl_COLOR} == ${fl_COLOR_CLEAR} - Using fl::Real floating point type: ${fl_FLOATING_POINT_TYPE_STR}")
-message(STATUS "${fl_COLOR} ================================================= ${fl_COLOR_CLEAR} ")
-
+function(info_item item_name item_value)
+  message(STATUS "${COLOR_BORDER}== ${COLOR_CLEAR} - ${item_name}:${COLOR_BOLD} ${item_value}")
+endfunction(info_item)
