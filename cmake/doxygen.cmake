@@ -79,7 +79,7 @@ if(DOXYGEN_FOUND)
     endif(DOXYGEN_VERSION VERSION_LESS MIN_DOXYGEN_VERSION)
 else(DOXYGEN_FOUND)
     set(DOXYGEN_WARN_MSG "Doxygen not found.")
-    message(WARNING ${DOXYGEN_WARN_MSG})
+    message(${DOXYGEN_WARN_MSG})
 
     set(FATAL_ERROR_MESSAGE ${DOXYGEN_WARN_MSG})
     configure_file(
