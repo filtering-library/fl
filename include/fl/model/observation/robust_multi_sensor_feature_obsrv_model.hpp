@@ -55,7 +55,7 @@ public:
      */
     typedef typename ObsrvModel::Obsrv InputObsrv;
 
-private:
+public:
     // Remove body_moments(mean, cov) of RobustFeatureObsrvModel from public
     // interface.
     using RobustFeatureObsrvModelBase::body_moments;

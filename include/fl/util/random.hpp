@@ -33,11 +33,14 @@
  *
  * \ingroup random
  */
-#ifdef fl_USE_RANDOM_SEED
-    #define RANDOM_SEED (unsigned int) std::time(0)
-#else
-    #define RANDOM_SEED 1
-#endif
+//#ifdef fl_USE_RANDOM_SEED
+//    #define RANDOM_SEED (unsigned int) std::time(0)
+//#else
+//    #define RANDOM_SEED 1
+//#endif
+
+#undef RANDOM_SEED
+#define RANDOM_SEED (unsigned int) std::time(0)
 
 namespace fl
 {
@@ -66,12 +69,15 @@ typedef std::mersenne_twister_engine<
  */
 inline unsigned int seed()
 {
-#ifdef fl_USE_RANDOM_SEED
+//#ifdef fl_USE_RANDOM_SEED
+//    static unsigned int seed_inc = std::time(0);
+//    return seed_inc++;
+//#else
+//    return 1;
+//#endif
+
     static unsigned int seed_inc = std::time(0);
     return seed_inc++;
-#else
-    return 1;
-#endif
 }
 
 }

@@ -189,31 +189,31 @@ inline void smw_inverse(const MatrixAInv& A_inv,
     smw_inverse(A_inv, B, C, D, L_A, L_B, L_C, L_D, L);
 }
 
-/**
- * \ingroup linear_algebra
- *
- * \brief Normalizes the values of input vector such that their sum is equal to
- * the specified \c sum. For instance, any convex combination requires that the
- * weights of the weighted sum sums up to 1.
- */
-template <typename T>
-inline std::vector<T> normalize(const std::vector<T>& input, T sum)
-{
-    T old_sum = 0;
-    for(size_t i = 0; i < input.size(); i++)
-    {
-        old_sum += input[i];
-    }
-    T factor = sum/old_sum;
+///**
+// * \ingroup linear_algebra
+// *
+// * \brief Normalizes the values of input vector such that their sum is equal to
+// * the specified \c sum. For instance, any convex combination requires that the
+// * weights of the weighted sum sums up to 1.
+// */
+//template <typename T>
+//inline std::vector<T> normalize(const std::vector<T>& input, T sum)
+//{
+//    T old_sum = 0;
+//    for(size_t i = 0; i < input.size(); i++)
+//    {
+//        old_sum += input[i];
+//    }
+//    T factor = sum/old_sum;
 
-    std::vector<T> output(input.size());
-    for(size_t i = 0; i < input.size(); i++)
-    {
-        output[i] = factor*input[i];
-    }
+//    std::vector<T> output(input.size());
+//    for(size_t i = 0; i < input.size(); i++)
+//    {
+//        output[i] = factor*input[i];
+//    }
 
-    return output;
-}
+//    return output;
+//}
 
 /**
  * \ingroup linear_algebra

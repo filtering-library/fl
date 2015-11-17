@@ -58,6 +58,7 @@ public:
      * \brief State type provided by the filter specialization
      *
      * The filter specialization traits must provide the \c State type. The
+     * The filter specialization traits must provide the \c State type. The
      * state type is commonly either provided by the process model or the filter
      * self.
      */
