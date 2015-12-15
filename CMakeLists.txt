@@ -74,6 +74,8 @@ if(catkin_FOUND AND fl_USE_CATKIN)
     set(fl_USING_CATKIN YES)
     catkin_package(INCLUDE_DIRS include DEPENDS Eigen Boost)
     list(APPEND fl_INCLUDE_DIRS ${catkin_INCLUDE_DIRS})
+else(catkin_FOUND AND fl_USE_CATKIN)
+    set(fl_USING_CATKIN NO)
 endif(catkin_FOUND AND fl_USE_CATKIN)
 
 ############################
