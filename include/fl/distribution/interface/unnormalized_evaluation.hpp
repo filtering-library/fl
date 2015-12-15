@@ -9,7 +9,6 @@
  * This Source Code Form is subject to the terms of the MIT License (MIT).
  * A copy of the license can be found in the LICENSE file distributed with this
  * source code.
- */urce code.
  */
 
 /**
@@ -19,7 +18,6 @@
  */
 
 #pragma once
-
 
 #include <cmath>
 #include <fl/util/types.hpp>

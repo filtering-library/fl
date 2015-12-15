@@ -19,11 +19,10 @@
 
 #pragma once
 
-
 #include <Eigen/Dense>
 
 #include <fl/util/types.hpp>
-#include "t_distribution.hpp"
+#include <fl/distribution/t_distribution.hpp>
 
 namespace fl
 {
