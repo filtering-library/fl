@@ -44,7 +44,7 @@ public:
 
     typedef Eigen::Matrix<fl::Real, StateDim, 1> State;
     typedef Eigen::Matrix<fl::Real, InputDim, 1> Input;
-    typedef fl::LinearStateTransitionModel<State, Input> LinearModel;
+    typedef fl::LinearStateTransitionModel<State, State, Input> LinearModel;
 
     typedef typename LinearModel::Noise Noise;
 

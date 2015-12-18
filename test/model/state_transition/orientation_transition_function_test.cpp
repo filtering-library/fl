@@ -22,15 +22,3 @@
 #include <Eigen/Dense>
 
 #include <fl/util/types.hpp>
-#include <fl/model/process/orientation_transition_function.hpp>
-
-
-
-
-TEST(orientation_state_transition_function, bla)
-{
-    fl::OrientationStateTransitionFunction tf;
-
-    /// \todo some test of this model
-
-}

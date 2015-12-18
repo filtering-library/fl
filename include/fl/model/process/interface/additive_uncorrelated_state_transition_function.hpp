@@ -29,20 +29,19 @@ namespace fl
 
 template <
     typename State,
-    typename Noise,
     typename Input,
     int Id = 0
 >
 class AdditiveUncorrelatedStateTransitionFunction
-    : public AdditiveStateTransitionFunction<State, Noise, Input, Id>
+    : public AdditiveStateTransitionFunction<State, State, Input, Id>
 {
 public:
     typedef AdditiveStateTransitionFunction<
-                State, Noise, Input, Id
+                State, State, Input, Id
             > AdditiveFunctionInterface;
 
     typedef Eigen::DiagonalMatrix<
-                typename Noise::Scalar,
+                typename State::Scalar,
                 SizeOf<State>::Value
             > NoiseDiagonal;
 
@@ -54,6 +53,9 @@ public:
 
     virtual const NoiseDiagonal& noise_diagonal_matrix() const = 0;
     virtual const NoiseDiagonal& noise_diagonal_covariance() const = 0;
+
+
+    /* TODO: override state() function using noise_diagonal_matrix() */
 };
 
 }

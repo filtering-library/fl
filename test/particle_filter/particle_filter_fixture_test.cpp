@@ -68,7 +68,7 @@ protected:
 
     typedef Eigen::Matrix<fl::Real, 3, 3> Matrix;
 
-    typedef fl::LinearStateTransitionModel<State, Input> ProcessModel;
+    typedef fl::LinearStateTransitionModel<State, State, Input> ProcessModel;
     typedef fl::LinearGaussianObservationModel<Observation, State> ObservationModel;
 
     // particle filter

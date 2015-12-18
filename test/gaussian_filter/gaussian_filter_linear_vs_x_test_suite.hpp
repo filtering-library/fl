@@ -81,7 +81,7 @@ protected:
             > ObsrvModelMap;
 
 
-    typedef fl::LinearStateTransitionModel<State, Input> LinearStateTransition;
+    typedef fl::LinearStateTransitionModel<State, State, Input> LinearStateTransition;
 
     typedef typename ObsrvModelMap::template Select<
                 Configuration::SelectedModel
