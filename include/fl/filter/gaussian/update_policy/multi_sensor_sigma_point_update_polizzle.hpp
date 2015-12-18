@@ -19,8 +19,6 @@
 
 #pragma once
 
-
-
 #include <Eigen/Dense>
 
 #include <fl/util/meta.hpp>
@@ -33,25 +31,20 @@
 
 namespace fl
 {
-
 // Forward declarations
-template <typename...> class MultiSensorSigmaPointUpdatePolizzle;
+template <typename...>
+class MultiSensorSigmaPointUpdatePolizzle;
 
 /**
  * \internal
  */
-template <
-    typename SigmaPointQuadrature,
-    typename NonJoinObservationModel
->
-class MultiSensorSigmaPointUpdatePolizzle<
-          SigmaPointQuadrature,
-          NonJoinObservationModel>
+template <typename SigmaPointQuadrature, typename NonJoinObservationModel>
+class MultiSensorSigmaPointUpdatePolizzle<SigmaPointQuadrature,
+                                          NonJoinObservationModel>
 {
     static_assert(
-        std::is_base_of<
-            internal::JointObservationModelIidType, NonJoinObservationModel
-        >::value,
+        std::is_base_of<internal::JointObservationModelIidType,
+                        NonJoinObservationModel>::value,
         "\n\n\n"
         "====================================================================\n"
         "= Static Assert: You are using the wrong observation model type    =\n"
@@ -60,30 +53,24 @@ class MultiSensorSigmaPointUpdatePolizzle<
         "  For single observation model, use the regular Gaussian filter     \n"
         "  or the regular SigmaPointUpdatePolicy if you are specifying       \n"
         "  the update policy explicitly fo the GaussianFilter.               \n"
-        "====================================================================\n"
-    );
+        "===================================================================="
+        "\n");
 };
 
-
-template <
-    typename SigmaPointQuadrature,
-    typename MultipleOfLocalObsrvModel
->
+template <typename SigmaPointQuadrature, typename MultipleOfLocalObsrvModel>
 class MultiSensorSigmaPointUpdatePolizzle<
-          SigmaPointQuadrature,
-          JointObservationModel<MultipleOfLocalObsrvModel>>
+    SigmaPointQuadrature,
+    JointObservationModel<MultipleOfLocalObsrvModel>>
     : public MultiSensorSigmaPointUpdatePolizzle<
-                SigmaPointQuadrature,
-                NonAdditive<JointObservationModel<MultipleOfLocalObsrvModel>>>
-{ };
-
-template <
-    typename SigmaPointQuadrature,
-    typename MultipleOfLocalObsrvModel
->
-class MultiSensorSigmaPointUpdatePolizzle<
           SigmaPointQuadrature,
           NonAdditive<JointObservationModel<MultipleOfLocalObsrvModel>>>
+{
+};
+
+template <typename SigmaPointQuadrature, typename MultipleOfLocalObsrvModel>
+class MultiSensorSigmaPointUpdatePolizzle<
+    SigmaPointQuadrature,
+    NonAdditive<JointObservationModel<MultipleOfLocalObsrvModel>>>
     : public Descriptor
 {
 public:
@@ -119,10 +106,8 @@ public:
         enum : signed int
         {
             NumberOfPoints = SigmaPointQuadrature::number_of_points(
-                                 JoinSizes<
-                                     SizeOf<State>::Value,
-                                     SizeOf<LocalObsrvNoise>::Value
-                                 >::Size)
+                JoinSizes<SizeOf<State>::Value,
+                          SizeOf<LocalObsrvNoise>::Value>::Size)
         };
 
         /* ------------------------------------------ */
@@ -156,15 +141,15 @@ public:
         const int sensor_count = obsrv_function.count_local_models();
         const int dim_y = y.size() / sensor_count;
 
-        auto h_body = [&](const State& x,const typename BodyModel::Noise& w)
+        auto h_body = [&](const State& x, const typename BodyModel::Noise& w)
         {
             return feature_model.feature_obsrv(
-                        body_tail_model.body_model().observation(x, w));
+                body_tail_model.body_model().observation(x, w));
         };
-        auto h_tail = [&](const State& x,const typename TailModel::Noise& w)
+        auto h_tail = [&](const State& x, const typename TailModel::Noise& w)
         {
             return feature_model.feature_obsrv(
-                        body_tail_model.tail_model().observation(x, w));
+                body_tail_model.tail_model().observation(x, w));
         };
         PointSet<LocalFeature, NumberOfPoints> p_Y_body;
         PointSet<LocalFeature, NumberOfPoints> p_Y_tail;
@@ -206,8 +191,10 @@ public:
             auto mu_y = ((1.0 - w) * mu_y_body + w * mu_y_tail).eval();
 
             // non centered moments
-            auto m_yy_body = (c_yy_body + mu_y_body * mu_y_body.transpose()).eval();
-            auto m_yy_tail = (c_yy_tail + mu_y_tail * mu_y_tail.transpose()).eval();
+            auto m_yy_body =
+                (c_yy_body + mu_y_body * mu_y_body.transpose()).eval();
+            auto m_yy_tail =
+                (c_yy_tail + mu_y_tail * mu_y_tail.transpose()).eval();
             auto m_yy = ((1.0 - w) * m_yy_body + w * m_yy_tail).eval();
 
             // center
@@ -233,11 +220,10 @@ public:
 
     virtual std::string name() const
     {
-        return "MultiSensorSigmaPointUpdatePolizzle<"
-                + this->list_arguments(
-                       "SigmaPointQuadrature",
-                       "NonAdditive<ObservationFunction>")
-                + ">";
+        return "MultiSensorSigmaPointUpdatePolizzle<" +
+               this->list_arguments("SigmaPointQuadrature",
+                                    "NonAdditive<ObservationFunction>") +
+               ">";
     }
 
     virtual std::string description() const
@@ -246,6 +232,7 @@ public:
                "for joint observation model of multiple local observation "
                "models with non-additive noise.";
     }
+
 private:
     /**
      * \brief Checks whether all vector components within the range (start, end)
@@ -262,6 +249,4 @@ private:
         return true;
     }
 };
-
 }
-
