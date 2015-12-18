@@ -36,10 +36,10 @@ include(${fl_MODULE_PATH}/definitions.cmake)
 ############################
 # Exports                 ##
 ############################
-set(fl_FOUND TRUE PARENT_SCOPE)
-set(fl_INCLUDE_DIRS ../fl/include ${Eigen_INCLUDE_DIRS} PARENT_SCOPE)
-set(fl_DEFINITIONS ${Eigen_DEFINITIONS} PARENT_SCOPE)
-set(fl_DEPENDS Eigen PARENT_SCOPE)
+#set(fl_FOUND TRUE PARENT_SCOPE)
+#set(fl_INCLUDE_DIRS ../fl/include ${Eigen_INCLUDE_DIRS} PARENT_SCOPE)
+#set(fl_DEFINITIONS ${Eigen_DEFINITIONS} PARENT_SCOPE)
+#set(fl_DEPENDS Eigen PARENT_SCOPE)
 
 ############################
 # Library Version          #
@@ -73,7 +73,6 @@ endif(fl_USE_CATKIN)
 if(catkin_FOUND AND fl_USE_CATKIN)
     set(fl_USING_CATKIN YES)
     catkin_package(INCLUDE_DIRS include DEPENDS Eigen Boost)
-    list(APPEND fl_INCLUDE_DIRS ${catkin_INCLUDE_DIRS})
 else(catkin_FOUND AND fl_USE_CATKIN)
     set(fl_USING_CATKIN NO)
 endif(catkin_FOUND AND fl_USE_CATKIN)
@@ -112,7 +111,7 @@ info_end()
 ############################
 # Build                    #
 ############################
-include_directories(${fl_INCLUDE_DIRS})
+include_directories(include)
 file(GLOB_RECURSE header_files include/${PROJECT_NAME}/*.hpp
                                include/${PROJECT_NAME}/*.h
                                include/ff/*.hpp
