@@ -12,7 +12,7 @@
  */
 
 /**
- * \file test_typing.cpp
+ * \file typecast.cpp
  * \date June 2015
  * \author Jan Issac (jan.issac@gmail.com)
  */
