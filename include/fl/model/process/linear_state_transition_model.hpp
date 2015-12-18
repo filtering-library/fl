@@ -38,22 +38,20 @@ namespace fl
  * linear or linearized system of the form
  * \f$ x_{t+1} =F_tx_t + G_tu_t + N_tv_t \f$.
  */
-template <typename State_, typename Input_>
+template <typename State_, typename Noise_, typename Input_>
 class LinearStateTransitionModel
     : public StateTransitionDensity<State_, Input_>,
-      /// \todo the second type below should be Noise_ which should also
-      /// be a template argument of this class, since the noise does
-      /// not necessarily have the same size as the state.
-      public AdditiveStateTransitionFunction<State_, State_, Input_>,
+      public AdditiveStateTransitionFunction<State_, Noise_, Input_>,
       public Descriptor,
       private internal::LinearModelType
 {
 public:
     typedef State_ State;
+    typedef Noise_ Noise;
     typedef Input_ Input;
 
     typedef StateTransitionDensity<State, Input> DensityInterface;
-    typedef AdditiveStateTransitionFunction<State, State, Input> AdditiveInterface;
+    typedef AdditiveStateTransitionFunction<State, Noise, Input> AdditiveInterface;
     typedef typename AdditiveInterface::FunctionInterface FunctionInterface;
 
 
@@ -85,15 +83,20 @@ public:
      * \brief Noise (effect) model matrix \f$N_t\f$
      */
     typedef typename AdditiveInterface::NoiseMatrix NoiseMatrix;
+    typedef typename AdditiveInterface::NoiseCovariance NoiseCovariance;
 
 public:
     explicit LinearStateTransitionModel(int state_dim = DimensionOf<State>(),
+                                        int noise_dim = DimensionOf<Noise>(),
                                         int input_dim = DimensionOf<Input>())
         : dynamics_matrix_(DynamicsMatrix::Identity(state_dim, state_dim)),
+          noise_matrix_(NoiseMatrix::Identity(state_dim, noise_dim)),
           input_matrix_(InputMatrix::Identity(state_dim, input_dim)),
           density_(state_dim),
           discretization_time_step_(1)
     {
+        density_.covariance(noise_matrix() * noise_matrix().transpose());
+
         assert(state_dim > 0);
         assert(input_dim > 0);
     }
@@ -153,7 +156,7 @@ public: /* accessors & mutators */
 
     virtual const NoiseMatrix& noise_matrix() const
     {
-        return density_.square_root();
+        return noise_matrix_;
     }
 
     virtual const NoiseMatrix& noise_covariance() const
@@ -168,7 +171,7 @@ public: /* accessors & mutators */
 
     virtual int noise_dimension() const
     {
-        return density_.dimension();
+        return noise_matrix_.cols();
     }
 
     virtual int input_dimension() const
@@ -193,14 +196,11 @@ public: /* accessors & mutators */
 
     virtual void noise_matrix(const NoiseMatrix& noise_mat)
     {
-        density_.square_root(noise_mat);
+        noise_matrix_ = noise_mat;
+        density_.covariance(noise_matrix() * noise_matrix().transpose());
     }
 
-    virtual void noise_covariance(const NoiseMatrix& noise_mat_squared)
-    {
-        density_.covariance(noise_mat_squared);
-    }
-
+    /// \todo is this required? remove if not!
     virtual void discretization_time_step(
         Real new_discretization_time_step)
     {
@@ -220,6 +220,7 @@ public: /* accessors & mutators */
 
 protected:
     DynamicsMatrix dynamics_matrix_;
+    NoiseMatrix noise_matrix_;
     InputMatrix input_matrix_;
     mutable Density density_;
     Real discretization_time_step_;
