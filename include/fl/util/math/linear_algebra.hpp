@@ -20,7 +20,6 @@
 
 #pragma once
 
-
 #include <Eigen/Dense>
 
 #include <cmath>
@@ -28,7 +27,6 @@
 
 namespace fl
 {
-
 /**
  * \ingroup linear_algebra
  *
@@ -67,13 +65,13 @@ template <typename MatrixAInv,
           typename MatrixLC,
           typename MatrixLD>
 inline void smw_inverse(const MatrixAInv& A_inv,
-                  const MatrixB& B,
-                  const MatrixC& C,
-                  const MatrixD& D,
-                  MatrixLA& L_A,
-                  MatrixLB& L_B,
-                  MatrixLC& L_C,
-                  MatrixLD& L_D)
+                        const MatrixB& B,
+                        const MatrixC& C,
+                        const MatrixD& D,
+                        MatrixLA& L_A,
+                        MatrixLB& L_B,
+                        MatrixLC& L_C,
+                        MatrixLD& L_D)
 {
     auto&& AinvB = (A_inv * B).eval();
 
@@ -123,22 +121,22 @@ template <typename MatrixAInv,
           typename MatrixLD,
           typename ResultMatrix>
 inline void smw_inverse(const MatrixAInv& A_inv,
-                  const MatrixB& B,
-                  const MatrixC& C,
-                  const MatrixD& D,
-                  MatrixLA& L_A,
-                  MatrixLB& L_B,
-                  MatrixLC& L_C,
-                  MatrixLD& L_D,
-                  ResultMatrix& L)
+                        const MatrixB& B,
+                        const MatrixC& C,
+                        const MatrixD& D,
+                        MatrixLA& L_A,
+                        MatrixLB& L_B,
+                        MatrixLC& L_C,
+                        MatrixLD& L_D,
+                        ResultMatrix& L)
 {
-     smw_inverse(A_inv, B, C, D, L_A, L_B, L_C, L_D);
+    smw_inverse(A_inv, B, C, D, L_A, L_B, L_C, L_D);
 
     L.resize(L_A.rows() + L_C.rows(), L_A.cols() + L_B.cols());
 
-    L.block(0,          0,          L_A.rows(), L_A.cols()) = L_A;
-    L.block(0,          L_A.cols(), L_B.rows(), L_B.cols()) = L_B;
-    L.block(L_A.rows(), 0,          L_C.rows(), L_C.cols()) = L_C;
+    L.block(0, 0, L_A.rows(), L_A.cols()) = L_A;
+    L.block(0, L_A.cols(), L_B.rows(), L_B.cols()) = L_B;
+    L.block(L_A.rows(), 0, L_C.rows(), L_C.cols()) = L_C;
     L.block(L_A.rows(), L_A.cols(), L_D.rows(), L_D.cols()) = L_D;
 }
 
@@ -174,10 +172,10 @@ template <typename MatrixAInv,
           typename MatrixD,
           typename ResultMatrix>
 inline void smw_inverse(const MatrixAInv& A_inv,
-                  const MatrixB& B,
-                  const MatrixC& C,
-                  const MatrixD& D,
-                  ResultMatrix& L)
+                        const MatrixB& B,
+                        const MatrixC& C,
+                        const MatrixD& D,
+                        ResultMatrix& L)
 {
     MatrixAInv L_A;
     MatrixB L_B;
@@ -190,12 +188,14 @@ inline void smw_inverse(const MatrixAInv& A_inv,
 ///**
 // * \ingroup linear_algebra
 // *
-// * \brief Normalizes the values of input vector such that their sum is equal to
-// * the specified \c sum. For instance, any convex combination requires that the
+// * \brief Normalizes the values of input vector such that their sum is equal
+// to
+// * the specified \c sum. For instance, any convex combination requires that
+// the
 // * weights of the weighted sum sums up to 1.
 // */
-//template <typename T>
-//inline std::vector<T> normalize(const std::vector<T>& input, T sum)
+// template <typename T>
+// inline std::vector<T> normalize(const std::vector<T>& input, T sum)
 //{
 //    T old_sum = 0;
 //    for(size_t i = 0; i < input.size(); i++)
@@ -222,26 +222,40 @@ inline void smw_inverse(const MatrixAInv& A_inv,
  * \return Matrix representation of the quaternion vector
  */
 inline Eigen::Matrix<double, 4, 3> quaternion_matrix(
-        const Eigen::Matrix<double, 4, 1>& q_xyzw)
+    const Eigen::Matrix<double, 4, 1>& q_xyzw)
 {
     Eigen::Matrix<double, 4, 3> Q;
-    Q << q_xyzw(3),  q_xyzw(2), -q_xyzw(1),
-        -q_xyzw(2),  q_xyzw(3),  q_xyzw(0),
-         q_xyzw(1), -q_xyzw(0),  q_xyzw(3),
-        -q_xyzw(0), -q_xyzw(1), -q_xyzw(2);
+    Q << q_xyzw(3), q_xyzw(2), -q_xyzw(1), -q_xyzw(2), q_xyzw(3), q_xyzw(0),
+        q_xyzw(1), -q_xyzw(0), q_xyzw(3), -q_xyzw(0), -q_xyzw(1), -q_xyzw(2);
 
-    return 0.5*Q;
+    return 0.5 * Q;
 }
 
 /**
  * \ingroup linear_algebra
  * \todo DOC
+ * \todo Implement numerically robust version and test it
  */
 template <typename RegularMatrix, typename SquareRootMatrix>
 void square_root(const RegularMatrix& regular_matrix,
                  SquareRootMatrix& square_root)
 {
     square_root = regular_matrix.llt().matrixL();
+
+//    typedef Eigen::Matrix<typename RegularMatrix::Scalar,
+//                          RegularMatrix::SizeAtCompileTime,
+//                          1> Vector;
+
+//    Eigen::LDLT<RegularMatrix> ldlt;
+//    ldlt.compute(regular_matrix);
+//    Vector D_sqrt = ldlt.vectorD();
+//    for (int i = 0; i < D_sqrt.rows(); ++i)
+//    {
+//        D_sqrt(i) = std::sqrt(std::fabs(D_sqrt(i)));
+//    }
+
+//    return ldlt.transpositionsP().transpose() * (Matrix)ldlt.matrixL() *
+//           D_sqrt.asDiagonal();
 }
 
 /**
@@ -250,7 +264,7 @@ void square_root(const RegularMatrix& regular_matrix,
  */
 template <typename RegularMatrix>
 void sqrt_diagonal(const RegularMatrix& regular_matrix,
-                        RegularMatrix& square_root)
+                   RegularMatrix& square_root)
 {
     square_root = regular_matrix;
     for (size_t i = 0; i < square_root.rows(); ++i)
@@ -265,7 +279,7 @@ void sqrt_diagonal(const RegularMatrix& regular_matrix,
  */
 template <typename RegularMatrix, typename SquareRootVector>
 void sqrt_diagonal_vector(const RegularMatrix& diagonal_vector,
-                              SquareRootVector& square_root)
+                          SquareRootVector& square_root)
 {
     square_root = diagonal_vector;
     for (size_t i = 0; i < square_root.rows(); ++i)
@@ -285,11 +299,11 @@ void invert_diagonal_vector(const SrcDiagonalMatrix& diagonal,
 {
     diagonal_inverse = diagonal.array().cwiseInverse();
 
-//    diagonal_inverse.resize(diagonal.size());
-//    for (int i = 0; i < diagonal.size(); ++i)
-//    {
-//        diagonal_inverse(i) = 1./diagonal(i);
-//    }
+    //    diagonal_inverse.resize(diagonal.size());
+    //    for (int i = 0; i < diagonal.size(); ++i)
+    //    {
+    //        diagonal_inverse(i) = 1./diagonal(i);
+    //    }
 }
 
 /**
@@ -329,8 +343,8 @@ double frobenius_norm(const Eigen::MatrixBase<Derived>& a)
  *     \begin{cases} 1 & x \in [0, \epsilon)
  *                  \\ 0, & \text{otherwise} \end{cases}\f$
  */
-//template <typename DerivedA, typename DerivedB>
-//bool are_similar(const Eigen::MatrixBase<DerivedA>& a,
+// template <typename DerivedA, typename DerivedB>
+// bool are_similar(const Eigen::MatrixBase<DerivedA>& a,
 //                 const Eigen::MatrixBase<DerivedB>& b,
 //                 const double epsilon = 1.e-6)
 //{
@@ -342,7 +356,7 @@ bool are_similar(const Eigen::MatrixBase<DerivedA>& a,
                  const Eigen::MatrixBase<DerivedB>& b,
                  const double epsilon = 1.e-6)
 {
-    //return (a - b).cwiseAbs().maxCoeff() < epsilon;
+    // return (a - b).cwiseAbs().maxCoeff() < epsilon;
     return frobenius_norm(a - b) < epsilon;
 }
 
@@ -351,23 +365,22 @@ bool are_similar(const Eigen::MatrixBase<DerivedA>& a,
  * \brief Robust decomposition of M = L*L^T for positive semidefinite matrices
  */
 template <typename Scalar, int Size>
-Eigen::Matrix<Scalar, Size, Size>
-matrix_sqrt(Eigen::Matrix<Scalar, Size, Size> M)
+Eigen::Matrix<Scalar, Size, Size> matrix_sqrt(
+    Eigen::Matrix<Scalar, Size, Size> M)
 {
-    typedef Eigen::Matrix<Scalar, Size, Size>   Matrix;
-    typedef Eigen::Matrix<Scalar, Size, 1>      Vector;
+    typedef Eigen::Matrix<Scalar, Size, Size> Matrix;
+    typedef Eigen::Matrix<Scalar, Size, 1> Vector;
 
     Eigen::LDLT<Matrix> ldlt;
     ldlt.compute(M);
     Vector D_sqrt = ldlt.vectorD();
-    for(int i = 0; i < D_sqrt.rows(); ++i)
+    for (int i = 0; i < D_sqrt.rows(); ++i)
     {
         D_sqrt(i) = std::sqrt(std::fabs(D_sqrt(i)));
     }
 
-    return ldlt.transpositionsP().transpose()
-                    * (Matrix) ldlt.matrixL()
-                    * D_sqrt.asDiagonal();
+    return ldlt.transpositionsP().transpose() * (Matrix)ldlt.matrixL() *
+           D_sqrt.asDiagonal();
 }
 
 /**
@@ -393,17 +406,17 @@ template <typename MatrixA, typename VectorsB>
 VectorsB solve(
     const Eigen::MatrixBase<MatrixA>& A,
     const VectorsB& B,
-    typename std::enable_if<VectorsB::RowsAtCompileTime==1>::type* = 0)
+    typename std::enable_if<VectorsB::RowsAtCompileTime == 1>::type* = 0)
 {
     // householderQr() was not providing always a solution
-    //VectorsB x = A.householderQr().solve(B).eval();
+    // VectorsB x = A.householderQr().solve(B).eval();
 
     assert(A.cols() == B.rows());
     assert(A.cols() == 1);
     assert(A.rows() == 1);
 
     VectorsB x = B / A(0);
-    return x; //RVO
+    return x;  // RVO
 }
 
 /**
@@ -417,14 +430,11 @@ VectorsB solve(
     typename std::enable_if<(VectorsB::RowsAtCompileTime != 1)>::type* = 0)
 {
     // householderQr() was not providing always a solution
-    //VectorsB x = A.householderQr().solve(B).eval();
+    // VectorsB x = A.householderQr().solve(B).eval();
 
     assert(A.cols() == B.rows());
 
     VectorsB x = A.colPivHouseholderQr().solve(B).eval();
-    return x; //RVO
+    return x;  // RVO
 }
-
 }
-
-
