@@ -48,9 +48,18 @@ public:
      */
     typedef Eigen::Matrix<
                 typename Noise::Scalar,
-                SizeOf<Noise>::Value,
-                SizeOf<State>::Value
+                SizeOf<State>::Value,
+                SizeOf<Noise>::Value
             > NoiseMatrix;
+
+    /**
+     * Noise covariance matrix \f$N_t\f$
+     */
+    typedef Eigen::Matrix<
+                typename Noise::Scalar,
+                SizeOf<Noise>::Value,
+                SizeOf<Noise>::Value
+            > NoiseCovariance;
 
 public:
     /**
@@ -62,7 +71,7 @@ public:
                                  const Input& input) const = 0;
 
     virtual const NoiseMatrix& noise_matrix() const = 0;
-    virtual const NoiseMatrix& noise_covariance() const = 0;
+    virtual const NoiseCovariance& noise_covariance() const = 0;
 
     virtual State state(const State& prev_state,
                         const Noise& noise,
