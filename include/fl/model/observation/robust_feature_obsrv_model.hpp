@@ -179,6 +179,10 @@ public:
         {
             std::cout << "normalizer in robust feature is not finite "
                       << "    weight: " << weight
+                      << "    prob_y: " << prob_y
+                      << "    body_mean " <<   body_gaussian_.mean()
+                      << "    body_cov " <<   body_gaussian_.covariance()
+                      << "    prob_y: " << prob_y
                       << "    input_obsrv: " << input_obsrv.transpose()
                       << "    normalizer: " << normalizer
                       << std::endl;
