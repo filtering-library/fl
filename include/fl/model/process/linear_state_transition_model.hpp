@@ -159,7 +159,7 @@ public: /* accessors & mutators */
         return noise_matrix_;
     }
 
-    virtual const NoiseMatrix& noise_covariance() const
+    virtual const NoiseCovariance& noise_covariance() const
     {
         return density_.covariance();
     }
