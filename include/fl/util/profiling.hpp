@@ -40,6 +40,15 @@
               << ((profiling_end_time.tv_sec - profiling_start_time.tv_sec) * 1000000u\
                  + profiling_end_time.tv_usec - profiling_start_time.tv_usec) /1000000. \
               << " s" << std::endl; gettimeofday(&profiling_start_time, NULL);
+    #define MEASURE_FLUSH(text)\
+            gettimeofday(&profiling_end_time, NULL);\
+            std::cout << "\r";\
+            std::cout.flush();\
+            std::cout << "time for " << text << " " \
+              << std::setprecision(9) << std::fixed\
+              << ((profiling_end_time.tv_sec - profiling_start_time.tv_sec) * 1000000u\
+                 + profiling_end_time.tv_usec - profiling_start_time.tv_usec) /1000000. \
+              << " s";  gettimeofday(&profiling_start_time, NULL);
 #else
     #define PRINT(object)
     #define INIT_PROFILING
