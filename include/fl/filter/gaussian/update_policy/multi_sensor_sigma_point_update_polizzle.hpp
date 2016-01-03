@@ -154,6 +154,7 @@ public:
         PointSet<LocalFeature, NumberOfPoints> p_Y_body;
         PointSet<LocalFeature, NumberOfPoints> p_Y_tail;
 
+
         for (int i = 0; i < sensor_count; ++i)
         {
             // validate sensor value, i.e. make sure it is finite

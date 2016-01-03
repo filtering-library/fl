@@ -72,8 +72,8 @@ class MultiSensorGaussianFilter<StateTransitionFunction,
         SigmaPointPredictPolicy<
             Quadrature,
             typename AdditivityOf<StateTransitionFunction>::Type>,
-//        MultiSensorSigmaPointUpdatePolizzle<
-        MultiSensorSigmaPointUpdatePolicy<
+        MultiSensorSigmaPointUpdatePolizzle<
+//        MultiSensorSigmaPointUpdatePolicy<
             Quadrature,
             typename AdditivityOf<JointObservationFunction>::Type>>
 #else
@@ -92,8 +92,8 @@ public:
         SigmaPointPredictPolicy<
             Quadrature,
             typename AdditivityOf<StateTransitionFunction>::Type>,
-//        MultiSensorSigmaPointUpdatePolizzle<
-        MultiSensorSigmaPointUpdatePolicy<
+        MultiSensorSigmaPointUpdatePolizzle<
+//        MultiSensorSigmaPointUpdatePolicy<
             Quadrature,
             typename AdditivityOf<JointObservationFunction>::Type>> Base;
 

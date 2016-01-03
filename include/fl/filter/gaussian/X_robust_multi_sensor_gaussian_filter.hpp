@@ -19,7 +19,6 @@
 
 #pragma once
 
-
 #include <fl/util/meta.hpp>
 #include <fl/util/profiling.hpp>
 #include <fl/util/traits.hpp>
@@ -36,14 +35,11 @@
 
 namespace fl
 {
-
-
 // Forward delcaration
-template<
-    typename StateTransitionFunction,
-    typename JointObsrvModel,
-    typename Quadrature
-> class RobustMultiSensorGaussianFilter;
+template <typename StateTransitionFunction,
+          typename JointObsrvModel,
+          typename Quadrature>
+class RobustMultiSensorGaussianFilter;
 
 /**
  * \internal
@@ -53,14 +49,12 @@ template<
  * with customizable policies, i.e implementations of the time and measurement
  * updates.
  */
-template <
-    typename StateTransitionFunction,
-    typename JointObsrvModel,
-    typename Quadrature
->
-struct Traits<
-           RobustMultiSensorGaussianFilter<
-               StateTransitionFunction, JointObsrvModel, Quadrature>>
+template <typename StateTransitionFunction,
+          typename JointObsrvModel,
+          typename Quadrature>
+struct Traits<RobustMultiSensorGaussianFilter<StateTransitionFunction,
+                                              JointObsrvModel,
+                                              Quadrature>>
 {
     typedef typename StateTransitionFunction::State State;
     typedef typename StateTransitionFunction::Input Input;
@@ -68,19 +62,17 @@ struct Traits<
     typedef Gaussian<State> Belief;
 };
 
-
 /**
  * \ingroup nonlinear_gaussian_filter
  */
-template<
-    typename StateTransitionFunction,
-    typename JointObsrvModel,
-    typename Quadrature
->
+template <typename StateTransitionFunction,
+          typename JointObsrvModel,
+          typename Quadrature>
 class RobustMultiSensorGaussianFilter
     : public FilterInterface<
-                RobustMultiSensorGaussianFilter<
-                    StateTransitionFunction, JointObsrvModel, Quadrature>>
+          RobustMultiSensorGaussianFilter<StateTransitionFunction,
+                                          JointObsrvModel,
+                                          Quadrature>>
 {
 public:
     typedef typename StateTransitionFunction::State State;
@@ -92,27 +84,27 @@ private:
     /** \cond internal */
 
     // Get the original local model types
-    enum : signed int { ModelCount = JointObsrvModel::ModelCount };
+    enum : signed int
+    {
+        ModelCount = JointObsrvModel::ModelCount
+    };
     typedef typename JointObsrvModel::LocalModel BodyTailModel;
 
     // Define local feature observation model
-    typedef RobustMultiSensorFeatureObsrvModel<
-                BodyTailModel, ModelCount
-            > FeatureObsrvModel;
+    typedef RobustMultiSensorFeatureObsrvModel<BodyTailModel, ModelCount>
+        FeatureObsrvModel;
 
     // Define robust joint feature observation model
-    typedef JointObservationModel<
-                MultipleOf<FeatureObsrvModel, ModelCount>
-            > RobustJointFeatureObsrvModel;
+    typedef JointObservationModel<MultipleOf<FeatureObsrvModel, ModelCount>>
+        RobustJointFeatureObsrvModel;
     /**
      * \brief Internal generic multi-sensor GaussianFilter for nonlinear
      *        problems
      */
-    typedef MultiSensorGaussianFilter<
-                StateTransitionFunction,
-                RobustJointFeatureObsrvModel,
-                Quadrature
-            > InternalMultiSensorGaussianFilter;
+    typedef MultiSensorGaussianFilter<StateTransitionFunction,
+                                      RobustJointFeatureObsrvModel,
+                                      Quadrature>
+        InternalMultiSensorGaussianFilter;
 
     /** \endcond */
 
@@ -132,13 +124,13 @@ public:
                                     joint_obsrv_model_.count_local_models()),
                   joint_obsrv_model_.count_local_models()),
               quadrature)
-    { }
+    {
+    }
 
     /**
      * \brief Overridable default destructor
      */
-    virtual ~RobustMultiSensorGaussianFilter() noexcept { }
-
+    virtual ~RobustMultiSensorGaussianFilter() noexcept {}
     /**
      * \copydoc FilterInterface::predict
      */
@@ -147,9 +139,7 @@ public:
                          Belief& predicted_belief)
     {
         multi_sensor_gaussian_filter_.predict(
-            prior_belief,
-            input,
-            predicted_belief);
+            prior_belief, input, predicted_belief);
     }
 
     /**
@@ -176,10 +166,8 @@ public:
         enum : signed int
         {
             NumberOfPoints = Quadrature::number_of_points(
-                                 JoinSizes<
-                                     SizeOf<State>::Value,
-                                     SizeOf<LocalObsrvNoise>::Value
-                                 >::Size)
+                JoinSizes<SizeOf<State>::Value,
+                          SizeOf<LocalObsrvNoise>::Value>::Size)
         };
 
         /* ------------------------------------------ */
@@ -202,7 +190,8 @@ public:
         auto mu_x = p_X.mean();
         auto X = p_X.centered_points();
 
-        auto W = p_X.covariance_weights_vector().asDiagonal();
+        auto W_vec = p_X.covariance_weights_vector();
+        auto W = W_vec.asDiagonal();
         auto c_xx = (X * W * X.transpose()).eval();
         auto c_xx_inv = c_xx.inverse().eval();
 
@@ -221,12 +210,12 @@ public:
         auto h_body = [&](const State& x, const LocalObsrvNoise& w)
         {
             return feature_model.feature_obsrv(
-                        body_tail_model.body_model().observation(x, w));
+                body_tail_model.body_model().observation(x, w));
         };
         auto h_tail = [&](const State& x, const LocalObsrvNoise& w)
         {
             return feature_model.feature_obsrv(
-                        body_tail_model.tail_model().observation(x, w));
+                body_tail_model.tail_model().observation(x, w));
         };
 
         PointSet<LocalObsrv, NumberOfPoints> p_Y_body;
@@ -289,8 +278,10 @@ public:
             auto mu_y = ((1.0 - w) * mu_y_body + w * mu_y_tail).eval();
 
             // non centered moments
-            auto m_yy_body = (c_yy_body + mu_y_body * mu_y_body.transpose()).eval();
-            auto m_yy_tail = (c_yy_tail + mu_y_tail * mu_y_tail.transpose()).eval();
+            auto m_yy_body =
+                (c_yy_body + mu_y_body * mu_y_body.transpose()).eval();
+            auto m_yy_tail =
+                (c_yy_tail + mu_y_tail * mu_y_tail.transpose()).eval();
             auto m_yy = ((1.0 - w) * m_yy_body + w * m_yy_tail).eval();
 
             // center
@@ -302,7 +293,7 @@ public:
             auto c_yy_given_x = (c_yy - c_yx * c_xx_inv * c_xy).eval();
 
             auto feature =
-                    feature_model.feature_obsrv(y.middleRows(i * dim_y, dim_y));
+                feature_model.feature_obsrv(y.middleRows(i * dim_y, dim_y));
             auto innovation = (feature - mu_y).eval();
 
             C += A_i.transpose() * solve(c_yy_given_x, A_i);
@@ -317,14 +308,12 @@ public:
         posterior_belief.mean(mu_x + posterior_belief.covariance() * D);
     }
 
-
 public: /* factory functions */
     virtual Belief create_belief() const
     {
         auto belief = multi_sensor_gaussian_filter_.create_belief();
-        return belief; // RVO
+        return belief;  // RVO
     }
-
 
 public: /* accessors & mutators */
     StateTransitionFunction& process_model()
@@ -332,33 +321,24 @@ public: /* accessors & mutators */
         return multi_sensor_gaussian_filter_.process_model();
     }
 
-    JointObsrvModel& obsrv_model()
-    {
-        return joint_obsrv_model_;
-    }
-
+    JointObsrvModel& obsrv_model() { return joint_obsrv_model_; }
     const StateTransitionFunction& process_model() const
     {
         return multi_sensor_gaussian_filter_.process_model();
     }
 
-    const JointObsrvModel& obsrv_model() const
-    {
-        return joint_obsrv_model_;
-    }
-
+    const JointObsrvModel& obsrv_model() const { return joint_obsrv_model_; }
     std::string name() const override
     {
-        return "RobustMultiSensorGaussianFilter<"
-                + this->list_arguments(multi_sensor_gaussian_filter_.name())
-                + ">";
+        return "RobustMultiSensorGaussianFilter<" +
+               this->list_arguments(multi_sensor_gaussian_filter_.name()) + ">";
     }
 
     std::string description() const override
     {
-        return "Robust multi-sensor GaussianFilter with"
-                + this->list_descriptions(
-                      multi_sensor_gaussian_filter_.description());
+        return "Robust multi-sensor GaussianFilter with" +
+               this->list_descriptions(
+                   multi_sensor_gaussian_filter_.description());
     }
 
 protected:
@@ -373,5 +353,4 @@ protected:
     InternalMultiSensorGaussianFilter multi_sensor_gaussian_filter_;
     /** \endcond */
 };
-
 }
