@@ -57,8 +57,8 @@ public:
      */
     typedef Eigen::Matrix<
                 typename Noise::Scalar,
-                SizeOf<Noise>::Value,
-                SizeOf<Noise>::Value
+                SizeOf<State>::Value,
+                SizeOf<State>::Value
             > NoiseCovariance;
 
 public:
