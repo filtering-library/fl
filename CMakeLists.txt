@@ -44,7 +44,7 @@ include(${fl_MODULE_PATH}/definitions.cmake)
 ############################
 # Library Version          #
 ############################
-include(${fl_MODULE_PATH}/version.cmake)
+#include(${fl_MODULE_PATH}/version.cmake)
 
 ############################
 # Dependencies            ##
@@ -98,15 +98,15 @@ include(${fl_MODULE_PATH}/doxygen.cmake)
 ############################
 # Library info summary     #
 ############################
-include(${fl_MODULE_PATH}/info.cmake)
+#include(${fl_MODULE_PATH}/info.cmake)
 
-info_begin()
-  info_project("::fl:: Filtering Library" ${PROJECT_VERSION})
-  info_header("Setup:")
-  info_item("Using Catkin" "${fl_USING_CATKIN}")
-  info_item("Using random seed" "${fl_USE_RANDOM_SEED}")
-  info_item("Using fl::Real floating point type" ${fl_FLOATING_POINT_TYPE})
-info_end()
+#info_begin()
+#  info_project("::fl:: Filtering Library" ${PROJECT_VERSION})
+#  info_header("Setup:")
+#  info_item("Using Catkin" "${fl_USING_CATKIN}")
+#  info_item("Using random seed" "${fl_USE_RANDOM_SEED}")
+#  info_item("Using fl::Real floating point type" ${fl_FLOATING_POINT_TYPE})
+#info_end()
 
 ############################
 # Build                    #
