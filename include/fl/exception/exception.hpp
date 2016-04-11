@@ -86,8 +86,10 @@ public:
 
     const char* what() const noexcept
     {
-        std::string whats_wrong = "Dynamic exception "
-                                  + name() + "\n" ;
+//        std::string whats_wrong = "Dynamic exception "
+//                                  + name() + "\n" ;
+
+        std::string whats_wrong = "\n";
 
         for (auto&& msg : diagnostic_)
         {
