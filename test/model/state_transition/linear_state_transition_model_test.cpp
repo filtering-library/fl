@@ -29,7 +29,7 @@
 #include <fl/model/process/linear_state_transition_model.hpp>
 
 template <typename TestType>
-class LinearStateTransitionModelTest:
+class LinearTransitionTest:
     public testing::Test
 {
 public:
@@ -44,11 +44,11 @@ public:
 
     typedef Eigen::Matrix<fl::Real, StateDim, 1> State;
     typedef Eigen::Matrix<fl::Real, InputDim, 1> Input;
-    typedef fl::LinearStateTransitionModel<State, State, Input> LinearModel;
+    typedef fl::LinearTransition<State, State, Input> LinearModel;
 
     typedef typename LinearModel::Noise Noise;
 
-    LinearStateTransitionModelTest()
+    LinearTransitionTest()
         : model()
     { }
 
@@ -170,43 +170,43 @@ typedef ::testing::Types<
             fl::DynamicTest<Dimensions<100, 100>>
         > TestTypes;
 
-TYPED_TEST_CASE(LinearStateTransitionModelTest, TestTypes);
+TYPED_TEST_CASE(LinearTransitionTest, TestTypes);
 
-TYPED_TEST(LinearStateTransitionModelTest, init_dimension)
+TYPED_TEST(LinearTransitionTest, init_dimension)
 {
     TestFixture::init_dimension_test();
 }
 
-TYPED_TEST(LinearStateTransitionModelTest, init_dynamics_matrix_value)
+TYPED_TEST(LinearTransitionTest, init_dynamics_matrix_value)
 {
     TestFixture::init_dynamics_matrix_value_test();
 }
-TYPED_TEST(LinearStateTransitionModelTest, init_noise_matrix_value)
+TYPED_TEST(LinearTransitionTest, init_noise_matrix_value)
 {
     TestFixture::init_noise_matrix_value_test();
 }
 
-TYPED_TEST(LinearStateTransitionModelTest, dynamics_matrix)
+TYPED_TEST(LinearTransitionTest, dynamics_matrix)
 {
     TestFixture::dynamics_matrix_value_test();
 }
 
-TYPED_TEST(LinearStateTransitionModelTest, noise_matrix)
+TYPED_TEST(LinearTransitionTest, noise_matrix)
 {
     TestFixture::noise_matrix_value_test();
 }
 
-TYPED_TEST(LinearStateTransitionModelTest, expected_state)
+TYPED_TEST(LinearTransitionTest, expected_state)
 {
     TestFixture::expected_state_test();
 }
 
-TYPED_TEST(LinearStateTransitionModelTest, state_with_zero_noise)
+TYPED_TEST(LinearTransitionTest, state_with_zero_noise)
 {
     TestFixture::state_with_zero_noise_test();
 }
 
-TYPED_TEST(LinearStateTransitionModelTest, state)
+TYPED_TEST(LinearTransitionTest, state)
 {
     TestFixture::state_test();
 }

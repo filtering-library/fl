@@ -40,7 +40,7 @@ template <typename ... > struct ForwardAdaptive;
  * implements the interface, no changes will be made.
  *
  * The resulting model of ForwardAdaptive<Model>::Type can be used
- * within the adaptive context. For instance, the JointObservationModel<...>
+ * within the adaptive context. For instance, the JointSensor<...>
  * is an adaptive model and therefore its sum-models must be adaptive too. If
  * one of the sub-models does not implement AdaptiveModel it will be
  * translated into an adaptive model using the ForwardAdaptive operator. This is
@@ -54,8 +54,8 @@ struct ForwardAdaptive<Model>
           Options<
             !std::is_base_of<internal::AdaptiveModelType, Model>::value
             &
-            (std::is_base_of<internal::ObsrvModelType, Model>::value |
-             std::is_base_of<internal::ProcessModelType, Model>::value)
+            (std::is_base_of<internal::SensorType, Model>::value |
+             std::is_base_of<internal::TransitionType, Model>::value)
           >
       >
 { };

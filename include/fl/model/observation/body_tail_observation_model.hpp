@@ -32,22 +32,22 @@
 namespace fl
 {
 
-// Forward declation of BodyTailObsrvModel
+// Forward declation of BodyTailSensor
 template <
     typename BodyModel,
     typename TailModel
 >
-class BodyTailObsrvModel;
+class BodyTailSensor;
 
 /**
  * \internal
- * Traits of BodyTailObsrvModel
+ * Traits of BodyTailSensor
  */
 template <
     typename BodyModel,
     typename TailModel
 >
-struct Traits<BodyTailObsrvModel<BodyModel, TailModel>>
+struct Traits<BodyTailSensor<BodyModel, TailModel>>
 {
     /**
      * \brief Define the body-tail observation model \a Noise variate
@@ -68,8 +68,8 @@ struct Traits<BodyTailObsrvModel<BodyModel, TailModel>>
     typedef typename BodyModel::Obsrv Obsrv;
     typedef typename BodyModel::State State;
 
-    typedef ObservationFunction<Obsrv, State, Noise> ObsrvFunction;
-    typedef ObservationDensity<Obsrv, State> ObsrvDensity;
+    typedef SensorFunction<Obsrv, State, Noise> ObsrvFunction;
+    typedef SensorDensity<Obsrv, State> ObsrvDensity;
 
     static_assert(std::is_same<
                     typename BodyModel::Obsrv,
@@ -84,22 +84,22 @@ struct Traits<BodyTailObsrvModel<BodyModel, TailModel>>
     static_assert(std::is_base_of<
                     internal::NonAdditiveNoiseModelType,
                     BodyModel>::value,
-                  "BodyModel must implement ObservationFunction<...> interface");
+                  "BodyModel must implement SensorFunction<...> interface");
 
     static_assert(std::is_base_of<
                     internal::NonAdditiveNoiseModelType,
                     TailModel>::value,
-                  "TailModel must implement ObservationFunction<...> interface");
+                  "TailModel must implement SensorFunction<...> interface");
 
     static_assert(std::is_base_of<
-                    ObservationDensity<Obsrv, State>,
+                    SensorDensity<Obsrv, State>,
                     BodyModel>::value,
-                  "BodyModel must implement ObservationDensity<...> interface");
+                  "BodyModel must implement SensorDensity<...> interface");
 
     static_assert(std::is_base_of<
-                    ObservationDensity<Obsrv, State>,
+                    SensorDensity<Obsrv, State>,
                     TailModel>::value,
-                  "TailModel must implement ObservationDensity<...> interface");
+                  "TailModel must implement SensorDensity<...> interface");
 };
 
 
@@ -114,13 +114,13 @@ template <
     typename BodyModel,
     typename TailModel
 >
-class BodyTailObsrvModel
-    : public Traits<BodyTailObsrvModel<BodyModel, TailModel>>::ObsrvFunction,
-      public Traits<BodyTailObsrvModel<BodyModel, TailModel>>::ObsrvDensity,
+class BodyTailSensor
+    : public Traits<BodyTailSensor<BodyModel, TailModel>>::ObsrvFunction,
+      public Traits<BodyTailSensor<BodyModel, TailModel>>::ObsrvDensity,
       public Descriptor
 {
 private:
-    typedef BodyTailObsrvModel<BodyModel, TailModel> This;
+    typedef BodyTailSensor<BodyModel, TailModel> This;
 
 public:
     /**
@@ -144,16 +144,16 @@ public:
     /**
      * \brief Represents the body observation function of this model
      */
-    typedef BodyModel BodyObsrvModel;
+    typedef BodyModel BodySensor;
 
     /**
      * \brief Represents the tail observation function of this model
      */
-    typedef TailModel TailObsrvModel;
+    typedef TailModel TailSensor;
 
 public:
     /**
-     * \brief Creates a BodyTailObsrvModel
+     * \brief Creates a BodyTailSensor
      *
      * \param body      Body observation model
      * \param tail      Tail observation model
@@ -162,7 +162,7 @@ public:
      *                  Any value below the tail_weight selects the tail,
      *                  otherwise the body is selected
      */
-    BodyTailObsrvModel(const BodyModel& body,
+    BodyTailSensor(const BodyModel& body,
                        const TailModel& tail,
                        Real tail_weight = 0.1)
         : body_(body),
@@ -175,7 +175,7 @@ public:
         }
     }
 
-    virtual ~BodyTailObsrvModel() noexcept { }
+    virtual ~BodyTailSensor() noexcept { }
 
     /**
      * \brief Returns an observation prediction based on the provided state and
@@ -322,7 +322,7 @@ public:
 
     virtual std::string name() const
     {
-        return "BodyTailObsrvModel<"
+        return "BodyTailSensor<"
                 + this->list_arguments(
                             body_model().name(),
                             tail_model().name())

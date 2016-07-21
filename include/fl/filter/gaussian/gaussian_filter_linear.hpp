@@ -50,15 +50,15 @@ template <typename...> class GaussianFilter;
  *
  * Traits of the Linear GaussianFilter (KalmanFilter)
  */
-template <typename LinearStateTransitionModel, typename LinearObservationModel>
+template <typename LinearTransition, typename LinearSensor>
 struct Traits<
            GaussianFilter<
-               LinearStateTransitionModel,
-               LinearObservationModel>>
+               LinearTransition,
+               LinearSensor>>
 {
-    typedef typename LinearStateTransitionModel::State State;
-    typedef typename LinearStateTransitionModel::Input Input;
-    typedef typename LinearObservationModel::Obsrv Obsrv;
+    typedef typename LinearTransition::State State;
+    typedef typename LinearTransition::Input Input;
+    typedef typename LinearSensor::Obsrv Obsrv;
     typedef Gaussian<State> Belief;
 };
 
@@ -76,24 +76,24 @@ struct Traits<
  *
  */
 template <
-    typename LinearStateTransitionModel,
-    typename LinearObservationModel
+    typename LinearTransition,
+    typename LinearSensor
 >
 class GaussianFilter<
-          LinearStateTransitionModel,
-          LinearObservationModel>
+          LinearTransition,
+          LinearSensor>
     :
     /* Implement the conceptual filter interface */
     public
     FilterInterface<
         GaussianFilter<
-            typename ForwardLinearModelOnly<LinearStateTransitionModel>::Type,
-            typename ForwardLinearModelOnly<LinearObservationModel>::Type>>
+            typename ForwardLinearModelOnly<LinearTransition>::Type,
+            typename ForwardLinearModelOnly<LinearSensor>::Type>>
 {
 public:
-    typedef typename LinearStateTransitionModel::State State;
-    typedef typename LinearStateTransitionModel::Input Input;
-    typedef typename LinearObservationModel::Obsrv Obsrv;
+    typedef typename LinearTransition::State State;
+    typedef typename LinearTransition::Input Input;
+    typedef typename LinearSensor::Obsrv Obsrv;
 
     /**
      * \brief Represents the underlying distribution of the estimated state.
@@ -109,8 +109,8 @@ public:
      * \param process_model         Process model instance
      * \param obsrv_model           Obsrv model instance
      */
-    GaussianFilter(const LinearStateTransitionModel& process_model,
-                   const LinearObservationModel& obsrv_model)
+    GaussianFilter(const LinearTransition& process_model,
+                   const LinearSensor& obsrv_model)
         : process_model_(process_model),
           obsrv_model_(obsrv_model)
     { }
@@ -215,30 +215,30 @@ public:
                             obsrv_model().description());
     }
 
-    LinearStateTransitionModel& process_model()
+    LinearTransition& process_model()
     {
         return process_model_;
     }
 
-    LinearObservationModel& obsrv_model()
+    LinearSensor& obsrv_model()
     {
         return obsrv_model_;
     }
 
-    const LinearStateTransitionModel& process_model() const
+    const LinearTransition& process_model() const
     {
         return process_model_;
     }
 
-    const LinearObservationModel& obsrv_model() const
+    const LinearSensor& obsrv_model() const
     {
         return obsrv_model_;
     }
 
 protected:
     /** \cond internal */
-    LinearStateTransitionModel process_model_;
-    LinearObservationModel obsrv_model_;
+    LinearTransition process_model_;
+    LinearSensor obsrv_model_;
     /** \endcond */
 };
 

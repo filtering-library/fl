@@ -69,7 +69,7 @@ struct Traits<NotAdaptive<Model>>
  *
  * \cond internal
  * NotAdaptive operator specialization forwarding to the according ModelType
- * (i.e. either internal::ObsrvModelType or internal::ProcessModelType).
+ * (i.e. either internal::SensorType or internal::TransitionType).
  * \endcond
  */
 template <typename Model>
@@ -109,7 +109,7 @@ public:
  */
 template <typename Model, int Adaptivity>
 struct Traits<
-           NotAdaptive<Model, internal::ObsrvModelType, Options<Adaptivity>>
+           NotAdaptive<Model, internal::SensorType, Options<Adaptivity>>
        >
     : Traits<NotAdaptive<Model>>
 { };
@@ -122,7 +122,7 @@ struct Traits<
  */
 template <typename Model, int Adaptivity>
 struct Traits<
-           NotAdaptive<Model, internal::ProcessModelType, Options<Adaptivity>>
+           NotAdaptive<Model, internal::TransitionType, Options<Adaptivity>>
         >
     : Traits<NotAdaptive<Model>>
 { };
@@ -135,12 +135,12 @@ struct Traits<
  * NotAdaptive operator implementation of the observation model
  */
 template <typename Model>
-class NotAdaptive<Model, internal::ObsrvModelType, Options<IsNotAdaptive>>
+class NotAdaptive<Model, internal::SensorType, Options<IsNotAdaptive>>
   : public Model,
     public Traits<
                NotAdaptive<
                    Model,
-                   internal::ObsrvModelType,
+                   internal::SensorType,
                    Options<IsNotAdaptive>
                >
            >::AdaptiveModelBase
@@ -148,7 +148,7 @@ class NotAdaptive<Model, internal::ObsrvModelType, Options<IsNotAdaptive>>
 public:
     typedef NotAdaptive<
                 Model,
-                internal::ObsrvModelType,
+                internal::SensorType,
                 Options<IsNotAdaptive>
             > This;
 
@@ -196,13 +196,13 @@ protected:
  * NotAdaptive operator implementation of the observation model
  */
 template <typename Model>
-class NotAdaptive<Model, internal::ObsrvModelType, Options<IsAdaptive>>
+class NotAdaptive<Model, internal::SensorType, Options<IsAdaptive>>
   : public Model
 {
 public:
     typedef NotAdaptive<
                 Model,
-                internal::ObsrvModelType,
+                internal::SensorType,
                 Options<IsAdaptive>
             > This;
 
@@ -250,19 +250,19 @@ protected:
  * NotAdaptive operator implementation of the process model
  */
 template <typename Model>
-class NotAdaptive<Model, internal::ProcessModelType, Options<IsNotAdaptive>>
+class NotAdaptive<Model, internal::TransitionType, Options<IsNotAdaptive>>
   : public Model,
     public Traits<
                NotAdaptive<
                    Model,
-                   internal::ProcessModelType,
+                   internal::TransitionType,
                    Options<IsNotAdaptive>>
            >::AdaptiveModelBase
 {
 public:
     typedef NotAdaptive<
                 Model,
-                internal::ProcessModelType,
+                internal::TransitionType,
                 Options<IsNotAdaptive>
             > This;
 
@@ -316,13 +316,13 @@ protected:
  * NotAdaptive operator implementation of the process model
  */
 template <typename Model>
-class NotAdaptive<Model, internal::ProcessModelType, Options<IsAdaptive>>
+class NotAdaptive<Model, internal::TransitionType, Options<IsAdaptive>>
   : public Model
 {
 public:
     typedef NotAdaptive<
                 Model,
-                internal::ProcessModelType,
+                internal::TransitionType,
                 Options<IsAdaptive>
             > This;
 

@@ -37,30 +37,30 @@ template <typename...> class SigmaPointUpdatePolicy;
 
 template <
     typename SigmaPointQuadrature,
-    typename ObservationFunction
+    typename SensorFunction
 >
 class SigmaPointUpdatePolicy<
           SigmaPointQuadrature,
-          ObservationFunction>
+          SensorFunction>
     : public SigmaPointUpdatePolicy<
                 SigmaPointQuadrature,
-                NonAdditive<ObservationFunction>>
+                NonAdditive<SensorFunction>>
 { };
 
 
 template <
     typename SigmaPointQuadrature,
-    typename ObservationFunction
+    typename SensorFunction
 >
 class SigmaPointUpdatePolicy<
           SigmaPointQuadrature,
-          NonAdditive<ObservationFunction>>
+          NonAdditive<SensorFunction>>
     : public Descriptor
 {
 public:
-    typedef typename ObservationFunction::State State;
-    typedef typename ObservationFunction::Obsrv Obsrv;
-    typedef typename ObservationFunction::Noise Noise;
+    typedef typename SensorFunction::State State;
+    typedef typename SensorFunction::Obsrv Obsrv;
+    typedef typename SensorFunction::Noise Noise;
 
     enum : signed int
     {
@@ -78,7 +78,7 @@ public:
     template <
         typename Belief
     >
-    void operator()(const ObservationFunction& obsrv_function,
+    void operator()(const SensorFunction& obsrv_function,
                     const SigmaPointQuadrature& quadrature,
                     const Belief& prior_belief,
                     const Obsrv& obsrv,
@@ -123,7 +123,7 @@ public:
         return "SigmaPointUpdatePolicy<"
                 + this->list_arguments(
                        "SigmaPointQuadrature",
-                       "NonAdditive<ObservationFunction>")
+                       "NonAdditive<SensorFunction>")
                 + ">";
     }
 

@@ -38,14 +38,14 @@ namespace fl
  * \ingroup observation_models
  */
 template <typename Obsrv, typename State, typename NoiseDensity>
-class LinearObservationModel
-    : public ObservationDensity<Obsrv, State>,
-      public AdditiveObservationFunction<Obsrv, State, NoiseDensity>,
+class LinearSensor
+    : public SensorDensity<Obsrv, State>,
+      public AdditiveSensorFunction<Obsrv, State, NoiseDensity>,
       private internal::LinearModelType
 {
 public:
-    typedef ObservationDensity<Obsrv, State> DensityInterface;
-    typedef AdditiveObservationFunction<Obsrv, State, NoiseDensity> AdditiveInterface;
+    typedef SensorDensity<Obsrv, State> DensityInterface;
+    typedef AdditiveSensorFunction<Obsrv, State, NoiseDensity> AdditiveInterface;
     typedef typename AdditiveInterface::FunctionInterface FunctionInterface;
 
     /**
@@ -86,7 +86,7 @@ public:
      * \param state_dim     state dimension if dynamic size
      */
     explicit
-    LinearObservationModel(int obsrv_dim = DimensionOf<Obsrv>(),
+    LinearSensor(int obsrv_dim = DimensionOf<Obsrv>(),
                            int state_dim = DimensionOf<State>())
         : sensor_matrix_(SensorMatrix::Identity(obsrv_dim, state_dim)),
           density_(obsrv_dim)
@@ -98,7 +98,7 @@ public:
     /**
      * \brief Overridable default destructor
      */
-    virtual ~LinearObservationModel() noexcept { }
+    virtual ~LinearSensor() noexcept { }
 
     /**
      * \brief expected_observation

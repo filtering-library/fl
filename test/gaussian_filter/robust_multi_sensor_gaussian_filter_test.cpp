@@ -60,7 +60,7 @@ struct RobustMultiSensorGfTestConfiguration
         // ================================================================== //
         // == Define Process Model                                         == //
         // ================================================================== //
-        typedef typename ModelFactory::LinearStateTransition ProcessModel;
+        typedef typename ModelFactory::LinearTransition Transition;
 
         // ================================================================== //
         // == Define Body Tail Observation Model                           == //
@@ -68,21 +68,21 @@ struct RobustMultiSensorGfTestConfiguration
         typedef typename ModelFactory::LinearObservation::Obsrv Obsrv;
         typedef typename ModelFactory::LinearObservation::State State;
 
-        typedef fl::LinearCauchyObservationModel<Obsrv, State> CauchyModel;
+        typedef fl::LinearCauchySensor<Obsrv, State> CauchyModel;
 
-        typedef fl::BodyTailObsrvModel<
+        typedef fl::BodyTailSensor<
                     typename ModelFactory::LinearObservation,
                     CauchyModel
-                > BodyTailObsrvModel;
+                > BodyTailSensor;
 
-        typedef BodyTailObsrvModel LocalObsrvModel;
+        typedef BodyTailSensor LocalSensor;
 
         // ================================================================== //
         // == Define Joint Body Tail Observation Model                     == //
         // ================================================================== //
-        typedef JointObservationModel<
-                    MultipleOf<LocalObsrvModel, Size>
-                > JointObsrvModel;
+        typedef JointSensor<
+                    MultipleOf<LocalSensor, Size>
+                > JointSensor;
 
         // ================================================================== //
         // == Define Integration Quadrature                                == //
@@ -93,7 +93,7 @@ struct RobustMultiSensorGfTestConfiguration
         // == Define the filter                                            == //
         // ================================================================== //
         typedef RobustMultiSensorGaussianFilter<
-                    ProcessModel, JointObsrvModel, Quadrature
+                    Transition, JointSensor, Quadrature
                 > Type;
     };
 
@@ -105,8 +105,8 @@ struct RobustMultiSensorGfTestConfiguration
 
         typedef typename Definition::Type Filter;
         typedef typename Definition::CauchyModel CauchyModel;
-        typedef typename Definition::BodyTailObsrvModel BodyTailObsrvModel;
-        typedef typename Definition::JointObsrvModel JointObsrvModel;
+        typedef typename Definition::BodyTailSensor BodyTailSensor;
+        typedef typename Definition::JointSensor JointSensor;
 
         auto body_model = factory.create_observation_model();
         auto tail_model = CauchyModel();
@@ -114,7 +114,7 @@ struct RobustMultiSensorGfTestConfiguration
 
         return Filter(
             factory.create_linear_state_model(),
-            JointObsrvModel(BodyTailObsrvModel(body_model, tail_model, 0.1), Count),
+            JointSensor(BodyTailSensor(body_model, tail_model, 0.1), Count),
             typename Definition::Quadrature());
     }
 };

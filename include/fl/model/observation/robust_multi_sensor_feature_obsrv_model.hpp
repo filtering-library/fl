@@ -33,30 +33,30 @@ namespace fl
  * \ingroup observation_models
  *
  * \brief Represents an observation function or model which takes an arbitrary
- *        observation model (one that implements an ObservationFunction & a
- *        an ObservationDensity) as an argument and maps it into a feature space
+ *        observation model (one that implements an SensorFunction & a
+ *        an SensorDensity) as an argument and maps it into a feature space
  *        used by the RobustGaussianFilter.
  */
-template <typename ObsrvModel, int SensorsCount>
-class RobustMultiSensorFeatureObsrvModel
-    : public RobustFeatureObsrvModel<ObsrvModel>
+template <typename Sensor, int SensorsCount>
+class MultiRobustSensorFunction
+    : public RobustSensorFunction<Sensor>
 
 {
 private:
-    typedef RobustFeatureObsrvModel<ObsrvModel> RobustFeatureObsrvModelBase;
+    typedef RobustSensorFunction<Sensor> RobustSensorFunctionBase;
 
 public:
     /**
      * \brief \a InputObsrv type which is the same as
-     *        ObsrvModel::Obsrv. \a InputObsrv is mapped into the feature space.
+     *        Sensor::Obsrv. \a InputObsrv is mapped into the feature space.
      *        The resulting type is \a Obsrv.
      */
-    typedef typename ObsrvModel::Obsrv InputObsrv;
+    typedef typename Sensor::Obsrv InputObsrv;
 
 public:
-    // Remove body_moments(mean, cov) of RobustFeatureObsrvModel from public
+    // Remove body_moments(mean, cov) of RobustSensorFunction from public
     // interface.
-    using RobustFeatureObsrvModelBase::body_moments;
+    using RobustSensorFunctionBase::body_moments;
 
 public:
     /**
@@ -69,10 +69,10 @@ public:
      * \note This model takes only a reference of to an existing lvalue of the
      *       source model
      */
-    explicit RobustMultiSensorFeatureObsrvModel(
-            ObsrvModel& obsrv_model,
+    explicit MultiRobustSensorFunction(
+            Sensor& obsrv_model,
             int sensor_count)
-        : RobustFeatureObsrvModelBase(obsrv_model),
+        : RobustSensorFunctionBase(obsrv_model),
           body_gaussians_(sensor_count),
           id_(0)
     { }
@@ -80,11 +80,11 @@ public:
     /**
      * \brief Overridable default destructor
      */
-    virtual ~RobustMultiSensorFeatureObsrvModel() noexcept { }
+    virtual ~MultiRobustSensorFunction() noexcept { }
 
     virtual std::string name() const
     {
-        return "RobustMultiSensorFeatureObsrvModel<"
+        return "MultiRobustSensorFunction<"
                 + this->list_arguments(
                       this->embedded_obsrv_model().name())
                 + ">";
@@ -145,9 +145,9 @@ public:
     {
         id_ = new_id;
 
-        RobustFeatureObsrvModelBase::id(new_id);
+        RobustSensorFunctionBase::id(new_id);
 
-        RobustFeatureObsrvModelBase::body_moments(
+        RobustSensorFunctionBase::body_moments(
             body_gaussians_(id_).mean(),
             body_gaussians_(id_).covariance());
     }

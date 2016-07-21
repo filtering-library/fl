@@ -41,44 +41,44 @@ class MultiSensorGaussianFilter;
  * customizable policies, i.e implementations of the time and measurement
  * updates.
  */
-template <typename StateTransitionFunction,
-          typename JointObservationFunction,
+template <typename TransitionFunction,
+          typename JointSensorFunction,
           typename... Policies>
-struct Traits<MultiSensorGaussianFilter<StateTransitionFunction,
-                                        JointObservationFunction,
+struct Traits<MultiSensorGaussianFilter<TransitionFunction,
+                                        JointSensorFunction,
                                         Policies...>>
 {
-    typedef typename StateTransitionFunction::State State;
-    typedef typename StateTransitionFunction::Input Input;
-    typedef typename JointObservationFunction::Obsrv Obsrv;
+    typedef typename TransitionFunction::State State;
+    typedef typename TransitionFunction::Input Input;
+    typedef typename JointSensorFunction::Obsrv Obsrv;
     typedef Gaussian<State> Belief;
 };
 
 /**
  * \ingroup nonlinear_gaussian_filter
  */
-template <typename StateTransitionFunction,
-          typename JointObservationFunction,
+template <typename TransitionFunction,
+          typename JointSensorFunction,
           typename Quadrature>
-class MultiSensorGaussianFilter<StateTransitionFunction,
-                                JointObservationFunction,
+class MultiSensorGaussianFilter<TransitionFunction,
+                                JointSensorFunction,
                                 Quadrature> :
 /* Implement the filter interface */
 #ifndef GENERATING_DOCUMENTATION
     public GaussianFilter<
-        typename RemoveAdditivityOf<StateTransitionFunction>::Type,
-        typename RemoveAdditivityOf<JointObservationFunction>::Type,
+        typename RemoveAdditivityOf<TransitionFunction>::Type,
+        typename RemoveAdditivityOf<JointSensorFunction>::Type,
         Quadrature,
         SigmaPointPredictPolicy<
             Quadrature,
-            typename AdditivityOf<StateTransitionFunction>::Type>,
+            typename AdditivityOf<TransitionFunction>::Type>,
         MultiSensorSigmaPointUpdatePolizzle<
 //        MultiSensorSigmaPointUpdatePolicy<
             Quadrature,
-            typename AdditivityOf<JointObservationFunction>::Type>>
+            typename AdditivityOf<JointSensorFunction>::Type>>
 #else
-    public GaussianFilter<StateTransitionFunction,
-                          ObservationFunction,
+    public GaussianFilter<TransitionFunction,
+                          SensorFunction,
                           Quadrature,
                           PredictionPolicy,
                           MultiSensorUpdatePolicy>
@@ -86,19 +86,19 @@ class MultiSensorGaussianFilter<StateTransitionFunction,
 {
 public:
     typedef GaussianFilter<
-        typename RemoveAdditivityOf<StateTransitionFunction>::Type,
-        typename RemoveAdditivityOf<JointObservationFunction>::Type,
+        typename RemoveAdditivityOf<TransitionFunction>::Type,
+        typename RemoveAdditivityOf<JointSensorFunction>::Type,
         Quadrature,
         SigmaPointPredictPolicy<
             Quadrature,
-            typename AdditivityOf<StateTransitionFunction>::Type>,
+            typename AdditivityOf<TransitionFunction>::Type>,
         MultiSensorSigmaPointUpdatePolizzle<
 //        MultiSensorSigmaPointUpdatePolicy<
             Quadrature,
-            typename AdditivityOf<JointObservationFunction>::Type>> Base;
+            typename AdditivityOf<JointSensorFunction>::Type>> Base;
 
-    MultiSensorGaussianFilter(const StateTransitionFunction& process_model,
-                              const JointObservationFunction& obsrv_model,
+    MultiSensorGaussianFilter(const TransitionFunction& process_model,
+                              const JointSensorFunction& obsrv_model,
                               const Quadrature& quadrature)
         : Base(process_model, obsrv_model, quadrature)
     {

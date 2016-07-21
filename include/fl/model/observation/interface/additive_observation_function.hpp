@@ -34,14 +34,14 @@ template <
     typename NoiseDensity,
     int Id = 0
 >
-class AdditiveObservationFunction
-    : public ObservationFunction<Obsrv, State, typename NoiseDensity::Variate, Id>,
+class AdditiveSensorFunction
+    : public SensorFunction<Obsrv, State, typename NoiseDensity::Variate, Id>,
       public AdditiveNoiseModel<NoiseDensity>
 {
 public:
     typedef typename NoiseDensity::Variate Noise;
     typedef internal::AdditiveNoiseModelType Type;
-    typedef ObservationFunction<Obsrv, State, Noise, Id> FunctionInterface;
+    typedef SensorFunction<Obsrv, State, Noise, Id> FunctionInterface;
     typedef AdditiveNoiseModel<NoiseDensity> AdditiveInterface;
 
     using AdditiveInterface::noise_matrix;
@@ -50,7 +50,7 @@ public:
     /**
      * \brief Overridable default destructor
      */
-    virtual ~AdditiveObservationFunction() noexcept { }
+    virtual ~AdditiveSensorFunction() noexcept { }
 
     /**
      * Evaluates the model function \f$y = h(x, w)\f$ where \f$x\f$ is the state

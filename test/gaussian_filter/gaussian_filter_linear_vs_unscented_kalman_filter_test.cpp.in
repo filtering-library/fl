@@ -29,13 +29,13 @@ typedef ::testing::Types<
             @InputDim@,
             @ObsrvDim@,
             @ModelType@,
-            fl::@StateTransitionModelNoiseType@,
-            fl::@ObsrvModelNoiseType@
+            fl::@TransitionNoiseType@,
+            fl::@SensorNoiseType@
         >
     >
 > TestTypes;
 
 INSTANTIATE_TYPED_TEST_CASE_P(
-    GaussianFilterLinearVUkf_@Type@_@StateDim@_@InputDim@_@ObsrvDim@_@ModelType@_@StateTransitionModelNoiseType@_@ObsrvModelNoiseType@,
+    GaussianFilterLinearVUkf_@Type@_@StateDim@_@InputDim@_@ObsrvDim@_@ModelType@_@TransitionNoiseType@_@SensorNoiseType@,
     GaussianFilterLinearVsXTest,
     TestTypes);

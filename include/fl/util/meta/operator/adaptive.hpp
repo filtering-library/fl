@@ -97,7 +97,7 @@ public:
  * \ingroup meta
  */
 template <typename Model>
-struct Traits<Adaptive<internal::ObsrvModelType, Model>>
+struct Traits<Adaptive<internal::SensorType, Model>>
     : Traits<Adaptive<Model>>
 {
 };
@@ -106,7 +106,7 @@ struct Traits<Adaptive<internal::ObsrvModelType, Model>>
  * Adaptive operator implementation of the observation model
  */
 template <typename Model>
-class Adaptive<internal::ObsrvModelType, Model>
+class Adaptive<internal::SensorType, Model>
   : public Model
 {
 public:

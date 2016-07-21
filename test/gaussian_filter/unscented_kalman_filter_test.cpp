@@ -50,7 +50,7 @@ struct UnscentedKalmanFilterTestConfiguration
         typedef UnscentedQuadrature Quadrature;
 
         typedef GaussianFilter<
-                        typename ModelFactory::LinearStateTransition,
+                        typename ModelFactory::LinearTransition,
                         typename ModelFactory::LinearObservation,
                         Quadrature
                 > Type;

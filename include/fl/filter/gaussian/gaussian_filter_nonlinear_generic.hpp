@@ -48,18 +48,18 @@ template <typename...> class GaussianFilter;
  * updates.
  */
 template <
-    typename StateTransitionModel,
-    typename ObservationModel,
+    typename Transition,
+    typename Sensor,
     typename Quadrature,
     typename ... Policies
 >
 struct Traits<
            GaussianFilter<
-               StateTransitionModel, ObservationModel, Quadrature, Policies...>>
+               Transition, Sensor, Quadrature, Policies...>>
 {
-    typedef typename StateTransitionModel::State State;
-    typedef typename StateTransitionModel::Input Input;
-    typedef typename ObservationModel::Obsrv Obsrv;
+    typedef typename Transition::State State;
+    typedef typename Transition::Input Input;
+    typedef typename Sensor::Obsrv Obsrv;
     typedef Gaussian<State> Belief;
 };
 
@@ -71,22 +71,22 @@ struct Traits<
  * This includes the Kalman Filter and filters using non-linear models such as
  * Sigma Point Kalman Filter family.
  *
- * \tparam StateTransitionFunction
- * \tparam ObservationFunction
+ * \tparam TransitionFunction
+ * \tparam SensorFunction
  * \tparam Quadrature
  * \tparam PredictionPolicy
  * \tparam UpdatePolicy
  */
 template<
-    typename StateTransitionFunction,
-    typename ObservationFunction,
+    typename TransitionFunction,
+    typename SensorFunction,
     typename Quadrature,
     typename PredictionPolicy,
     typename UpdatePolicy
 >
 class GaussianFilter<
-          StateTransitionFunction,
-          ObservationFunction,
+          TransitionFunction,
+          SensorFunction,
           Quadrature,
           PredictionPolicy,
           UpdatePolicy>
@@ -94,16 +94,16 @@ class GaussianFilter<
     /* Implement the filter interface */
     public FilterInterface<
                GaussianFilter<
-                   StateTransitionFunction,
-                   ObservationFunction,
+                   TransitionFunction,
+                   SensorFunction,
                    Quadrature,
                    PredictionPolicy,
                    UpdatePolicy>>
 {
 public:
-    typedef typename StateTransitionFunction::State State;
-    typedef typename StateTransitionFunction::Input Input;
-    typedef typename ObservationFunction::Obsrv Obsrv;
+    typedef typename TransitionFunction::State State;
+    typedef typename TransitionFunction::Input Input;
+    typedef typename SensorFunction::Obsrv Obsrv;
     typedef Gaussian<State> Belief;
 
 public:
@@ -115,8 +115,8 @@ public:
      * \param transform   Point set tranfrom such as the unscented
      *                              transform
      */
-    GaussianFilter(const StateTransitionFunction& process_model,
-                   const ObservationFunction& obsrv_model,
+    GaussianFilter(const TransitionFunction& process_model,
+                   const SensorFunction& obsrv_model,
                    const Quadrature& quadrature)
         : process_model_(process_model),
           obsrv_model_(obsrv_model),
@@ -164,12 +164,12 @@ public: /* factory functions */
     }
 
 public: /* accessors & mutators */
-    StateTransitionFunction& process_model()
+    TransitionFunction& process_model()
     {
         return process_model_;
     }
 
-    ObservationFunction& obsrv_model()
+    SensorFunction& obsrv_model()
     {
         return obsrv_model_;
     }
@@ -179,12 +179,12 @@ public: /* accessors & mutators */
         return quadrature_;
     }
 
-    const StateTransitionFunction& process_model() const
+    const TransitionFunction& process_model() const
     {
         return process_model_;
     }
 
-    const ObservationFunction& obsrv_model() const
+    const SensorFunction& obsrv_model() const
     {
         return obsrv_model_;
     }
@@ -219,8 +219,8 @@ public: /* accessors & mutators */
 
 protected:
     /** \cond internal */
-    StateTransitionFunction process_model_;
-    ObservationFunction obsrv_model_;
+    TransitionFunction process_model_;
+    SensorFunction obsrv_model_;
     Quadrature quadrature_;
     PredictionPolicy prediction_policy_;
     UpdatePolicy update_policy_;

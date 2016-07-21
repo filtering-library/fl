@@ -46,7 +46,7 @@ struct KalmanFilterTestConfiguration
     struct FilterDefinition
     {
         typedef fl::GaussianFilter<
-                    typename ModelFactory::LinearStateTransition,
+                    typename ModelFactory::LinearTransition,
                     typename ModelFactory::LinearObservation
                 > Type;
     };

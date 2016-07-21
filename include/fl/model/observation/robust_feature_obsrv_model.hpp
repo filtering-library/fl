@@ -42,37 +42,37 @@ enum RobustFeatureDimension { RobustFeatureDimExt = 2 };
  * \ingroup observation_models
  *
  * \brief Represents an observation function or model which takes an arbitrary
- *        observation model (one that implements an ObservationFunction & a
- *        an ObservationDensity) as an argument and maps it into a feature space
+ *        observation model (one that implements an SensorFunction & a
+ *        an SensorDensity) as an argument and maps it into a feature space
  *        used by the RobustGaussianFilter.
  */
-template <typename ObsrvModel>
-class RobustFeatureObsrvModel
-    : public ObservationFunction<
-                 /* Obsrv type of the size SizeOf<ObsrvModel::Obsrv> + 2 */
+template <typename Sensor>
+class RobustSensorFunction
+    : public SensorFunction<
+                 /* Obsrv type of the size SizeOf<Sensor::Obsrv> + 2 */
                  typename VariateOfSize<
                      JoinSizes<
-                         SizeOf<typename ObsrvModel::Obsrv>::Value,
+                         SizeOf<typename Sensor::Obsrv>::Value,
                          internal::RobustFeatureDimExt
                      >::Value
                  >::Type,
-                 typename ObsrvModel::State,
-                 typename ObsrvModel::Noise>,
+                 typename Sensor::State,
+                 typename Sensor::Noise>,
       public Descriptor
 
 {
 private:
-    typedef RobustFeatureObsrvModel<ObsrvModel> This;
+    typedef RobustSensorFunction<Sensor> This;
 
 public:
-    typedef ObsrvModel EmbeddedObsrvModel;
+    typedef Sensor EmbeddedSensor;
 
     /**
      * \brief \a InputObsrv type which is the same as
-     *        ObsrvModel::Obsrv. \a InputObsrv is mapped into the feature space.
+     *        Sensor::Obsrv. \a InputObsrv is mapped into the feature space.
      *        The resulting type is \a Obsrv.
      */
-    typedef typename ObsrvModel::Obsrv InputObsrv;
+    typedef typename Sensor::Obsrv InputObsrv;
 
     /**
      * \brief \a Obsrv (\f$y_t\f$) type which is a variate of the size
@@ -80,20 +80,20 @@ public:
      */
     typedef typename VariateOfSize<
                          JoinSizes<
-                             SizeOf<typename ObsrvModel::Obsrv>::Value,
+                             SizeOf<typename Sensor::Obsrv>::Value,
                              internal::RobustFeatureDimExt
                          >::Value
                      >::Type Obsrv;
 
     /**
-     * \brief \a State (\f$x_t\f$) type which is the same as ObsrvModel::State
+     * \brief \a State (\f$x_t\f$) type which is the same as Sensor::State
      */
-    typedef typename ObsrvModel::State State;
+    typedef typename Sensor::State State;
 
     /**
-     * \brief \a Noise (\f$x_t\f$) type which is the same as ObsrvModel::Noise
+     * \brief \a Noise (\f$x_t\f$) type which is the same as Sensor::Noise
      */
-    typedef typename ObsrvModel::Noise Noise;
+    typedef typename Sensor::Noise Noise;
 
 public:
     /**
@@ -105,7 +105,7 @@ public:
      * \note This model takes only a reference of to an existing lvalue of the
      *       source model
      */
-    explicit RobustFeatureObsrvModel(ObsrvModel& obsrv_model)
+    explicit RobustSensorFunction(Sensor& obsrv_model)
         : obsrv_model_(obsrv_model),
           body_gaussian_(obsrv_model.obsrv_dimension())
     { }
@@ -113,7 +113,7 @@ public:
     /**
      * \brief Overridable default destructor
      */
-    virtual ~RobustFeatureObsrvModel() noexcept { }
+    virtual ~RobustSensorFunction() noexcept { }
 
     /**
      * \brief observation Returns a feature mapped observation
@@ -236,12 +236,12 @@ public:
         return obsrv_model_.state_dimension();
     }
 
-    ObsrvModel& embedded_obsrv_model()
+    Sensor& embedded_obsrv_model()
     {
         return obsrv_model_;
     }
 
-    const ObsrvModel& embedded_obsrv_model() const
+    const Sensor& embedded_obsrv_model() const
     {
         return obsrv_model_;
     }
@@ -253,7 +253,7 @@ public:
 
     virtual std::string name() const
     {
-        return "RobustFeatureObsrvModel<"
+        return "RobustSensorFunction<"
                 + this->list_arguments(embedded_obsrv_model().name())
                 + ">";
     }
@@ -270,7 +270,7 @@ public:
     /**
      * \brief Reference to the ource observation model
      */
-    ObsrvModel& obsrv_model_;
+    Sensor& obsrv_model_;
 
     /**
      * \brief \f${\cal N}(y_t\mid \mu_{y}, \Sigma_{yy})\f$

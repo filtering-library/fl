@@ -34,8 +34,8 @@ template <
     typename Noise,
     int Id = 0
 >
-class AdditiveUncorrelatedObservationFunction
-    : public AdditiveObservationFunction<Obsrv, State, Noise, Id>,
+class AdditiveUncorrelatedSensorFunction
+    : public AdditiveSensorFunction<Obsrv, State, Noise, Id>,
       public AdditiveUncorrelatedNoiseModel<Noise>,
       private internal::AdditiveUncorrelatedNoiseModelType
 {
@@ -43,7 +43,7 @@ public:
     /**
      * \brief Overridable default destructor
      */
-    virtual ~AdditiveUncorrelatedObservationFunction() noexcept { }
+    virtual ~AdditiveUncorrelatedSensorFunction() noexcept { }
 };
 
 }

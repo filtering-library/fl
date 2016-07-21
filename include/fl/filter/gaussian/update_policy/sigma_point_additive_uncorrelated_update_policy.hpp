@@ -109,7 +109,7 @@ public:
         return "SigmaPointUpdatePolicy<"
             + this->list_arguments(
                  "SigmaPointQuadrature",
-                 "AdditiveUncorrelated<AdditiveUncorrelatedObservationFunction>")
+                 "AdditiveUncorrelated<AdditiveUncorrelatedSensorFunction>")
             + ">";
     }
 

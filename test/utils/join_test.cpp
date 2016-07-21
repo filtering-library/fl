@@ -246,7 +246,7 @@ TEST(MetaJoinTests, JoinAssociativityWithExpand)
 //                    ResultType,
 //                    Adaptive<
 //                        JO<O<0>, NotAdaptive<O<1>>>,
-//                    JointProcessModel<P<0>, NAProcessModel>>
+//                    JointTransition<P<0>, NATransition>>
 //                 >::value));
 //}
 
@@ -263,7 +263,7 @@ TEST(MetaJoinTests, JoinAssociativityWithExpand)
 //                    Adaptive<
 //                        JO<
 //                            NotAdaptive<O<0>>, O<1>>,
-//                            JointProcessModel<NAProcessModel, P<1>>
+//                            JointTransition<NATransition, P<1>>
 //                    >
 //                 >::value));
 //}
@@ -280,10 +280,10 @@ TEST(MetaJoinTests, JoinAssociativityWithExpand)
 //                    ResultType,
 //                    Adaptive<
 //                        JO<NotAdaptive<O<0>>, O<1>, NotAdaptive<O<2>>>,
-//                        JointProcessModel<
-//                            NAProcessModel,
+//                        JointTransition<
+//                            NATransition,
 //                            P<1>,
-//                            NAProcessModel>
+//                            NATransition>
 //                        >
 //                 >::value));
 //}
@@ -301,9 +301,9 @@ TEST(MetaJoinTests, JoinAssociativityWithExpand)
 //                    ResultType,
 //                    Adaptive<
 //                        JO<NotAdaptive<O<0>>, NotAdaptive<O<1>>, O<2>>,
-//                        JointProcessModel<
-//                            NAProcessModel,
-//                            NAProcessModel, P<2>>
+//                        JointTransition<
+//                            NATransition,
+//                            NATransition, P<2>>
 //                        >
 //                 >::value));
 //}
@@ -320,10 +320,10 @@ TEST(MetaJoinTests, JoinAssociativityWithExpand)
 //                    ResultType,
 //                    Adaptive<
 //                        JO<O<0>, NotAdaptive<O<1>>, NotAdaptive<O<2>>>,
-//                        JointProcessModel<
+//                        JointTransition<
 //                            P<0>,
-//                            NAProcessModel,
-//                            NAProcessModel>>
+//                            NATransition,
+//                            NATransition>>
 //                 >::value));
 //}
 
@@ -343,7 +343,7 @@ TEST(MetaJoinTests, JoinAssociativityWithExpand)
 //                    ResultType,
 //                    Adaptive<
 //                        JO<O<0>, O<1>, O<2>>,
-//                        JointProcessModel<P<0>, P<1>, P<2>>
+//                        JointTransition<P<0>, P<1>, P<2>>
 //                    >
 //                 >::value));
 //}
@@ -360,7 +360,7 @@ TEST(MetaJoinTests, JoinAssociativityWithExpand)
 //                    ResultType,
 //                    Adaptive<
 //                        JO<MultipleOf<O<0>, 3>>,
-//                        JointProcessModel<MultipleOf<P<0>, 3>>
+//                        JointTransition<MultipleOf<P<0>, 3>>
 //                    >
 //                 >::value));
 //}
@@ -377,9 +377,9 @@ TEST(MetaJoinTests, JoinAssociativityWithExpand)
 //                    ResultType,
 //                    Adaptive<
 //                        JO<NotAdaptive<O<0>>, JO<MultipleOf<O<1>, 3>>>,
-//                        JointProcessModel<
-//                            NAProcessModel,
-//                            JointProcessModel<MultipleOf<P<1>, 3>>>
+//                        JointTransition<
+//                            NATransition,
+//                            JointTransition<MultipleOf<P<1>, 3>>>
 //                    >
 //                 >::value));
 
@@ -398,9 +398,9 @@ TEST(MetaJoinTests, JoinAssociativityWithExpand)
 //                    ResultType,
 //                    Adaptive<
 //                        JO<O<0>, JO<MultipleOf<O<1>, 3>>>,
-//                        JointProcessModel<
+//                        JointTransition<
 //                            P<0>,
-//                            JointProcessModel<MultipleOf<P<1>, 3>>
+//                            JointTransition<MultipleOf<P<1>, 3>>
 //                        >
 //                    >
 //                 >::value));
@@ -448,17 +448,17 @@ TEST(MetaJoinTests, JoinAssociativityWithExpand)
 //                            JO<MultipleOf<O<11>, 2>>,
 //                            JO<MultipleOf<O<12>, 3>>
 //                        >,
-//                        JointProcessModel<
+//                        JointTransition<
 //                            P<0>,
-//                            JointProcessModel<MultipleOf<P<1>, 3>>,
-//                            NAProcessModel,
-//                            NAProcessModel,
-//                            NAProcessModel,
-//                            NAProcessModel,NAProcessModel,
+//                            JointTransition<MultipleOf<P<1>, 3>>,
+//                            NATransition,
+//                            NATransition,
+//                            NATransition,
+//                            NATransition,NATransition,
 //                            P<7>, P<8>, P<9>,
-//                            JointProcessModel<MultipleOf<P<10>, 1>>,
-//                            JointProcessModel<MultipleOf<P<11>, 2>>,
-//                            JointProcessModel<MultipleOf<P<12>, 3>>
+//                            JointTransition<MultipleOf<P<10>, 1>>,
+//                            JointTransition<MultipleOf<P<11>, 2>>,
+//                            JointTransition<MultipleOf<P<12>, 3>>
 //                        >
 //                    >
 //                 >::value));
@@ -477,7 +477,7 @@ TEST(MetaJoinTests, JoinAdaptive_Ox)
                     ResultType,
                     Adaptive<
                         JO<O<0>, NotAdaptive<O<1>>>,
-                    JointProcessModel<P<0>>>
+                    JointTransition<P<0>>>
                  >::value));
 }
 
@@ -493,7 +493,7 @@ TEST(MetaJoinTests, Join_Ox_Adaptive)
                     ResultType,
                     Adaptive<
                         JO<NotAdaptive<O<0>>, O<1>>,
-                        JointProcessModel<P<1>>
+                        JointTransition<P<1>>
                     >
                  >::value));
 }
@@ -510,7 +510,7 @@ TEST(MetaJoinTests, Join_Ox_Adaptive_Ox)
                     ResultType,
                     Adaptive<
                         JO<NotAdaptive<O<0>>, O<1>, NotAdaptive<O<2>>>,
-                        JointProcessModel<P<1>>
+                        JointTransition<P<1>>
                         >
                  >::value));
 }
@@ -528,7 +528,7 @@ TEST(MetaJoinTests, Join_Ox_Ox_Adaptive)
                     ResultType,
                     Adaptive<
                         JO<NotAdaptive<O<0>>, NotAdaptive<O<1>>, O<2>>,
-                        JointProcessModel<P<2>>
+                        JointTransition<P<2>>
                         >
                  >::value));
 }
@@ -545,7 +545,7 @@ TEST(MetaJoinTests, Join_Adaptive_Ox_Ox)
                     ResultType,
                     Adaptive<
                         JO<O<0>, NotAdaptive<O<1>>, NotAdaptive<O<2>>>,
-                        JointProcessModel<P<0>>>
+                        JointTransition<P<0>>>
                  >::value));
 }
 
@@ -565,7 +565,7 @@ TEST(MetaJoinTests, Join_AllAdaptive)
                     ResultType,
                     Adaptive<
                         JO<O<0>, O<1>, O<2>>,
-                        JointProcessModel<P<0>, P<1>, P<2>>
+                        JointTransition<P<0>, P<1>, P<2>>
                     >
                  >::value));
 }
@@ -582,7 +582,7 @@ TEST(MetaJoinTests, JoinExpandAdaptive)
                     ResultType,
                     Adaptive<
                         JO<MultipleOf<O<0>, 3>>,
-                        JointProcessModel<MultipleOf<P<0>, 3>>
+                        JointTransition<MultipleOf<P<0>, 3>>
                     >
                  >::value));
 }
@@ -599,7 +599,7 @@ TEST(MetaJoinTests, Join_Ox_ExpandAdaptive)
                     ResultType,
                     Adaptive<
                         JO<NotAdaptive<O<0>>, JO<MultipleOf<O<1>, 3>>>,
-                        JointProcessModel<MultipleOf<P<1>, 3>>
+                        JointTransition<MultipleOf<P<1>, 3>>
                     >
                  >::value));
 
@@ -618,9 +618,9 @@ TEST(MetaJoinTests, Join_AdaptiveOx_ExpandAdaptive)
                     ResultType,
                     Adaptive<
                         JO<O<0>, JO<MultipleOf<O<1>, 3>>>,
-                        JointProcessModel<
+                        JointTransition<
                             P<0>,
-                            JointProcessModel<MultipleOf<P<1>, 3>>
+                            JointTransition<MultipleOf<P<1>, 3>>
                         >
                     >
                  >::value));
@@ -668,13 +668,13 @@ TEST(MetaJoinTests, Join_total_mix)
                             JO<MultipleOf<O<11>, 2>>,
                             JO<MultipleOf<O<12>, 3>>
                         >,
-                        JointProcessModel<
+                        JointTransition<
                             P<0>,
-                            JointProcessModel<MultipleOf<P<1>, 3>>,
+                            JointTransition<MultipleOf<P<1>, 3>>,
                             P<7>, P<8>, P<9>,
-                            JointProcessModel<MultipleOf<P<10>, 1>>,
-                            JointProcessModel<MultipleOf<P<11>, 2>>,
-                            JointProcessModel<MultipleOf<P<12>, 3>>
+                            JointTransition<MultipleOf<P<10>, 1>>,
+                            JointTransition<MultipleOf<P<11>, 2>>,
+                            JointTransition<MultipleOf<P<12>, 3>>
                         >
                     >
                  >::value));

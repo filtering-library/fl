@@ -39,9 +39,9 @@ namespace fl
  * \f$ x_{t+1} =F_tx_t + G_tu_t + N_tv_t \f$.
  */
 template <typename State_, typename Noise_, typename Input_>
-class LinearStateTransitionModel
-    : public StateTransitionDensity<State_, Input_>,
-      public AdditiveStateTransitionFunction<State_, Noise_, Input_>,
+class LinearTransition
+    : public TransitionDensity<State_, Input_>,
+      public AdditiveTransitionFunction<State_, Noise_, Input_>,
       public Descriptor,
       private internal::LinearModelType
 {
@@ -50,8 +50,8 @@ public:
     typedef Noise_ Noise;
     typedef Input_ Input;
 
-    typedef StateTransitionDensity<State, Input> DensityInterface;
-    typedef AdditiveStateTransitionFunction<State, Noise, Input> AdditiveInterface;
+    typedef TransitionDensity<State, Input> DensityInterface;
+    typedef AdditiveTransitionFunction<State, Noise, Input> AdditiveInterface;
     typedef typename AdditiveInterface::FunctionInterface FunctionInterface;
 
 
@@ -86,7 +86,7 @@ public:
     typedef typename AdditiveInterface::NoiseCovariance NoiseCovariance;
 
 public:
-    explicit LinearStateTransitionModel(int state_dim = DimensionOf<State>(),
+    explicit LinearTransition(int state_dim = DimensionOf<State>(),
                                         int noise_dim = DimensionOf<Noise>(),
                                         int input_dim = DimensionOf<Input>())
         : dynamics_matrix_(DynamicsMatrix::Identity(state_dim, state_dim)),
@@ -104,7 +104,7 @@ public:
     /**
      * \brief Overridable default destructor
      */
-    virtual ~LinearStateTransitionModel() noexcept { }
+    virtual ~LinearTransition() noexcept { }
 
     virtual State expected_state(const State& state,
                                  const Input& input) const
@@ -209,7 +209,7 @@ public: /* accessors & mutators */
 
     virtual std::string name() const
     {
-        return "LinearStateTransitionModel";
+        return "LinearTransition";
     }
 
     virtual std::string description() const

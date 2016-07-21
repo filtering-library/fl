@@ -68,15 +68,15 @@ protected:
 
     typedef Eigen::Matrix<fl::Real, 3, 3> Matrix;
 
-    typedef fl::LinearStateTransitionModel<State, State, Input> ProcessModel;
-    typedef fl::LinearGaussianObservationModel<Observation, State> ObservationModel;
+    typedef fl::LinearTransition<State, State, Input> Transition;
+    typedef fl::LinearGaussianSensor<Observation, State> Sensor;
 
     // particle filter
-    typedef fl::ParticleFilter<ProcessModel, ObservationModel> ParticleFilter;
+    typedef fl::ParticleFilter<Transition, Sensor> ParticleFilter;
     typedef ParticleFilter::Belief ParticleBelief;
 
     // gaussian filter
-    typedef fl::GaussianFilter<ProcessModel, ObservationModel> GaussianFilter;
+    typedef fl::GaussianFilter<Transition, Sensor> GaussianFilter;
     typedef GaussianFilter::Belief GaussianBelief;
 
     ParticleFilterTest()
@@ -95,11 +95,11 @@ protected:
         particle_belief.from_distribution(gaussian_belief, N_particles);
     }
 
-    ProcessModel create_process_model()
+    Transition create_process_model()
     {
         srand(0);
 
-        ProcessModel process_model;
+        Transition process_model;
 
         process_model.dynamics_matrix(some_rotation());
 
@@ -111,11 +111,11 @@ protected:
         return process_model;
     }
 
-    ObservationModel create_observation_model()
+    Sensor create_observation_model()
     {
         srand(0);
 
-        ObservationModel observation_model;
+        Sensor observation_model;
 
         observation_model.sensor_matrix(some_rotation());
 
@@ -127,8 +127,8 @@ protected:
         return observation_model;
     }
 
-    ProcessModel process_model;
-    ObservationModel observation_model;
+    Transition process_model;
+    Sensor observation_model;
 
     ParticleFilter particle_filter;
     GaussianFilter gaussian_filter;

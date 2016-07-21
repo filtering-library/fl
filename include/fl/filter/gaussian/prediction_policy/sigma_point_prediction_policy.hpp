@@ -38,29 +38,29 @@ template <typename...> class SigmaPointPredictPolicy;
 
 template <
     typename SigmaPointQuadrature,
-    typename StateTransitionFunction
+    typename TransitionFunction
 >
 class SigmaPointPredictPolicy<
           SigmaPointQuadrature,
-          StateTransitionFunction>
+          TransitionFunction>
     : public SigmaPointPredictPolicy<
                 SigmaPointQuadrature,
-                NonAdditive<StateTransitionFunction>>
+                NonAdditive<TransitionFunction>>
 { };
 
 template <
     typename SigmaPointQuadrature,
-    typename StateTransitionFunction
+    typename TransitionFunction
 >
 class SigmaPointPredictPolicy<
           SigmaPointQuadrature,
-          NonAdditive<StateTransitionFunction>>
+          NonAdditive<TransitionFunction>>
     : public Descriptor
 {
 public:
-    typedef typename StateTransitionFunction::State State;
-    typedef typename StateTransitionFunction::Input Input;
-    typedef typename StateTransitionFunction::Noise Noise;
+    typedef typename TransitionFunction::State State;
+    typedef typename TransitionFunction::Input Input;
+    typedef typename TransitionFunction::Noise Noise;
 
     enum : signed int
     {
@@ -77,7 +77,7 @@ public:
     template <
         typename Belief
     >
-    void operator()(const StateTransitionFunction& state_transition_funtion,
+    void operator()(const TransitionFunction& state_transition_funtion,
                     const SigmaPointQuadrature& quadrature,
                     const Belief& prior_belief,
                     const Input& u,
@@ -138,7 +138,7 @@ public:
         return "SigmaPointPredictPolicy<"
                 + this->list_arguments(
                        "SigmaPointQuadrature",
-                       "NonAdditive<StateTransitionFunction>")
+                       "NonAdditive<TransitionFunction>")
                 + ">";
     }
 

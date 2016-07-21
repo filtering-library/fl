@@ -38,24 +38,24 @@ namespace fl
 {
 
 // Forward declarations
-template <typename...Models> class JointObservationModel;
+template <typename...Models> class JointSensor;
 
 /**
- * Traits of JointObservationModel<MultipleOf<ObservationModel, Count>>
+ * Traits of JointSensor<MultipleOf<Sensor, Count>>
  */
 template <
-    typename ObsrvModel,
+    typename Sensor,
     int Count
 >
-struct Traits<JointObservationModel<MultipleOf<ObsrvModel, Count>>>
+struct Traits<JointSensor<MultipleOf<Sensor, Count>>>
 {
     enum : signed int { ModelCount = Count };
 
-    typedef ObsrvModel LocalObsrvModel;
-    typedef typename ObsrvModel::State State;
-    typedef typename ObsrvModel::Obsrv::Scalar Scalar;
-    typedef typename ObsrvModel::Obsrv LocalObsrv;
-    typedef typename ObsrvModel::Noise LocalNoise;
+    typedef Sensor LocalSensor;
+    typedef typename Sensor::State State;
+    typedef typename Sensor::Obsrv::Scalar Scalar;
+    typedef typename Sensor::Obsrv LocalObsrv;
+    typedef typename Sensor::Noise LocalNoise;
 
     enum : signed int
     {
@@ -67,13 +67,13 @@ struct Traits<JointObservationModel<MultipleOf<ObsrvModel, Count>>>
     typedef Eigen::Matrix<Scalar, ObsrvDim, 1> Obsrv;
     typedef Eigen::Matrix<Scalar, NoiseDim, 1> Noise;
 
-    typedef ObservationFunction<Obsrv, State, Noise> ObservationFunctionBase;
+    typedef SensorFunction<Obsrv, State, Noise> SensorFunctionBase;
 };
 
 /**
  * \ingroup observation_models
  *
- * \brief JointObservationModel itself is an observation model which contains
+ * \brief JointSensor itself is an observation model which contains
  * internally multiple models all of the \em same type. The joint model can be
  * simply summarized as \f$ h(x, \theta, w) = [ h_{local}(x, \theta_1, w_1),
  * h_{local}(x, \theta_2, w_2), \ldots, h_{local}(x, \theta_n, w_n) ]^T \f$
@@ -82,34 +82,34 @@ struct Traits<JointObservationModel<MultipleOf<ObsrvModel, Count>>>
  * \theta_n ]^T\f$ and \f$w = [ w_1, w_2, \ldots, w_n ]^T\f$  are the the
  * parameters and noise terms of each of the \f$n\f$ models.
  *
- * JointObservationModel implements the ObservationModelInterface and the
- * AdaptiveModel interface. That being said, the JointObservationModel can be
+ * JointSensor implements the SensorInterface and the
+ * AdaptiveModel interface. That being said, the JointSensor can be
  * used as a regular observation model or even as an adaptive observation model
  * which provides a set of parameters that can be changed at any time. This
  * implies that all sub-models must implement the the AdaptiveModel
- * interface. However, if the sub-model is not adaptive, JointObservationModel
+ * interface. However, if the sub-model is not adaptive, JointSensor
  * applies a decorator call the NotAdaptive operator on the sub-model. This
  * operator enables any model to be treated as if it is adaptive without
  * effecting the model behaviour.
  */
 template <
-    typename LocalObsrvModel,
+    typename LocalSensor,
     int Count
 >
-class JointObservationModel<MultipleOf<LocalObsrvModel, Count>>
+class JointSensor<MultipleOf<LocalSensor, Count>>
     : public Traits<
-                 JointObservationModel<MultipleOf<LocalObsrvModel, Count>>
-             >::ObservationFunctionBase,
+                 JointSensor<MultipleOf<LocalSensor, Count>>
+             >::SensorFunctionBase,
       public Descriptor,
-      private internal::JointObservationModelIidType
+      private internal::JointSensorIidType
 {
 private:
-    typedef JointObservationModel<MultipleOf<LocalObsrvModel,Count>> This;
+    typedef JointSensor<MultipleOf<LocalSensor,Count>> This;
 
 public:
     enum : signed int { ModelCount = Count };
 
-    typedef LocalObsrvModel LocalModel;
+    typedef LocalSensor LocalModel;
     typedef typename Traits<This>::LocalObsrv LocalObsrv;
     typedef typename Traits<This>::LocalNoise LocalNoise;
 
@@ -118,8 +118,8 @@ public:
     typedef typename Traits<This>::State State;
 
 public:
-    JointObservationModel(
-            const LocalObsrvModel& local_obsrv_model,
+    JointSensor(
+            const LocalSensor& local_obsrv_model,
             int count = ToDimension<Count>::Value)
         : local_obsrv_model_(local_obsrv_model),
           count_(count)
@@ -128,7 +128,7 @@ public:
     }
 
     template <typename Model>
-    JointObservationModel(const MultipleOf<Model, Count>& mof)
+    JointSensor(const MultipleOf<Model, Count>& mof)
         : local_obsrv_model_(mof.instance),
           count_(mof.count)
     {
@@ -138,7 +138,7 @@ public:
     /**
      * \brief Overridable default destructor
      */
-    virtual ~JointObservationModel() noexcept { }
+    virtual ~JointSensor() noexcept { }
 
     Obsrv observation(const State& state, const Noise& noise) const override
     {
@@ -175,19 +175,19 @@ public:
         return local_obsrv_model_.state_dimension();
     }
 
-    LocalObsrvModel& local_obsrv_model()
+    LocalSensor& local_obsrv_model()
     {
         return local_obsrv_model_;
     }
 
-    const LocalObsrvModel& local_obsrv_model() const
+    const LocalSensor& local_obsrv_model() const
     {
         return local_obsrv_model_;
     }
 
     virtual std::string name() const
     {
-        return "JointObservationModel<MultipleOf<"
+        return "JointSensor<MultipleOf<"
                     + this->list_arguments(local_obsrv_model_.name()) +
                ", Count>>";
     }
@@ -208,24 +208,24 @@ public:
     }
 
 protected:
-    mutable LocalObsrvModel local_obsrv_model_;
+    mutable LocalSensor local_obsrv_model_;
     int count_;
 };
 
 ///**
-// * Traits of JointObservationModel<MultipleOf<ObservationModel, Count>>
+// * Traits of JointSensor<MultipleOf<Sensor, Count>>
 // */
 //template <
-//    typename ObsrvModel,
+//    typename Sensor,
 //    int Count
 //>
 //struct Traits<
-//           JointObservationModel<MultipleOf<ObsrvModel, Count>>
+//           JointSensor<MultipleOf<Sensor, Count>>
 //        >
 //    : public Traits<
-//                JointObservationModel<
+//                JointSensor<
 //                    MultipleOf<
-//                        typename ForwardAdaptive<ObsrvModel>::Type, Count
+//                        typename ForwardAdaptive<Sensor>::Type, Count
 //                    >,
 //                    Adaptive<>>>
 //{ };
@@ -234,33 +234,33 @@ protected:
 // * \internal
 // * \ingroup observation_models
 // *
-// * Forwards an adaptive LocalObsrvModel type to the JointObservationModel
+// * Forwards an adaptive LocalSensor type to the JointSensor
 // * implementation. \sa ForwardAdaptive for more details.
 // */
 //template <
-//    typename ObsrvModel,
+//    typename Sensor,
 //    int Count
 //>
-//class JointObservationModel<MultipleOf<ObsrvModel, Count>>
-//    : public JointObservationModel<
-//                MultipleOf<typename ForwardAdaptive<ObsrvModel>::Type, Count>,
+//class JointSensor<MultipleOf<Sensor, Count>>
+//    : public JointSensor<
+//                MultipleOf<typename ForwardAdaptive<Sensor>::Type, Count>,
 //                Adaptive<>>
 //{
 //public:
-//    typedef JointObservationModel<
-//                MultipleOf<typename ForwardAdaptive<ObsrvModel>::Type, Count>,
+//    typedef JointSensor<
+//                MultipleOf<typename ForwardAdaptive<Sensor>::Type, Count>,
 //                Adaptive<>
 //            > Base;
 
-//    typedef typename ForwardAdaptive<ObsrvModel>::Type ForwardedType;
+//    typedef typename ForwardAdaptive<Sensor>::Type ForwardedType;
 
-//    JointObservationModel(
-//            const ObsrvModel& local_obsrv_model,
+//    JointSensor(
+//            const Sensor& local_obsrv_model,
 //            int count = ToDimension<Count>::Value)
 //        : Base(ForwardedType(local_obsrv_model), count)
 //    { }
 
-//    JointObservationModel(const MultipleOf<ObsrvModel, Count>& mof)
+//    JointSensor(const MultipleOf<Sensor, Count>& mof)
 //        : Base(mof)
 //    { }
 //};

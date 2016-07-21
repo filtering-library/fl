@@ -35,12 +35,12 @@ namespace fl
  * \ingroup observation_models
  */
 template <typename Obsrv, typename State>
-class LinearCauchyObservationModel
-    : public ObservationFunction<
+class LinearCauchySensor
+    : public SensorFunction<
                 Obsrv,
                 State,
                 typename CauchyDistribution<Obsrv>::StandardVariate>, // noise
-      public ObservationDensity<Obsrv, State>,
+      public SensorDensity<Obsrv, State>,
       public Descriptor
 {
 public:
@@ -65,7 +65,7 @@ public:
      * \param state_dim     state dimension if dynamic size
      */
     explicit
-    LinearCauchyObservationModel(
+    LinearCauchySensor(
         int obsrv_dim = DimensionOf<Obsrv>(),
         int state_dim = DimensionOf<State>())
         : sensor_matrix_(SensorMatrix::Identity(obsrv_dim, state_dim)),
@@ -78,7 +78,7 @@ public:
     /**
      * \brief Overridable default destructor
      */
-    virtual ~LinearCauchyObservationModel() noexcept { }
+    virtual ~LinearCauchySensor() noexcept { }
 
     Obsrv observation(const State& state, const Noise& noise) const override
     {
@@ -136,7 +136,7 @@ public:
 
     virtual std::string name() const
     {
-        return "LinearCauchyObservationModel";
+        return "LinearCauchySensor";
     }
 
     virtual std::string description() const

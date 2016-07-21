@@ -34,14 +34,14 @@ template <
     typename Input,
     int Id = 0
 >
-class AdditiveStateTransitionFunction
-    : public StateTransitionFunction<State, Noise, Input, Id>,
+class AdditiveTransitionFunction
+    : public TransitionFunction<State, Noise, Input, Id>,
       public internal::AdditiveNoiseModelType
 {
 public:
     typedef internal::AdditiveNoiseModelType Type;
 
-    typedef StateTransitionFunction<State, Noise, Input, Id> FunctionInterface;
+    typedef TransitionFunction<State, Noise, Input, Id> FunctionInterface;
 
     /**
      * Noise model matrix \f$N_t\f$
@@ -65,7 +65,7 @@ public:
     /**
      * \brief Overridable default destructor
      */
-    virtual ~AdditiveStateTransitionFunction() noexcept { }
+    virtual ~AdditiveTransitionFunction() noexcept { }
 
     virtual State expected_state(const State& prev_state,
                                  const Input& input) const = 0;

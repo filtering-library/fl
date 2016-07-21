@@ -35,7 +35,7 @@ template <
     typename Noise_,
     int Id = 0
 >
-class ObservationFunction
+class SensorFunction
     : private internal::NonAdditiveNoiseModelType
 {
 public:
@@ -48,7 +48,7 @@ public:
     /**
      * \brief Overridable default destructor
      */
-    virtual ~ObservationFunction() noexcept { }
+    virtual ~SensorFunction() noexcept { }
 
     /**
      * Evaluates the model function \f$y = h(x, w)\f$ where \f$x\f$ is the state

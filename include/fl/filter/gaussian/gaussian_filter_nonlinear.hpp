@@ -45,53 +45,53 @@ namespace fl
  * This includes the Kalman Filter and filters using non-linear models such as
  * Sigma Point Kalman Filter family.
  *
- * \tparam StateTransitionFunction
- * \tparam ObservationFunction
+ * \tparam TransitionFunction
+ * \tparam SensorFunction
  * \tparam Quadrature
  *
  */
 template<
-    typename StateTransitionFunction,
-    typename ObservationFunction,
+    typename TransitionFunction,
+    typename SensorFunction,
     typename Quadrature
 >
-class GaussianFilter<StateTransitionFunction, ObservationFunction, Quadrature>
+class GaussianFilter<TransitionFunction, SensorFunction, Quadrature>
     :
     /* Implement the filter interface */
 #ifndef GENERATING_DOCUMENTATION
     public GaussianFilter<
-               typename RemoveAdditivityOf<StateTransitionFunction>::Type,
-               typename RemoveAdditivityOf<ObservationFunction>::Type,
+               typename RemoveAdditivityOf<TransitionFunction>::Type,
+               typename RemoveAdditivityOf<SensorFunction>::Type,
                Quadrature,
                SigmaPointPredictPolicy<
                    Quadrature,
-                   typename AdditivityOf<StateTransitionFunction>::Type>,
+                   typename AdditivityOf<TransitionFunction>::Type>,
                SigmaPointUpdatePolicy<
                    Quadrature,
-                   typename AdditivityOf<ObservationFunction>::Type>>
+                   typename AdditivityOf<SensorFunction>::Type>>
 #else
     public GaussianFilter<
-               StateTransitionFunction,
-               ObservationFunction,
+               TransitionFunction,
+               SensorFunction,
                Quadrature,
                PredictionPolicy,
                UpdatePolicy>
 #endif
 {
 public:
-    GaussianFilter(const StateTransitionFunction& process_model,
-                   const ObservationFunction& obsrv_model,
+    GaussianFilter(const TransitionFunction& process_model,
+                   const SensorFunction& obsrv_model,
                    const Quadrature& quadrature)
         : GaussianFilter<
-              typename RemoveAdditivityOf<StateTransitionFunction>::Type,
-              typename RemoveAdditivityOf<ObservationFunction>::Type,
+              typename RemoveAdditivityOf<TransitionFunction>::Type,
+              typename RemoveAdditivityOf<SensorFunction>::Type,
               Quadrature,
               SigmaPointPredictPolicy<
                   Quadrature,
-                  typename AdditivityOf<StateTransitionFunction>::Type>,
+                  typename AdditivityOf<TransitionFunction>::Type>,
               SigmaPointUpdatePolicy<
                   Quadrature,
-                  typename AdditivityOf<ObservationFunction>::Type>>
+                  typename AdditivityOf<SensorFunction>::Type>>
           (process_model, obsrv_model, quadrature)
     { }
 };
@@ -103,17 +103,17 @@ public:
 
 
 //#define TEMPLATE_ARGUMENTS \
-//    JointProcessModel< \
-//       ProcessModel, \
-//       JointProcessModel<MultipleOf<LocalParamModel, Count>>>, \
-//    Adaptive<JointObservationModel<MultipleOf<LocalObsrvModel, Count>>>, \
+//    JointTransition< \
+//       Transition, \
+//       JointTransition<MultipleOf<LocalParamModel, Count>>>, \
+//    Adaptive<JointSensor<MultipleOf<LocalSensor, Count>>>, \
 //    PointSetTransform,\
 //    FeaturePolicy<>
 
 //#ifndef GENERATING_DOCUMENTATION
 //template <
-//    typename ProcessModel,
-//    typename LocalObsrvModel,
+//    typename Transition,
+//    typename LocalSensor,
 //    typename LocalParamModel,
 //    int Count,
 //    typename PointSetTransform,
@@ -122,8 +122,8 @@ public:
 //#endif
 //struct Traits<
 //           GaussianFilter<
-//               ProcessModel,
-//               Join<MultipleOf<Adaptive<LocalObsrvModel, LocalParamModel>, Count>>,
+//               Transition,
+//               Join<MultipleOf<Adaptive<LocalSensor, LocalParamModel>, Count>>,
 //               PointSetTransform,
 //               FeaturePolicy<>,
 //               Options<NoOptions>
@@ -134,8 +134,8 @@ public:
 
 //#ifndef GENERATING_DOCUMENTATION
 //template <
-//    typename ProcessModel,
-//    typename LocalObsrvModel,
+//    typename Transition,
+//    typename LocalSensor,
 //    typename LocalParamModel,
 //    int Count,
 //    typename PointSetTransform,
@@ -143,8 +143,8 @@ public:
 //>
 //#endif
 //class GaussianFilter<
-//          ProcessModel,
-//          Join<MultipleOf<Adaptive<LocalObsrvModel, LocalParamModel>, Count>>,
+//          Transition,
+//          Join<MultipleOf<Adaptive<LocalSensor, LocalParamModel>, Count>>,
 //          PointSetTransform,
 //          FeaturePolicy<>,
 //          Options<NoOptions>
@@ -155,9 +155,9 @@ public:
 //    typedef GaussianFilter<TEMPLATE_ARGUMENTS> Base;
 
 //    GaussianFilter(
-//        const ProcessModel& state_process_model,
+//        const Transition& state_process_model,
 //        const LocalParamModel& param_process_model,
-//        const LocalObsrvModel& obsrv_model,
+//        const LocalSensor& obsrv_model,
 //        const PointSetTransform& transform,
 //        const typename Traits<Base>::FeatureMapping& feature_mapping
 //            = typename Traits<Base>::FeatureMapping(),

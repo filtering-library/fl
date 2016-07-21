@@ -82,17 +82,17 @@ protected:
         // type is dynamic.
         enum : signed int { Sizes = fl::TestSize<1, TestType>::Value };
 
-        typedef fl::LinearStateTransitionModel<
+        typedef fl::LinearTransition<
                     State, Input
-                > LinearStateTransition;
+                > LinearTransition;
 
-        typedef fl::LinearGaussianObservationModel<
+        typedef fl::LinearGaussianSensor<
                     Obsrv, State
                 > LinearObservation;
 
-        LinearStateTransition create_linear_state_model()
+        LinearTransition create_linear_state_model()
         {
-            auto model = LinearStateTransition(StateDim, InputDim);
+            auto model = LinearTransition(StateDim, InputDim);
 
             auto A = model.create_dynamics_matrix();
             auto Q = model.create_noise_matrix();

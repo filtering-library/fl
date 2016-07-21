@@ -32,11 +32,11 @@ template <
     typename Input,
     int Id = 0
 >
-class AdditiveUncorrelatedStateTransitionFunction
-    : public AdditiveStateTransitionFunction<State, State, Input, Id>
+class AdditiveUncorrelatedTransitionFunction
+    : public AdditiveTransitionFunction<State, State, Input, Id>
 {
 public:
-    typedef AdditiveStateTransitionFunction<
+    typedef AdditiveTransitionFunction<
                 State, State, Input, Id
             > AdditiveFunctionInterface;
 
@@ -49,7 +49,7 @@ public:
     /**
      * \brief Overridable default destructor
      */
-    virtual ~AdditiveUncorrelatedStateTransitionFunction() noexcept { }
+    virtual ~AdditiveUncorrelatedTransitionFunction() noexcept { }
 
     virtual const NoiseDiagonal& noise_diagonal_matrix() const = 0;
     virtual const NoiseDiagonal& noise_diagonal_covariance() const = 0;

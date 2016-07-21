@@ -40,8 +40,8 @@ namespace fl
 
 // Forward delcaration
 template<
-    typename StateTransitionFunction,
-    typename JointObsrvModel,
+    typename TransitionFunction,
+    typename ActualJointSensor,
     typename Quadrature
 > class XRobustMultiSensorGaussianFilter;
 
@@ -54,17 +54,17 @@ template<
  * updates.
  */
 template <
-    typename StateTransitionFunction,
-    typename JointObsrvModel,
+    typename TransitionFunction,
+    typename ActualJointSensor,
     typename Quadrature
 >
 struct Traits<
            XRobustMultiSensorGaussianFilter<
-               StateTransitionFunction, JointObsrvModel, Quadrature>>
+               TransitionFunction, ActualJointSensor, Quadrature>>
 {
-    typedef typename StateTransitionFunction::State State;
-    typedef typename StateTransitionFunction::Input Input;
-    typedef typename JointObsrvModel::Obsrv Obsrv;
+    typedef typename TransitionFunction::State State;
+    typedef typename TransitionFunction::Input Input;
+    typedef typename ActualJointSensor::Obsrv Obsrv;
     typedef Gaussian<State> Belief;
 };
 
@@ -73,44 +73,44 @@ struct Traits<
  * \ingroup nonlinear_gaussian_filter
  */
 template<
-    typename StateTransitionFunction,
-    typename JointObsrvModel,
+    typename TransitionFunction,
+    typename ActualJointSensor,
     typename Quadrature
 >
 class XRobustMultiSensorGaussianFilter
     : public FilterInterface<
                 XRobustMultiSensorGaussianFilter<
-                    StateTransitionFunction, JointObsrvModel, Quadrature>>
+                    TransitionFunction, ActualJointSensor, Quadrature>>
 {
 public:
-    typedef typename StateTransitionFunction::State State;
-    typedef typename StateTransitionFunction::Input Input;
-    typedef typename JointObsrvModel::Obsrv Obsrv;
+    typedef typename TransitionFunction::State State;
+    typedef typename TransitionFunction::Input Input;
+    typedef typename ActualJointSensor::Obsrv Obsrv;
     typedef Gaussian<State> Belief;
 
 private:
     /** \cond internal */
 
     // Get the original local model types
-    enum : signed int { ModelCount = JointObsrvModel::ModelCount };
-    typedef typename JointObsrvModel::LocalModel PlainLocalModel;
+    enum : signed int { ModelCount = ActualJointSensor::ModelCount };
+    typedef typename ActualJointSensor::LocalModel PlainLocalModel;
 
     // Define local feature observation model
-    typedef RobustMultiSensorFeatureObsrvModel<
+    typedef MultiRobustSensorFunction<
                 PlainLocalModel, ModelCount
-            > FeatureObsrvModel;
+            > FeatureSensor;
 
     // Define robust joint feature observation model
-    typedef JointObservationModel<
-                MultipleOf<FeatureObsrvModel, ModelCount>
-            > RobustJointFeatureObsrvModel;
+    typedef JointSensor<
+                MultipleOf<FeatureSensor, ModelCount>
+            > RobustJointFeatureSensor;
     /**
      * \brief Internal generic multi-sensor GaussianFilter for nonlinear
      *        problems
      */
     typedef MultiSensorGaussianFilter<
-                StateTransitionFunction,
-                RobustJointFeatureObsrvModel,
+                TransitionFunction,
+                RobustJointFeatureSensor,
                 Quadrature
             > InternalMultiSensorGaussianFilter;
 
@@ -121,14 +121,14 @@ public:
      * \brief Creates a RobustGaussianFilter
      */
     XRobustMultiSensorGaussianFilter(
-        const StateTransitionFunction& process_model,
-        const JointObsrvModel& joint_obsrv_model,
+        const TransitionFunction& process_model,
+        const ActualJointSensor& joint_obsrv_model,
         const Quadrature& quadrature)
         : joint_obsrv_model_(joint_obsrv_model),
           multi_sensor_gaussian_filter_(
               process_model,
-              RobustJointFeatureObsrvModel(
-                  FeatureObsrvModel(joint_obsrv_model_.local_obsrv_model(),
+              RobustJointFeatureSensor(
+                  FeatureSensor(joint_obsrv_model_.local_obsrv_model(),
                                     joint_obsrv_model_.count_local_models()),
                   joint_obsrv_model_.count_local_models()),
               quadrature)
@@ -160,8 +160,8 @@ public:
                         Belief& posterior_belief)
     {
         typedef typename PlainLocalModel::Obsrv PlainObsrv;
-        typedef typename PlainLocalModel::BodyObsrvModel::Noise BodyNoise;
-        typedef typename RobustJointFeatureObsrvModel::Obsrv JointFeatureObsrv;
+        typedef typename PlainLocalModel::BodySensor::Noise BodyNoise;
+        typedef typename RobustJointFeatureSensor::Obsrv JointFeatureObsrv;
 
         auto joint_feature_y =
             JointFeatureObsrv(
@@ -284,22 +284,22 @@ public: /* factory functions */
 
 
 public: /* accessors & mutators */
-    StateTransitionFunction& process_model()
+    TransitionFunction& process_model()
     {
         return multi_sensor_gaussian_filter_.process_model();
     }
 
-    JointObsrvModel& obsrv_model()
+    ActualJointSensor& obsrv_model()
     {
         return joint_obsrv_model_;
     }
 
-    const StateTransitionFunction& process_model() const
+    const TransitionFunction& process_model() const
     {
         return multi_sensor_gaussian_filter_.process_model();
     }
 
-    const JointObsrvModel& obsrv_model() const
+    const ActualJointSensor& obsrv_model() const
     {
         return joint_obsrv_model_;
     }
@@ -319,14 +319,14 @@ public: /* accessors & mutators */
     }
 
 protected:
-    RobustJointFeatureObsrvModel& joint_feature_model()
+    RobustJointFeatureSensor& joint_feature_model()
     {
         return multi_sensor_gaussian_filter_.obsrv_model();
     }
 
 protected:
     /** \cond internal */
-    JointObsrvModel joint_obsrv_model_;
+    ActualJointSensor joint_obsrv_model_;
     InternalMultiSensorGaussianFilter multi_sensor_gaussian_filter_;
     /** \endcond */
 

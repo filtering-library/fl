@@ -32,7 +32,7 @@ template <
     typename Input_,
     int BatchSize = Eigen::Dynamic
 >
-class StateTransitionDensity
+class TransitionDensity
 {
 public:
     typedef State_ State;
@@ -46,7 +46,7 @@ public:
     /**
      * \brief Overridable default destructor
      */
-    virtual ~StateTransitionDensity() noexcept { }
+    virtual ~TransitionDensity() noexcept { }
 
 
     /// \todo should add the unnormalized log probability interface

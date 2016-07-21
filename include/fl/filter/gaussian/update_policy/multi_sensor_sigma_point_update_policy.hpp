@@ -41,21 +41,21 @@ template <typename...> class MultiSensorSigmaPointUpdatePolicy;
  */
 template <
     typename SigmaPointQuadrature,
-    typename NonJoinObservationModel
+    typename NonJoinSensor
 >
 class MultiSensorSigmaPointUpdatePolicy<
           SigmaPointQuadrature,
-          NonJoinObservationModel>
+          NonJoinSensor>
 {
     static_assert(
         std::is_base_of<
-            internal::JointObservationModelIidType, NonJoinObservationModel
+            internal::JointSensorIidType, NonJoinSensor
         >::value,
         "\n\n\n"
         "====================================================================\n"
         "= Static Assert: You are using the wrong observation model type    =\n"
         "====================================================================\n"
-        "  Observation model type must be a JointObservationModel<...>.      \n"
+        "  Observation model type must be a JointSensor<...>.      \n"
         "  For single observation model, use the regular Gaussian filter     \n"
         "  or the regular SigmaPointUpdatePolicy if you are specifying       \n"
         "  the update policy explicitly fo the GaussianFilter.               \n"
@@ -66,42 +66,42 @@ class MultiSensorSigmaPointUpdatePolicy<
 
 /**
  * \brief Represents an update policy update for multiple sensors. This instance
- *        expects a \a JointObservationModel<>. The model is forwarded  as
- *        NonAdditive<JointObservationModel> to the actual
+ *        expects a \a JointSensor<>. The model is forwarded  as
+ *        NonAdditive<JointSensor> to the actual
  *        implementation. In case you want to use the model as Additive, you may
- *        specify this explicitly using Additive<JointObservationModel> or
- *        UseAsAdditive<JointObservationModel>::Type
+ *        specify this explicitly using Additive<JointSensor> or
+ *        UseAsAdditive<JointSensor>::Type
  */
 template <
     typename SigmaPointQuadrature,
-    typename MultipleOfLocalObsrvModel
+    typename MultipleOfLocalSensor
 >
 class MultiSensorSigmaPointUpdatePolicy<
           SigmaPointQuadrature,
-          JointObservationModel<MultipleOfLocalObsrvModel>>
+          JointSensor<MultipleOfLocalSensor>>
     : public MultiSensorSigmaPointUpdatePolicy<
                 SigmaPointQuadrature,
-                NonAdditive<JointObservationModel<MultipleOfLocalObsrvModel>>>
+                NonAdditive<JointSensor<MultipleOfLocalSensor>>>
 { };
 
 
 /**
  * \brief Represents an update policy update functor for multiple sensors.
- *        This instance expects a \a NonAdditive<JointObservationModel<>>.
+ *        This instance expects a \a NonAdditive<JointSensor<>>.
  *        The implementation exploits factorization in the joint observation.
  *        The update is performed for each sensor separately.
  */
 template <
     typename SigmaPointQuadrature,
-    typename MultipleOfLocalObsrvModel
+    typename MultipleOfLocalSensor
 >
 class MultiSensorSigmaPointUpdatePolicy<
           SigmaPointQuadrature,
-          NonAdditive<JointObservationModel<MultipleOfLocalObsrvModel>>>
+          NonAdditive<JointSensor<MultipleOfLocalSensor>>>
     : public Descriptor
 {
 public:
-    typedef JointObservationModel<MultipleOfLocalObsrvModel> JointModel;
+    typedef JointSensor<MultipleOfLocalSensor> JointModel;
 
     typedef typename JointModel::State State;
     typedef typename JointModel::Obsrv Obsrv;
@@ -225,7 +225,7 @@ public:
         return "MultiSensorSigmaPointUpdatePolicy<"
                 + this->list_arguments(
                        "SigmaPointQuadrature",
-                       "NonAdditive<ObservationFunction>")
+                       "NonAdditive<SensorFunction>")
                 + ">";
     }
 

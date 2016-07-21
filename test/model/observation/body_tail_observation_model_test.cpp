@@ -31,7 +31,7 @@
 #include <fl/model/observation/linear_decorrelated_gaussian_observation_model.hpp>
 
 template <typename TestType>
-class BodyTailObservationModelTest:
+class BodyTailSensorTest:
     public testing::Test
 {
 public:
@@ -49,13 +49,13 @@ public:
     typedef Eigen::Matrix<fl::Real, StateSize, 1> State;
     typedef Eigen::Matrix<fl::Real, ObsrvSize, 1> Obsrv;
 
-    typedef fl::LinearGaussianObservationModel<Obsrv, State> BodyModel;
-    typedef fl::LinearGaussianObservationModel<Obsrv, State> TailModel;
-    typedef fl::BodyTailObsrvModel<BodyModel, TailModel> BodyTailModel;
+    typedef fl::LinearGaussianSensor<Obsrv, State> BodyModel;
+    typedef fl::LinearGaussianSensor<Obsrv, State> TailModel;
+    typedef fl::BodyTailSensor<BodyModel, TailModel> BodyTailModel;
 
     typedef typename BodyTailModel::Noise Noise;
 
-    BodyTailObservationModelTest()
+    BodyTailSensorTest()
         : body_model(create_body_model()),
           tail_model(create_tail_model()),
           body_tail_model(create_body_tail_model(body_model, tail_model))
@@ -191,24 +191,24 @@ typedef ::testing::Types<
             fl::DynamicTest<Dimensions<10, 10>>
         > TestTypes;
 
-TYPED_TEST_CASE(BodyTailObservationModelTest, TestTypes);
+TYPED_TEST_CASE(BodyTailSensorTest, TestTypes);
 
-TYPED_TEST(BodyTailObservationModelTest, init_dimension)
+TYPED_TEST(BodyTailSensorTest, init_dimension)
 {
     TestFixture::init_dimension_test();
 }
 
-TYPED_TEST(BodyTailObservationModelTest, observation_select_body)
+TYPED_TEST(BodyTailSensorTest, observation_select_body)
 {
     TestFixture::observation(0.6);
 }
 
-TYPED_TEST(BodyTailObservationModelTest, observation_select_tail)
+TYPED_TEST(BodyTailSensorTest, observation_select_tail)
 {
     TestFixture::observation(0.4);
 }
 
-TYPED_TEST(BodyTailObservationModelTest, observation_select_randomly)
+TYPED_TEST(BodyTailSensorTest, observation_select_randomly)
 {
     for (int i = 0; i < 1000; ++i)
     {
@@ -216,7 +216,7 @@ TYPED_TEST(BodyTailObservationModelTest, observation_select_randomly)
     }
 }
 
-TYPED_TEST(BodyTailObservationModelTest, probability)
+TYPED_TEST(BodyTailSensorTest, probability)
 {
     for (int i = 0; i < 1000; ++i)
     {
@@ -224,7 +224,7 @@ TYPED_TEST(BodyTailObservationModelTest, probability)
     }
 }
 
-TYPED_TEST(BodyTailObservationModelTest, log_probability)
+TYPED_TEST(BodyTailSensorTest, log_probability)
 {
     for (int i = 0; i < 1000; ++i)
     {
@@ -232,7 +232,7 @@ TYPED_TEST(BodyTailObservationModelTest, log_probability)
     }
 }
 
-TYPED_TEST(BodyTailObservationModelTest, wrong_threshlold_exception)
+TYPED_TEST(BodyTailSensorTest, wrong_threshlold_exception)
 {
     EXPECT_THROW(TestFixture::create_body_tail_model(
                      TestFixture::create_body_model(),
@@ -247,7 +247,7 @@ TYPED_TEST(BodyTailObservationModelTest, wrong_threshlold_exception)
                  fl::Exception);
 }
 
-TYPED_TEST(BodyTailObservationModelTest, correct_threshlold)
+TYPED_TEST(BodyTailSensorTest, correct_threshlold)
 {
     EXPECT_NO_THROW(TestFixture::create_body_tail_model(
                      TestFixture::create_body_model(),

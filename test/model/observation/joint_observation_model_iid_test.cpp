@@ -30,7 +30,7 @@
 #include <fl/model/observation/joint_observation_model_iid.hpp>
 
 template <typename TestType>
-class JointObservationModelIidTest:
+class JointSensorIidTest:
     public testing::Test
 {
 public:
@@ -50,11 +50,11 @@ public:
     // Local model types
     typedef Eigen::Matrix<fl::Real, LocalStateSize, 1> LocalState;
     typedef Eigen::Matrix<fl::Real, LocalObsrvSize, 1> LocalObsrv;
-    typedef fl::LinearGaussianObservationModel<LocalObsrv, LocalState> LocalModel;
+    typedef fl::LinearGaussianSensor<LocalObsrv, LocalState> LocalModel;
     typedef typename LocalModel::Noise LocalNoise;
 
     // Joint model types
-    typedef fl::JointObservationModel<
+    typedef fl::JointSensor<
                 fl::MultipleOf<LocalModel, Size>
             > JointModel;
 
@@ -73,7 +73,7 @@ public:
         NoiseSize = fl::TestSize<NoiseDim, TestType>::Value
     };
 
-    JointObservationModelIidTest()
+    JointSensorIidTest()
         : joint_model(create_joint_observation_model(create_local_model())),
           noise_normal_gaussian(NoiseDim)
     { }
@@ -91,8 +91,8 @@ public:
         return LocalModel(LocalObsrvDim, LocalStateDim);
     }
 
-    template <typename LocalObsrvModel>
-    JointModel create_joint_observation_model(LocalObsrvModel&& local_model)
+    template <typename LocalSensor>
+    JointModel create_joint_observation_model(LocalSensor&& local_model)
     {
         return JointModel(local_model, Count);
     }
@@ -118,7 +118,7 @@ public:
     void nested_joint_model()
     {
         // nested joint model type taking multiple of JointModel
-        typedef fl::JointObservationModel<
+        typedef fl::JointSensor<
                     fl::MultipleOf<JointModel, Size>
                 >  OuterJointModel;
 
@@ -187,19 +187,19 @@ typedef ::testing::Types<
             fl::DynamicTest<Dimensions<10, 11, 1>>
         > TestTypes;
 
-TYPED_TEST_CASE(JointObservationModelIidTest, TestTypes);
+TYPED_TEST_CASE(JointSensorIidTest, TestTypes);
 
-TYPED_TEST(JointObservationModelIidTest, init_dimension)
+TYPED_TEST(JointSensorIidTest, init_dimension)
 {
     TestFixture::init_dimension_test();
 }
 
-TYPED_TEST(JointObservationModelIidTest, observation)
+TYPED_TEST(JointSensorIidTest, observation)
 {
     TestFixture::observation();
 }
 
-TYPED_TEST(JointObservationModelIidTest, nested_joint_model)
+TYPED_TEST(JointSensorIidTest, nested_joint_model)
 {
     TestFixture::nested_joint_model();
 }

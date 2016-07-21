@@ -31,7 +31,7 @@ template <
     typename Input_,
     int Id = 0
 >
-class StateTransitionFunction
+class TransitionFunction
     : internal::NonAdditiveNoiseModelType
 {
 public:
@@ -45,7 +45,7 @@ public:
     /**
      * \brief Overridable default destructor
      */
-    virtual ~StateTransitionFunction() noexcept { }
+    virtual ~TransitionFunction() noexcept { }
 
     /// \todo: we should have a second function state which does not require
     /// a control input. this function would represent the uncontrolled
@@ -102,11 +102,11 @@ template <
     typename Noise,
     typename Input
 >
-class ProcessModelInterface
-    : public internal::ProcessModelType
+class TransitionInterface
+    : public internal::TransitionType
 {
 public:
-    typedef internal::ProcessModelType ModelType;
+    typedef internal::TransitionType ModelType;
 
 public:
     /**

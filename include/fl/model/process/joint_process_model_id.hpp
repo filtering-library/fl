@@ -34,14 +34,14 @@ namespace fl
 {
 
 // Forward declarations
-template <typename...Models> class JointProcessModel;
+template <typename...Models> class JointTransition;
 
 /**
- * Traits of JointProcessModel
+ * Traits of JointTransition
  */
 template <typename...Models>
 struct Traits<
-           JointProcessModel<Models...>
+           JointTransition<Models...>
        >
 {
     enum : signed int
@@ -59,25 +59,25 @@ struct Traits<
     typedef Eigen::Matrix<Scalar, NoiseDim, 1> Noise;
     typedef Eigen::Matrix<Scalar, InputDim, 1> Input;
 
-    typedef ProcessModelInterface<
+    typedef TransitionInterface<
                 State,
                 Noise,
                 Input
-            > ProcessModelBase;
+            > TransitionBase;
 };
 
 /**
  * \ingroup process_models
  */
 template <typename ... Models>
-class JointProcessModel
+class JointTransition
     : public Traits<
-                 JointProcessModel<Models...>
-             >::ProcessModelBase
+                 JointTransition<Models...>
+             >::TransitionBase
 {
 private:
     /** Typdef of \c This for #from_traits(TypeName) helper */
-    typedef JointProcessModel<Models...> This;
+    typedef JointTransition<Models...> This;
 
 public:
     typedef from_traits(State);
@@ -86,17 +86,17 @@ public:
 
 public:
     /**
-     * Constructor a JointProcessModel which is a composition of mixture of
+     * Constructor a JointTransition which is a composition of mixture of
      * fixed and dynamic-size process models.
      *
      * \param models    Variadic list of shared pointers of the models
      */
-    JointProcessModel(const Models& ... models)
+    JointTransition(const Models& ... models)
         : models_(models...)
     { }
 
     /**
-     * \copydoc ProcessModelInterface::predict_state
+     * \copydoc TransitionInterface::predict_state
      */
     virtual State predict_state(double delta_time,
                                 const State& state,
@@ -119,10 +119,10 @@ public:
     /**
      * \brief Overridable default destructor
      */
-    virtual ~JointProcessModel() noexcept { }
+    virtual ~JointTransition() noexcept { }
 
     /**
-     * \copydoc ProcessModelInterface::state_dimension
+     * \copydoc TransitionInterface::state_dimension
      *
      * Determines the joint size of the state vector of all models
      */
@@ -132,7 +132,7 @@ public:
     }
 
     /**
-     * \copydoc ProcessModelInterface::noise_dimension
+     * \copydoc TransitionInterface::noise_dimension
      *
      * Determines the joint size of the noise vector of all models
      */
@@ -142,7 +142,7 @@ public:
     }
 
     /**
-     * \copydoc ProcessModelInterface::input_dimension
+     * \copydoc TransitionInterface::input_dimension
      *
      * Determines the joint size of the input vector of all models
      */

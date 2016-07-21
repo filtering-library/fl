@@ -54,12 +54,12 @@ struct RobutGaussianFilterTestConfiguration
         typedef typename ModelFactory::LinearObservation::Obsrv Obsrv;
         typedef typename ModelFactory::LinearObservation::State State;
 
-        typedef fl::LinearCauchyObservationModel<Obsrv, State> CauchyModel;
+        typedef fl::LinearCauchySensor<Obsrv, State> CauchyModel;
 
-        typedef fl::BodyTailObsrvModel<
+        typedef fl::BodyTailSensor<
                     typename ModelFactory::LinearObservation,
                     CauchyModel
-                > BodyTailObsrvModel;
+                > BodyTailSensor;
 
         typedef UnscentedQuadrature Quadrature;
 //        typedef fl::SigmaPointQuadrature<
@@ -67,8 +67,8 @@ struct RobutGaussianFilterTestConfiguration
 //                        fl::ConstantPointCountPolicy<1000>>> Quadrature;
 
         typedef RobustGaussianFilter<
-                    typename ModelFactory::LinearStateTransition,
-                    BodyTailObsrvModel,
+                    typename ModelFactory::LinearTransition,
+                    BodyTailSensor,
                     Quadrature
                 > Type;
     };
@@ -80,7 +80,7 @@ struct RobutGaussianFilterTestConfiguration
         typedef FilterDefinition<ModelFactory> Definition;
         typedef typename Definition::Type Filter;
         typedef typename Definition::CauchyModel CauchyModel;
-        typedef typename Definition::BodyTailObsrvModel BodyTailObsrvModel;
+        typedef typename Definition::BodyTailSensor BodyTailSensor;
 
         auto body_model = factory.create_observation_model();
         auto tail_model = CauchyModel();
@@ -88,7 +88,7 @@ struct RobutGaussianFilterTestConfiguration
 
         return Filter(
             factory.create_linear_state_model(),
-            BodyTailObsrvModel(body_model, tail_model, 0.1),
+            BodyTailSensor(body_model, tail_model, 0.1),
             typename Definition::Quadrature());
     }
 };

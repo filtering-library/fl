@@ -32,7 +32,7 @@ template <
     typename State,
     int BatchSize = Eigen::Dynamic
 >
-class ObservationDensity
+class SensorDensity
 {
 public:
     typedef Eigen::Array<State, BatchSize, 1> StateArray;
@@ -42,7 +42,7 @@ public:
     /**
      * \brief Overridable default destructor
      */
-    virtual ~ObservationDensity() noexcept { }
+    virtual ~SensorDensity() noexcept { }
 
     /// \todo should add the unnormalized log probability interface
 
@@ -93,7 +93,7 @@ template <
     typename State,
     int BatchSize = Eigen::Dynamic
 >
-class SwitchingObservationDensity
+class SwitchingSensorDensity
 {
 public:
     typedef Eigen::Array<State, BatchSize, 1>  StateArray;
@@ -104,7 +104,7 @@ public:
     /**
      * \brief Overridable default destructor
      */
-    virtual ~SwitchingObservationDensity() noexcept { }
+    virtual ~SwitchingSensorDensity() noexcept { }
 
     /// \todo should add the unnormalized log probability interface
 

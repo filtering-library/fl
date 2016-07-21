@@ -95,7 +95,7 @@ struct LinearModelType { };
  *
  * \brief Observation model type identifier
  */
-struct ObsrvModelType { };
+struct SensorType { };
 
 /**
  * \internal
@@ -103,7 +103,7 @@ struct ObsrvModelType { };
  *
  * \brief Process model type identifier
  */
-struct ProcessModelType { };
+struct TransitionType { };
 
 /**
  * \internal
@@ -147,18 +147,18 @@ struct NonAdditiveNoiseModelType { };
  * \internal
  * \ingroup types
  *
- * \brief Base type of every iid JointObservationModel
+ * \brief Base type of every iid JointSensor
  */
-struct JointObservationModelIidType { };
+struct JointSensorIidType { };
 
 
 /**
  * \internal
  * \ingroup types
  *
- * \brief Base type of every id JointObservationModel
+ * \brief Base type of every id JointSensor
  */
-struct JointObservationModelIdType { };
+struct JointSensorIdType { };
 
 }
 

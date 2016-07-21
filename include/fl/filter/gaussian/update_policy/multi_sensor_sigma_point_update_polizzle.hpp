@@ -38,18 +38,18 @@ class MultiSensorSigmaPointUpdatePolizzle;
 /**
  * \internal
  */
-template <typename SigmaPointQuadrature, typename NonJoinObservationModel>
+template <typename SigmaPointQuadrature, typename NonJoinSensor>
 class MultiSensorSigmaPointUpdatePolizzle<SigmaPointQuadrature,
-                                          NonJoinObservationModel>
+                                          NonJoinSensor>
 {
     static_assert(
-        std::is_base_of<internal::JointObservationModelIidType,
-                        NonJoinObservationModel>::value,
+        std::is_base_of<internal::JointSensorIidType,
+                        NonJoinSensor>::value,
         "\n\n\n"
         "====================================================================\n"
         "= Static Assert: You are using the wrong observation model type    =\n"
         "====================================================================\n"
-        "  Observation model type must be a JointObservationModel<...>.      \n"
+        "  Observation model type must be a JointSensor<...>.      \n"
         "  For single observation model, use the regular Gaussian filter     \n"
         "  or the regular SigmaPointUpdatePolicy if you are specifying       \n"
         "  the update policy explicitly fo the GaussianFilter.               \n"
@@ -57,28 +57,28 @@ class MultiSensorSigmaPointUpdatePolizzle<SigmaPointQuadrature,
         "\n");
 };
 
-template <typename SigmaPointQuadrature, typename MultipleOfLocalObsrvModel>
+template <typename SigmaPointQuadrature, typename MultipleOfLocalSensor>
 class MultiSensorSigmaPointUpdatePolizzle<
     SigmaPointQuadrature,
-    JointObservationModel<MultipleOfLocalObsrvModel>>
+    JointSensor<MultipleOfLocalSensor>>
     : public MultiSensorSigmaPointUpdatePolizzle<
           SigmaPointQuadrature,
-          NonAdditive<JointObservationModel<MultipleOfLocalObsrvModel>>>
+          NonAdditive<JointSensor<MultipleOfLocalSensor>>>
 {
 };
 
-template <typename SigmaPointQuadrature, typename MultipleOfLocalObsrvModel>
+template <typename SigmaPointQuadrature, typename MultipleOfLocalSensor>
 class MultiSensorSigmaPointUpdatePolizzle<
     SigmaPointQuadrature,
-    NonAdditive<JointObservationModel<MultipleOfLocalObsrvModel>>>
+    NonAdditive<JointSensor<MultipleOfLocalSensor>>>
     : public Descriptor
 {
 public:
-    typedef JointObservationModel<MultipleOfLocalObsrvModel> JointModel;
-    typedef typename MultipleOfLocalObsrvModel::Type FeatureObsrvModel;
-    typedef typename FeatureObsrvModel::EmbeddedObsrvModel BodyTailModel;
-    typedef typename BodyTailModel::BodyObsrvModel BodyModel;
-    typedef typename BodyTailModel::TailObsrvModel TailModel;
+    typedef JointSensor<MultipleOfLocalSensor> JointModel;
+    typedef typename MultipleOfLocalSensor::Type FeatureSensor;
+    typedef typename FeatureSensor::EmbeddedSensor BodyTailModel;
+    typedef typename BodyTailModel::BodySensor BodyModel;
+    typedef typename BodyTailModel::TailSensor TailModel;
 
     typedef typename JointModel::State State;
     typedef typename JointModel::Obsrv Obsrv;
@@ -223,7 +223,7 @@ public:
     {
         return "MultiSensorSigmaPointUpdatePolizzle<" +
                this->list_arguments("SigmaPointQuadrature",
-                                    "NonAdditive<ObservationFunction>") +
+                                    "NonAdditive<SensorFunction>") +
                ">";
     }
 

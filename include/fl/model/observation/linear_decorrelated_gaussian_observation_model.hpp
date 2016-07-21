@@ -34,10 +34,10 @@ namespace fl
  * \ingroup observation_models
  */
 template <typename Obsrv, typename State>
-class LinearDecorrelatedGaussianObservationModel
+class LinearDecorrelatedGaussianSensor
     : public AdditiveUncorrelatedNoiseModel<DecorrelatedGaussian<Obsrv>>,
-      public AdditiveObservationFunction<Obsrv, State, Gaussian<Obsrv>>,
-      public ObservationDensity<Obsrv, State>,
+      public AdditiveSensorFunction<Obsrv, State, Gaussian<Obsrv>>,
+      public SensorDensity<Obsrv, State>,
       public Descriptor,
       private internal::LinearModelType
 {
@@ -49,12 +49,12 @@ public:
                 DecorrelatedGaussian<Obsrv>
             > AdditiveUncorrelatedInterface;
 
-    typedef AdditiveObservationFunction<
+    typedef AdditiveSensorFunction<
                 Obsrv, State, Gaussian<Obsrv>
-            > AdditiveObservationFunctionInterface;
+            > AdditiveSensorFunctionInterface;
 
     typedef
-    typename AdditiveObservationFunctionInterface::NoiseMatrix NoiseMatrix;
+    typename AdditiveSensorFunctionInterface::NoiseMatrix NoiseMatrix;
 
     typedef
     typename AdditiveUncorrelatedInterface::NoiseMatrix NoiseDiagonalMatrix;
@@ -77,7 +77,7 @@ public:
      * \param state_dim     state dimension if dynamic size
      */
     explicit
-    LinearDecorrelatedGaussianObservationModel(
+    LinearDecorrelatedGaussianSensor(
         int obsrv_dim = DimensionOf<Obsrv>(),
         int state_dim = DimensionOf<State>())
         : sensor_matrix_(SensorMatrix::Identity(obsrv_dim, state_dim)),
@@ -90,7 +90,7 @@ public:
     /**
      * \brief Overridable default destructor
      */
-    virtual ~LinearDecorrelatedGaussianObservationModel() noexcept { }
+    virtual ~LinearDecorrelatedGaussianSensor() noexcept { }
 
     /**
      * \brief expected_observation
@@ -213,7 +213,7 @@ public:
 
     virtual std::string name() const
     {
-        return "LinearDecorrelatedGaussianObservationModel";
+        return "LinearDecorrelatedGaussianSensor";
     }
 
     virtual std::string description() const

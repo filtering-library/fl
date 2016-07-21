@@ -37,8 +37,8 @@ namespace fl
 
 // Forward delcaration
 template<
-    typename StateTransitionFunction,
-    typename ObservationFunction,
+    typename TransitionFunction,
+    typename SensorFunction,
     typename Quadrature,
     typename ... Policies
 > class RobustGaussianFilter;
@@ -52,21 +52,21 @@ template<
  * updates.
  */
 template <
-    typename StateTransitionFunction,
-    typename ObservationFunction,
+    typename TransitionFunction,
+    typename SensorFunction,
     typename Quadrature,
     typename ... Policies
 >
 struct Traits<
           RobustGaussianFilter<
-              StateTransitionFunction,
-              ObservationFunction,
+              TransitionFunction,
+              SensorFunction,
               Quadrature,
               Policies...>>
 {
-    typedef typename StateTransitionFunction::State State;
-    typedef typename StateTransitionFunction::Input Input;
-    typedef typename ObservationFunction::Obsrv Obsrv;
+    typedef typename TransitionFunction::State State;
+    typedef typename TransitionFunction::Input Input;
+    typedef typename SensorFunction::Obsrv Obsrv;
     typedef Gaussian<State> Belief;
 };
 
@@ -74,8 +74,8 @@ struct Traits<
  * \ingroup nonlinear_gaussian_filter
  * \brief Represents a Gaussian filter for nonlinear estimation using
  *        robustification in PAPER REF.
- *        Currently the filter assumes \a ObservationFunction to be of the type
- *        a \a BodyTailObservationModel<BodtModelType, TailModelType>.
+ *        Currently the filter assumes \a SensorFunction to be of the type
+ *        a \a BodyTailSensor<BodtModelType, TailModelType>.
  *
  *        This filter may be used in the same fashion as any Gaussian filter.
  *        That is, the Quadrature and the prediction as well as the update
@@ -84,33 +84,33 @@ struct Traits<
  *        see GaussianFilter!
  */
 template<
-    typename StateTransitionFunction,
-    typename ObservationFunction,
+    typename TransitionFunction,
+    typename SensorFunction,
     typename Quadrature,
     typename ... Policies
 >
 class RobustGaussianFilter
     : public FilterInterface<
                  RobustGaussianFilter<
-                     StateTransitionFunction,
-                     ObservationFunction,
+                     TransitionFunction,
+                     SensorFunction,
                      Quadrature,
                      Policies...>>
 {
 public:
-    typedef typename StateTransitionFunction::State State;
-    typedef typename StateTransitionFunction::Input Input;
-    typedef typename ObservationFunction::Obsrv Obsrv;
+    typedef typename TransitionFunction::State State;
+    typedef typename TransitionFunction::Input Input;
+    typedef typename SensorFunction::Obsrv Obsrv;
     typedef Gaussian<State> Belief;
 
     /**
      * \brief Robust feature observation model type used internally.
      */
-    typedef RobustFeatureObsrvModel<ObservationFunction> FeatureObsrvModel;
+    typedef RobustSensor<SensorFunction> FeatureSensor;
 
     typedef GaussianFilter<
-                StateTransitionFunction,
-                FeatureObsrvModel,
+                TransitionFunction,
+                FeatureSensor,
                 Quadrature,
                 Policies...
             > BaseGaussianFilter;
@@ -120,14 +120,14 @@ public:
      * \brief Creates a RobustGaussianFilter
      */
     template <typename ... SpecializationArgs>
-    RobustGaussianFilter(const StateTransitionFunction& process_model,
-                         const ObservationFunction& obsrv_model,
+    RobustGaussianFilter(const TransitionFunction& process_model,
+                         const SensorFunction& obsrv_model,
                          const Quadrature& quadrature,
                          SpecializationArgs&& ... args)
         : obsrv_model_(obsrv_model),
           gaussian_filter_(
               process_model,
-              FeatureObsrvModel(obsrv_model_),
+              FeatureSensor(obsrv_model_),
               quadrature,
               std::forward<SpecializationArgs>(args)...)
     { }
@@ -157,7 +157,7 @@ public:
         /* ------------------------------------------ */
         /* - Body model observation function lambda - */
         /* ------------------------------------------ */
-        typedef typename ObservationFunction::BodyObsrvModel::Noise Noise;
+        typedef typename SensorFunction::BodySensor::Noise Noise;
 
         auto&& h_body = [&](const State& x, const Noise& w)
         {
@@ -203,12 +203,12 @@ public: /* factory functions */
     }
 
 public: /* accessors & mutators */
-    StateTransitionFunction& process_model()
+    TransitionFunction& process_model()
     {
         return gaussian_filter_.process_model();
     }
 
-    ObservationFunction& obsrv_model()
+    SensorFunction& obsrv_model()
     {
         return gaussian_filter_.obsrv_model().embedded_obsrv_model();
     }
@@ -218,12 +218,12 @@ public: /* accessors & mutators */
         return gaussian_filter_.quadrature();
     }
 
-    const StateTransitionFunction& process_model() const
+    const TransitionFunction& process_model() const
     {
         return gaussian_filter_.process_model();
     }
 
-    const ObservationFunction& obsrv_model() const
+    const SensorFunction& obsrv_model() const
     {
         return gaussian_filter_.obsrv_model().embedded_obsrv_model();
     }
@@ -248,12 +248,12 @@ public: /* accessors & mutators */
     }
 
 protected:
-    FeatureObsrvModel& robust_feature_obsrv_model()
+    FeatureSensor& robust_feature_obsrv_model()
     {
         return gaussian_filter_.obsrv_model();
     }
 
-    typename ObservationFunction::BodyObsrvModel body_model()
+    typename SensorFunction::BodySensor body_model()
     {
         return obsrv_model().body_model();
     }
@@ -262,7 +262,7 @@ protected:
 
 protected:
     /** \cond internal */
-    ObservationFunction obsrv_model_;
+    SensorFunction obsrv_model_;
     BaseGaussianFilter gaussian_filter_;
     /** \endcond */
 };

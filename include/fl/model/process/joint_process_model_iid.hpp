@@ -33,26 +33,26 @@ namespace fl
 {
 
 // Forward declarations
-template <typename ... Models> class JointProcessModel;
+template <typename ... Models> class JointTransition;
 
 /**
- * Traits of JointProcessModel<MultipleOf<ProcessModel, Count>>
+ * Traits of JointTransition<MultipleOf<Transition, Count>>
  */
 template <
-    typename ProcessModel,
+    typename Transition,
     int Count
 >
 struct Traits<
-           JointProcessModel<MultipleOf<ProcessModel, Count>>
+           JointTransition<MultipleOf<Transition, Count>>
         >
 {
     enum : signed int { ModelCount = Count };
 
-    typedef ProcessModel LocalProcessModel;
-    typedef typename Traits<ProcessModel>::Scalar Scalar;
-    typedef typename Traits<ProcessModel>::State LocalState;
-    typedef typename Traits<ProcessModel>::Input LocalInput;
-    typedef typename Traits<ProcessModel>::Noise LocalNoise;
+    typedef Transition LocalTransition;
+    typedef typename Traits<Transition>::Scalar Scalar;
+    typedef typename Traits<Transition>::State LocalState;
+    typedef typename Traits<Transition>::Input LocalInput;
+    typedef typename Traits<Transition>::Noise LocalNoise;
 
     enum : signed int
     {
@@ -65,28 +65,28 @@ struct Traits<
     typedef Eigen::Matrix<Scalar, NoiseDim, 1> Noise;
     typedef Eigen::Matrix<Scalar, InputDim, 1> Input;
 
-    typedef ProcessModelInterface<
+    typedef TransitionInterface<
                 State,
                 Noise,
                 Input
-            > ProcessModelBase;
+            > TransitionBase;
 };
 
 /**
  * \ingroup process_models
  */
 template <
-    typename LocalProcessModel,
+    typename LocalTransition,
     int Count
 >
-class JointProcessModel<MultipleOf<LocalProcessModel, Count>>
+class JointTransition<MultipleOf<LocalTransition, Count>>
     : public Traits<
-                 JointProcessModel<MultipleOf<LocalProcessModel, Count>>
-             >::ProcessModelBase
+                 JointTransition<MultipleOf<LocalTransition, Count>>
+             >::TransitionBase
 {
 private:
     /** Typdef of \c This for #from_traits(TypeName) helper */
-    typedef JointProcessModel This;
+    typedef JointTransition This;
 
 public:
     typedef from_traits(State);
@@ -94,7 +94,7 @@ public:
     typedef from_traits(Input);
 
 public:
-    JointProcessModel(const LocalProcessModel& local_process_model,
+    JointTransition(const LocalTransition& local_process_model,
                       int count = ToDimension<Count>())
         : local_process_model_(local_process_model),
           count_(count)
@@ -102,14 +102,14 @@ public:
         assert(count_ > 0);
     }
 
-    JointProcessModel(const MultipleOf<LocalProcessModel, Count>& mof)
+    JointTransition(const MultipleOf<LocalTransition, Count>& mof)
         : local_process_model_(mof.instance),
           count_(mof.count)
     {
         assert(count_ > 0);
     }
 
-    virtual ~JointProcessModel() noexcept { }
+    virtual ~JointTransition() noexcept { }
 
     virtual State predict_state(double delta_time,
                                 const State& state,
@@ -150,18 +150,18 @@ public:
         return local_process_model_.input_dimension() * count_;
     }
 
-    LocalProcessModel& local_process_model()
+    LocalTransition& local_process_model()
     {
         return local_process_model_;
     }
 
-    const LocalProcessModel& local_process_model() const
+    const LocalTransition& local_process_model() const
     {
         return local_process_model_;
     }
 
 protected:
-    LocalProcessModel local_process_model_;
+    LocalTransition local_process_model_;
     int count_;
 };
 

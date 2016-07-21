@@ -7,12 +7,12 @@ function(add_gaussian_filter_test
     InputDim
     ObsrvDim
     ModelType
-    StateTransitionModelNoiseType
-    ObsrvModelNoiseType)
+    TransitionNoiseType
+    SensorNoiseType)
 
     set(TEST_FILE ${Name})
 
-    set(TEST_FILE_SUFFIX "${Type}_${StateDim}_${InputDim}_${ObsrvDim}_${ModelType}_${StateTransitionModelNoiseType}_${ObsrvModelNoiseType}")
+    set(TEST_FILE_SUFFIX "${Type}_${StateDim}_${InputDim}_${ObsrvDim}_${ModelType}_${TransitionNoiseType}_${SensorNoiseType}")
 
     configure_file(
         ${CMAKE_CURRENT_SOURCE_DIR}/${TEST_FILE}.cpp.in

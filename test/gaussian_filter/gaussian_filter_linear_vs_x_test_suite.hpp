@@ -72,28 +72,28 @@ protected:
     typedef fl::IntegerTypeMap<
                 fl::IntegerTypePair<
                     DecorrelatedGaussianModel,
-                    fl::LinearDecorrelatedGaussianObservationModel<Obsrv, State>
+                    fl::LinearDecorrelatedGaussianSensor<Obsrv, State>
                 >,
                 fl::IntegerTypePair<
                     GaussianModel,
-                    fl::LinearGaussianObservationModel<Obsrv, State>
+                    fl::LinearGaussianSensor<Obsrv, State>
                 >
-            > ObsrvModelMap;
+            > SensorMap;
 
 
-    typedef fl::LinearStateTransitionModel<State, State, Input> LinearStateTransition;
+    typedef fl::LinearTransition<State, State, Input> LinearTransition;
 
-    typedef typename ObsrvModelMap::template Select<
+    typedef typename SensorMap::template Select<
                 Configuration::SelectedModel
-            >::Type LinearObservationModel;
+            >::Type LinearSensor;
 
     typedef fl::GaussianFilter<
-                LinearStateTransition, LinearObservationModel
+                LinearTransition, LinearSensor
             > KalmanFilter;
 
     typedef typename Configuration::template FilterDefinition<
-                LinearStateTransition,
-                LinearObservationModel
+                LinearTransition,
+                LinearSensor
             > FilterDefinition;
 
     typedef typename FilterDefinition::Type Filter;
@@ -106,15 +106,15 @@ protected:
     KalmanFilter create_kalman_filter() const
     {
         return KalmanFilter(
-                LinearStateTransition(StateDim, InputDim),
-                LinearObservationModel(ObsrvDim, StateDim));
+                LinearTransition(StateDim, InputDim),
+                LinearSensor(ObsrvDim, StateDim));
     }
 
     Filter create_filter() const
     {
         return Configuration::create_filter(
-                LinearStateTransition(StateDim, InputDim),
-                LinearObservationModel(ObsrvDim, StateDim));
+                LinearTransition(StateDim, InputDim),
+                LinearSensor(ObsrvDim, StateDim));
     }
 
     void setup_models(

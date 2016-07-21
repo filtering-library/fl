@@ -55,16 +55,16 @@ struct MultiSensorGfTestConfiguration
             Size  = ExpandSizes<Count, ModelFactory::Sizes>::Value
         };
 
-        typedef typename ModelFactory::LinearObservation LocalObsrvModel;
-        typedef JointObservationModel<
-                    MultipleOf<LocalObsrvModel, Size>
-                > JointObsrvModel;
+        typedef typename ModelFactory::LinearObservation LocalSensor;
+        typedef JointSensor<
+                    MultipleOf<LocalSensor, Size>
+                > JointSensor;
 
         typedef UnscentedQuadrature Quadrature;
 
         typedef MultiSensorGaussianFilter<
-                        typename ModelFactory::LinearStateTransition,
-                        JointObsrvModel,
+                        typename ModelFactory::LinearTransition,
+                        JointSensor,
                         Quadrature
                 > Type;
     };
@@ -74,11 +74,11 @@ struct MultiSensorGfTestConfiguration
     create_filter(ModelFactory&& factory)
     {
         typedef typename
-        FilterDefinition<ModelFactory>::JointObsrvModel JointObsrvModel;
+        FilterDefinition<ModelFactory>::JointSensor JointSensor;
 
         return typename FilterDefinition<ModelFactory>::Type(
             factory.create_linear_state_model(),
-            JointObsrvModel(factory.create_observation_model(), Count),
+            JointSensor(factory.create_observation_model(), Count),
             UnscentedQuadrature());
     }
 };

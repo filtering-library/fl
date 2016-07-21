@@ -32,8 +32,8 @@ template <
     int InputDimension,
     int ObsrvDimension,
     int ModelKey,
-    template <typename> class StateTransitionModelNoiseType,
-    template <typename> class ObsrvModelNoiseType
+    template <typename> class TransitionNoiseType,
+    template <typename> class SensorNoiseType
 >
 struct UkfTestConfig
 {
@@ -46,22 +46,22 @@ struct UkfTestConfig
 
     enum : signed int { SelectedModel = ModelKey };
 
-    template <typename StateTransitionModel, typename ObservationModel>
+    template <typename Transition, typename Sensor>
     struct FilterDefinition
     {
         typedef fl::GaussianFilter<
-                    StateTransitionModel,
-                    ObservationModel,
+                    Transition,
+                    Sensor,
                     fl::UnscentedQuadrature,
                     fl::SigmaPointPredictPolicy<
                         fl::UnscentedQuadrature,
                         typename fl::UseAs<
-                            StateTransitionModelNoiseType<StateTransitionModel>
+                            TransitionNoiseType<Transition>
                         >::Type>,
                     fl::SigmaPointUpdatePolicy<
                         fl::UnscentedQuadrature,
                         typename fl::UseAs<
-                            ObsrvModelNoiseType<ObservationModel>
+                            SensorNoiseType<Sensor>
                         >::Type>
                 > Type;
     };

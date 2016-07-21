@@ -47,8 +47,8 @@ public:
      *
      * \code
      * GaussianFilter<
-     *     LinearStateTransitionModel<State, Noise, Input>,
-     *     LinearGaussianObservationModel<Obsrv, State, Noise>>
+     *     LinearTransition<State, Noise, Input>,
+     *     LinearGaussianSensor<Obsrv, State, Noise>>
      * \endcode
      *
      * \return Name of \c *this construct

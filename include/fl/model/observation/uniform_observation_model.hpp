@@ -30,9 +30,9 @@ namespace fl
 {
 
 template <typename State_>
-class UniformObservationModel
-    : public ObservationFunction<Vector1d, State_, Vector1d>,
-      public ObservationDensity<Vector1d, State_>,
+class UniformSensor
+    : public SensorFunction<Vector1d, State_, Vector1d>,
+      public SensorDensity<Vector1d, State_>,
       public Descriptor
 {
 public:
@@ -41,7 +41,7 @@ public:
     typedef State_   State;
 
 public:
-    UniformObservationModel(
+    UniformSensor(
         Real min_value,
         Real max_value,
         int state_dim = DimensionOf<State>::Value)
@@ -71,12 +71,12 @@ public:
 
     virtual std::string name() const
     {
-        return "UniformObservationModel";
+        return "UniformSensor";
     }
 
     virtual std::string description() const
     {
-        return "UniformObservationModel";
+        return "UniformSensor";
     }
 
 private:

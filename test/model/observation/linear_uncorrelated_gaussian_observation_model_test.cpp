@@ -29,7 +29,7 @@
 #include <fl/model/observation/linear_decorrelated_gaussian_observation_model.hpp>
 
 template <typename TestType>
-class LinearUncorrelatedGaussianObservationModelTest:
+class LinearUncorrelatedGaussianSensorTest:
     public testing::Test
 {
 public:
@@ -44,11 +44,11 @@ public:
 
     typedef Eigen::Matrix<fl::Real, StateSize, 1> State;
     typedef Eigen::Matrix<fl::Real, ObsrvSize, 1> Obsrv;
-    typedef fl::LinearDecorrelatedGaussianObservationModel<Obsrv, State> LinearModel;
+    typedef fl::LinearDecorrelatedGaussianSensor<Obsrv, State> LinearModel;
 
     typedef typename LinearModel::Noise Noise;
 
-    LinearUncorrelatedGaussianObservationModelTest()
+    LinearUncorrelatedGaussianSensorTest()
         : model(LinearModel(ObsrvDim, StateDim))
     { }
 
@@ -246,49 +246,49 @@ typedef ::testing::Types<
             fl::DynamicTest<Dimensions<10, 1000>>
         > TestTypes;
 
-TYPED_TEST_CASE(LinearUncorrelatedGaussianObservationModelTest, TestTypes);
+TYPED_TEST_CASE(LinearUncorrelatedGaussianSensorTest, TestTypes);
 
-TYPED_TEST(LinearUncorrelatedGaussianObservationModelTest, init_dimension)
+TYPED_TEST(LinearUncorrelatedGaussianSensorTest, init_dimension)
 {
     TestFixture::init_dimension_test();
 }
 
-TYPED_TEST(LinearUncorrelatedGaussianObservationModelTest, init_sensor_matrix_value)
+TYPED_TEST(LinearUncorrelatedGaussianSensorTest, init_sensor_matrix_value)
 {
     TestFixture::init_sensor_matrix_value_test();
 }
 
-TYPED_TEST(LinearUncorrelatedGaussianObservationModelTest, init_noise_matrix_value)
+TYPED_TEST(LinearUncorrelatedGaussianSensorTest, init_noise_matrix_value)
 {
     TestFixture::init_noise_matrix_value_test();
 }
 
-TYPED_TEST(LinearUncorrelatedGaussianObservationModelTest, sensor_matrix)
+TYPED_TEST(LinearUncorrelatedGaussianSensorTest, sensor_matrix)
 {
     TestFixture::sensor_matrix_value_test();
 }
 
-TYPED_TEST(LinearUncorrelatedGaussianObservationModelTest, noise_matrix)
+TYPED_TEST(LinearUncorrelatedGaussianSensorTest, noise_matrix)
 {
     TestFixture::noise_matrix_value_test();
 }
 
-TYPED_TEST(LinearUncorrelatedGaussianObservationModelTest, noise_covariance)
+TYPED_TEST(LinearUncorrelatedGaussianSensorTest, noise_covariance)
 {
     TestFixture::noise_covariance_value_test();
 }
 
-TYPED_TEST(LinearUncorrelatedGaussianObservationModelTest, expected_observation)
+TYPED_TEST(LinearUncorrelatedGaussianSensorTest, expected_observation)
 {
     TestFixture::expected_observation_test();
 }
 
-TYPED_TEST(LinearUncorrelatedGaussianObservationModelTest, observation_with_zero_noise)
+TYPED_TEST(LinearUncorrelatedGaussianSensorTest, observation_with_zero_noise)
 {
     TestFixture::observation_with_zero_noise_test();
 }
 
-TYPED_TEST(LinearUncorrelatedGaussianObservationModelTest, observation)
+TYPED_TEST(LinearUncorrelatedGaussianSensorTest, observation)
 {
     TestFixture::observation_test();
 }

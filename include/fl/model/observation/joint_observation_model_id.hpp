@@ -34,14 +34,14 @@ namespace fl
 {
 
 // Forward declarations
-template <typename...Models> class JointObservationModel;
+template <typename...Models> class JointSensor;
 
 /**
- * Traits of JointObservationModel
+ * Traits of JointSensor
  */
 template <typename...Models>
 struct Traits<
-           JointObservationModel<Models...>
+           JointSensor<Models...>
        >
 {
     enum : signed int
@@ -63,11 +63,11 @@ struct Traits<
     typedef Eigen::Matrix<Scalar, NoiseDim, 1> Noise;
     typedef Eigen::Matrix<Scalar, ParamDim, 1> Param;
 
-    typedef ObservationModelInterface<
+    typedef SensorInterface<
                 Obsrv,
                 State,
                 Noise
-            > ObservationModelBase;
+            > SensorBase;
 
     typedef AdaptiveModel<Param> AdaptiveModelBase;
 };
@@ -75,7 +75,7 @@ struct Traits<
 /**
  * \ingroup observation_models
  *
- * \brief JointObservationModel itself is an observation model which contains
+ * \brief JointSensor itself is an observation model which contains
  * internally multiple models. Each of the models must operate on the same state
  * space. The joint model can be simply summarized as
  * \f$ h(x, \theta, w) = [ h_1(x, \theta_1, w_1), h_2(x, \theta_2, w_2),
@@ -85,25 +85,23 @@ struct Traits<
  * \theta_n ]^T\f$ and \f$w = [ w_1, w_2, \ldots, w_n ]^T\f$  are the the
  * parameters and noise terms of each of the \f$n\f$ models.
  *
- * JointObservationModel implements the ObservationModelInterface and the
- * AdaptiveModel interface. That being said, the JointObservationModel can be
+ * JointSensor implements the SensorInterface and the
+ * AdaptiveModel interface. That being said, the JointSensor can be
  * used as a regular observation model or even as an adaptive observation model
  * which provides a set of parameters that can be changed at any time. This
  * implies that all sub-models must implement the the AdaptiveModel
- * interface. However, if a sub-model is not adaptive, JointObservationModel
+ * interface. However, if a sub-model is not adaptive, JointSensor
  * applies a decorator call the NotAdaptive operator on the sub-model. This
  * operator enables any model to be treated as if it is adaptive without
  * effecting the model behaviour.
  */
 template <typename ... Models>
-class JointObservationModel
-    : public Traits<
-                 JointObservationModel<Models...>
-             >::ObservationModelBase
+class JointSensor
+    : public Traits<JointSensor<Models...>>::SensorBase
 {
 private:
     /** Typdef of \c This for #from_traits(TypeName) helper */
-    typedef JointObservationModel<Models...> This;
+    typedef JointSensor<Models...> This;
 
 public:
     typedef from_traits(State);
@@ -113,23 +111,23 @@ public:
 
 public:
     /**
-     * Constructor a JointObservationModel which is a composition of mixture of
+     * Constructor a JointSensor which is a composition of mixture of
      * fixed and dynamic-size observation models.
      *
      * \param models    Variadic list of shared pointers of the models
      */
     explicit
-    JointObservationModel(std::shared_ptr<Models>...models)
+    JointSensor(std::shared_ptr<Models>...models)
         : models_(models...)
     { }
 
     /**
      * \brief Overridable default destructor
      */
-    virtual ~JointObservationModel() noexcept { }
+    virtual ~JointSensor() noexcept { }
 
     /**
-     * \copydoc ObservationModelInterface::predict_obsrv
+     * \copydoc SensorInterface::predict_obsrv
      */
     virtual Obsrv predict_obsrv(const State& state,
                                             const Noise& noise,
@@ -148,7 +146,7 @@ public:
     }
 
     /**
-     * \copydoc ObservationModelInterface::state_dimension
+     * \copydoc SensorInterface::state_dimension
      *
      * Determines the joint size of the state vector of all models
      */
@@ -158,7 +156,7 @@ public:
     }
 
     /**
-     * \copydoc ObservationModelInterface::noise_dimension
+     * \copydoc SensorInterface::noise_dimension
      *
      * Determines the joint size of the noise vector of all models
      */
@@ -168,7 +166,7 @@ public:
     }
 
     /**
-     * \copydoc ObservationModelInterface::input_dimension
+     * \copydoc SensorInterface::input_dimension
      *
      * Determines the joint size of the observation vector of all models
      */

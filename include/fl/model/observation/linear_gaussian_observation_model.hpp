@@ -48,8 +48,8 @@ namespace fl
  * \f$ y_t  = H_t x_t + \tilde{v}_t \f$.
  */
 template <typename Obsrv, typename State>
-class LinearGaussianObservationModel
-    : public LinearObservationModel<Obsrv, State, Gaussian<Obsrv>>,
+class LinearGaussianSensor
+    : public LinearSensor<Obsrv, State, Gaussian<Obsrv>>,
       public Descriptor
 {
 public:
@@ -59,15 +59,15 @@ public:
      * \param state_dim     state dimension if dynamic size
      */
     explicit
-    LinearGaussianObservationModel(int obsrv_dim = DimensionOf<Obsrv>(),
+    LinearGaussianSensor(int obsrv_dim = DimensionOf<Obsrv>(),
                                    int state_dim = DimensionOf<State>())
-        : LinearObservationModel<Obsrv, State, Gaussian<Obsrv>>(
+        : LinearSensor<Obsrv, State, Gaussian<Obsrv>>(
               obsrv_dim, state_dim)
     { }
 
     virtual std::string name() const
     {
-        return "LinearGaussianObservationModel";
+        return "LinearGaussianSensor";
     }
 
     virtual std::string description() const
