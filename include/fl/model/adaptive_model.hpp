@@ -26,8 +26,8 @@ namespace fl
 {
 
 /**
- * \ingroup process_models
- * \ingroup observation_models
+ * \ingroup transitions
+ * \ingroup sensors
  * \interface AdaptiveModel
  *
  * \brief The AdaptiveModel interface represents the base of any model which

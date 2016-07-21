@@ -23,8 +23,8 @@
 #include <fl/util/meta/size_deduction.hpp>
 #include <fl/util/meta/operator/not_adaptive.hpp>
 #include <fl/model/adaptive_model.hpp>
-#include <fl/model/process/interface/state_transition_function.hpp>
-#include <fl/model/observation/interface/observation_function.hpp>
+#include <fl/model/transition/interface/transition_function.hpp>
+#include <fl/model/sensor/interface/sensor_function.hpp>
 
 namespace fl
 {

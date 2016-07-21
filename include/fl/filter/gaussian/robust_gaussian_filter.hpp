@@ -29,7 +29,7 @@
 #include <fl/filter/gaussian/update_policy/sigma_point_additive_uncorrelated_update_policy.hpp>
 #include <fl/filter/gaussian/prediction_policy/sigma_point_additive_prediction_policy.hpp>
 #include <fl/filter/gaussian/prediction_policy/sigma_point_prediction_policy.hpp>
-#include <fl/model/observation/robust_feature_obsrv_model.hpp>
+#include <fl/model/sensor/robust_sensor_function.hpp>
 
 namespace fl
 {
@@ -120,14 +120,14 @@ public:
      * \brief Creates a RobustGaussianFilter
      */
     template <typename ... SpecializationArgs>
-    RobustGaussianFilter(const TransitionFunction& process_model,
-                         const SensorFunction& obsrv_model,
+    RobustGaussianFilter(const TransitionFunction& transition,
+                         const SensorFunction& sensor,
                          const Quadrature& quadrature,
                          SpecializationArgs&& ... args)
-        : obsrv_model_(obsrv_model),
+        : sensor_(sensor),
           gaussian_filter_(
-              process_model,
-              FeatureSensor(obsrv_model_),
+              transition,
+              FeatureSensor(sensor_),
               quadrature,
               std::forward<SpecializationArgs>(args)...)
     { }
@@ -161,7 +161,7 @@ public:
 
         auto&& h_body = [&](const State& x, const Noise& w)
         {
-           return obsrv_model().body_model().observation(x, w);
+           return sensor().body_model().observation(x, w);
         };
 
         /* ------------------------------------------ */
@@ -175,17 +175,17 @@ public:
             .integrate_moments(
                 h_body,
                 predicted_belief,
-                Gaussian<Noise>(obsrv_model().body_model().noise_dimension()),
+                Gaussian<Noise>(sensor().body_model().noise_dimension()),
                 y_mean,
                 y_cov);
 
-        robust_feature_obsrv_model().mean_state(predicted_belief.mean());
-        robust_feature_obsrv_model().body_moments(y_mean, y_cov);
+        robust_sensor_function().mean_state(predicted_belief.mean());
+        robust_sensor_function().body_moments(y_mean, y_cov);
 
         /* ------------------------------------------ */
         /* - compute feature using feature model    - */
         /* ------------------------------------------ */
-        auto feature_y = robust_feature_obsrv_model().feature_obsrv(obsrv);
+        auto feature_y = robust_sensor_function().feature_obsrv(obsrv);
 
         /* ------------------------------------------ */
         /* - use the feature to update with a       - */
@@ -203,14 +203,14 @@ public: /* factory functions */
     }
 
 public: /* accessors & mutators */
-    TransitionFunction& process_model()
+    TransitionFunction& transition()
     {
-        return gaussian_filter_.process_model();
+        return gaussian_filter_.transition();
     }
 
-    SensorFunction& obsrv_model()
+    SensorFunction& sensor()
     {
-        return gaussian_filter_.obsrv_model().embedded_obsrv_model();
+        return gaussian_filter_.sensor().embedded_sensor();
     }
 
     Quadrature& quadrature()
@@ -218,14 +218,14 @@ public: /* accessors & mutators */
         return gaussian_filter_.quadrature();
     }
 
-    const TransitionFunction& process_model() const
+    const TransitionFunction& transition() const
     {
-        return gaussian_filter_.process_model();
+        return gaussian_filter_.transition();
     }
 
-    const SensorFunction& obsrv_model() const
+    const SensorFunction& sensor() const
     {
-        return gaussian_filter_.obsrv_model().embedded_obsrv_model();
+        return gaussian_filter_.sensor().embedded_sensor();
     }
 
     const Quadrature& quadrature() const
@@ -248,21 +248,21 @@ public: /* accessors & mutators */
     }
 
 protected:
-    FeatureSensor& robust_feature_obsrv_model()
+    FeatureSensor& robust_sensor_function()
     {
-        return gaussian_filter_.obsrv_model();
+        return gaussian_filter_.sensor();
     }
 
     typename SensorFunction::BodySensor body_model()
     {
-        return obsrv_model().body_model();
+        return sensor().body_model();
     }
 
 
 
 protected:
     /** \cond internal */
-    SensorFunction obsrv_model_;
+    SensorFunction sensor_;
     BaseGaussianFilter gaussian_filter_;
     /** \endcond */
 };

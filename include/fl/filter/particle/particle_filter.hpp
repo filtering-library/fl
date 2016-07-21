@@ -79,13 +79,13 @@ public:
     typedef DiscreteDistribution<State>                 Belief;
 
 public:
-    ParticleFilter(const TransitionFunction& process_model,
-                   const SensorDensity& obsrv_model,
+    ParticleFilter(const TransitionFunction& transition,
+                   const SensorDensity& sensor,
                    const Real& max_kl_divergence = 1.0)
-        : process_model_(process_model),
-          obsrv_model_(obsrv_model),
-          process_noise_(process_model.noise_dimension()),
-          obsrv_noise_(obsrv_model.noise_dimension()),
+        : transition_(transition),
+          sensor_(sensor),
+          process_noise_(transition.noise_dimension()),
+          obsrv_noise_(sensor.noise_dimension()),
           max_kl_divergence_(max_kl_divergence)
     { }
 
@@ -105,7 +105,7 @@ public:
         for(int i = 0; i < predicted_belief.size(); i++)
         {
             predicted_belief.location(i) =
-                    process_model_.state(prior_belief.location(i),
+                    transition_.state(prior_belief.location(i),
                                          process_noise_.sample(),
                                          input);
         }
@@ -131,7 +131,7 @@ public:
 
         // update the weights of the particles with the likelihoods
         posterior_belief.delta_log_prob_mass(
-             obsrv_model_.log_probabilities(obsrv, predicted_belief.locations()));
+             sensor_.log_probabilities(obsrv, predicted_belief.locations()));
     }
 
     /**
@@ -149,36 +149,36 @@ public:
 public: /* factory functions */
     virtual Belief create_belief() const
     {
-        auto belief = Belief(process_model().state_dimension());
+        auto belief = Belief(transition().state_dimension());
         return belief;
     }
 
 public: /* accessors */
-    TransitionFunction& process_model()
+    TransitionFunction& transition()
     {
-        return process_model_;
+        return transition_;
     }
-    SensorDensity& obsrv_model()
+    SensorDensity& sensor()
     {
-        return obsrv_model_;
-    }
-
-    const TransitionFunction& process_model() const
-    {
-        return process_model_;
+        return sensor_;
     }
 
-    const SensorDensity& obsrv_model() const
+    const TransitionFunction& transition() const
     {
-        return obsrv_model_;
+        return transition_;
+    }
+
+    const SensorDensity& sensor() const
+    {
+        return sensor_;
     }
 
     virtual std::string name() const
     {
         return "ParticleFilter<"
                 + this->list_arguments(
-                            process_model().name(),
-                            obsrv_model().name())
+                            transition().name(),
+                            sensor().name())
                 + ">";
     }
 
@@ -186,12 +186,12 @@ public: /* accessors */
     {
         return "Non-parametric ParticleFilter with"
                 + this->list_descriptions(
-                            process_model().description(),
-                            obsrv_model().description());
+                            transition().description(),
+                            sensor().description());
     }
 protected:
-    TransitionFunction process_model_;
-    SensorDensity obsrv_model_;
+    TransitionFunction transition_;
+    SensorDensity sensor_;
 
     StandardGaussian<StateNoise> process_noise_;
     StandardGaussian<ObsrvNoise> obsrv_noise_;

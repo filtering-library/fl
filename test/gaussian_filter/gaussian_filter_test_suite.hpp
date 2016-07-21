@@ -32,9 +32,9 @@
 #include <fl/util/math/linear_algebra.hpp>
 #include <fl/filter/filter_interface.hpp>
 
-#include <fl/model/process/linear_state_transition_model.hpp>
-#include <fl/model/observation/linear_gaussian_observation_model.hpp>
-#include <fl/model/observation/linear_decorrelated_gaussian_observation_model.hpp>
+#include <fl/model/transition/linear_transition.hpp>
+#include <fl/model/sensor/linear_gaussian_sensor.hpp>
+#include <fl/model/sensor/linear_decorrelated_gaussian_sensor.hpp>
 
 template <typename TestType>
 class GaussianFilterTest
@@ -116,7 +116,7 @@ protected:
             return model;
         }
 
-        LinearObservation create_observation_model()
+        LinearObservation create_sensor()
         {
             auto model = LinearObservation(ObsrvDim, StateDim);
 
@@ -157,13 +157,13 @@ protected:
     typename fl::Traits<Filter>::Input zero_input(const Filter& filter)
     {
         return fl::Traits<Filter>::Input::Zero(
-            filter.process_model().input_dimension());
+            filter.transition().input_dimension());
     }
 
     typename fl::Traits<Filter>::Obsrv rand_obsrv(const Filter& filter)
     {
         return fl::Traits<Filter>::Obsrv::Random(
-            filter.obsrv_model().obsrv_dimension());
+            filter.sensor().obsrv_dimension());
     }
 
 protected:
@@ -188,7 +188,7 @@ TYPED_TEST_CASE_P(GaussianFilterTest);
 
 //    filter.predict(belief, This::zero_input(), belief);
 
-//    auto Q = filter.process_model().noise_covariance();
+//    auto Q = filter.transition().noise_covariance();
 
 //    EXPECT_TRUE(belief.mean().isZero());
 //    EXPECT_TRUE(fl::are_similar(belief.covariance(), 2. * Q));

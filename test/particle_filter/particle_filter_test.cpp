@@ -27,8 +27,8 @@
 
 #include <fl/filter/particle/particle_filter.hpp>
 #include <fl/filter/gaussian/gaussian_filter_kf.hpp>
-#include <fl/model/observation/linear_observation_model.hpp>
-#include <fl/model/process/linear_process_model.hpp>
+#include <fl/model/sensor/linear_sensor.hpp>
+#include <fl/model/process/linear_transition.hpp>
 
 template<typename Vector, typename Matrix>
 bool moments_are_similar(Vector mean_a, Matrix cov_a,
@@ -85,29 +85,29 @@ TEST(particle_filter, predict)
 
 
     // create process model
-    ProcessModel process_model;
+    ProcessModel transition;
     {
-        process_model.A(some_rotation());
+        transition.A(some_rotation());
         Matrix R = some_rotation();
         Matrix D = Eigen::DiagonalMatrix<double, 3>(1, 3.5, 1.2);
-        process_model.covariance(R*D*R.transpose());
+        transition.covariance(R*D*R.transpose());
     }
 
     // create observation model
     /// \todo this is a hack because the GF does not currently work with the new
     /// observation model interface
-    ObservationModel observation_model;
+    ObservationModel sensor;
     {
-        observation_model.sensor_matrix(some_rotation());
+        sensor.sensor_matrix(some_rotation());
         Matrix R = some_rotation();
         Matrix D = Eigen::DiagonalMatrix<double, 3>(3.1, 1.0, 1.3);
         D = D.cwiseSqrt();
-        observation_model.noise_matrix(R*D);
+        sensor.noise_matrix(R*D);
     }
 
     // create filters
-    ParticleFilter particle_filter(process_model, observation_model);
-    GaussianFilter gaussian_filter(process_model, observation_model);
+    ParticleFilter particle_filter(transition, sensor);
+    GaussianFilter gaussian_filter(transition, sensor);
 
     // create intial beliefs
     GaussianBelief gaussian_belief;
@@ -158,29 +158,29 @@ TEST(particle_filter, update)
 
 
     // create process model
-    ProcessModel process_model;
+    ProcessModel transition;
     {
-        process_model.A(some_rotation());
+        transition.A(some_rotation());
         Matrix R = some_rotation();
         Matrix D = Eigen::DiagonalMatrix<double, 3>(1, 3.5, 1.2);
-        process_model.covariance(R*D*R.transpose());
+        transition.covariance(R*D*R.transpose());
     }
 
     // create observation model
     /// \todo this is a hack because the GF does not currently work with the new
     /// observation model interface
-    ObservationModel observation_model;
+    ObservationModel sensor;
     {
-        observation_model.sensor_matrix(some_rotation());
+        sensor.sensor_matrix(some_rotation());
         Matrix R = some_rotation();
         Matrix D = Eigen::DiagonalMatrix<double, 3>(3.1, 1.0, 1.3);
         D = D.cwiseSqrt();
-        observation_model.noise_matrix(R*D);
+        sensor.noise_matrix(R*D);
     }
 
     // create filters
-    ParticleFilter particle_filter(process_model, observation_model);
-    GaussianFilter gaussian_filter(process_model, observation_model);
+    ParticleFilter particle_filter(transition, sensor);
+    GaussianFilter gaussian_filter(transition, sensor);
 
     // create intial beliefs
     GaussianBelief gaussian_belief;
@@ -234,29 +234,29 @@ TEST(particle_filter, predict_and_update)
 
 
     // create process model
-    ProcessModel process_model;
+    ProcessModel transition;
     {
-        process_model.A(some_rotation());
+        transition.A(some_rotation());
         Matrix R = some_rotation();
         Matrix D = Eigen::DiagonalMatrix<double, 3>(1, 3.5, 1.2);
-        process_model.covariance(R*D*R.transpose());
+        transition.covariance(R*D*R.transpose());
     }
 
     // create observation model
     /// \todo this is a hack because the GF does not currently work with the new
     /// observation model interface
-    ObservationModel observation_model;
+    ObservationModel sensor;
     {
-        observation_model.sensor_matrix(some_rotation());
+        sensor.sensor_matrix(some_rotation());
         Matrix R = some_rotation();
         Matrix D = Eigen::DiagonalMatrix<double, 3>(3.1, 1.0, 1.3);
         D = D.cwiseSqrt();
-        observation_model.noise_matrix(R*D);
+        sensor.noise_matrix(R*D);
     }
 
     // create filters
-    ParticleFilter particle_filter(process_model, observation_model);
-    GaussianFilter gaussian_filter(process_model, observation_model);
+    ParticleFilter particle_filter(transition, sensor);
+    GaussianFilter gaussian_filter(transition, sensor);
 
     // create intial beliefs
     GaussianBelief gaussian_belief;
@@ -274,12 +274,12 @@ TEST(particle_filter, predict_and_update)
     for(size_t i = 0; i < N_steps; i++)
     {
         // simulate system
-        state = process_model.predict_state(delta_time,
+        state = transition.predict_state(delta_time,
                                             state,
                                             standard_gaussian.sample(),
                                             State::Zero());
         Observation observation =
-                observation_model.observation(state, standard_gaussian.sample());
+                sensor.observation(state, standard_gaussian.sample());
 
         // predict
         particle_filter.predict(delta_time, State::Zero(),

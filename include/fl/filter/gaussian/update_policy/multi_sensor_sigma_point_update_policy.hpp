@@ -26,7 +26,7 @@
 #include <fl/util/types.hpp>
 #include <fl/util/traits.hpp>
 #include <fl/util/descriptor.hpp>
-#include <fl/model/observation/joint_observation_model_iid.hpp>
+#include <fl/model/sensor/joint_sensor_iid.hpp>
 #include <fl/filter/gaussian/transform/point_set.hpp>
 #include <fl/filter/gaussian/quadrature/sigma_point_quadrature.hpp>
 
@@ -115,7 +115,7 @@ public:
                     const Obsrv& y,
                     Belief& posterior_belief)
     {
-        auto& sensor_model = obsrv_function.local_obsrv_model();
+        auto& sensor_model = obsrv_function.local_sensor();
 
         /* ------------------------------------------ */
         /* - Determine the number of quadrature     - */

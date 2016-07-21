@@ -77,7 +77,7 @@ public:
     template <
         typename Belief
     >
-    void operator()(const TransitionFunction& state_transition_funtion,
+    void operator()(const TransitionFunction& transition_funtion,
                     const SigmaPointQuadrature& quadrature,
                     const Belief& prior_belief,
                     const Input& u,
@@ -85,11 +85,11 @@ public:
     {
         // static_assert() is non-additive
 
-        noise_distr_.dimension(state_transition_funtion.noise_dimension());
+        noise_distr_.dimension(transition_funtion.noise_dimension());
 
         auto f = [&](const State& x, const Noise& v)
         {
-            return state_transition_funtion.state(x, v, u);
+            return transition_funtion.state(x, v, u);
         };
 
         quadrature.propergate_gaussian(f, prior_belief, noise_distr_, X, Y, Z);

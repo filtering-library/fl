@@ -57,7 +57,7 @@ struct KalmanFilterTestConfiguration
     {
         return typename FilterDefinition<ModelFactory>::Type(
             factory.create_linear_state_model(),
-            factory.create_observation_model());
+            factory.create_sensor());
     }
 };
 

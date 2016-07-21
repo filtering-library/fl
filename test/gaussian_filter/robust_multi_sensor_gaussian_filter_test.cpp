@@ -26,9 +26,9 @@
 #include <fl/util/meta.hpp>
 #include <fl/filter/gaussian/quadrature/unscented_quadrature.hpp>
 #include <fl/filter/gaussian/robust_multi_sensor_gaussian_filter.hpp>
-#include <fl/model/observation/linear_cauchy_observation_model.hpp>
-#include <fl/model/observation/body_tail_observation_model.hpp>
-#include <fl/model/observation/linear_gaussian_observation_model.hpp>
+#include <fl/model/sensor/linear_cauchy_sensor.hpp>
+#include <fl/model/sensor/body_tail_sensor.hpp>
+#include <fl/model/sensor/linear_gaussian_sensor.hpp>
 
 using namespace fl;
 
@@ -108,7 +108,7 @@ struct RobustMultiSensorGfTestConfiguration
         typedef typename Definition::BodyTailSensor BodyTailSensor;
         typedef typename Definition::JointSensor JointSensor;
 
-        auto body_model = factory.create_observation_model();
+        auto body_model = factory.create_sensor();
         auto tail_model = CauchyModel();
         tail_model.noise_covariance(tail_model.noise_covariance() * 10.);
 

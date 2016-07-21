@@ -97,10 +97,10 @@ public:
             Quadrature,
             typename AdditivityOf<JointSensorFunction>::Type>> Base;
 
-    MultiSensorGaussianFilter(const TransitionFunction& process_model,
-                              const JointSensorFunction& obsrv_model,
+    MultiSensorGaussianFilter(const TransitionFunction& transition,
+                              const JointSensorFunction& sensor,
                               const Quadrature& quadrature)
-        : Base(process_model, obsrv_model, quadrature)
+        : Base(transition, sensor, quadrature)
     {
     }
 

@@ -20,7 +20,7 @@
 #include <gtest/gtest.h>
 
 #include <fl/util/types.hpp>
-#include <fl/model/process/binary_transition_density.hpp>
+#include <fl/model/transition/binary_transition_density.hpp>
 
 fl::Real epsilon = 0.000000000001;
 fl::Real large_dt = 9999999999999.;

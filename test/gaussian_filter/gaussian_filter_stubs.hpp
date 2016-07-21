@@ -47,8 +47,8 @@
 #include <gtest/gtest.h>
 
 #include <fl/util/traits.hpp>
-#include <fl/model/process/process_model_interface.hpp>
-#include <fl/model/observation/observation_model_interface.hpp>
+#include <fl/model/process/transition_interface.hpp>
+#include <fl/model/sensor/sensor_interface.hpp>
 
 template <typename State, typename Noise, typename Input>
 class ProcessModelStub;

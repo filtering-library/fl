@@ -37,8 +37,8 @@ conjunction with the filter functions. The example is an extension of
 #ifndef MY_LIB_MY_FILTER_CONTEXT_HPP
 #define MY_LIB_MY_FILTER_CONTEXT_HPP
 
-#include <fl/model/process/damped_wiener_process_model.hpp>
-#include <fl/model/observation/linear_observation_model.hpp>
+#include <fl/model/process/damped_wiener_transition.hpp>
+#include <fl/model/sensor/linear_sensor.hpp>
 #include <fl/filter/gaussian/unscented_transform.hpp>
 #include <fl/filter/gaussian/gaussian_filter.hpp>
     

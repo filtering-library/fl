@@ -78,7 +78,7 @@ struct MultiSensorGfTestConfiguration
 
         return typename FilterDefinition<ModelFactory>::Type(
             factory.create_linear_state_model(),
-            JointSensor(factory.create_observation_model(), Count),
+            JointSensor(factory.create_sensor(), Count),
             UnscentedQuadrature());
     }
 };

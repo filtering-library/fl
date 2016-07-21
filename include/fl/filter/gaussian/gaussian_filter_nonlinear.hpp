@@ -79,8 +79,8 @@ class GaussianFilter<TransitionFunction, SensorFunction, Quadrature>
 #endif
 {
 public:
-    GaussianFilter(const TransitionFunction& process_model,
-                   const SensorFunction& obsrv_model,
+    GaussianFilter(const TransitionFunction& transition,
+                   const SensorFunction& sensor,
                    const Quadrature& quadrature)
         : GaussianFilter<
               typename RemoveAdditivityOf<TransitionFunction>::Type,
@@ -92,7 +92,7 @@ public:
               SigmaPointUpdatePolicy<
                   Quadrature,
                   typename AdditivityOf<SensorFunction>::Type>>
-          (process_model, obsrv_model, quadrature)
+          (transition, sensor, quadrature)
     { }
 };
 
@@ -155,16 +155,16 @@ public:
 //    typedef GaussianFilter<TEMPLATE_ARGUMENTS> Base;
 
 //    GaussianFilter(
-//        const Transition& state_process_model,
-//        const LocalParamModel& param_process_model,
-//        const LocalSensor& obsrv_model,
+//        const Transition& transition,
+//        const LocalParamModel& param_transition,
+//        const LocalSensor& sensor,
 //        const PointSetTransform& transform,
 //        const typename Traits<Base>::FeatureMapping& feature_mapping
 //            = typename Traits<Base>::FeatureMapping(),
 //        int parameter_count = Count)
 //            : Base(
-//                { state_process_model, {param_process_model, parameter_count} },
-//                { obsrv_model, parameter_count },
+//                { transition, {param_transition, parameter_count} },
+//                { sensor, parameter_count },
 //                transform,
 //                feature_mapping)
 //    { }

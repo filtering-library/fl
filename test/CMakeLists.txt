@@ -27,29 +27,29 @@ fl_add_test(
 
 # == observation model tests ================================================= #
 fl_add_test(
-    NAME    linear_gaussian_observation_model
-    SOURCES model/observation/linear_gaussian_observation_model_test.cpp)
+    NAME    linear_gaussian_sensor
+    SOURCES model/sensor/linear_gaussian_sensor_test.cpp)
 
 fl_add_test(
-    NAME    linear_uncorrelated_gaussian_observation_model
-    SOURCES model/observation/linear_uncorrelated_gaussian_observation_model_test.cpp)
+    NAME    linear_uncorrelated_gaussian_sensor
+    SOURCES model/sensor/linear_uncorrelated_gaussian_sensor_test.cpp)
 
 fl_add_test(
-    NAME    body_tail_observation_model
-    SOURCES model/observation/body_tail_observation_model_test.cpp)
+    NAME    body_tail_sensor
+    SOURCES model/sensor/body_tail_sensor_test.cpp)
 
 fl_add_test(
-    NAME    joint_observation_model_iid
-    SOURCES model/observation/joint_observation_model_iid_test.cpp)
+    NAME    joint_sensor_iid
+    SOURCES model/sensor/joint_sensor_iid_test.cpp)
 
 # == state transition model tests ============================================ #
 fl_add_test(
-    NAME    linear_state_transition_model
-    SOURCES model/state_transition/linear_state_transition_model_test.cpp)
+    NAME    linear_transition
+    SOURCES model/transition/linear_transition_test.cpp)
 
 fl_add_test(
     NAME    orientation_transition_function
-    SOURCES model/state_transition/orientation_transition_function_test.cpp)
+    SOURCES model/transition/orientation_transition_function_test.cpp)
 
 fl_add_test(
     NAME    binary_transition_density
@@ -199,21 +199,21 @@ fl_add_test(
 
 
 
-# catkin_add_gtest(joint_observation_model_iid_test
-#                  model/joint_observation_model_iid_test.cpp
+# catkin_add_gtest(joint_sensor_iid_test
+#                  model/joint_sensor_iid_test.cpp
 #                  gtest_main.cpp)
-# target_link_libraries(joint_observation_model_iid_test ${catkin_LIBRARIES})
+# target_link_libraries(joint_sensor_iid_test ${catkin_LIBRARIES})
 
-# catkin_add_gtest(joint_process_model_id_test
-#                  model/joint_process_model_id_test.cpp
+# catkin_add_gtest(joint_transition_id_test
+#                  model/joint_transition_id_test.cpp
 #                  gtest_main.cpp)
-# target_link_libraries(joint_process_model_id_test ${catkin_LIBRARIES})
+# target_link_libraries(joint_transition_id_test ${catkin_LIBRARIES})
 
 
-# catkin_add_gtest(joint_process_model_iid_test
-#                  model/joint_process_model_iid_test.cpp
+# catkin_add_gtest(joint_transition_iid_test
+#                  model/joint_transition_iid_test.cpp
 #                  gtest_main.cpp)
-# target_link_libraries(joint_process_model_iid_test ${catkin_LIBRARIES})
+# target_link_libraries(joint_transition_iid_test ${catkin_LIBRARIES})
 
 
 # Factorized SPKF #

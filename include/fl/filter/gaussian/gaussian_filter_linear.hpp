@@ -29,8 +29,8 @@
 #include <fl/exception/exception.hpp>
 #include <fl/filter/filter_interface.hpp>
 
-#include <fl/model/process/linear_state_transition_model.hpp>
-#include <fl/model/observation/linear_gaussian_observation_model.hpp>
+#include <fl/model/transition/linear_transition.hpp>
+#include <fl/model/sensor/linear_gaussian_sensor.hpp>
 
 namespace fl
 {
@@ -106,13 +106,13 @@ public:
     /**
      * Creates a linear Gaussian filter (a KalmanFilter)
      *
-     * \param process_model         Process model instance
-     * \param obsrv_model           Obsrv model instance
+     * \param transition         Process model instance
+     * \param sensor           Obsrv model instance
      */
-    GaussianFilter(const LinearTransition& process_model,
-                   const LinearSensor& obsrv_model)
-        : process_model_(process_model),
-          obsrv_model_(obsrv_model)
+    GaussianFilter(const LinearTransition& transition,
+                   const LinearSensor& sensor)
+        : transition_(transition),
+          sensor_(sensor)
     { }
 
     /**
@@ -143,9 +143,9 @@ public:
                          const Input& input,
                          Belief& predicted_belief)
     {
-        auto A = process_model_.dynamics_matrix();
-        auto B = process_model_.input_matrix();
-        auto Q = process_model_.noise_covariance();
+        auto A = transition_.dynamics_matrix();
+        auto B = transition_.input_matrix();
+        auto Q = transition_.noise_covariance();
 
         predicted_belief.mean(
             A * prior_belief.mean() + B * input);
@@ -179,8 +179,8 @@ public:
                         const Obsrv& y,
                         Belief& posterior_belief)
     {
-        auto H = obsrv_model_.sensor_matrix();
-        auto R = obsrv_model_.noise_covariance();
+        auto H = sensor_.sensor_matrix();
+        auto R = sensor_.noise_covariance();
 
         auto mean = predicted_belief.mean();
         auto cov_xx = predicted_belief.covariance();
@@ -194,7 +194,7 @@ public:
 
     virtual Belief create_belief() const
     {
-        auto belief = Belief(process_model().state_dimension());
+        auto belief = Belief(transition().state_dimension());
         return belief;
     }
 
@@ -202,8 +202,8 @@ public:
     {
         return "GaussianFilter<"
                 + this->list_arguments(
-                            process_model().name(),
-                            obsrv_model().name())
+                            transition().name(),
+                            sensor().name())
                 + ">";
     }
 
@@ -211,34 +211,34 @@ public:
     {
         return "Linear Gaussian filter (the Kalman Filter) with"
                 + this->list_descriptions(
-                            process_model().description(),
-                            obsrv_model().description());
+                            transition().description(),
+                            sensor().description());
     }
 
-    LinearTransition& process_model()
+    LinearTransition& transition()
     {
-        return process_model_;
+        return transition_;
     }
 
-    LinearSensor& obsrv_model()
+    LinearSensor& sensor()
     {
-        return obsrv_model_;
+        return sensor_;
     }
 
-    const LinearTransition& process_model() const
+    const LinearTransition& transition() const
     {
-        return process_model_;
+        return transition_;
     }
 
-    const LinearSensor& obsrv_model() const
+    const LinearSensor& sensor() const
     {
-        return obsrv_model_;
+        return sensor_;
     }
 
 protected:
     /** \cond internal */
-    LinearTransition process_model_;
-    LinearSensor obsrv_model_;
+    LinearTransition transition_;
+    LinearSensor sensor_;
     /** \endcond */
 };
 

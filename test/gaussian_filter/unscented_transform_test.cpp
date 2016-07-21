@@ -12,7 +12,7 @@
  */
 
 /**
- * \file robust_feature_obsrv_model.hpp
+ * \file robust_sensor_function.hpp
  * \date 2014
  * \author Jan Issac (jan.issac@gmail.com)
  */

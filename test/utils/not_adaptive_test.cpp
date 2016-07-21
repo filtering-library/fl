@@ -28,9 +28,9 @@
 #include <fl/util/traits.hpp>
 
 #include <fl/util/meta.hpp>
-#include <fl/model/observation/linear_observation_model.hpp>
-#include <fl/model/observation/joint_observation_model.hpp>
-#include <fl/model/process/linear_process_model.hpp>
+#include <fl/model/sensor/linear_sensor.hpp>
+#include <fl/model/sensor/joint_sensor.hpp>
+#include <fl/model/process/linear_transition.hpp>
 
 TEST(NotAdaptiveTests, fixed_traits)
 {
@@ -136,8 +136,8 @@ TEST(NotAdaptiveTests, Fixed_LinearObsrvModel)
     typedef typename Traits<ObsrvModel>::Noise Noise;
     typedef typename Traits<ObsrvModel>::Noise Noise;
 
-    ObsrvModel obsrv_model;
-    NAObsrvModel na_obsrv_model = NAObsrvModel(ObsrvModel());
+    ObsrvModel sensor;
+    NAObsrvModel na_sensor = NAObsrvModel(ObsrvModel());
 
     State state = State::Random();
     Noise noise = Noise::Random();
@@ -145,11 +145,11 @@ TEST(NotAdaptiveTests, Fixed_LinearObsrvModel)
 
     EXPECT_TRUE(
         fl::are_similar(
-            obsrv_model.predict_obsrv(state, noise, 1.0),
-            na_obsrv_model.predict_obsrv(state, noise, 1.0)));
+            sensor.predict_obsrv(state, noise, 1.0),
+            na_sensor.predict_obsrv(state, noise, 1.0)));
 
-    EXPECT_EQ(obsrv_model.predict_obsrv(state, noise, 1.0).rows(),
-              na_obsrv_model.predict_obsrv(state, noise, 1.0).rows());
+    EXPECT_EQ(sensor.predict_obsrv(state, noise, 1.0).rows(),
+              na_sensor.predict_obsrv(state, noise, 1.0).rows());
 }
 
 TEST(NotAdaptiveTests, Dynamic_LinearObsrvModel)
@@ -164,19 +164,19 @@ TEST(NotAdaptiveTests, Dynamic_LinearObsrvModel)
 
     typedef typename Traits<ObsrvModel>::Noise Noise;
 
-    ObsrvModel obsrv_model = ObsrvModel(2, 3);
-    NAObsrvModel na_obsrv_model = NAObsrvModel(ObsrvModel(2, 3));
+    ObsrvModel sensor = ObsrvModel(2, 3);
+    NAObsrvModel na_sensor = NAObsrvModel(ObsrvModel(2, 3));
 
     State state = State::Random(3);
     Noise noise = Noise::Random(2);
 
     EXPECT_TRUE(
         fl::are_similar(
-            obsrv_model.predict_obsrv(state, noise, 1.0),
-            na_obsrv_model.predict_obsrv(state, noise, 1.0)));
+            sensor.predict_obsrv(state, noise, 1.0),
+            na_sensor.predict_obsrv(state, noise, 1.0)));
 
-    EXPECT_EQ(obsrv_model.predict_obsrv(state, noise, 1.0).rows(),
-              na_obsrv_model.predict_obsrv(state, noise, 1.0).rows());
+    EXPECT_EQ(sensor.predict_obsrv(state, noise, 1.0).rows(),
+              na_sensor.predict_obsrv(state, noise, 1.0).rows());
 }
 
 TEST(NotAdaptiveTests, Fixed_JointObsrvModel)
@@ -196,17 +196,17 @@ TEST(NotAdaptiveTests, Fixed_JointObsrvModel)
     typedef typename Traits<ObsrvModel>::Noise Noise;
     typedef typename Traits<ObsrvModel>::Noise Noise;
 
-    ObsrvModel obsrv_model = ObsrvModel(LocalObsrvModel());
-    NAObsrvModel na_obsrv_model = NAObsrvModel(ObsrvModel(LocalObsrvModel()));
+    ObsrvModel sensor = ObsrvModel(LocalObsrvModel());
+    NAObsrvModel na_sensor = NAObsrvModel(ObsrvModel(LocalObsrvModel()));
 
     State state = State::Random();
     Noise noise = Noise::Random();
 
     EXPECT_TRUE(
         fl::are_similar(
-            obsrv_model.predict_obsrv(state, noise, 1.0),
-            na_obsrv_model.predict_obsrv(state, noise, 1.0)));
+            sensor.predict_obsrv(state, noise, 1.0),
+            na_sensor.predict_obsrv(state, noise, 1.0)));
 
-    EXPECT_EQ(obsrv_model.predict_obsrv(state, noise, 1.0).rows(),
-              na_obsrv_model.predict_obsrv(state, noise, 1.0).rows());
+    EXPECT_EQ(sensor.predict_obsrv(state, noise, 1.0).rows(),
+              na_sensor.predict_obsrv(state, noise, 1.0).rows());
 }

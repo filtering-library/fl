@@ -23,7 +23,7 @@
 #include <fl/util/profiling.hpp>
 #include <fl/util/traits.hpp>
 
-#include <fl/model/observation/robust_multi_sensor_feature_obsrv_model.hpp>
+#include <fl/model/sensor/multi_robust_sensor_function.hpp>
 
 #include <fl/filter/gaussian/update_policy/sigma_point_update_policy.hpp>
 #include <fl/filter/gaussian/update_policy/sigma_point_additive_update_policy.hpp>
@@ -113,16 +113,16 @@ public:
      * \brief Creates a RobustGaussianFilter
      */
     RobustMultiSensorGaussianFilter(
-        const TransitionFunction& process_model,
-        const ActualJointSensor& joint_obsrv_model,
+        const TransitionFunction& transition,
+        const ActualJointSensor& joint_sensor,
         const Quadrature& quadrature)
-        : joint_obsrv_model_(joint_obsrv_model),
+        : joint_sensor_(joint_sensor),
           multi_sensor_gaussian_filter_(
-              process_model,
+              transition,
               RobustJointFeatureSensor(
-                  FeatureSensor(joint_obsrv_model_.local_obsrv_model(),
-                                    joint_obsrv_model_.count_local_models()),
-                  joint_obsrv_model_.count_local_models()),
+                  FeatureSensor(joint_sensor_.local_sensor(),
+                                    joint_sensor_.count_local_models()),
+                  joint_sensor_.count_local_models()),
               quadrature)
     {
     }
@@ -150,8 +150,8 @@ public:
                         Belief& posterior_belief)
     {
         auto& quadrature = multi_sensor_gaussian_filter_.quadrature();
-        auto& feature_model = joint_feature_model().local_obsrv_model();
-        auto& body_tail_model = feature_model.embedded_obsrv_model();
+        auto& feature_model = joint_feature_model().local_sensor();
+        auto& body_tail_model = feature_model.embedded_sensor();
 
         typedef typename BodyTailModel::Obsrv LocalObsrv;
         typedef typename FeatureSensor::Obsrv LocalFeature;
@@ -199,7 +199,7 @@ public:
         auto D = State();
         D.setZero(mu_x.size());
 
-        const int sensor_count = joint_obsrv_model_.count_local_models();
+        const int sensor_count = joint_sensor_.count_local_models();
         const int dim_y = body_tail_model.obsrv_dimension();
 
         auto h = [&](const State& x, const LocalObsrvNoise& w)
@@ -227,7 +227,7 @@ public:
 
         feature_model.mean_state(predicted_belief.mean());
 
-        // compute body_tail_obsrv_model parameters
+        // compute body_tail_sensor parameters
         for (int i = 0; i < sensor_count; ++i)
         {
             // validate sensor value, i.e. make sure it is finite
@@ -316,18 +316,18 @@ public: /* factory functions */
     }
 
 public: /* accessors & mutators */
-    TransitionFunction& process_model()
+    TransitionFunction& transition()
     {
-        return multi_sensor_gaussian_filter_.process_model();
+        return multi_sensor_gaussian_filter_.transition();
     }
 
-    ActualJointSensor& obsrv_model() { return joint_obsrv_model_; }
-    const TransitionFunction& process_model() const
+    ActualJointSensor& sensor() { return joint_sensor_; }
+    const TransitionFunction& transition() const
     {
-        return multi_sensor_gaussian_filter_.process_model();
+        return multi_sensor_gaussian_filter_.transition();
     }
 
-    const ActualJointSensor& obsrv_model() const { return joint_obsrv_model_; }
+    const ActualJointSensor& sensor() const { return joint_sensor_; }
     std::string name() const override
     {
         return "RobustMultiSensorGaussianFilter<" +
@@ -344,12 +344,12 @@ public: /* accessors & mutators */
 protected:
     RobustJointFeatureSensor& joint_feature_model()
     {
-        return multi_sensor_gaussian_filter_.obsrv_model();
+        return multi_sensor_gaussian_filter_.sensor();
     }
 
 protected:
     /** \cond internal */
-    ActualJointSensor joint_obsrv_model_;
+    ActualJointSensor joint_sensor_;
     InternalMultiSensorGaussianFilter multi_sensor_gaussian_filter_;
     /** \endcond */
 };

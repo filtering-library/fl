@@ -110,16 +110,16 @@ public:
     /**
      * Creates a Gaussian filter
      *
-     * \param process_model         Process model instance
-     * \param obsrv_model           Obsrv model instance
+     * \param transition         Process model instance
+     * \param sensor           Obsrv model instance
      * \param transform   Point set tranfrom such as the unscented
      *                              transform
      */
-    GaussianFilter(const TransitionFunction& process_model,
-                   const SensorFunction& obsrv_model,
+    GaussianFilter(const TransitionFunction& transition,
+                   const SensorFunction& sensor,
                    const Quadrature& quadrature)
-        : process_model_(process_model),
-          obsrv_model_(obsrv_model),
+        : transition_(transition),
+          sensor_(sensor),
           quadrature_(quadrature)
     { }
 
@@ -135,7 +135,7 @@ public:
                          const Input& input,
                          Belief& predicted_belief)
     {
-        prediction_policy_(process_model(),
+        prediction_policy_(transition(),
                            quadrature(),
                            prior_belief,
                            input,
@@ -149,7 +149,7 @@ public:
                         const Obsrv& obsrv,
                         Belief& posterior_belief)
     {
-        update_policy_(obsrv_model(),
+        update_policy_(sensor(),
                        quadrature(),
                        predicted_belief,
                        obsrv,
@@ -159,19 +159,19 @@ public:
 public: /* factory functions */
     virtual Belief create_belief() const
     {
-        auto belief = Belief(process_model().state_dimension());
+        auto belief = Belief(transition().state_dimension());
         return belief; // RVO
     }
 
 public: /* accessors & mutators */
-    TransitionFunction& process_model()
+    TransitionFunction& transition()
     {
-        return process_model_;
+        return transition_;
     }
 
-    SensorFunction& obsrv_model()
+    SensorFunction& sensor()
     {
-        return obsrv_model_;
+        return sensor_;
     }
 
     Quadrature& quadrature()
@@ -179,14 +179,14 @@ public: /* accessors & mutators */
         return quadrature_;
     }
 
-    const TransitionFunction& process_model() const
+    const TransitionFunction& transition() const
     {
-        return process_model_;
+        return transition_;
     }
 
-    const SensorFunction& obsrv_model() const
+    const SensorFunction& sensor() const
     {
-        return obsrv_model_;
+        return sensor_;
     }
 
     const Quadrature& quadrature() const
@@ -198,8 +198,8 @@ public: /* accessors & mutators */
     {
         return "GaussianFilter<"
                 + this->list_arguments(
-                            process_model().name(),
-                            obsrv_model().name(),
+                            transition().name(),
+                            sensor().name(),
                             quadrature().name(),
                             prediction_policy_.name(),
                             update_policy_.name())
@@ -210,8 +210,8 @@ public: /* accessors & mutators */
     {
         return "Sigma point based GaussianFilter with"
                 + this->list_descriptions(
-                            process_model().description(),
-                            obsrv_model().description(),
+                            transition().description(),
+                            sensor().description(),
                             quadrature().description(),
                             prediction_policy_.description(),
                             update_policy_.description());
@@ -219,8 +219,8 @@ public: /* accessors & mutators */
 
 protected:
     /** \cond internal */
-    TransitionFunction process_model_;
-    SensorFunction obsrv_model_;
+    TransitionFunction transition_;
+    SensorFunction sensor_;
     Quadrature quadrature_;
     PredictionPolicy prediction_policy_;
     UpdatePolicy update_policy_;

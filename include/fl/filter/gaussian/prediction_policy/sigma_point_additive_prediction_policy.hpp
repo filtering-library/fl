@@ -59,7 +59,7 @@ public:
         typename Belief
     >
     void operator()(const AdditiveTransitionFunction&
-                              additive_state_transition_function,
+                              additive_transition_function,
                     const SigmaPointQuadrature& quadrature,
                     const Belief& prior_belief,
                     const Input& u,
@@ -67,7 +67,7 @@ public:
     {
         auto f = [&](const State& x)
         {
-            return additive_state_transition_function.expected_state(x, u);
+            return additive_transition_function.expected_state(x, u);
         };
 
         quadrature.propergate_gaussian(f, prior_belief, Y, Z);
@@ -109,7 +109,7 @@ public:
         predicted_belief.mean(Z.mean());
         predicted_belief.covariance(
             X_c * W.asDiagonal() * X_c.transpose()
-            + additive_state_transition_function.noise_covariance());
+            + additive_transition_function.noise_covariance());
     }
 
     virtual std::string name() const

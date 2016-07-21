@@ -26,8 +26,8 @@
 
 #include <fl/filter/particle/particle_filter.hpp>
 #include <fl/filter/gaussian/gaussian_filter_linear.hpp>
-#include <fl/model/process/linear_state_transition_model.hpp>
-#include <fl/model/observation/linear_gaussian_observation_model.hpp>
+#include <fl/model/transition/linear_transition.hpp>
+#include <fl/model/sensor/linear_gaussian_sensor.hpp>
 
 template<typename Vector, typename Matrix>
 bool moments_are_similar(Vector mean_a, Matrix cov_a,
@@ -80,10 +80,10 @@ protected:
     typedef GaussianFilter::Belief GaussianBelief;
 
     ParticleFilterTest()
-        : process_model(create_process_model()),
-          observation_model(create_observation_model()),
-          particle_filter(process_model, observation_model),
-          gaussian_filter(process_model, observation_model)
+        : transition(create_transition()),
+          sensor(create_sensor()),
+          particle_filter(transition, sensor),
+          gaussian_filter(transition, sensor)
 
     {
         N_particles = 10000;
@@ -95,40 +95,40 @@ protected:
         particle_belief.from_distribution(gaussian_belief, N_particles);
     }
 
-    Transition create_process_model()
+    Transition create_transition()
     {
         srand(0);
 
-        Transition process_model;
+        Transition transition;
 
-        process_model.dynamics_matrix(some_rotation());
+        transition.dynamics_matrix(some_rotation());
 
         Matrix R = some_rotation();
         Matrix D = Eigen::DiagonalMatrix<fl::Real, 3>(1, 3.5, 1.2);
 
-        process_model.noise_covariance(R*D*R.transpose());
+        transition.noise_covariance(R*D*R.transpose());
 
-        return process_model;
+        return transition;
     }
 
-    Sensor create_observation_model()
+    Sensor create_sensor()
     {
         srand(0);
 
-        Sensor observation_model;
+        Sensor sensor;
 
-        observation_model.sensor_matrix(some_rotation());
+        sensor.sensor_matrix(some_rotation());
 
         Matrix R = some_rotation();
         Matrix D = Eigen::DiagonalMatrix<fl::Real, 3>(3.1, 1.0, 1.3);
 
-        observation_model.noise_covariance(R*D*R.transpose());
+        sensor.noise_covariance(R*D*R.transpose());
 
-        return observation_model;
+        return sensor;
     }
 
-    Transition process_model;
-    Sensor observation_model;
+    Transition transition;
+    Sensor sensor;
 
     ParticleFilter particle_filter;
     GaussianFilter gaussian_filter;
@@ -180,11 +180,11 @@ TEST_F(ParticleFilterTest, predict_and_update)
     for(size_t i = 0; i < N_steps; i++)
     {
         // simulate system
-        state = process_model.state(state,
+        state = transition.state(state,
                                     standard_gaussian.sample(),
                                     Input::Zero());
         Observation observation =
-                observation_model.observation(state, standard_gaussian.sample());
+                sensor.observation(state, standard_gaussian.sample());
 
         // predict
         particle_filter.predict(particle_belief, State::Zero(), particle_belief);

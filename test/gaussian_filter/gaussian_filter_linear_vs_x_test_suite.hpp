@@ -29,9 +29,9 @@
 #include <fl/filter/filter_interface.hpp>
 
 #include <fl/filter/gaussian/gaussian_filter_linear.hpp>
-#include <fl/model/process/linear_state_transition_model.hpp>
-#include <fl/model/observation/linear_gaussian_observation_model.hpp>
-#include <fl/model/observation/linear_decorrelated_gaussian_observation_model.hpp>
+#include <fl/model/transition/linear_transition.hpp>
+#include <fl/model/sensor/linear_gaussian_sensor.hpp>
+#include <fl/model/sensor/linear_decorrelated_gaussian_sensor.hpp>
 
 enum : signed int
 {
@@ -120,12 +120,12 @@ protected:
     void setup_models(
         KalmanFilter& kalman_filter, Filter& other_filter, ModelSetup setup)
     {
-        auto A = kalman_filter.process_model().create_dynamics_matrix();
-        auto B = kalman_filter.process_model().create_input_matrix();
-        auto Q = kalman_filter.process_model().create_noise_matrix();
+        auto A = kalman_filter.transition().create_dynamics_matrix();
+        auto B = kalman_filter.transition().create_input_matrix();
+        auto Q = kalman_filter.transition().create_noise_matrix();
 
-        auto H = kalman_filter.obsrv_model().create_sensor_matrix();
-        auto R = kalman_filter.obsrv_model().create_noise_matrix();
+        auto H = kalman_filter.sensor().create_sensor_matrix();
+        auto R = kalman_filter.sensor().create_noise_matrix();
 
         Q.setZero();
         R.setZero();
@@ -148,17 +148,17 @@ protected:
             break;
         }
 
-        kalman_filter.process_model().dynamics_matrix(A);
-        kalman_filter.process_model().input_matrix(B);
-        kalman_filter.process_model().noise_matrix(Q);
-        kalman_filter.obsrv_model().sensor_matrix(H);
-        kalman_filter.obsrv_model().noise_matrix(R);
+        kalman_filter.transition().dynamics_matrix(A);
+        kalman_filter.transition().input_matrix(B);
+        kalman_filter.transition().noise_matrix(Q);
+        kalman_filter.sensor().sensor_matrix(H);
+        kalman_filter.sensor().noise_matrix(R);
 
-        other_filter.process_model().dynamics_matrix(A);
-        other_filter.process_model().input_matrix(B);
-        other_filter.process_model().noise_matrix(Q);
-        other_filter.obsrv_model().sensor_matrix(H);
-        other_filter.obsrv_model().noise_matrix(R);
+        other_filter.transition().dynamics_matrix(A);
+        other_filter.transition().input_matrix(B);
+        other_filter.transition().noise_matrix(Q);
+        other_filter.sensor().sensor_matrix(H);
+        other_filter.sensor().noise_matrix(R);
     }
 
     State zero_state() { return State::Zero(StateDim); }

@@ -61,7 +61,7 @@ Coordinate Particle Filter | CPF | CoordinateParticleFilter<ProcessModel, Observ
 Rao-Blackwellized Particle Filter | RBPF | RaoBlackwellizedParticleFilter<ProcessModel, ObservationModel>
 
 
-\section available_process_models Available Process Models
+\section available_transitions Available Process Models
 
 Model Name | Type
 ---------- | ----
@@ -70,7 +70,7 @@ Damped Wiener Process Model | DampedWienerProcessModel<State>
 Integrated Damped Wiener Process Model | IntegratedDampedWienerProcessModel<State>
 
 
-\section available_observation_models Available Observation Models
+\section available_sensors Available Observation Models
 
 Model Name | Type
 ---------- | ----
@@ -97,8 +97,8 @@ Now we can define our filter
 #ifndef MY_LIB_MY_FILTER_CONTEXT_HPP
 #define MY_LIB_MY_FILTER_CONTEXT_HPP
 
-#include <fl/model/process/damped_wiener_process_model.hpp>
-#include <fl/model/observation/linear_observation_model.hpp>
+#include <fl/model/process/damped_wiener_transition.hpp>
+#include <fl/model/sensor/linear_sensor.hpp>
 #include <fl/filter/gaussian/unscented_transform.hpp>
 #include <fl/filter/gaussian/gaussian_filter.hpp>
     
