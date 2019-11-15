@@ -462,9 +462,7 @@ public:
         if(has_full_rank())
         {
             return log_normalizer() - 0.5
-                    * (vector - mean()).transpose()
-                    * precision()
-                    * (vector - mean());
+                    * (vector - mean()).dot(precision() * (vector - mean()));
         }
 
         return -std::numeric_limits<Real>::infinity();
